@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hisobni oʻchirish — UniDoue</title>
+<meta name="theme-color" content="#1129e2">
+<style>
+body{margin:0;background:#070b2e;color:#e8ebff;font:16px/1.7 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:520px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:30px;margin:10px 0 6px;color:#fff}p,li{color:#c9cffc}a{color:#9fb0ff}
+label{display:block;font-size:13px;color:#aab3ee;margin:14px 0 6px;font-weight:600}
+input[type=email],input[type=password]{width:100%;box-sizing:border-box;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:12px;font:500 16px system-ui}
+.c{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:14px}.c input{margin-top:5px;accent-color:#ff7b7b}
+button{margin-top:18px;width:100%;background:#ff5c5c;color:#fff;border:0;border-radius:999px;padding:14px;font:600 16px system-ui;cursor:pointer}button:disabled{opacity:.6}
+#m{margin-top:14px;font-weight:600;line-height:1.5}.e{color:#ffb4b4}.ok{color:#9ff0b6}
+</style>
+</head>
+<body><main>
+<a href="/">← UniDoue</a>
+<h1>Hisobni oʻchirish</h1>
+<p>Bu sahifa orqali hisobingizni va unga bogʻliq maʼlumotlarni butunlay oʻchirishingiz mumkin. Ilovani oʻrnatgan boʻlishingiz shart emas.</p>
+<p>Oʻchiriladi: hisob (email, ism, parol), profil, natijalar (GPA, SAT, IELTS), yoʻl xaritasi, arizalar va mentorga yuborgan soʻrovlaringiz. <b>Bu amalni qaytarib boʻlmaydi.</b></p>
+<form id="f" novalidate>
+<label for="e">Email</label><input type="email" id="e" autocomplete="email" maxlength="254">
+<label for="p">Parol</label><input type="password" id="p" autocomplete="current-password" maxlength="128">
+<label class="c"><input type="checkbox" id="ok"><span>Hisobim va barcha maʼlumotlarim butunlay oʻchirilishini tushunaman.</span></label>
+<button id="b" type="submit">Hisobni butunlay oʻchirish</button>
+<div id="m" role="status"></div>
+</form>
+<p style="margin-top:28px;font-size:14px">Parolni unutgan boʻlsangiz, Telegram orqali yozing: <a href="https://t.me/DOUEODUE">@DOUEODUE</a>. Maxfiylik: <a href="/privacy">maxfiylik siyosati</a>.</p>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const call=async(m,u,b)=>{const r=await fetch(u,{method:m,credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.error||'Xatolik yuz berdi');return j};
+$('#f').onsubmit=async ev=>{ev.preventDefault();const m=$('#m'),b=$('#b'),em=$('#e').value.trim().toLowerCase(),pw=$('#p').value;m.className='';
+ if(!em||!pw){m.className='e';m.textContent='Email va parolni kiriting.';return}
+ if(!$('#ok').checked){m.className='e';m.textContent='Tasdiqlash belgisini qoʻying.';return}
+ b.disabled=true;m.textContent='Kuting…';
+ try{await call('POST','/api/login',{email:em,password:pw});await call('DELETE','/api/account',{password:pw});
+  try{Object.keys(localStorage).filter(k=>k.indexOf('qabul:')===0).forEach(k=>localStorage.removeItem(k))}catch(e){}
+  m.className='ok';m.textContent='Hisobingiz va barcha maʼlumotlaringiz oʻchirildi.';$('#f').querySelectorAll('input,button').forEach(x=>x.disabled=true)}
+ catch(x){m.className='e';m.textContent=x.message;b.disabled=false}};
+</script>
+</body></html>

@@ -250,6 +250,7 @@ async function api(req, res, pathname) {
     const b = await readJson(req);
     if (!(await checkPw(typeof b.password === 'string' ? b.password.slice(0, 128) : '', u.hash))) return fail(res, 401, 'Parol notoʻgʻri.');
     for (const [k, s] of Object.entries(db.sessions)) if (s.uid === u.id) delete db.sessions[k];
+    db.requests = db.requests.filter(r => r.uid !== u.id);
     emailIdx.delete(u.email); delete db.users[u.id];
     setSessionCookie(req, res, '', 0);
     save();
@@ -291,6 +292,29 @@ async function notifyTelegram(r) {
   } catch (e) { console.error('Telegram xatosi:', e.message); }
 }
 
+
+/* ---------------- statik fayllar (faqat ruxsat etilgan roʻyxat) ---------------- */
+const PAGES = { '/': 'index.html', '/index.html': 'index.html', '/privacy': 'privacy.html', '/delete-account': 'delete-account.html' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.png': 'image/png',
+  '.webmanifest': 'application/manifest+json; charset=utf-8', '.json': 'application/json; charset=utf-8' };
+function serveStatic(req, res, pathname) {
+  let rel = PAGES[pathname];
+  if (!rel) {
+    try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch (e) { return false; }
+    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
+    if (!ok) return false;
+  }
+  const file = path.resolve(PUBLIC_DIR, rel);
+  if (!file.startsWith(PUBLIC_DIR + path.sep)) return false;
+  let data;
+  try { if (!fs.statSync(file).isFile()) return false; data = fs.readFileSync(file); } catch (e) { return false; }
+  res.setHeader('Content-Type', MIME[path.extname(file)] || 'application/octet-stream');
+  res.setHeader('Cache-Control', rel.startsWith('icons/') ? 'public, max-age=86400' : 'no-cache');
+  if (rel === 'sw.js') res.setHeader('Service-Worker-Allowed', '/');
+  res.end(req.method === 'HEAD' ? undefined : data);
+  return true;
+}
+
 /* ---------------- server ---------------- */
 const server = http.createServer(async (req, res) => {
   secHeaders(res);
@@ -300,12 +324,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') { res.statusCode = 405; return res.end(); }
     if (pathname === '/healthz') { res.setHeader('Content-Type', 'text/plain'); return res.end('ok'); }
     if (pathname === '/favicon.ico') { res.statusCode = 204; return res.end(); }
-    if (pathname === '/' || pathname === '/index.html') {
-      const html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'));
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 'no-cache');
-      return res.end(req.method === 'HEAD' ? undefined : html);
-    }
+    if (serveStatic(req, res, pathname)) return;
     res.statusCode = 404; res.setHeader('Content-Type', 'text/plain; charset=utf-8'); res.end('Topilmadi');
   } catch (e) {
     if (res.headersSent) return res.end();

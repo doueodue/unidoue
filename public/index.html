@@ -5,6 +5,10 @@
 <script>(()=>{try{const S=Storage.prototype,sI=S.setItem,rI=S.removeItem,ok=(t,k)=>t===window.localStorage&&typeof k==='string'&&k.indexOf('qabul:')===0&&k!=='qabul:sync'&&k!=='qabul:lang';S.setItem=function(k,v){sI.call(this,k,v);if(ok(this,k)&&window.__lsHook)window.__lsHook()};S.removeItem=function(k){rI.call(this,k);if(ok(this,k)&&window.__lsHook)window.__lsHook()}}catch(e){}})()</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>UniDoue — universitetga yoʻl</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#1129e2">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 :root{--blue:#1129e2;--ink:#fff;--ink70:rgba(255,255,255,.82);--glass:rgba(255,255,255,.1);color-scheme:dark;box-sizing:border-box}
@@ -46,7 +50,7 @@ select option{color:#000}
 .step span{flex:1;font-size:15px;line-height:1.4}.step em{font-style:normal;font-size:12px;font-weight:600;color:var(--ink70);text-align:right;white-space:nowrap}
 .step.done span{text-decoration:line-through;opacity:.55}.step.past em{color:#ff9a9a}
 .prog{font-size:14px;color:var(--ink70);margin-bottom:14px}
-footer{padding:30px max(16px,7vw) 70px;color:var(--ink70);font-size:13px;line-height:1.6}
+footer a{color:#fff}footer{padding:30px max(16px,7vw) 70px;color:var(--ink70);font-size:13px;line-height:1.6}
 #hint{position:fixed;right:max(12px,env(safe-area-inset-right,0));bottom:max(10px,env(safe-area-inset-bottom,0));font:11px/1.5 Arial;color:rgba(255,255,255,.65);z-index:60;text-align:right;pointer-events:none}
 .tg{font-size:11px;background:var(--glass);border-radius:99px;padding:2px 8px;color:#ffe08a;font-weight:500}
 input[type=text],input[type=date]{width:100%;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:12px;font:500 16px Inter,system-ui}
@@ -129,7 +133,7 @@ input[type=email],input[type=password]{width:100%;background:rgba(255,255,255,.1
 <p id="aerr" role="alert"></p>
 <button class="btn" id="asub" type="submit" style="width:100%">Kirish</button>
 <p class="info" id="areg" hidden style="margin-bottom:0">Hisob ochish bilan profil va arizalaringiz serverda saqlanishiga rozilik bildirasiz.</p>
-</form></div>
+</form><p class="info" style="margin:12px 0 0;font-size:12px"><a href="/privacy" style="color:#fff">Maxfiylik siyosati</a></p></div>
 <div id="profBody" hidden>
 <div class="card" id="profileStatus" style="margin-bottom:16px"><b id="profileStatusTitle">Profil hali yaratilmagan</b><p class="info" id="profileStatusText" style="margin:6px 0 0">Maʼlumotlaringizni kiriting va “Profil yaratish” tugmasini bosing. Profilingiz akkauntingizda saqlanadi.</p></div>
 <div class="grid"><div class="card"><h3>Shaxsiy maʼlumotlar</h3>
@@ -192,7 +196,7 @@ input[type=email],input[type=password]{width:100%;background:rgba(255,255,255,.1
 <details class="q"><summary>Xalqaro talaba sifatida imkoniyatim qanday?</summary><p>Koʻrsatilgan qabul darajalari barcha arizachilar boʻyicha. Xalqaro talabalar uchun u odatda past, moliyaviy yordam esa koʻp universitetlarda cheklangan — bu haqda mentor bilan alohida gaplashing.</p></details>
 <details class="q"><summary>Esseni siz yozib berasizlarmi?</summary><p>Yoʻq. Esseni oʻzingiz yozasiz, mentor faqat fikr bildiradi. Arizani ham oʻzingiz topshirasiz.</p></details>
 </section>
-<footer>Moslik balli qabul ehtimoli emas va hech narsani kafolatlamaydi: qabul esse, tavsiyanoma, faolliklar, raqobat va boshqa omillarga ham bogʻliq. Universitet maʼlumotlari taxminiy va rasmiy saytda tasdiqlanmagan — muddat va talablarni albatta rasmiy qabul sahifasidan tekshiring.</footer>
+<footer>Moslik balli qabul ehtimoli emas va hech narsani kafolatlamaydi: qabul esse, tavsiyanoma, faolliklar, raqobat va boshqa omillarga ham bogʻliq. Universitet maʼlumotlari taxminiy va rasmiy saytda tasdiqlanmagan — muddat va talablarni albatta rasmiy qabul sahifasidan tekshiring.<br><a href="/privacy">Maxfiylik siyosati</a> · <a href="/delete-account">Hisobni oʻchirish</a></footer>
 
 
 <div class="aur"><i></i><i></i><i></i></div>
@@ -538,5 +542,6 @@ window.__req=d=>{fetch('/api/request',{method:'POST',credentials:'same-origin',h
 addEventListener('pagehide',()=>{if(user&&gs().dirty)fetch('/api/data',{method:'PUT',keepalive:true,credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:dump()})}).catch(()=>{})});
 (async()=>{try{const r=await api('/api/me');if(r.user&&adopt(r))return}catch(e){q('#aerr').textContent=e.message}ui()})();
 })()</script>
+<script>if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))</script>
 </body>
 </html>
