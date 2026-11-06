@@ -2,7 +2,7 @@ services:
   - type: web
     name: unidoue
     runtime: node
-    plan: starter          # doimiy disk (hisoblar saqlanishi) uchun pullik reja kerak (~$7/oy)
+    plan: free             # BEPUL: sinov uchun. Server qayta ishga tushganda hisoblar oʻchadi (doimiy disk yoʻq).
     buildCommand: "echo no build"
     startCommand: node server.js
     healthCheckPath: /healthz
@@ -11,16 +11,12 @@ services:
         value: "1"
       - key: TRUST_PROXY
         value: "1"
-      - key: DATA_DIR
-        value: /data
       - key: ADMIN_TOKEN
         generateValue: true
-      # Mentor soʻrovlari Telegramga kelishi uchun (ixtiyoriy):
-      # - key: TG_BOT_TOKEN
-      #   sync: false
-      # - key: TG_CHAT_ID
-      #   sync: false
-    disk:
-      name: unidoue-data
-      mountPath: /data
-      sizeGB: 1
+      # Doimiy saqlash kerak boʻlganda: plan: starter va quyidagini qoʻshing
+      #   - key: DATA_DIR
+      #     value: /data
+      # disk:
+      #   name: unidoue-data
+      #   mountPath: /data
+      #   sizeGB: 1
