@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "uz.unidoue.app",
+        "sha256_cert_fingerprints": ["CD:9C:58:FF:CB:9E:42:FC:0D:C7:EC:E9:94:54:96:19:7E:F5:DA:A8:7C:BD:A5:54:7E:EF:2C:DF:18:5B:C9:F9"]
+      }
+    }]
