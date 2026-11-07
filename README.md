@@ -1,33 +1,42 @@
-# UniDoue
+# UniDoue 2.0
 
-Universitetga yoʻl — real ilova: email + parol bilan hisob, serverda saqlanadigan profil/arizalar.
+Xorijda oʻqish platformasi: universitet qidiruvi (Safety/Target/Reach), qabul bashorati, solishtirish, arizalar kuzatuvchisi, esse yordamchisi, AI mentor, tariflar.
 
-## Ishga tushirish (kompyuterda)
+- `/` — eski sayt (barcha eski funksiyalar saqlangan)
+- `/app` — yangi platforma (hisob, dashboard, tariflar, AI vositalar)
 
+## Ishga tushirish
 ```bash
-node server.js          # Node 18+ kerak, paket oʻrnatish shart emas
-# http://localhost:3000
+node server.js     # Node 18+, paket oʻrnatish shart emas → http://localhost:3000
+node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 ```
 
-## Internetga chiqarish (production)
-
-Server oddiy Node jarayoni, shuning uchun Render, Railway, Fly.io yoki oddiy VPS (Ubuntu + nginx) da ishlaydi.
-
-Muhim sozlamalar (environment variables):
-
-| Oʻzgaruvchi | Nima uchun |
+## Sozlamalar (environment variables)
+| Oʻzgaruvchi | Vazifasi |
 |---|---|
-| `COOKIE_SECURE=1` | HTTPS da cookie xavfsiz boʻlishi uchun (**majburiy**) |
-| `TRUST_PROXY=1` | Render/Railway/nginx ortida haqiqiy IP aniqlash uchun |
-| `DATA_DIR=/data` | Maʼlumotlar papkasi. **Doimiy disk (volume) ulang**, aks holda qayta ishga tushganda hisoblar yoʻqoladi |
-| `TG_BOT_TOKEN`, `TG_CHAT_ID` | Mentor soʻrovlari Telegramga kelishi uchun (ixtiyoriy) |
-| `ADMIN_TOKEN` | `GET /api/admin/requests` (Bearer token) orqali soʻrovlarni koʻrish |
+| `COOKIE_SECURE=1`, `TRUST_PROXY=1` | HTTPS va proksi ortida (production uchun **majburiy**) |
+| `DATA_DIR=/data` | Maʼlumotlar papkasi. Doimiy disk ulang, aks holda hisoblar yoʻqoladi |
+| `ADMIN_TOKEN` | Admin API: soʻrovlarni koʻrish, tarif berish |
+| `ANTHROPIC_API_KEY` | AI mentor, esse tahlili, strategiya, hisobot. **Kalitsiz AI "ulanmagan" holatida turadi** |
+| `AI_MODEL` | AI modeli (standart: `claude-sonnet-5-5`) |
+| `RESEND_API_KEY`, `MAIL_FROM`, `APP_URL` | Parolni tiklash xati. Kalitsiz "ulanmagan" xabari chiqadi |
+| `TG_BOT_TOKEN`, `TG_CHAT_ID` | Mentor va tarif soʻrovlari Telegramga kelishi uchun |
 
-Maʼlumotlar `DATA_DIR/db.json` da (parollar scrypt bilan hashlangan). Zaxira uchun shu faylni muntazam nusxalang.
+## Tarif berish (toʻlov ulanmaguncha)
+```bash
+curl -X POST https://SAYT/api/admin/plan -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" -d '{"email":"user@gmail.com","plan":"plus","days":30}'
+```
+Foydalanuvchi soʻrovlari: `GET /api/admin/requests`. Toʻlov provayderi ulanganda shu endpoint webhookdan chaqiriladi.
 
-## Hozir yoʻq (keyingi qadamlar)
+## Stipendiyalar bazasi
+`DATA_DIR/scholarships.json` (yoki `catalog/scholarships.json`) fayli. Faqat **rasmiy manbadan tekshirilgan** yozuvlar qoʻshing:
+```json
+{"updated":"2026-11-07","items":[{"name":"…","provider":"…","countries":["AQSh"],"funding":"full","amount":"…","deadline":"2027-01-15","eligibility":"…","requirements":"…","url":"https://…","verifiedAt":"2026-11-07"}]}
+```
 
-- Email tasdiqlash va "parolni unutdim" — email yuboruvchi xizmat (Resend, Brevo, SMTP) kerak.
-- "Google bilan kirish" — Google Cloud da OAuth client yaratish kerak.
-- 1000+ foydalanuvchidan keyin `db.json` oʻrniga PostgreSQL/SQLite.
-- Universitet maʼlumotlari hali namuna; rasmiy manbadan tekshirib chiqing.
+## Universitet maʼlumotlari
+`public/data/universities.json`: har bir koʻrsatkichda `satV`, `accV`, `rdV` bayroqlari bor (`true` = rasmiy manbadan tekshirilgan). Hozir 9 ta universitetning SAT oraligʻi va 10 tasining muddati tekshirilgan, qolganlari "taxminiy" deb belgilanadi.
+
+## Arxitektura
+Server: bitta `server.js` (JSON baza, scrypt, HttpOnly cookie, tarif tekshiruvi serverda). Frontend: `public/app.html` + ES modullar (`public/js/`), tashqi kutubxonasiz. Hisoblash mantigʻi `public/js/scoring.js` da, server ham, brauzer ham ishlatadi.
