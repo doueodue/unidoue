@@ -10,15 +10,19 @@ for f in sorted(glob.glob(ROOT + 'data/verified/out*.json')):
         old = ver.get(n)
         if not old or len([k for k in v if v.get(k)]) >= len([k for k in old if old.get(k)]): ver[n] = v
 
+def fresh(y):  # maʼlumot yili 2024 yoki yangiroq boʻlishi shart
+    ys = [int(x) for x in re.findall(r'20\d\d', str(y or ''))]
+    return bool(ys) and max(ys) >= 2024
+
 def good_date(d): return bool(d) and re.fullmatch(r'20\d\d-\d\d-\d\d', d) and '2026-08-01' <= d <= '2027-09-30'
 def slug(n): return re.sub(r'[^a-z0-9]+', '-', n.lower()).strip('-')
 out, rejected = [], []
 for n, b in base.items():
     v = ver.get(n) or {}
     sat = v.get('sat') or {}; acc = v.get('accept') or {}; ie = dict(v.get('ielts') or {}); dl = v.get('deadline') or {}; gp = v.get('gpa') or {}
-    satV = bool(sat.get('p25') and sat.get('p75') and 400 <= sat['p25'] < sat['p75'] <= 1600)
+    satV = bool(sat.get('p25') and sat.get('p75') and 400 <= sat['p25'] < sat['p75'] <= 1600 and fresh(sat.get('year')))
     if sat.get('p25') and not satV: rejected.append((n, 'sat', sat))
-    accV = isinstance(acc.get('value'), (int, float)) and 0 < acc['value'] <= 1
+    accV = isinstance(acc.get('value'), (int, float)) and 0 < acc['value'] <= 1 and fresh(acc.get('year'))
     if acc.get('value') is not None and not accV: rejected.append((n, 'accept', acc))
     if n in SKIP_IELTS: ie = {}
     if ie.get('value') is not None and not (4 <= ie['value'] <= 9): rejected.append((n, 'ielts', ie)); ie = {}
