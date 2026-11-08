@@ -60,18 +60,18 @@ export async function tracker(el) {
   const cat = await catalog(); let apps = ls.get('qabul:apps', []); const lim = S.account.limits.apps;
   const draw = () => {
     el.innerHTML = `<div class="page-h"><div><h2>Arizalarim</h2><p>Muddatlar, hujjatlar va holatni bir joyda kuzating.</p></div><span class="badge ${apps.length >= lim ? 'warn' : ''}">${apps.length} / ${lim >= 1000 ? '∞' : lim} ariza</span></div>
-    <div class="card" style="margin-bottom:18px"><div class="row" style="align-items:end"><div><label class="f" for="t-u">Universitet</label><select id="t-u">${cat.map(c => `<option value="${esc(c.id)}">${esc(c.n)}</option>`).join('')}</select></div><div><label class="f" for="t-d">Muddat</label><input id="t-d" type="date"></div><div><button class="btn primary" id="t-add" style="width:100%">Qo‘shish</button></div></div><div class="msg" id="t-m"></div></div>
+    <div class="card" style="margin-bottom:18px"><div class="row" style="align-items:end"><div><label class="f" for="t-u">Universitet</label><select id="t-u">${cat.map(c => `<option value="${esc(c.id)}">${esc(c.n)}</option>`).join('')}</select></div><div><label class="f" for="t-d">Muddat</label><input id="t-d" type="date"></div><div><button class="btn primary" id="t-add" style="width:100%">Qo‘shish</button></div></div><div class="field" style="margin:12px 0 0"><label class="f" for="t-cn">Ro‘yxatda yo‘q universitet? Nomini o‘zingiz yozing (ixtiyoriy)</label><input id="t-cn" type="text" maxlength="80" placeholder="Masalan: University of Toronto"></div><div class="msg" id="t-m"></div></div>
     <div class="grid g2">${apps.length ? apps.map((x, i) => { const d = daysLeft(x.d), done = x.docs.filter(Boolean).length; return `<div class="card"><div style="display:flex;justify-content:space-between;gap:10px"><h3>${esc(x.n)}</h3><span class="badge ${d < 0 ? 'mute' : d <= 14 ? 'bad' : d <= 45 ? 'warn' : ''}">${d < 0 ? 'muddat o‘tgan' : d + ' kun'}</span></div>
       <div class="row" style="margin:12px 0"><div><label class="f">Muddat</label><input type="date" data-i="${i}" data-date value="${esc(x.d)}"></div><div><label class="f">Holat</label><select data-i="${i}" data-st>${ST.map((s, j) => `<option value="${j}" ${+x.s === j ? 'selected' : ''}>${s}</option>`).join('')}</select></div></div>
       <div class="bar" style="margin-bottom:10px"><i style="width:${pct(done, DOCS.length)}%"></i></div>${DOCS.map((dn, j) => `<label style="display:flex;gap:9px;padding:5px 0;cursor:pointer"><input type="checkbox" data-i="${i}" data-doc="${j}" ${x.docs[j] ? 'checked' : ''}> ${dn}</label>`).join('')}
       <button class="btn danger sm" style="margin-top:12px" data-i="${i}" data-del>O‘chirish</button></div>`; }).join('') : '<div class="card s12 empty" style="grid-column:1/-1"><b>Hali ariza qo‘shilmagan</b>Yuqoridan universitet tanlang.</div>'}</div>`;
     const sel = $('#t-u', el), dt = $('#t-d', el), fillD = () => { const c = cat.find(k => k.id === sel.value); dt.value = c ? c.rd : ''; }; sel.onchange = fillD; fillD();
     $('#t-add', el).onclick = () => {
-      const c = cat.find(k => k.id === sel.value), m = $('#t-m', el); m.className = 'msg err';
+      const cn = $('#t-cn', el).value.trim().replace(/[<>]/g, ''), c = cn ? { n: cn, rd: dt.value, rdV: false, custom: true } : cat.find(k => k.id === sel.value), m = $('#t-m', el); m.className = 'msg err';
       if (apps.length >= lim) { upsell('tracker', `${S.account.plan === 'free' ? 'Free' : 'Joriy'} tarifda ${lim} tagacha ariza saqlanadi.`); return; }
       if (apps.some(x => x.n === c.n)) { m.textContent = c.n + ' allaqachon ro‘yxatda.'; return; }
       if (!dt.value) { m.textContent = 'Muddatni kiriting.'; return; }
-      apps.push({ n: c.n, d: dt.value, s: 0, docs: DOCS.map(() => false) }); ls.set('qabul:apps', apps); draw();
+      apps.push({ n: c.n, d: dt.value, s: 0, docs: DOCS.map(() => false), ...(c.custom ? { custom: true } : {}) }); ls.set('qabul:apps', apps); draw();
       if (!c.rdV) toast('Muddat tekshirilmagan: rasmiy saytdan albatta tasdiqlang.');
     };
     $$('[data-date]', el).forEach(n => (n.onchange = () => { if (n.value) { apps[+n.dataset.i].d = n.value; ls.set('qabul:apps', apps); draw(); } }));
@@ -142,4 +142,39 @@ export async function profile(el) {
     const pw = modal.data;
     try { await api('/api/account', 'DELETE', { password: pw || '' }); wipeLocal(); location.hash = ''; location.reload(); } catch (e) { toast(e.message, 'err'); }
   };
+}
+
+/* ================= YO'L XARITASI ================= */
+const stepsFor = (c, Q) => {
+  const S = [], add = (o, t) => S.push({ o, t }), sat = Q.sat ? +Q.sat : null, ie = Q.ielts ? +Q.ielts : null;
+  add(150, 'Universitet saytida talablar va hujjatlar ro‘yxatini o‘qib chiqing, ariza akkauntini oching');
+  if (sat != null) add(120, c && sat < c.sat[0] ? 'SAT natijasini qayta topshirish rejasini tuzing' : 'SAT natijalarini universitet talabiga ko‘ra yuboring');
+  if (ie != null && c && c.ielts != null && ie < c.ielts) add(110, 'IELTS natijasini universitetning rasmiy talabiga moslang');
+  add(90, 'Ikki o‘qituvchidan tavsiya xati (recommendation) so‘rang');
+  add(75, 'Asosiy esse (Personal Statement) birinchi variantini yozing');
+  add(60, +Q.ex < 2 ? 'Yangi loyiha yoki olimpiadani boshlang va faolliklar ro‘yxatini tuzing' : 'Faolliklar ro‘yxatini (Activities) yutuqlar bilan tayyorlang');
+  add(50, 'Grant va stipendiya imkoniyatlarini rasmiy saytdan o‘rganing');
+  add(45, 'Moliyaviy yordam (financial aid) hujjatlarini tayyorlang');
+  add(30, 'Esseni 2 kishiga tekshirtirib, oxirgi tahrir qiling');
+  add(21, 'Attestat va transkriptni tarjima qildiring, tasdiqlatib oling');
+  add(7, 'Barcha bo‘limlarni oxirgi marta tekshiring');
+  add(0, 'Ariza topshirish muddati!');
+  return S;
+};
+export async function roadmap(el) {
+  const cat = await catalog(), apps = ls.get('qabul:apps', []), { Q } = getProfile();
+  el.innerHTML = `<div class="page-h"><div><h2>Yo‘l <em>xaritasi</em></h2><p>Ariza muddatidan orqaga hisoblangan qadamlar. Belgilaringiz hisobingizda saqlanadi.</p></div></div>`;
+  if (!apps.length) { el.insertAdjacentHTML('beforeend', '<div class="card empty"><b>Avval ariza qo‘shing</b>Yo‘l xaritasi arizalaringiz muddatiga qarab tuziladi.<br><a class="btn primary" style="margin-top:14px" href="#/tracker">Arizalarga o‘tish</a></div>'); return; }
+  el.insertAdjacentHTML('beforeend', `<div class="card" style="margin-bottom:16px"><label class="f" for="r-u">Universitet</label><select id="r-u">${apps.map((a, i) => `<option value="${i}">${esc(a.n)}</option>`).join('')}</select></div><div id="r-o"></div>`);
+  const out = $('#r-o', el), draw = () => {
+    const a = apps[+$('#r-u', el).value], c = cat.find(x => x.n === a.n), steps = stepsFor(c, Q), key = 'qabul:s:' + a.n, saved = ls.get(key, {}), dd = new Date(a.d + 'T12:00:00');
+    const done = () => steps.filter((s, k) => saved[k]).length;
+    out.innerHTML = `<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3>${esc(a.n)}</h3><span class="badge">${fmtDate(a.d)}${c && !c.rdV ? ' · muddat taxminiy' : ''}</span></div><p class="sub" id="r-p"></p><div class="bar" style="margin-bottom:16px"><i id="r-b"></i></div>
+    ${steps.map((s, k) => { const d = new Date(dd - s.o * 864e5), left = Math.ceil((d - Date.now()) / 864e5); return `<label class="li" style="cursor:pointer"><input type="checkbox" data-k="${k}" ${saved[k] ? 'checked' : ''}><span class="grow" ${saved[k] ? 'style="text-decoration:line-through;color:var(--muted)"' : ''}>${esc(s.t)}</span><span class="badge ${left < 0 && !saved[k] ? 'bad' : 'mute'}">${d.getDate()}-${['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avg', 'sen', 'okt', 'noy', 'dek'][d.getMonth()]}</span></label>`; }).join('')}
+    <button class="btn sm" id="r-cp" style="margin-top:14px">Rejani nusxalash</button><span class="hint" id="r-cm"></span></div>`;
+    const upd = () => { $('#r-p', out).textContent = `${done()} / ${steps.length} qadam bajarildi`; $('#r-b', out).style.width = pct(done(), steps.length) + '%'; }; upd();
+    $$('[data-k]', out).forEach(i => (i.onchange = () => { saved[i.dataset.k] = i.checked; ls.set(key, saved); draw(); }));
+    $('#r-cp', out).onclick = () => { const t = `${a.n} — yo‘l xaritasi\n` + steps.map((s, k) => `${saved[k] ? '[x]' : '[ ]'} ${fmtDate(new Date(dd - s.o * 864e5).toISOString().slice(0, 10))} — ${s.t}`).join('\n'); navigator.clipboard.writeText(t).then(() => ($('#r-cm', out).textContent = ' Nusxalandi'), () => ($('#r-cm', out).textContent = ' Nusxalab bo‘lmadi')); };
+  };
+  $('#r-u', el).onchange = draw; draw();
 }

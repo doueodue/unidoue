@@ -7,6 +7,7 @@ const ROUTES = [
   { id: 'predictor', t: 'Qabul bashorati', i: 'chart', v: () => import('./views2.js').then(m => m.predictor) },
   { id: 'compare', t: 'Solishtirish', i: 'cmp', v: () => import('./views2.js').then(m => m.compare) },
   { id: 'tracker', t: 'Arizalarim', i: 'list', sec: 'Ish joyi', v: () => import('./views1.js').then(m => m.tracker) },
+  { id: 'roadmap', t: 'Yo‘l xaritasi', i: 'list', v: () => import('./views1.js').then(m => m.roadmap) },
   { id: 'essay', t: 'Esse yordamchisi', i: 'pen', v: () => import('./views3.js').then(m => m.essay) },
   { id: 'mentor', t: 'AI mentor', i: 'bot', v: () => import('./views3.js').then(m => m.mentor) },
   { id: 'pricing', t: 'Tariflar', i: 'card', sec: 'Hisob', v: () => import('./views1.js').then(m => m.pricing) },
