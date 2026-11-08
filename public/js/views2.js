@@ -9,7 +9,7 @@ const vb = (ok, t = 'tekshirilgan') => `<span class="badge ${ok ? 'ok' : 'mute'}
 
 /* ================= UNIVERSITET QIDIRUVI ================= */
 export async function finder(el) {
-  if (!hasInput()) { el.innerHTML = `<div class="page-h"><div><h2>Universitet <em>qidiruvi</em></h2></div></div>` + needProfile(); return; }
+  if (!hasInput()) return browse(el);
   const cat = await catalog(), verifiedN = cat.filter(c => c.satV).length; let q = '', tier = '', vOnly = false, timer = 0, seq = 0;
   el.innerHTML = `<div class="page-h"><div><h2>Universitet <em>qidiruvi</em></h2><p>Profilingizga mos universitetlar Safety, Target va Reach bo‘yicha guruhlanadi.</p></div></div>
   <div class="notice info" style="margin-bottom:16px">${svg('info')}<div>Hozir bazada <b>${cat.length}</b> ta AQSh universiteti bor, shundan <b>${verifiedN}</b> tasining ko‘rsatkichlari rasmiy manbadan tekshirilgan. Qolganlari “taxminiy” deb belgilangan. Mamlakat, o‘qish narxi va reyting bo‘yicha filtrlar rasmiy ma’lumot yig‘ilgach qo‘shiladi.</div></div>
@@ -111,4 +111,18 @@ export async function compare(el) {
     } catch (e) { out.innerHTML = errorBox(e.message); }
   };
   draw();
+}
+
+/** Natija kiritilmagan bo'lsa: oddiy ro'yxat (moslik balisiz). */
+async function browse(el) {
+  const cat = await catalog();
+  el.innerHTML = `<div class="page-h"><div><h2>Universitet <em>qidiruvi</em></h2><p>Barcha universitetlar ro‘yxati. Moslik bali va Safety / Target / Reach darajasini ko‘rish uchun natijalaringizni kiriting.</p></div><a class="btn primary" href="#/profile">Natijalarni kiritish</a></div>
+  <div class="card" style="margin-bottom:16px"><label class="f" for="b-q">Qidirish</label><input id="b-q" type="text" maxlength="60" placeholder="Universitet nomi"></div><div id="b-r"></div>`;
+  const out = $('#b-r', el), draw = q => {
+    const rows = cat.filter(c => c.n.toLowerCase().includes(q.toLowerCase()));
+    out.innerHTML = rows.length ? `<div class="grid g2">${rows.map(c => `<article class="card hover"><h3>${esc(c.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${vb(c.satV, 'SAT tekshirilgan')}<span class="badge mute">SAT ${c.sat[0]}–${c.sat[1]}</span><span class="badge mute">Muddat: ${fmtDate(c.rd)}${c.rdV ? '' : ' (taxminiy)'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-add="${esc(c.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(c.id)}">Solishtirish</button></div></article>`).join('')}</div>` : '<div class="card empty"><b>Hech narsa topilmadi</b></div>';
+    $$('[data-add]', out).forEach(b => (b.onclick = () => addApp(cat.find(c => c.id === b.dataset.add))));
+    $$('[data-cmp]', out).forEach(b => (b.onclick = () => addCmp(b.dataset.cmp)));
+  };
+  let t = 0; $('#b-q', el).oninput = e => { clearTimeout(t); t = setTimeout(() => draw(e.target.value.trim()), 200); }; draw('');
 }
