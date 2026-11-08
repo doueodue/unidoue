@@ -1,11 +1,11 @@
-"""public/data/universities.json ni qayta quradi: namuna qiymatlar + data/verified/*.json (agentlar rasmiy saytdan oʻqigan)."""
+"""public/data/universities.json ni qayta quradi: namuna qiymatlar + catalog/verified/*.json (agentlar rasmiy saytdan oʻqigan)."""
 import re, json, glob, sys
 ROOT = '/home/claude/unidoue/'
 src = open(ROOT + 'tools/sample_base.json', encoding='utf-8').read()
 base = json.loads(src)  # {nom: {s:[a,b], g, ie, d}}
 SKIP_IELTS = {'Brown University'}  # sayt 8.0 minimal deydi: gʻalati, qayta tekshirilguncha olinmaydi
 ver = {}
-for f in sorted(glob.glob(ROOT + 'data/verified/out*.json')):
+for f in sorted(glob.glob(ROOT + 'catalog/verified/out*.json')):
     for n, v in json.load(open(f, encoding='utf-8')).items():
         old = ver.get(n)
         if not old or len([k for k in v if v.get(k)]) >= len([k for k in old if old.get(k)]): ver[n] = v

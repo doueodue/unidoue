@@ -1,0 +1,305 @@
+{
+ "Villanova University": {
+  "domain": "villanova.edu",
+  "sat": {
+   "p25": 1420,
+   "p75": 1490,
+   "year": "2025-26",
+   "url": "https://www.villanova.edu/content/dam/villanova/provost/decision_support/CDS-2025-2026-v3.pdf"
+  },
+  "accept": {
+   "value": 0.2814,
+   "year": "2025-26",
+   "url": "https://www.villanova.edu/content/dam/villanova/provost/decision_support/CDS-2025-2026-v3.pdf"
+  },
+  "gpa": {
+   "value": 3.87,
+   "year": "2025-26",
+   "url": "https://www.villanova.edu/content/dam/villanova/provost/decision_support/CDS-2025-2026-v3.pdf"
+  },
+  "ielts": null,
+  "deadline": {
+   "rd": "2027-01-15",
+   "early": [
+    {
+     "plan": "EA",
+     "date": "2026-11-01"
+    },
+    {
+     "plan": "ED I",
+     "date": "2026-11-01"
+    },
+    {
+     "plan": "ED II",
+     "date": "2027-01-15"
+    }
+   ],
+   "cycle": "Fall 2027",
+   "url": "https://www.villanova.edu/university/undergraduate-admission/applying-to-villanova/dates-and-deadlines.html"
+  },
+  "status": "partial",
+  "notes": "Deadlines year not labeled; no international-specific dates. English test required, no IELTS score stated on first-year page. SAT 7272/25841 admitted."
+ },
+ "Tulane University": {
+  "domain": "tulane.edu",
+  "sat": {
+   "p25": 1430,
+   "p75": 1500,
+   "year": "Class of 2029 (fall 2025 entry)",
+   "url": "https://admission.tulane.edu/apply/getting-into-tulane/new-class-profile"
+  },
+  "accept": null,
+  "gpa": null,
+  "ielts": {
+   "value": 6.5,
+   "kind": "recommended",
+   "url": "https://admission.tulane.edu/international"
+  },
+  "deadline": {
+   "rd": "2027-01-15",
+   "early": [
+    {
+     "plan": "ED I",
+     "date": "2026-11-01"
+    },
+    {
+     "plan": "EA",
+     "date": "2026-11-10"
+    },
+    {
+     "plan": "ED II",
+     "date": "2027-01-15"
+    }
+   ],
+   "cycle": "Fall 2027",
+   "url": "https://admission.tulane.edu/apply/deadlines-forms"
+  },
+  "status": "partial",
+  "notes": "Deadlines year not labeled. IELTS: 'typically 6.5+' not a hard minimum. Acceptance only approximate (>32,000 apps, ~4,700 admits) so null; latest CDS 2025-26 on box link not opened."
+ },
+ "Southern Methodist University": {
+  "domain": "smu.edu",
+  "sat": {
+   "p25": 1360,
+   "p75": 1470,
+   "year": "2025-26",
+   "url": "https://www.smu.edu/-/media/site/ir/commondatasets/2025/cds-2025-26-part-c-first-time-freshman-final.pdf"
+  },
+  "accept": {
+   "value": 0.4764,
+   "year": "2025-26",
+   "url": "https://www.smu.edu/-/media/site/ir/commondatasets/2025/cds-2025-26-part-c-first-time-freshman-final.pdf"
+  },
+  "gpa": {
+   "value": 3.69,
+   "year": "2025-26",
+   "url": "https://www.smu.edu/-/media/site/ir/commondatasets/2025/cds-2025-26-part-c-first-time-freshman-final.pdf"
+  },
+  "ielts": null,
+  "deadline": {
+   "rd": "2027-01-15",
+   "early": [
+    {
+     "plan": "EA",
+     "date": "2026-11-04"
+    },
+    {
+     "plan": "ED I",
+     "date": "2026-11-04"
+    },
+    {
+     "plan": "ED II",
+     "date": "2027-01-15"
+    }
+   ],
+   "cycle": "Fall 2027",
+   "url": "https://www.smu.edu/admission/apply/undergraduate-admission/process"
+  },
+  "status": "partial",
+  "notes": "Entry year not labeled on page; Nov 4 extended from Nov 1. IELTS 6.5 appears on requirements page but under mislabeled 'ACT' row, so left null. Accept=11459/24053."
+ },
+ "Fordham University": {
+  "domain": "fordham.edu",
+  "sat": {
+   "p25": 1360,
+   "p75": 1490,
+   "year": "Class of 2026 (Fall 2022 apps), admitted students; stale",
+   "url": "https://www.fordham.edu/undergraduate-admission/why-fordham/admission-facts/"
+  },
+  "accept": {
+   "value": 0.541,
+   "year": "Fall 2022 (stale)",
+   "url": "https://www.fordham.edu/undergraduate-admission/why-fordham/admission-facts/"
+  },
+  "gpa": null,
+  "ielts": null,
+  "deadline": {
+   "rd": "2027-01-22",
+   "early": [
+    {
+     "plan": "EA",
+     "date": "2026-11-08"
+    },
+    {
+     "plan": "ED I",
+     "date": "2026-11-08"
+    },
+    {
+     "plan": "ED II",
+     "date": "2027-01-15"
+    }
+   ],
+   "cycle": "Fall 2027",
+   "url": "https://www.fordham.edu/undergraduate-admission/apply/"
+  },
+  "status": "partial",
+  "notes": "Deadlines year not labeled (extended dates; original RD/ED II Jan 3). Stats page is stale (Fall 2022), sat is admitted-student range; CDS login-gated. English tests accepted but no IELTS score stated."
+ },
+ "Rensselaer Polytechnic Institute": {
+  "domain": "rpi.edu",
+  "sat": null,
+  "accept": null,
+  "gpa": null,
+  "ielts": {
+   "value": 6.5,
+   "kind": "minimum",
+   "url": "https://undergrad.admissions.rpi.edu/apply/international-applicants"
+  },
+  "deadline": {
+   "rd": "2027-01-15",
+   "early": [
+    {
+     "plan": "ED I",
+     "date": "2026-11-06"
+    },
+    {
+     "plan": "EA",
+     "date": "2026-12-01"
+    }
+   ],
+   "cycle": "Fall 2027",
+   "url": "https://undergrad.admissions.rpi.edu/apply/international-applicants"
+  },
+  "status": "partial",
+  "notes": "Deadline year not labeled (ED I extended to Nov 6). CDS 2025-26 only on box link, not fetchable; stats not found."
+ },
+ "Worcester Polytechnic Institute": {
+  "domain": "wpi.edu",
+  "sat": null,
+  "accept": {
+   "value": 0.619,
+   "year": "2025-26",
+   "url": "https://www.wpi.edu/sites/default/files/2026-05/WPI_CDS_2025-2026.pdf"
+  },
+  "gpa": {
+   "value": 3.9,
+   "year": "2025-26",
+   "url": "https://www.wpi.edu/sites/default/files/2026-05/WPI_CDS_2025-2026.pdf"
+  },
+  "ielts": {
+   "value": 7.0,
+   "kind": "recommended",
+   "url": "https://www.wpi.edu/admissions/undergraduate/apply/international-students"
+  },
+  "deadline": {
+   "rd": "2027-02-01",
+   "early": [
+    {
+     "plan": "ED I",
+     "date": "2026-11-01"
+    },
+    {
+     "plan": "EA I",
+     "date": "2026-11-01"
+    },
+    {
+     "plan": "ED II",
+     "date": "2027-01-05"
+    },
+    {
+     "plan": "EA II",
+     "date": "2027-01-05"
+    }
+   ],
+   "cycle": "Fall 2027",
+   "url": "https://www.wpi.edu/admissions/undergraduate/apply"
+  },
+  "status": "partial",
+  "notes": "Test-optional; CDS C9 blank. IELTS 7.0 overall, no band below 6.5 (recommended). Deadlines year not labeled. Accept=7647/12355. GPA from 88% reporting."
+ },
+ "Rose-Hulman Institute of Technology": {
+  "domain": "rose-hulman.edu",
+  "sat": null,
+  "accept": null,
+  "gpa": null,
+  "ielts": null,
+  "deadline": {
+   "rd": "2027-02-01",
+   "early": [
+    {
+     "plan": "EA",
+     "date": "2026-11-01"
+    }
+   ],
+   "cycle": "Fall 2027",
+   "url": "https://www.rose-hulman.edu/admissions-and-aid/the-application-process/application-and-deadlines/index.html"
+  },
+  "status": "partial",
+  "notes": "CDS PDF 2025-26 blocked by robots; international page shows only Fall 2025 info and no IELTS. Deadlines year not labeled (apply fall before entry)."
+ },
+ "University of Southern California": {
+  "domain": "usc.edu",
+  "sat": {
+   "p25": 1470,
+   "p75": 1540,
+   "year": "2025-26",
+   "url": "https://oir.usc.edu/wp-content/uploads/sites/3/2026/10/CDS_2025-26_FINAL.pdf"
+  },
+  "accept": {
+   "value": 0.1119,
+   "year": "2025-26",
+   "url": "https://oir.usc.edu/wp-content/uploads/sites/3/2026/10/CDS_2025-26_FINAL.pdf"
+  },
+  "gpa": {
+   "value": 3.85,
+   "year": "2025-26",
+   "url": "https://oir.usc.edu/wp-content/uploads/sites/3/2026/10/CDS_2025-26_FINAL.pdf"
+  },
+  "ielts": {
+   "value": 7.0,
+   "kind": "recommended",
+   "url": "https://admission.usc.edu/prospective-students/how-to-apply/international-students/"
+  },
+  "deadline": {
+   "rd": "2027-01-10",
+   "early": [],
+   "cycle": "Fall 2027",
+   "url": "https://admission.usc.edu/prospective-students/how-to-apply/international-students/"
+  },
+  "status": "ok",
+  "notes": "RD Jan 10 2027 explicit; Dec 1 2026 for performing arts/merit scholarship. No ED/EA listed. Accept=9345/83488."
+ },
+ "UC Berkeley": {
+  "domain": "berkeley.edu",
+  "sat": null,
+  "accept": {
+   "value": 0.1051,
+   "year": "Fall 2026 entry (estimate as of 8/2026)",
+   "url": "https://admissions.berkeley.edu/apply-to-berkeley/student-profile/"
+  },
+  "gpa": null,
+  "ielts": {
+   "value": 6.5,
+   "kind": "minimum",
+   "url": "https://admissions.berkeley.edu/requirements-for-international-students/"
+  },
+  "deadline": {
+   "rd": "2026-11-30",
+   "early": [],
+   "cycle": "Fall 2027",
+   "url": "https://admissions.berkeley.edu/apply-to-berkeley/dates-deadlines/"
+  },
+  "status": "ok",
+  "notes": "UC is test-blind (SAT null; page does not state this explicitly). Page lists month/day only; year inferred as Fall 2027 cycle. Single deadline Nov 30 (no EA/ED); accept=13992/133157, page says 11%; GPA middle 50% unweighted 3.90-4.00 not an average."
+ }
+}
