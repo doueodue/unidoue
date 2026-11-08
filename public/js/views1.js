@@ -40,7 +40,7 @@ export async function dashboard(el) {
   <section class="card s6" id="d-sch"><h3>Stipendiyalar</h3><div class="sk" style="height:80px;margin-top:10px"></div></section>
   <section class="card s6"><h3>AI mentor</h3><p class="sub">Universitet, ariza va esse bo‘yicha savollar.</p>
     ${a.config.ai ? `<p>Savolingizni yozing, mentor profilingizni (ruxsat bergan bo‘lsangiz) hisobga oladi.</p><a class="btn primary" style="margin-top:14px" href="#/mentor">Suhbatni boshlash</a>`
-      : `<div class="notice">${svg('info')}<div>AI mentor hozircha ulanmagan: serverga <b>ANTHROPIC_API_KEY</b> qo‘shilishi kerak. Sayt egasi buni sozlagach, shu yerda ishlaydi.</div></div>`}</section></div>`;
+      : `<div class="notice">${svg('info')}<div>AI mentor hozircha ulanmagan: sayt egasi serverda AI kalitini sozlagach, shu yerda ishlaydi.</div></div>`}</section></div>`;
 
   // mos universitetlar (serverda hisoblanadi)
   const m = $('#d-match', el), prof = { gpa: Q.gpa, sc: Q.sc, sat: Q.sat, ielts: Q.ielts, ex: Q.ex, ach: Q.ach };

@@ -60,9 +60,11 @@ for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { try { flush(); 
 const Scoring = require('./public/js/scoring.js');
 
 /* ---------------- tariflar va sozlamalar ---------------- */
-const AI_KEY = process.env.ANTHROPIC_API_KEY || '';
-const AI_MODEL = process.env.AI_MODEL || 'claude-sonnet-5-5';
-const AI_URL = process.env.ANTHROPIC_URL || 'https://api.anthropic.com/v1/messages';
+// AI provayderi: ANTHROPIC_API_KEY (Claude) yoki AI_API_KEY + AI_BASE_URL (OpenAI-mos: Groq, Gemini, OpenRouter...)
+const AI_PROVIDER = process.env.ANTHROPIC_API_KEY ? 'anthropic' : (process.env.AI_API_KEY && process.env.AI_BASE_URL ? 'openai' : '');
+const AI_KEY = process.env.ANTHROPIC_API_KEY || process.env.AI_API_KEY || '';
+const AI_MODEL = process.env.AI_MODEL || (AI_PROVIDER === 'openai' ? '' : 'claude-sonnet-5-5');
+const AI_URL = AI_PROVIDER === 'openai' ? String(process.env.AI_BASE_URL).replace(/\/+$/, '') + '/chat/completions' : (process.env.ANTHROPIC_URL || 'https://api.anthropic.com/v1/messages');
 const MAIL_URL = process.env.RESEND_URL || 'https://api.resend.com/emails';
 const RESEND_KEY = process.env.RESEND_API_KEY || '';
 const MAIL_FROM = process.env.MAIL_FROM || 'UniDoue <onboarding@resend.dev>';
@@ -202,7 +204,7 @@ function accountInfo(u) {
     plan: pl.id, planUntil: pl.id === 'free' ? null : (u.planUntil || null),
     limits: { ai: pl.ai, apps: pl.apps, finder: pl.finder, compare: pl.compare }, features: pl.features,
     usage: { ai: us.ai, period: us.p }, consent: { mentorMemory: !!(u.consent && u.consent.mentorMemory) },
-    config: { ai: !!AI_KEY, email: !!RESEND_KEY, payments: false }
+    config: { ai: !!AI_PROVIDER, email: !!RESEND_KEY, payments: false }
   };
 }
 const meBody = u => ({ user: publicUser(u), account: accountInfo(u), rev: u.rev || 0, hasData: !!(u.data && Object.keys(u.data).length), data: u.data || {} });
@@ -425,7 +427,7 @@ async function api(req, res, pathname) {
 
   if (pathname === '/api/plans' && method === 'GET') {
     return send(res, 200, { plans: Object.values(PLANS).map(p => ({ id: p.id, name: p.name, price: p.price, ai: p.ai, apps: p.apps, finder: p.finder, compare: p.compare, features: p.features })),
-      config: { ai: !!AI_KEY, email: !!RESEND_KEY, payments: false } });
+      config: { ai: !!AI_PROVIDER, email: !!RESEND_KEY, payments: false } });
   }
 
   if (pathname === '/api/plan/downgrade' && method === 'POST') {
@@ -514,7 +516,7 @@ async function api(req, res, pathname) {
   if (pathname === '/api/ai' && method === 'POST') {
     const u = sessionUser(req);
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
-    if (!AI_KEY) return send(res, 503, { error: 'AI hozircha ulanmagan: serverda ANTHROPIC_API_KEY sozlanishi kerak.', code: 'AI_NOT_CONFIGURED' });
+    if (!AI_PROVIDER || (AI_PROVIDER === 'openai' && !AI_MODEL)) return send(res, 503, { error: 'AI hozircha ulanmagan: serverda ANTHROPIC_API_KEY yoki AI_API_KEY, AI_BASE_URL va AI_MODEL sozlanishi kerak.', code: 'AI_NOT_CONFIGURED' });
     if (limited('ai:' + u.id, 8, 60 * 1000)) return fail(res, 429, 'Juda tez soʻrayapsiz. Bir daqiqadan keyin urinib koʻring.');
     const b = await readJson(req), tool = b.tool, deep = b.deep === true;
     if (!['mentor', 'essay', 'strategy', 'report'].includes(tool)) return fail(res, 400, 'Notoʻgʻri vosita.');
@@ -527,12 +529,15 @@ async function api(req, res, pathname) {
     if (built.error) return fail(res, 400, built.error);
     let reply;
     try {
-      const r = await fetch(AI_URL, { method: 'POST', signal: AbortSignal.timeout(55000),
-        headers: { 'x-api-key': AI_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: AI_MODEL, max_tokens: tool === 'mentor' && !can(u, 'mentor_adv') ? 700 : 1600, system: built.system, messages: built.messages }) });
+      const maxTok = tool === 'mentor' && !can(u, 'mentor_adv') ? 700 : 1600;
+      const r = AI_PROVIDER === 'anthropic'
+        ? await fetch(AI_URL, { method: 'POST', signal: AbortSignal.timeout(55000), headers: { 'x-api-key': AI_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+            body: JSON.stringify({ model: AI_MODEL, max_tokens: maxTok, system: built.system, messages: built.messages }) })
+        : await fetch(AI_URL, { method: 'POST', signal: AbortSignal.timeout(55000), headers: { Authorization: 'Bearer ' + AI_KEY, 'content-type': 'application/json' },
+            body: JSON.stringify({ model: AI_MODEL, max_tokens: maxTok, messages: [{ role: 'system', content: built.system }, ...built.messages] }) });
       const j = await r.json();
-      if (!r.ok) { console.error('AI xatosi', r.status, j && j.error && j.error.type); return fail(res, 502, 'AI xizmati hozir javob bermadi. Keyinroq urinib koʻring.'); }
-      reply = (j.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n').trim();
+      if (!r.ok) { console.error('AI xatosi', r.status, JSON.stringify(j && j.error).slice(0, 200)); return fail(res, 502, 'AI xizmati hozir javob bermadi. Keyinroq urinib koʻring.'); }
+      reply = (AI_PROVIDER === 'anthropic' ? (j.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n') : (((j.choices || [])[0] || {}).message || {}).content || '').trim();
     } catch (e) { console.error('AI xatosi', e.message); return fail(res, 502, 'AI xizmati hozir javob bermadi. Keyinroq urinib koʻring.'); }
     if (!reply) return fail(res, 502, 'AI boʻsh javob qaytardi.');
     us.ai += cost; save();

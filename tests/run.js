@@ -117,5 +117,22 @@ class Client {
     r = await new Client().call('GET', '/api/admin/requests', null, { Authorization: 'Bearer adm-secret' }); ok(!r.j.requests.some(x => x.email === em), 'soʻrovlar ham oʻchdi');
   } catch (e) { failN++; console.log('XATO:', e); }
   srv.kill(); ai.close(); mail.close(); fs.rmSync(dir, { recursive: true, force: true });
+  // OpenAI-mos provayder (Groq/Gemini/OpenRouter) uchun alohida sinov
+  {
+    let last = null; const oa = await mock((q, b, r) => { last = { auth: q.headers.authorization, url: q.url, body: JSON.parse(b) }; r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ choices: [{ message: { content: 'OA javobi' } }] })); });
+    const dir2 = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), P2 = PORT + 1;
+    const s2 = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: P2, DATA_DIR: dir2, ANTHROPIC_API_KEY: '', AI_API_KEY: 'k2', AI_BASE_URL: `http://localhost:${oa.address().port}/v1/`, AI_MODEL: 'test-model' }, stdio: 'ignore' });
+    for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${P2}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
+    console.log('OpenAI-mos AI provayder');
+    try {
+      const c = new Client(), call = async (m, u, b) => { const r = await fetch(`http://localhost:${P2}${u}`, { method: m, headers: { 'Content-Type': 'application/json', ...(c.cookie ? { Cookie: c.cookie } : {}) }, body: b ? JSON.stringify(b) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) c.cookie = sc.split(';')[0]; return { s: r.status, j: await r.json().catch(() => null) }; };
+      await call('POST', '/api/register', { email: 'oa@gmail.com', password: 'parol12345', name: 'OA' });
+      const me = await call('GET', '/api/me'); ok(me.j.account.config.ai === true, 'AI sozlangan deb koʻrinadi');
+      const r = await call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'Salom' }] });
+      ok(r.s === 200 && r.j.reply === 'OA javobi' && r.j.usage.ai === 1, 'javob olinadi, 1 kredit', r.j);
+      ok(last && last.url === '/v1/chat/completions' && last.auth === 'Bearer k2' && last.body.model === 'test-model' && last.body.messages[0].role === 'system', 'soʻrov formati (Bearer, model, system)', last && last.url);
+    } catch (e) { failN++; console.log('XATO:', e); }
+    s2.kill(); oa.close(); fs.rmSync(dir2, { recursive: true, force: true });
+  }
   console.log(`\n${pass} ta oʻtdi, ${failN} ta yiqildi`); process.exit(failN ? 1 : 0);
 })();

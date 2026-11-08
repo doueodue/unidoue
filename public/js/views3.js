@@ -1,7 +1,7 @@
 import { $, $$, S, api, ls, esc, toast, svg, catalog, upsell } from './core.js';
 
 const costOf = { mentor: 1, essay: 2, essay_deep: 4, strategy: 6, report: 6 };
-const aiOff = () => `<div class="notice">${svg('info')}<div><b>AI hozircha ulanmagan.</b> Serverda <code>ANTHROPIC_API_KEY</code> sozlanishi kerak. Kalit faqat serverda saqlanadi va brauzerga chiqmaydi.</div></div>`;
+const aiOff = () => `<div class="notice">${svg('info')}<div><b>AI hozircha ulanmagan.</b> Sayt egasi serverda AI kalitini sozlashi kerak. Kalit faqat serverda saqlanadi va brauzerga chiqmaydi.</div></div>`;
 const left = () => S.account.limits.ai - S.account.usage.ai;
 
 /** Xavfsiz minimal formatlash: avval escape, keyin **qalin** va sarlavhalar. */
