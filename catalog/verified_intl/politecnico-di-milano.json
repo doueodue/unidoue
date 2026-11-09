@@ -1,0 +1,30 @@
+{
+ "name": "Politecnico di Milano",
+ "country": "Italy",
+ "city": "Milan",
+ "official_url": "https://www.polimi.it/en",
+ "language": "Italian / English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-06-11",
+  "intake": "2026/27 early enrolment phase; same phase deadlines for EU and non-EU (passed)",
+  "url": "https://www.polimi.it/fileadmin/user_upload/futuri_studenti/Engineering_BSc_call_for_admission_2026-27__English_.pdf",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "no annual non-EU bachelor figure found; first instalment EUR 880.04, second EUR 0-3,003 by ECTS/ISEE",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Non-EU applicants abroad need a secondary qualification after 12-13 years of schooling (or foundation year), must pass the TOL/CEnT-S/SAT-based admission test (min 30/100), prove programme language level, and obtain a study visa via Universitaly.",
+  "url": "https://www.polimi.it/en/prospective-students/how-to-apply/admission-to-laurea-programmes/students-with-a-foreign-degree"
+ },
+ "bachelor_in_english": true
+}

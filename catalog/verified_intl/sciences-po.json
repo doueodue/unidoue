@@ -1,0 +1,30 @@
+{
+ "name": "Sciences Po",
+ "country": "France",
+ "city": "Paris",
+ "official_url": "https://www.sciencespo.fr",
+ "language": "English / French",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-03-01",
+  "intake": "September 2027, international pathway (final round; earlier rounds 4 Nov 2026 and 13 Jan 2027)",
+  "url": "https://www.sciencespo.fr/en/news/candidates-all-you-need-to-know-about-undergraduate-admissions-through-the-international-admiss/",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 14900,
+  "currency": "EUR",
+  "note": "full annual fee, fiscal residence outside EEA, 2026-2027",
+  "url": "https://www.sciencespo.fr/students/en/fees-funding/tuition-fees/",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Apply via the international pathway with a foreign secondary diploma (IB, A-levels, etc.); application fee EUR 150; motivation texts must be written in the language of each chosen programme (French or English at regional campuses). No IELTS minimum was verified.",
+  "url": "https://www.sciencespo.fr/admissions/en/undergraduate/foreign-secondary-schools/"
+ },
+ "bachelor_in_english": true
+}

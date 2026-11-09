@@ -1,0 +1,30 @@
+{
+ "name": "ETH Zurich",
+ "country": "Switzerland",
+ "city": "Zurich",
+ "official_url": "https://ethz.ch",
+ "language": "German (bachelor); English only in Master",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-03-31",
+  "intake": "Autumn 2027, applicants with non-Swiss certificates (application window 1 Dec - 31 Mar)",
+  "url": "https://ethz.ch/en/studies/bachelor/application/non-swiss-matriculation-certificate/dates.html",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 4380,
+  "currency": "CHF",
+  "note": "CHF 2,190 per semester (threefold fee for foreign students from autumn 2025), x2",
+  "url": "https://ethz.ch/students/en/studies/financial/tuition-fees.html",
+  "year": 2025
+ },
+ "requirement": {
+  "text": "Admission depends on country and certificate (swissuniversities/ETH country list); some applicants must pass the ETH entrance examination. German proof is required by 31 March as teaching is in German.",
+  "url": "https://ethz.ch/en/studies/registration-application/bachelor/other-certificates/application.html"
+ },
+ "bachelor_in_english": false
+}

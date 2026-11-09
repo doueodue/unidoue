@@ -1,0 +1,30 @@
+{
+ "name": "University of Sydney",
+ "country": "Australia",
+ "city": "Sydney",
+ "official_url": "https://www.sydney.edu.au",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-12-01",
+  "intake": "Semester 1 2027, international undergraduate applicants",
+  "url": "https://www.sydney.edu.au/study/how-to-apply/application-dates.html",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "International undergraduate applicants apply directly to the University by the closing date (UAC route applies only to those completing Australian Year 12 or IB in Australia). Uzbekistan-specific academic and English requirements not confirmed on the page.",
+  "url": "https://www.sydney.edu.au/study/how-to-apply/application-dates.html"
+ },
+ "bachelor_in_english": true
+}

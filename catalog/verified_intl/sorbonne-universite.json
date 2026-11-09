@@ -1,0 +1,30 @@
+{
+ "name": "Sorbonne Université",
+ "country": "France",
+ "city": "Paris",
+ "official_url": "https://www.sorbonne-universite.fr",
+ "language": "French",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Minimum B2 French is required for enrolment; applicants with a non-French/non-European qualification apply via the Études en France Prior Admission Application (DAP) or a paper DAP at the French embassy, depending on country of residence.",
+  "url": "https://international-welcome-desk.sorbonne-universite.fr/join-sorbonne-university/study/admission-to-the-first-year/"
+ },
+ "bachelor_in_english": false
+}

@@ -1,0 +1,30 @@
+{
+ "name": "Technical University of Munich",
+ "country": "Germany",
+ "city": "Munich",
+ "official_url": "https://www.tum.de",
+ "language": "German (some programs English)",
+ "ielts": {
+  "min_overall": null,
+  "url": "https://www.tum.de/en/studies/application/application-info-portal/admission-requirements/language-certificates",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "Winter semester (application period 15.05-15.07; year not stated on page, shown by Informatics B.Sc. page)",
+  "url": "https://www.tum.de/en/studies/degree-programs/detail/informatics-bachelor-of-science-bsc",
+  "year": null
+ },
+ "tuition": {
+  "amount": 2000,
+  "currency": "EUR",
+  "note": "Per semester for new non-EU bachelor students: usually 2,000 or 3,000 depending on program; rises to 2,300/3,400 from WS 2027/28",
+  "url": "https://www.tum.de/en/studies/fees/tuition",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Applicants with an Uzbek school certificate apply as international applicants; proof of German (or English where required) is needed before the application period ends, and many programs have an aptitude assessment. Check certificate recognition and uni-assist/Studienkolleg requirements on the application portal.",
+  "url": "https://www.tum.de/en/studies/application/bachelor/application-bachelor"
+ },
+ "bachelor_in_english": null
+}

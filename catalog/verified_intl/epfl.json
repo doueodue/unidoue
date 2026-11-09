@@ -1,0 +1,30 @@
+{
+ "name": "EPFL",
+ "country": "Switzerland",
+ "city": "Lausanne",
+ "official_url": "https://www.epfl.ch",
+ "language": "French (some courses in English)",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-04-30",
+  "intake": "Autumn (September) intake, application by 30 April, holders of foreign certificate",
+  "url": "https://www.epfl.ch/education/admission/admission-2/bachelor-admission-criteria-and-application/how-to-apply/",
+  "year": null
+ },
+ "tuition": {
+  "amount": 4380,
+  "currency": "CHF",
+  "note": "CHF 2,190 per semester for foreigners moving to Switzerland to study (from autumn 2025), x2",
+  "url": "https://www.epfl.ch/education/studies/en/rules-and-procedures/study-taxes/tuition-fee-other-fees/",
+  "year": 2025
+ },
+ "requirement": {
+  "text": "Applicants from outside EU/EFTA/UK may only be considered for the preparatory year (CMS) if their certificate meets strict grade criteria, otherwise they must pass the entrance exam; French B2 (C1 recommended) is required.",
+  "url": "https://www.epfl.ch/education/admission/admission-2/bachelor-admission-criteria-and-application/"
+ },
+ "bachelor_in_english": false
+}

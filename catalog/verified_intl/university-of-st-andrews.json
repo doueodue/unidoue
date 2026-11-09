@@ -1,0 +1,30 @@
+{
+ "name": "University of St Andrews",
+ "country": "Scotland",
+ "city": "St Andrews",
+ "official_url": "https://www.st-andrews.ac.uk",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-13",
+  "intake": "September 2027, full and equal consideration, international applicants",
+  "url": "https://www.st-andrews.ac.uk/study/undergraduate/apply/common/",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 33250,
+  "currency": "GBP",
+  "note": "overseas 2026-27, Arts/Divinity/Science; Medicine 39,620",
+  "url": "https://www.st-andrews.ac.uk/study/undergraduate/fees/world/",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "With a national leaving certificate, applicants need a St Andrews International Foundation certificate, IB 36-38, A-levels AAB-A*A*A or SQA Highers AAAB-AAAAB. English test required (IELTS 6.5-7.0 depending on faculty).",
+  "url": "https://www.st-andrews.ac.uk/subjects/entry/uzbekistan/"
+ },
+ "bachelor_in_english": true
+}

@@ -1,0 +1,30 @@
+{
+ "name": "Sapienza University of Rome",
+ "country": "Italy",
+ "city": "Rome",
+ "official_url": "https://www.uniroma1.it/en",
+ "language": "Italian / English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-05-15",
+  "intake": "2026/27, non-EU (visa) pre-selection deadline (passed); Universitaly registration by 30 June 2026",
+  "url": "https://www.uniroma1.it/en/admissions",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "EUR 300-1,500/yr depending on country of residence; no single amount",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "High school diploma after at least 12 years of study; mandatory pre-selection, Universitaly registration and study visa; B2 English or Italian depending on programme; some programmes need an admission test.",
+  "url": "https://www.uniroma1.it/it/pagina/international-admissions-2026-2027"
+ },
+ "bachelor_in_english": true
+}

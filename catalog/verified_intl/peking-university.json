@@ -1,0 +1,30 @@
+{
+ "name": "Peking University",
+ "country": "China",
+ "city": "Beijing",
+ "official_url": "https://www.isd.pku.edu.cn/en/detail.php?id=818",
+ "language": "Chinese",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-02-28",
+  "intake": "Fall 2026",
+  "url": "https://www.isd.pku.edu.cn/en/detail.php?id=818",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Non-Chinese citizen aged 18-25 with a high school diploma; sit written exams in Chinese, English and Mathematics (taught in Chinese); application fee 800 RMB.",
+  "url": "https://www.isd.pku.edu.cn/en/detail.php?id=818"
+ },
+ "bachelor_in_english": false
+}

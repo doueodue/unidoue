@@ -1,0 +1,30 @@
+{
+ "name": "Ludwig-Maximilians-Universitat Munchen",
+ "country": "Germany",
+ "city": "Munich",
+ "official_url": "https://www.lmu.de",
+ "language": "German",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "Winter semester 15 July; summer semester 15 January (years not stated)",
+  "url": "https://www.lmu.de/en/study/degree-students/applications-for-admission/",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "EUR",
+  "note": "LMU fees page states no tuition since WS 2013/14 but is undated for 2025+; not confirmed for non-EU",
+  "url": "https://www.lmu.de/en/workspace-for-students/abc-study-guide/fees-and-tuition-fees/",
+  "year": null
+ },
+ "requirement": {
+  "text": "Non-EU certificates need an official equivalence check (ANABIN/DAAD), otherwise a Studienkolleg year; bachelor applicants need a uni-assist VPD, recognized German proof and apply via the International Office.",
+  "url": "https://www.lmu.de/en/study/degree-students/prerequisites/"
+ },
+ "bachelor_in_english": null
+}

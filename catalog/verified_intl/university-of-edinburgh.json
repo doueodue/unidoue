@@ -1,0 +1,30 @@
+{
+ "name": "University of Edinburgh",
+ "country": "Scotland",
+ "city": "Edinburgh",
+ "official_url": "https://www.ed.ac.uk",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-13",
+  "intake": "September 2027, UCAS deadline for all UK/EU/international applicants (non-medicine)",
+  "url": "https://study.ed.ac.uk/undergraduate/applying/making-application/when-apply",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 28000,
+  "currency": "GBP",
+  "note": "international, standard degrees, 'from' indicative 2026 fee; 2027 TBC; lab/studio degrees 36,800",
+  "url": "https://study.ed.ac.uk/sites/default/files/2026-02/Undergraduate%20Guide%202027.pdf",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Uzbek school certificate is not accepted for direct entry; applicants need A Levels, IB or SAT/ACT/AP, or the one-year International Foundation Programme (certificate with 70%+ average). English requirements vary by programme (e.g. IELTS 6.5 with 5.5 per component for some).",
+  "url": "https://www.ed.ac.uk/studying/international/country/asia/central-west-asia/uzbekistan"
+ },
+ "bachelor_in_english": true
+}

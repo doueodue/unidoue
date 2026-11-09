@@ -1,0 +1,30 @@
+{
+ "name": "Yonsei University",
+ "country": "South Korea",
+ "city": "Seoul",
+ "official_url": "https://www2.yonsei.ac.kr/entrance/2026/intl/2026_9_docu/Fall%202026%20Application%20Guide%20for%20International%20Students(Eng).pdf",
+ "language": "Korean",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-03-26",
+  "intake": "Fall 2026 (online application close)",
+  "url": "https://www2.yonsei.ac.kr/entrance/2026/intl/2026_9_docu/Fall%202026%20Application%20Guide%20for%20International%20Students(Eng).pdf",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "KRW",
+  "note": "2026 undergraduate tuition per semester ranges about 4,556,000 to 9,221,000 KRW by college; not tied to a single program",
+  "url": "https://www.yonsei.ac.kr/sites/en_sc/down/2026_fee1.pdf",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Applicant and both parents must be non-Korean, hold a high school diploma by Aug 2026 and submit proof of Korean or English proficiency (no IELTS minimum stated); application fee 150,000 KRW.",
+  "url": "https://www2.yonsei.ac.kr/entrance/2026/intl/2026_9_docu/Fall%202026%20Application%20Guide%20for%20International%20Students(Eng).pdf"
+ },
+ "bachelor_in_english": null
+}

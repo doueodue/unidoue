@@ -1,0 +1,30 @@
+{
+ "name": "Aalto University",
+ "country": "Finland",
+ "city": "Espoo",
+ "official_url": "https://www.aalto.fi",
+ "language": "English / Finnish / Swedish",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-22",
+  "intake": "Autumn 2027, English-taught bachelor's (7-22 Jan 2027; page partly inconsistent)",
+  "url": "https://www.aalto.fi/en/study-at-aalto/admission-to-the-bachelors-programme-in-international-business-bachelor-and-master-of-science-in",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 12000,
+  "currency": "EUR",
+  "note": "Business/Technology (Arts and Architecture 15,000); right to study from 1 Aug 2025",
+  "url": "https://www.aalto.fi/en/international-students/paying-the-tuition-fee",
+  "year": 2025
+ },
+ "requirement": {
+  "text": "Without a Finnish/IB/EB diploma, apply with SAT/ACT (2026 intake minimum: SAT 1200 for business; 1350 with Math 700 for science and technology); Design and Media uses an entrance exam and an English test.",
+  "url": "https://www.aalto.fi/sites/default/files/2025-10/Aalto-Open-days-Bachelors-how-to-apply_2025.pdf"
+ },
+ "bachelor_in_english": true
+}

@@ -1,0 +1,30 @@
+{
+ "name": "Tampere University",
+ "country": "Finland",
+ "city": "Tampere",
+ "official_url": "https://www.tuni.fi",
+ "language": "English / Finnish",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-21",
+  "intake": "Autumn 2027, English-taught bachelor's (7-21 Jan 2027)",
+  "url": "https://www.tuni.fi/en/tau/bachelors-programmes/applying",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 10000,
+  "currency": "EUR",
+  "note": "non-EU/EEA, students admitted in 2027, all bachelor's programmes",
+  "url": "https://www.tuni.fi/en/study-with-us/apply-to-tampere-university/financial-matters/tuition-fees",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Foreign upper secondary diploma must confer eligibility for university study at home; without Finnish/IB/EB/DIA you apply via SAT/ACT scores (admission group I).",
+  "url": "https://tuni.fi/en/study-with-us/apply-to-tampere-university/applying-to-university-bachelors-programmes/application-process"
+ },
+ "bachelor_in_english": true
+}

@@ -1,0 +1,30 @@
+{
+ "name": "Heidelberg University",
+ "country": "Germany",
+ "city": "Heidelberg",
+ "official_url": "https://www.uni-heidelberg.de",
+ "language": "German",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "Winter semester: 01.06-31.10 (no restriction/no exam) or 01.06-15.07 (restricted/exam); year not stated",
+  "url": "https://www.uni-heidelberg.de/en/study/management-of-studies/key-dates-deadlines/application-deadlines-for-the-1st-semester-of-undergraduate-degree-programmes",
+  "year": null
+ },
+ "tuition": {
+  "amount": 1500,
+  "currency": "EUR",
+  "note": "Per semester for non-EU students with foreign entrance qualification, applies since WS 2017/18",
+  "url": "https://www.uni-heidelberg.de/en/study/management-of-studies/semester-fees/tuition-fees-for-international-students",
+  "year": null
+ },
+ "requirement": {
+  "text": "Not verified on an opened page; the deadlines page applies the same dates regardless of citizenship.",
+  "url": "https://www.uni-heidelberg.de/en/study/management-of-studies/key-dates-deadlines/application-deadlines-for-the-1st-semester-of-undergraduate-degree-programmes"
+ },
+ "bachelor_in_english": null
+}

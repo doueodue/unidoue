@@ -1,0 +1,30 @@
+{
+ "name": "École Polytechnique (Bachelor of Science, Institut Polytechnique de Paris)",
+ "country": "France",
+ "city": "Palaiseau (Paris area)",
+ "official_url": "https://programmes.polytechnique.edu/en/bachelor",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://programmes.polytechnique.edu/en/bachelor/admissions/admissions-criteria-and-procedure",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2027-02-08",
+  "intake": "Bachelor admission cycle labelled 2026 on page, round 3 (round 1: 20 Oct 2026, round 2: 6 Jan 2027); start date not stated",
+  "url": "https://programmes.polytechnique.edu/en/bachelor/admissions/admissions-criteria-and-procedure",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "page states EUR 19,600/yr for non-EU students but gives no academic year, so left null",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Recognised secondary leaving certificate with strong maths and science, IELTS 6.5 (min 6 per skill) or equivalent, no written entrance exam; selection by file and a remote English interview; application fee EUR 105.",
+  "url": "https://programmes.polytechnique.edu/en/bachelor/admissions/admissions-criteria-and-procedure"
+ },
+ "bachelor_in_english": true
+}

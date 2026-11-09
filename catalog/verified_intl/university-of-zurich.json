@@ -1,0 +1,30 @@
+{
+ "name": "University of Zurich",
+ "country": "Switzerland",
+ "city": "Zurich",
+ "official_url": "https://www.uzh.ch",
+ "language": "German (some modules in English)",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "Autumn semester, 30 April (28 February if a visa is required); year not stated",
+  "url": "https://www.uzh.ch/en/studies/application/deadlines.html",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "CHF",
+  "note": "year of fee page not stated",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "German at CEFR C1 is required; foreign certificates must match the Swiss maturity, otherwise the ECUS complementary exam (held in August) is needed, plus proof of admission to a university in the home country.",
+  "url": "https://uzh.ch/en/studies/application/bachelor.html"
+ },
+ "bachelor_in_english": false
+}

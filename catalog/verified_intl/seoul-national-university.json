@@ -1,0 +1,30 @@
+{
+ "name": "Seoul National University",
+ "country": "South Korea",
+ "city": "Seoul",
+ "official_url": "https://en.snu.ac.kr/admission",
+ "language": "Korean",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-07-09",
+  "intake": "Spring 2027",
+  "url": "https://en.snu.ac.kr/admission/overview/notice?md=v&bbsidx=170606",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Non-Korean applicant submits online application plus recommendation letters in the July window; English proficiency, eligibility and tuition details are in the attached guide PDF, not verified.",
+  "url": "https://en.snu.ac.kr/admission/overview/notice?md=v&bbsidx=170606"
+ },
+ "bachelor_in_english": null
+}

@@ -1,0 +1,30 @@
+{
+ "name": "KAIST",
+ "country": "South Korea",
+ "city": "Daejeon",
+ "official_url": "https://admission.kaist.ac.kr/intl-undergraduate",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "Fall 2026",
+  "url": "https://univapply.kaist.ac.kr/interapply",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Applicant must hold foreign citizenship (no Korean dual citizenship) and graduate high school by 31 Aug 2026; application fee USD 80. Dates, IELTS and tuition not found on opened pages.",
+  "url": "https://univapply.kaist.ac.kr/interapply"
+ },
+ "bachelor_in_english": null
+}

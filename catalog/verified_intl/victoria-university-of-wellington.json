@@ -1,0 +1,30 @@
+{
+ "name": "Victoria University of Wellington",
+ "country": "New Zealand",
+ "city": "Wellington",
+ "official_url": "https://www.wgtn.ac.nz",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.0,
+  "url": "https://www.wgtn.ac.nz/study/apply-enrol/english-language-requirements",
+  "year": 2025
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "IELTS Academic 6.0 overall with no band below 5.5 for undergraduate entry. Applicants not meeting undergraduate entry requirements can take the Foundation Studies programme, taught only through UP International College New Zealand.",
+  "url": "https://www.wgtn.ac.nz/international/applying/how-to-apply"
+ },
+ "bachelor_in_english": true
+}

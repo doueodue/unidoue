@@ -1,0 +1,30 @@
+{
+ "name": "University of Otago",
+ "country": "New Zealand",
+ "city": "Dunedin",
+ "official_url": "https://www.otago.ac.nz",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Applicants who do not meet the academic or English language requirements can use pathway or preparatory programmes via the Otago Pathway and English Language Centre. Uzbekistan-specific requirement and IELTS score not confirmed on the opened page.",
+  "url": "https://www.otago.ac.nz/international/future-students/how-to-apply"
+ },
+ "bachelor_in_english": true
+}

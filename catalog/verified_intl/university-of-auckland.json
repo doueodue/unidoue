@@ -1,0 +1,30 @@
+{
+ "name": "University of Auckland",
+ "country": "New Zealand",
+ "city": "Auckland",
+ "official_url": "https://www.auckland.ac.nz",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.0,
+  "url": "https://www.auckland.ac.nz/assets/study/applications-and-admissions/entry-requirements/undergraduate-entry-requirements/undergraduate-english-language-requirements/2027-Undergraduate-English-language-requirements.pdf",
+  "year": 2027
+ },
+ "deadline": {
+  "date": "2026-12-08",
+  "intake": "Semester 1 2027, international applicants (most undergraduate programmes)",
+  "url": "https://www.auckland.ac.nz/en/study/applications-and-admissions/how-to-apply/undergraduate-application-closing-dates.html",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "IELTS Academic 6.0 overall with no band below 5.5 for general undergraduate entry (higher for Medicine 7.5, Nursing 6.5, Engineering Honours 6.5). Uzbekistan-specific academic requirement not confirmed on the opened pages.",
+  "url": "https://www.auckland.ac.nz/assets/study/applications-and-admissions/entry-requirements/undergraduate-entry-requirements/undergraduate-english-language-requirements/2027-Undergraduate-English-language-requirements.pdf"
+ },
+ "bachelor_in_english": true
+}

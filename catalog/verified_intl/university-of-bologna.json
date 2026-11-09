@@ -1,0 +1,30 @@
+{
+ "name": "University of Bologna",
+ "country": "Italy",
+ "city": "Bologna",
+ "official_url": "https://www.unibo.it/en",
+ "language": "Italian / English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "No general pre-enrolment deadline set by the university",
+  "url": "https://www.unibo.it/en/attachments/guide-universitaly",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "EUR 157.04 fixed part plus programme/income-based variable part; no single annual amount",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Pre-enrol on Universitaly with the school diploma; open-access programmes require the TOLC test, Italian-taught programmes require Italian language proof, and the embassy may ask for extra language certificates; first tuition instalment needed for unconditional validation.",
+  "url": "https://www.unibo.it/en/attachments/guide-universitaly"
+ },
+ "bachelor_in_english": null
+}

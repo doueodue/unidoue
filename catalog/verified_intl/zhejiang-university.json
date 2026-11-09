@@ -1,0 +1,30 @@
+{
+ "name": "Zhejiang University",
+ "country": "China",
+ "city": "Hangzhou",
+ "official_url": "https://iczu.zju.edu.cn/admissionsen/2024/1030/c68988a2981659/page.htm",
+ "language": "Chinese/English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-02-28",
+  "intake": "2026/2027 academic year",
+  "url": "https://iczu.zju.edu.cn/admissionsen/2024/1030/c68988a2981659/page.htm",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 80000,
+  "currency": "CNY",
+  "note": "per year, English-taught engineering programs",
+  "url": "https://iczu.zju.edu.cn/_upload/article/files/e7/8c/1be7b2df433fb9427df707571d84/1d3febe7-07aa-4da8-a235-c69546ef0f5f.pdf",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Non-Chinese passport holder under 25 with high school graduation and CSCA score (English language option for English-taught programs); English-taught applicants submit TOEFL/IELTS or similar; fee RMB 800.",
+  "url": "https://iczu.zju.edu.cn/admissionsen/2024/1030/c68988a2981659/page.htm"
+ },
+ "bachelor_in_english": true
+}

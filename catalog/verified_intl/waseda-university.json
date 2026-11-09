@@ -1,0 +1,30 @@
+{
+ "name": "Waseda University",
+ "country": "Japan",
+ "city": "Tokyo",
+ "official_url": "https://www.waseda.jp",
+ "language": "English and Japanese",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-28",
+  "intake": "September 2027 entry (AO, online application 7-28 Jan 2027)",
+  "url": "https://www.waseda.jp/fsci/en/admissions_us/",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "JPY",
+  "note": "Approx. 1.2-1.8 million JPY per year depending on school (range only)",
+  "url": "https://www.waseda.jp/inst/admission/en/undergraduate/faq/",
+  "year": null
+ },
+ "requirement": {
+  "text": "Graduates of high schools outside the Japanese system apply to the English-based program; documents depend on the education system (see Application Guide); only JCulP sets a minimum English score.",
+  "url": "https://www.waseda.jp/inst/admission/en/undergraduate/faq/"
+ },
+ "bachelor_in_english": true
+}

@@ -1,0 +1,30 @@
+{
+ "name": "University of Helsinki",
+ "country": "Finland",
+ "city": "Helsinki",
+ "official_url": "https://www.helsinki.fi",
+ "language": "English / Finnish / Swedish",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.helsinki.fi/en/admissions-and-education/apply-bachelors-and-masters-programmes/apply-bachelors-programmes/proving-your-english-language-skills",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2027-01-19",
+  "intake": "Autumn 2027, Admission Group 1 (SAT/ACT) 5-19 Jan 2027; Group 2 closes 23 Mar 2027",
+  "url": "https://www.helsinki.fi/en/degree-programmes/science-bachelors-programme/admissions",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 13000,
+  "currency": "EUR",
+  "note": "non-EU/EEA, English-language bachelor's programmes",
+  "url": "https://www.helsinki.fi/en/degree-programmes/science-bachelors-programme/admissions",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Applicants without Finnish matriculation, IB, EB or DIA/Reifeprufung apply in Group 1 with SAT or ACT scores, plus a diploma giving university eligibility at home; English proof (IELTS Academic 6.5) required.",
+  "url": "https://www.helsinki.fi/en/degree-programmes/science-bachelors-programme/admissions"
+ },
+ "bachelor_in_english": true
+}

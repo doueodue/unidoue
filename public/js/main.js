@@ -3,6 +3,7 @@ import { $, $$, S, api, adopt, wipeLocal, esc, svg, skeleton, errorBox, toast, p
 const ROUTES = [
   { id: 'dashboard', t: 'Bosh panel', i: 'home', sec: 'Asosiy', v: () => import('./views1.js').then(m => m.dashboard) },
   { id: 'finder', t: 'Universitet qidiruvi', i: 'search', v: () => import('./views2.js').then(m => m.finder) },
+  { id: 'intl', t: 'Boshqa davlatlar', i: 'search', v: () => import('./views4.js').then(m => m.intl) },
   { id: 'scholarships', t: 'Stipendiyalar', i: 'gift', tag: 'Plus', v: () => import('./views2.js').then(m => m.scholarships) },
   { id: 'predictor', t: 'Qabul bashorati', i: 'chart', v: () => import('./views2.js').then(m => m.predictor) },
   { id: 'compare', t: 'Solishtirish', i: 'cmp', v: () => import('./views2.js').then(m => m.compare) },

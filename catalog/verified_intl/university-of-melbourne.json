@@ -1,0 +1,30 @@
+{
+ "name": "University of Melbourne",
+ "country": "Australia",
+ "city": "Melbourne",
+ "official_url": "https://www.unimelb.edu.au",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://study.unimelb.edu.au/how-to-apply/english-language-requirements/undergraduate-english-language-requirements",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Entry requirements vary by degree (subject prerequisites, English language, student visa conditions); international applicants outside Australian Year 12/IB apply directly. IELTS Academic 6.5 overall with no band below 6.0 for most bachelor degrees (7.0 for Oral Health). Uzbekistan-specific requirement not stated on the page.",
+  "url": "https://study.unimelb.edu.au/how-to-apply/undergraduate-study/international-applications/applications"
+ },
+ "bachelor_in_english": true
+}

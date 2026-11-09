@@ -1,0 +1,30 @@
+{
+ "name": "Kyoto University",
+ "country": "Japan",
+ "city": "Kyoto",
+ "official_url": "https://www.kyoto-u.ac.jp",
+ "language": "English and Japanese (iUP)",
+ "ielts": {
+  "min_overall": null,
+  "url": "https://www.iup.kyoto-u.ac.jp/Application_Guidelines_for_October_2026_Enrollment.pdf",
+  "year": 2025
+ },
+ "deadline": {
+  "date": "2025-12-04",
+  "intake": "Kyoto iUP, October 2026 enrollment (6-month prep course, undergraduate April 2027)",
+  "url": "https://www.iup.kyoto-u.ac.jp/Application_Guidelines_for_October_2026_Enrollment.pdf",
+  "year": 2025
+ },
+ "tuition": {
+  "amount": 535800,
+  "currency": "JPY",
+  "note": "Annual undergraduate tuition for iUP (admission fee 282,000 JPY); as of 1 July 2025. No IELTS minimum set; typical successful IELTS 6.5",
+  "url": "https://www.iup.kyoto-u.ac.jp/Application_Guidelines_for_October_2026_Enrollment.pdf",
+  "year": 2025
+ },
+ "requirement": {
+  "text": "Must be non-Japanese and have completed or expect to complete 12 years of schooling outside Japan by 30 Sept 2026, and submit an accepted English test (e.g. IELTS, TOEFL) taken after 1 Nov 2023.",
+  "url": "https://www.iup.kyoto-u.ac.jp/Application_Guidelines_for_October_2026_Enrollment.pdf"
+ },
+ "bachelor_in_english": true
+}

@@ -1,0 +1,30 @@
+{
+ "name": "University of Tokyo",
+ "country": "Japan",
+ "city": "Tokyo",
+ "official_url": "https://www.u-tokyo.ac.jp",
+ "language": "Japanese (English via PEAK, ended; UTokyo Design from Sept 2027)",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "PEAK Sept 2026 closed and final; UTokyo Design starts Sept 2027",
+  "url": "https://peak.c.u-tokyo.ac.jp/apply/index.html",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 642960,
+  "currency": "JPY",
+  "note": "Annual undergraduate tuition; admission fee 282,000 JPY; year not stated on page",
+  "url": "https://www.u-tokyo.ac.jp/en/prospective-students/tuition_fees.html",
+  "year": null
+ },
+ "requirement": {
+  "text": "Traditional programs are taught in Japanese and need high Japanese proficiency; English options are PEAK (final intake Sept 2026) and the new UTokyo Design (Sept 2027).",
+  "url": "https://welcome.adm.u-tokyo.ac.jp/admissions"
+ },
+ "bachelor_in_english": true
+}

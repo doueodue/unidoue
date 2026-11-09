@@ -1,0 +1,30 @@
+{
+ "name": "Cardiff University",
+ "country": "Wales",
+ "city": "Cardiff",
+ "official_url": "https://www.cardiff.ac.uk",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.cardiff.ac.uk/study/undergraduate/courses/2026/psychology-with-a-foundation-year-bsc",
+  "year": 2026
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Uzbek school certificate (4.0/5.0) plus a recognised one-year foundation course (International Foundation Year), or A-levels/IB. IELTS 6.5 usually required; in-house English for University Study exit test accepted.",
+  "url": "https://www.cardiff.ac.uk/study/international/your-country/asia/uzbekistan/entry-requirements-uzbekistan"
+ },
+ "bachelor_in_english": true
+}

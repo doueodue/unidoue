@@ -1,0 +1,30 @@
+{
+ "name": "Tsinghua University",
+ "country": "China",
+ "city": "Beijing",
+ "official_url": "https://international.join-tsinghua.edu.cn/",
+ "language": "Chinese/English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-11-20",
+  "intake": "Fall 2027 (round 1; round 2 closes 2027-02-28)",
+  "url": "https://international.join-tsinghua.edu.cn/",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 100000,
+  "currency": "CNY",
+  "note": "per year, English-taught programs; Chinese-English programs 26,000-30,000 CNY",
+  "url": "https://international.join-tsinghua.edu.cn/Admission1/Fees.htm",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Non-Chinese citizen, 18+ by 1 Sep 2027, strong academic record; English-taught programs need TOEFL/IELTS (no minimum stated), Chinese-English programs need HSK 5 (60+ per section) and English proof.",
+  "url": "https://international.join-tsinghua.edu.cn/Admission1/Eligibility.htm"
+ },
+ "bachelor_in_english": true
+}

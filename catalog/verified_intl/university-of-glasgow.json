@@ -1,0 +1,30 @@
+{
+ "name": "University of Glasgow",
+ "country": "Scotland",
+ "city": "Glasgow",
+ "official_url": "https://www.gla.ac.uk",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.gla.ac.uk/undergraduate/degrees/businessmanagement/",
+  "year": 2027
+ },
+ "deadline": {
+  "date": "2027-06-30",
+  "intake": "September 2027, international applicants (UCAS main deadline 13 Jan 2027)",
+  "url": "https://www.gla.ac.uk/undergraduate/degrees/businessmanagement/",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 27720,
+  "currency": "GBP",
+  "note": "international 2026/27, Arts & Social Sciences; Science/Engineering 33,210",
+  "url": "https://www.gla.ac.uk/undergraduate/fees/intlfees/",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "No Uzbekistan-specific page found; IELTS 6.5 overall (no sub-test below 6.0) required. Applicants below requirements can take Glasgow International College foundation certificates or pre-sessional English.",
+  "url": "https://www.gla.ac.uk/undergraduate/degrees/businessmanagement/"
+ },
+ "bachelor_in_english": true
+}
