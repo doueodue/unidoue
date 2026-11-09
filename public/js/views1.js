@@ -84,7 +84,7 @@ export async function tracker(el) {
 
 /* ================= TARIFLAR ================= */
 const FEAT = {
-  free: ['10 ta universitet natijasi', 'Safety / Target / Reach darajasi', 'Asosiy profil va moslik bali', '2 ta universitetni solishtirish', '3 tagacha ariza kuzatuvi', '5 AI kredit / oy'],
+  free: ['10 ta universitet natijasi', 'Safety / Target / Reach darajasi', 'Asosiy profil va moslik bali', '2 ta universitetni solishtirish', '3 tagacha ariza kuzatuvi', '15 AI kredit / oy'],
   plus: ['Barcha universitetlar + nima uchun mos ekanligi', 'Stipendiya qidiruvi', 'To‘liq qabul bashorati va maslahatlar', 'Cheksiz arizalar kuzatuvi', '3 ta universitetni solishtirish', '50 AI kredit / oy'],
   pro: ['Plusdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Shaxsiy qabul strategiyasi', 'Chuqur esse tahlili', 'Universitet hisobotlari', '4 ta universitetni solishtirish', '300 AI kredit / oy', 'Ustuvor yordam']
 };

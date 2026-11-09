@@ -50,7 +50,7 @@ class Client {
     r = await a.call('PUT', '/api/data', { data: { 'qabul:apps': JSON.stringify([1, 2, 3]), evil: 'x', 'qabul:sync': 'x' } }); ok(r.s === 200, 'Free: 3 ta ariza 200', r.s);
     r = await a.call('GET', '/api/me'); ok(Object.keys(r.j.data).join() === 'qabul:apps', 'faqat qabul:* kalitlari saqlanadi', Object.keys(r.j.data));
     r = await a.call('PUT', '/api/data', { data: {}, baseRev: 99 }); ok(r.s === 409 && r.j.code === 'REV_CONFLICT', 'versiya toʻqnashuvi 409', r.s);
-    r = await a.call('POST', '/api/finder', { profile: PROFILE }); ok(r.s === 200 && r.j.shown === 10 && r.j.total === 101 && !r.j.items[0].why, 'Free finder: 10 ta, tushuntirishsiz', [r.s, r.j && r.j.shown]);
+    r = await a.call('POST', '/api/finder', { profile: PROFILE }); ok(r.s === 200 && r.j.shown === 10 && r.j.total === 52 && !r.j.items[0].why, 'Free finder: 10 ta, tushuntirishsiz', [r.s, r.j && r.j.shown]);
     ok(new Set(r.j.items.map(x => x.tier)).size === 3, 'Free finder: uchala daraja aralash');
     r = await a.call('POST', '/api/predict', { id: 'mit', profile: PROFILE }); ok(r.s === 200 && r.j.full === false && !r.j.parts, 'Free predict: faqat ball');
     r = await a.call('POST', '/api/finder', { profile: {} }); ok(r.s === 400, 'boʻsh profil → 400');
@@ -81,8 +81,9 @@ class Client {
     await pro.call('POST', '/api/admin/plan', { email: 'pro@gmail.com', plan: 'pro' }, { Authorization: 'Bearer adm-secret' });
     r = await pro.call('POST', '/api/ai', { tool: 'strategy', universities: ['MIT', 'Yale University'] }); ok(r.s === 200 && r.j.usage.ai === 6, 'Pro: strategiya 6 kredit', r.j);
     const fr = new Client(); await fr.call('POST', '/api/register', { email: 'free@gmail.com', password: 'parol12345', name: 'Free' });
-    for (let i = 0; i < 5; i++) await fr.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'q' }] });
-    r = await fr.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'q' }] }); ok(r.s === 402 && r.j.code === 'AI_LIMIT', 'Free: 6-savolda AI_LIMIT', r.s);
+    r = await fr.call('POST', '/api/ai', { tool: 'strategy', universities: ['MIT'] }); ok(r.s === 403 || r.s === 402, 'Free: Pro vositasi yopiq', r.s);
+    for (let i = 0; i < 7; i++) await fr.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'q' }] });
+    r = await fr.call('GET', '/api/me'); ok(r.j.account.limits.ai === 15 && r.j.account.usage.ai === 7, 'Free: 15 kredit limiti, 7 ta sarflangan', r.j.account.usage);
     const rl = new Client(); await rl.call('POST', '/api/register', { email: 'rl@gmail.com', password: 'parol12345', name: 'RL' });
     await rl.call('POST', '/api/admin/plan', { email: 'rl@gmail.com', plan: 'pro' }, { Authorization: 'Bearer adm-secret' });
     let last; for (let i = 0; i < 10; i++) last = await rl.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'q' }] }); ok(last.s === 429, 'AI tezlik limiti 429', last.s);

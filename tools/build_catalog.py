@@ -39,6 +39,11 @@ for n, b in base.items():
              src={k: (v.get(k) or {}).get('url') for k in ('sat', 'accept', 'ielts', 'deadline')} if v else {})
     if ie.get('kind') == 'none_stated': o['ielts'] = None
     out.append(o)
+# faqat kamida bitta tekshirilgan maʼlumoti bor universitetlar koʻrsatiladi; qolganlari alohida faylda
+FL = ('satV', 'accV', 'rdV', 'ieltsV', 'gpaV')
+hidden = [o for o in out if not any(o[k] for k in FL)]
+out = [o for o in out if any(o[k] for k in FL)]
+json.dump(hidden, open(ROOT + 'catalog/unverified_hidden.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
 json.dump(out, open(ROOT + 'public/data/universities.json', 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 print(len(out), 'universitet |', sum(o['satV'] for o in out), 'SAT |', sum(o['accV'] for o in out), 'qabul darajasi |', sum(o['rdV'] for o in out), 'muddat |', sum(o['ieltsV'] for o in out), 'IELTS tekshirilgan')
 for r in rejected: print('RAD ETILDI:', r)
