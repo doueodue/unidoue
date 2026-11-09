@@ -153,3 +153,5 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}.tbl th,.tbl td{pad
 }
 @media(max-width:560px){.g4{grid-template-columns:1fr}.card{padding:18px}.bub{max-width:94%}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.auth-form{position:relative}
+.lang-sel{width:auto;padding:6px 28px 6px 10px;font-size:13px;font-weight:600;border-radius:10px;min-height:0}
