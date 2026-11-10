@@ -1,0 +1,30 @@
+{
+ "name": "Delft University of Technology",
+ "country": "Netherlands",
+ "city": "Delft",
+ "official_url": "https://www.tudelft.nl",
+ "language": "English and Dutch",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.tudelft.nl/en/education/admission-and-application/bsc-international-diploma/1-admission-requirements/",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-15",
+  "intake": "September 2027 (numerus fixus programmes, via Studielink)",
+  "url": "https://www.tudelft.nl/en/onderwijs/opleidingen/bachelors/computer-science-and-engineering/bachelor-of-computer-science-and-engineering/from-application-to-enrollment",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 19906,
+  "currency": "EUR",
+  "note": "Non-EU bachelor institutional fee 2026/27",
+  "url": "https://www.tudelft.nl/en/education/study-programme-orientation/practical-matters/tuition-fee-finances",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Uzbekistan is not on the country-specific diploma list; the diploma is assessed individually (contact Admission Office). IELTS Academic 6.5 overall for English-taught BSc programmes.",
+  "url": "https://www.tudelft.nl/en/education/admission-and-application/bsc-international-diploma/1-admission-requirements/"
+ },
+ "bachelor_in_english": true
+}

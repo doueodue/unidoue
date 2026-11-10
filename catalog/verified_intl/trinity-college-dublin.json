@@ -1,0 +1,30 @@
+{
+ "name": "Trinity College Dublin",
+ "country": "Ireland",
+ "city": "Dublin",
+ "official_url": "https://www.tcd.ie",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.tcd.ie/study/prospectus/Undergraduate-Admission-Guide-Non-EU.pdf",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "September 2027 (priority 1 Feb; Medicine/Dental/Music/Drama close 1 Feb); page updated July 2025",
+  "url": "https://www.tcd.ie/study/international/how-to-apply/",
+  "year": 2025
+ },
+ "tuition": {
+  "amount": 23250,
+  "currency": "EUR",
+  "note": "Non-EU Year 1, most Arts/Humanities/Business/Law courses 2027/28; Science/Engineering/CS 30,450",
+  "url": "https://www.tcd.ie/courses/undergraduate/fees/",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Meet matriculation requirements (English, maths, a non-English language plus full set of valid subjects), IELTS 6.5 overall with 6.0 per band, and course requirements; Uzbekistan-specific rules are on Trinity's country pages (not opened).",
+  "url": "https://www.tcd.ie/study/apply/admission-requirements/undergraduate/"
+ },
+ "bachelor_in_english": null
+}

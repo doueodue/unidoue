@@ -1,0 +1,30 @@
+{
+ "name": "National University of Singapore",
+ "country": "Singapore",
+ "city": "Singapore",
+ "official_url": "https://www.nus.edu.sg",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-02-17",
+  "intake": "AY2027/2028 (16 Dec 2026 - 17 Feb 2027)",
+  "url": "https://www.nus.edu.sg/oam/admissions/important-dates",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 36650,
+  "currency": "SGD",
+  "note": "Non-subsidised, per annum incl. GST, Humanities and Sciences, AY2026/27 (Computing/Engineering 39,700)",
+  "url": "https://www.nus.edu.sg/registrar/docs/default-source/administrative-policies-procedures/ugtuitioncurrent.pdf",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "12 years of general education by July of application year plus programme prerequisites; Uzbekistan not listed by name, so qualification is assessed under 'other high school qualifications' (contact admissions).",
+  "url": "https://www.nus.edu.sg/oam/admissions/international-qualifications-for-foreigners/admission-requirements"
+ },
+ "bachelor_in_english": null
+}

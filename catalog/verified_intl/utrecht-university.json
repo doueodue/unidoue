@@ -1,0 +1,30 @@
+{
+ "name": "Utrecht University",
+ "country": "Netherlands",
+ "city": "Utrecht",
+ "official_url": "https://www.uu.nl",
+ "language": "English and Dutch",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-04-01",
+  "intake": "September 2027, non-EU applicants (programme page: Global Sustainability Science)",
+  "url": "https://www.uu.nl/en/bachelors/global-sustainability-science/application-and-admission",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "EUR",
+  "note": "Non-EU institutional fee amount only in a PDF not opened; statutory fee EUR 2694 (2026-27) applies to EU/EEA only",
+  "url": "https://www.uu.nl/en/bachelors/general-information/how-to-apply/fees/tuition-fees",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Non-EU applicants need passport scan, proof of qualifications meeting entry requirements, EMI-ready English proficiency (test scores may follow conditionally) and EUR 100 application fee via Studielink.",
+  "url": "https://www.uu.nl/en/bachelors/general-information/how-to-apply/application-procedure"
+ },
+ "bachelor_in_english": true
+}

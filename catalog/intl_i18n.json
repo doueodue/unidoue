@@ -388,5 +388,87 @@
    "12-sinf/oxirgi yil o‘rta ta’limini ingliz tili va kerakli old shartlar (masalan matematika) bilan tugatgan bo‘lish, shuningdek IELTS Academic 6.5 umumiy, hech bir qismda 6.0 dan past emas; O‘zbekiston alohida ko‘rsatilmagan.",
    "Завершённое среднее образование (12-й класс/последний год) с английским и нужными профильными предметами (например, математика), плюс IELTS Academic 6.5 в целом, не ниже 6.0 по каждому разделу; Узбекистан отдельно не указан."
   ]
+ },
+ "trinity-college-dublin": {
+  "intake": [
+   "2027-yil sentyabri (ustuvor muddat 1-fevral; tibbiyot/stomatologiya/musiqa/drama 1-fevralda yopiladi)",
+   "Сентябрь 2027 (приоритетный срок 1 февраля; медицина/стоматология/музыка/театр закрываются 1 февраля)"
+  ],
+  "note": [
+   "EIdan tashqari 1-kurs, ko‘pchilik gumanitar/biznes/huquq kurslari 2027/28; Science/Engineering/CS 30 450",
+   "Год 1 для студентов вне ЕС, большинство гуманитарных/бизнес/юридических курсов 2027/28; Science/Engineering/CS 30 450"
+  ],
+  "req": [
+   "Matrikulyatsiya talablariga (ingliz tili, matematika, ingliz tilidan tashqari til va to‘liq fanlar to‘plami) javob berish, IELTS 6.5 umumiy, har bir qismda 6.0 va kurs talablari; O‘zbekistonga oid qoidalar Trinity’ning davlatlar sahifalarida (ochilmadi).",
+   "Соответствие требованиям к аттестату (английский, математика, неанглийский язык и полный набор предметов), IELTS 6.5 в целом и 6.0 по каждому разделу, а также требования курса; правила для Узбекистана — на страницах Trinity по странам (не открывались)."
+  ]
+ },
+ "university-college-dublin": {
+  "req": [
+   "IELTS Academic 6.5 umumiy, har bir qismda 6.0 (qayta topshirishsiz); o‘z mamlakatingizdagi attestat talablarini tekshiring; viza kerak bo‘lgan talabalar 1-iyulgacha ariza beradi.",
+   "IELTS Academic 6.5 в целом и 6.0 по каждому разделу (без пересдач); проверьте требования к аттестату вашей страны; студенты, которым нужна виза, подают заявку до 1 июля."
+  ]
+ },
+ "delft-university-of-technology": {
+  "intake": [
+   "2027-yil sentyabri (numerus fixus dasturlari, Studielink orqali)",
+   "Сентябрь 2027 (программы numerus fixus, через Studielink)"
+  ],
+  "note": [
+   "EIdan tashqari bakalavr institutsional to‘lovi 2026/27",
+   "Институциональная плата бакалавриата для студентов вне ЕС 2026/27"
+  ],
+  "req": [
+   "O‘zbekiston davlatlar bo‘yicha diplomlar ro‘yxatida yo‘q; diplom alohida baholanadi (qabul bo‘limiga murojaat qiling). Inglizcha BSc dasturlari uchun IELTS Academic 6.5 umumiy.",
+   "Узбекистан отсутствует в списке дипломов по странам; диплом оценивается индивидуально (обратитесь в приёмную). Для программ BSc на английском нужен IELTS Academic 6.5 в целом."
+  ]
+ },
+ "university-of-amsterdam": {
+  "intake": [
+   "2027-yil sentyabri (viza/turar joy uchun tavsiya 1-aprel; numerus fixus dasturlari 15-yanvar)",
+   "Сентябрь 2027 (рекомендуемый срок 1 апреля для визы/жилья; программы numerus fixus — 15 января)"
+  ],
+  "note": [
+   "EIHdan tashqari bakalavr to‘lovi 2027–28, ro‘yxatdagi eng pasti (Iqtisodiyot va biznes); 21 900 gacha (Science), tibbiyot 34 500",
+   "Плата бакалавриата вне ЕЭЗ 2027–28, наименьшая из перечисленных (Economics and Business); до 21 900 (Science), медицина 34 500"
+  ],
+  "req": [
+   "Teng xalqaro o‘rta ta’lim diplomi (ro‘yxatda yo‘q malakalar alohida baholanadi), IELTS Academic 6.5 umumiy, har bir qismda 6.0, CV, majburiy UvA Matching, ariza to‘lovi 100 EUR.",
+   "Эквивалентный международный диплом о среднем образовании (не перечисленные квалификации оцениваются индивидуально), IELTS Academic 6.5 в целом и 6.0 по разделам, CV, обязательный UvA Matching, сбор 100 EUR."
+  ]
+ },
+ "utrecht-university": {
+  "intake": [
+   "2027-yil sentyabri, EIdan tashqari abituriyentlar (dastur sahifasi: Global Sustainability Science)",
+   "Сентябрь 2027, абитуриенты вне ЕС (страница программы: Global Sustainability Science)"
+  ],
+  "req": [
+   "EIdan tashqari abituriyentlarga pasport nusxasi, kirish talablariga mos malaka hujjatlari, ingliz tili bilimi (test natijalari shartli keyin ham berilishi mumkin) va Studielink orqali 100 EUR ariza to‘lovi kerak.",
+   "Абитуриентам вне ЕС нужны скан паспорта, документы о квалификации, соответствующие требованиям, знание английского (результаты теста могут быть предоставлены условно позже) и сбор 100 EUR через Studielink."
+  ]
+ },
+ "nanyang-technological-university": {
+  "intake": [
+   "2027 o‘quv yili qabuli; “boshqa malakalar” uchun ariza oynasi 2026-yil 15-oktyabr – 2027-yil 20-yanvar",
+   "Набор на 2027 учебный год; окно подачи для «прочих квалификаций» 15 октября 2026 – 20 января 2027"
+  ],
+  "req": [
+   "O‘zbekiston “ro‘yxatda ko‘rsatilmagan boshqa malakalar” toifasiga kiradi (alohida baholanadi; bu mening talqinim); agar o‘rta maktabda ingliz tilida o‘qimagan bo‘lsangiz, IELTS Academic 6.5 umumiy, Writing va Speaking’da 6.5.",
+   "Узбекистан относится к категории «прочие квалификации, не указанные в списке» (оценка индивидуальная; это моё толкование); если английский не изучался в старшей школе, нужен IELTS Academic 6.5 в целом и 6.5 по Writing и Speaking."
+  ]
+ },
+ "national-university-of-singapore": {
+  "intake": [
+   "2027/2028 o‘quv yili (2026-yil 16-dekabr – 2027-yil 17-fevral)",
+   "Учебный год 2027/2028 (16 декабря 2026 – 17 февраля 2027)"
+  ],
+  "note": [
+   "Subsidiyasiz, yiliga GST bilan, gumanitar va aniq fanlar, 2026/27 o‘quv yili (Computing/Engineering 39 700)",
+   "Без субсидий, в год с GST, гуманитарные и естественные науки, 2026/27 (Computing/Engineering 39 700)"
+  ],
+  "req": [
+   "Ariza yili iyuligacha 12 yillik umumiy ta’lim va dastur old shartlari; O‘zbekiston nomi bilan ko‘rsatilmagan, shuning uchun malaka “boshqa maktab malakalari” sifatida baholanadi (qabul bo‘limiga murojaat qiling).",
+   "12 лет общего образования к июлю года подачи плюс профильные требования программы; Узбекистан по названию не указан, поэтому квалификация оценивается как «прочие школьные квалификации» (обратитесь в приёмную)."
+  ]
  }
 }

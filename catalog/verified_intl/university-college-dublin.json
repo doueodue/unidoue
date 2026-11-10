@@ -1,0 +1,30 @@
+{
+ "name": "University College Dublin",
+ "country": "Ireland",
+ "city": "Dublin",
+ "official_url": "https://www.ucd.ie",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.ucd.ie/registry/prospectivestudents/admissions/policiesandgeneralregulations/generalrequirements/minimumenglishlanguagerequirements/",
+  "year": 2026
+ },
+ "deadline": {
+  "date": null,
+  "intake": "September 2027; applications open 1 Oct; visa-required students recommended to apply before 1 July",
+  "url": "https://www.ucd.ie/global/study-at-ucd/faqs/",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "EUR",
+  "note": "Non-EU UG fee tables not retrievable",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "IELTS Academic 6.5 overall with 6.0 in each band (no retakes); applicants should check entry requirements for their country's qualification; visa-required students apply before 1 July.",
+  "url": "https://www.ucd.ie/registry/prospectivestudents/admissions/policiesandgeneralregulations/generalrequirements/minimumenglishlanguagerequirements/"
+ },
+ "bachelor_in_english": null
+}

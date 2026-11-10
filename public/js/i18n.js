@@ -8,7 +8,7 @@ document.documentElement.lang = cur;
 
 const D = {
   ru: {
-    'Shveytsariya': 'Швейцария', 'Finlyandiya': 'Финляндия', 'Shotlandiya': 'Шотландия', 'Uels': 'Уэльс', 'Fransiya': 'Франция', 'Italiya': 'Италия', 'Avstraliya': 'Австралия', 'Yangi Zelandiya': 'Новая Зеландия', 'Germaniya': 'Германия', 'Yaponiya': 'Япония', 'Janubiy Koreya': 'Южная Корея', 'Xitoy': 'Китай', 'Angliya': 'Англия', 'Kanada': 'Канада',
+    'Shveytsariya': 'Швейцария', 'Finlyandiya': 'Финляндия', 'Shotlandiya': 'Шотландия', 'Uels': 'Уэльс', 'Fransiya': 'Франция', 'Italiya': 'Италия', 'Avstraliya': 'Австралия', 'Yangi Zelandiya': 'Новая Зеландия', 'Germaniya': 'Германия', 'Yaponiya': 'Япония', 'Janubiy Koreya': 'Южная Корея', 'Xitoy': 'Китай', 'Niderlandiya': 'Нидерланды', 'Singapur': 'Сингапур', 'Irlandiya': 'Ирландия', 'AQSh': 'США', 'Angliya': 'Англия', 'Kanada': 'Канада',
     'Bosh panel': 'Главная', 'Universitet qidiruvi': 'Поиск университетов', 'Boshqa davlatlar': 'Другие страны', 'Stipendiyalar': 'Стипендии', 'Qabul bashorati': 'Прогноз поступления',
     'Solishtirish': 'Сравнение', 'Arizalarim': 'Мои заявки', 'Yo‘l xaritasi': 'Дорожная карта', 'Esse yordamchisi': 'Помощник по эссе', 'AI mentor': 'ИИ-наставник', 'Tariflar': 'Тарифы', 'Profil': 'Профиль',
     'Asosiy': 'Основное', 'Ish joyi': 'Работа', 'Hisob': 'Аккаунт', 'Chiqish': 'Выйти', 'Menyu': 'Меню', 'Asosiy menyu': 'Главное меню',
@@ -27,7 +27,7 @@ const D = {
     'Xalqaro universitetlar ro‘yxatini yuklab bo‘lmadi.': 'Не удалось загрузить список международных университетов.', 'Til': 'Язык'
   },
   en: {
-    'Shveytsariya': 'Switzerland', 'Finlyandiya': 'Finland', 'Shotlandiya': 'Scotland', 'Uels': 'Wales', 'Fransiya': 'France', 'Italiya': 'Italy', 'Avstraliya': 'Australia', 'Yangi Zelandiya': 'New Zealand', 'Germaniya': 'Germany', 'Yaponiya': 'Japan', 'Janubiy Koreya': 'South Korea', 'Xitoy': 'China', 'Angliya': 'England', 'Kanada': 'Canada',
+    'Shveytsariya': 'Switzerland', 'Finlyandiya': 'Finland', 'Shotlandiya': 'Scotland', 'Uels': 'Wales', 'Fransiya': 'France', 'Italiya': 'Italy', 'Avstraliya': 'Australia', 'Yangi Zelandiya': 'New Zealand', 'Germaniya': 'Germany', 'Yaponiya': 'Japan', 'Janubiy Koreya': 'South Korea', 'Xitoy': 'China', 'Niderlandiya': 'Netherlands', 'Singapur': 'Singapore', 'Irlandiya': 'Ireland', 'AQSh': 'USA', 'Angliya': 'England', 'Kanada': 'Canada',
     'Bosh panel': 'Dashboard', 'Universitet qidiruvi': 'University finder', 'Boshqa davlatlar': 'Other countries', 'Stipendiyalar': 'Scholarships', 'Qabul bashorati': 'Admission predictor',
     'Solishtirish': 'Compare', 'Arizalarim': 'My applications', 'Yo‘l xaritasi': 'Roadmap', 'Esse yordamchisi': 'Essay assistant', 'AI mentor': 'AI mentor', 'Tariflar': 'Plans', 'Profil': 'Profile',
     'Asosiy': 'Main', 'Ish joyi': 'Workspace', 'Hisob': 'Account', 'Chiqish': 'Log out', 'Menyu': 'Menu', 'Asosiy menyu': 'Main menu',

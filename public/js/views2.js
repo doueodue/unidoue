@@ -1,5 +1,7 @@
 import { $, $$, S, api, ls, esc, toast, svg, fmtDate, daysLeft, catalog, upsell, errorBox } from './core.js';
 import { getProfile, DOCS } from './views1.js';
+import { t } from './i18n.js';
+const ctry = c => (c ? `<div class="ctry">${esc(t(c))}</div>` : '');
 
 const TIER = { safety: 'Safety', target: 'Target', reach: 'Reach' };
 const profBody = () => { const { Q } = getProfile(); return { gpa: Q.gpa, sc: Q.sc, sat: Q.sat, ielts: Q.ielts, ex: Q.ex, ach: Q.ach }; };
@@ -23,7 +25,7 @@ export async function finder(el) {
       const r = await api('/api/finder', 'POST', { profile: profBody(), q, tier, verifiedOnly: vOnly }); if (my !== seq) return;
       $$('#f-t button', el).forEach(b => { const k = b.dataset.t; b.querySelector('.c').textContent = k ? ' ' + r.counts[k] : ''; });
       if (!r.items.length) { out.innerHTML = '<div class="card empty"><b>Hech narsa topilmadi</b>Filtrni o‘zgartirib ko‘ring.</div>'; return; }
-      out.innerHTML = `<div class="grid g2">${r.items.map(u => `<article class="card hover"><div style="display:flex;gap:14px;align-items:flex-start"><div class="score">${u.score}</div><div style="flex:1;min-width:0"><h3 style="margin:0">${esc(u.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><span class="badge ${u.tier}">${TIER[u.tier]}</span>${vb(u.verified, 'SAT tekshirilgan')}${u.deadline ? `<span class="badge mute">${fmtDate(u.deadline)}${u.deadlineVerified ? '' : ' (taxminiy)'}</span>` : ''}</div></div></div>
+      out.innerHTML = `<div class="grid g2">${r.items.map(u => `<article class="card hover"><div style="display:flex;gap:14px;align-items:flex-start"><div class="score">${u.score}</div><div style="flex:1;min-width:0">${ctry(u.country)}<h3 style="margin:0">${esc(u.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><span class="badge ${u.tier}">${TIER[u.tier]}</span>${vb(u.verified, 'SAT tekshirilgan')}${u.deadline ? `<span class="badge mute">${fmtDate(u.deadline)}${u.deadlineVerified ? '' : ' (taxminiy)'}</span>` : ''}</div></div></div>
         ${u.why ? `<p style="margin:14px 0 6px;font-weight:600">${esc(u.level)}</p><ul style="margin:0;padding-left:18px;color:var(--ink-2);font-size:13.5px;display:grid;gap:4px">${u.why.map(w => `<li>${esc(w.t)}</li>`).join('')}</ul><p class="hint">${esc(u.basis)}${u.confident ? '' : ' · bu daraja taxminiy'}</p>`
           : `<div class="lock" style="margin-top:12px;border-radius:12px"><div class="lock-in"><p>Nima uchun mos ekani: SAT, GPA va IELTS bo‘yicha tushuntirish shu yerda ko‘rinadi.</p><p>Universitet ko‘rsatkichlari bilan solishtirish batafsil yoziladi.</p></div><div class="lock-cta"><button class="btn primary sm" data-up>Tushuntirishni ochish (Plus)</button></div></div>`}
         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn sm" data-add="${esc(u.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(u.id)}">Solishtirish</button><a class="btn sm" href="#/predictor?u=${encodeURIComponent(u.id)}">Bashorat</a></div></article>`).join('')}</div>
@@ -120,7 +122,7 @@ async function browse(el) {
   <div class="card" style="margin-bottom:16px"><label class="f" for="b-q">Qidirish</label><input id="b-q" type="text" maxlength="60" placeholder="Universitet nomi"></div><div id="b-r"></div>`;
   const out = $('#b-r', el), draw = q => {
     const rows = cat.filter(c => c.n.toLowerCase().includes(q.toLowerCase()));
-    out.innerHTML = rows.length ? `<div class="grid g2">${rows.map(c => `<article class="card hover"><h3>${esc(c.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${vb(c.satV, 'SAT tekshirilgan')}<span class="badge mute">SAT ${c.sat[0]}–${c.sat[1]}</span><span class="badge mute">Muddat: ${fmtDate(c.rd)}${c.rdV ? '' : ' (taxminiy)'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-add="${esc(c.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(c.id)}">Solishtirish</button></div></article>`).join('')}</div>` : '<div class="card empty"><b>Hech narsa topilmadi</b></div>';
+    out.innerHTML = rows.length ? `<div class="grid g2">${rows.map(c => `<article class="card hover">${ctry(c.country)}<h3>${esc(c.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${vb(c.satV, 'SAT tekshirilgan')}<span class="badge mute">SAT ${c.sat[0]}–${c.sat[1]}</span><span class="badge mute">Muddat: ${fmtDate(c.rd)}${c.rdV ? '' : ' (taxminiy)'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-add="${esc(c.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(c.id)}">Solishtirish</button></div></article>`).join('')}</div>` : '<div class="card empty"><b>Hech narsa topilmadi</b></div>';
     $$('[data-add]', out).forEach(b => (b.onclick = () => addApp(cat.find(c => c.id === b.dataset.add))));
     $$('[data-cmp]', out).forEach(b => (b.onclick = () => addCmp(b.dataset.cmp)));
   };

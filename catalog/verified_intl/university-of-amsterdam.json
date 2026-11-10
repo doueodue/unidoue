@@ -1,0 +1,30 @@
+{
+ "name": "University of Amsterdam",
+ "country": "Netherlands",
+ "city": "Amsterdam",
+ "official_url": "https://www.uva.nl",
+ "language": "English and Dutch",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.uva.nl/en/education/admissions/bachelors/applying-for-a-degree-programme.html",
+  "year": 2027
+ },
+ "deadline": {
+  "date": "2027-05-01",
+  "intake": "September 2027 (advisory 1 April for visa/housing; 15 January for numerus fixus programmes)",
+  "url": "https://www.uva.nl/en/education/admissions/bachelors/applying-for-a-degree-programme.html",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 15730,
+  "currency": "EUR",
+  "note": "Non-EEA bachelor fee 2027-28, lowest listed (Economics and Business); ranges up to 21,900 (Science), Medicine 34,500",
+  "url": "https://www.uva.nl/en/education/fees-and-funding/tuition-fees/tuition-fees.html",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Equivalent international secondary diploma (non-listed qualifications assessed individually), IELTS Academic 6.5 overall with 6.0 per section, CV, mandatory UvA Matching, EUR 100 application fee.",
+  "url": "https://www.uva.nl/en/education/admissions/bachelors/applying-for-a-degree-programme.html"
+ },
+ "bachelor_in_english": true
+}

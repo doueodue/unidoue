@@ -2,7 +2,7 @@
 import json, glob, re, unicodedata
 ROOT = '/home/claude/unidoue/'
 UZ = {'Switzerland': 'Shveytsariya', 'Finland': 'Finlyandiya', 'Scotland': 'Shotlandiya', 'Wales': 'Uels', 'France': 'Fransiya', 'Italy': 'Italiya',
-      'Australia': 'Avstraliya', 'New Zealand': 'Yangi Zelandiya', 'Germany': 'Germaniya', 'Japan': 'Yaponiya', 'South Korea': 'Janubiy Koreya', 'China': 'Xitoy', 'England': 'Angliya', 'Canada': 'Kanada'}
+      'Australia': 'Avstraliya', 'New Zealand': 'Yangi Zelandiya', 'Germany': 'Germaniya', 'Japan': 'Yaponiya', 'South Korea': 'Janubiy Koreya', 'China': 'Xitoy', 'England': 'Angliya', 'Canada': 'Kanada', 'Netherlands': 'Niderlandiya', 'Singapore': 'Singapur', 'Ireland': 'Irlandiya'}
 TODAY = '2026-11-09'
 def slug(n): return re.sub(r'[^a-z0-9]+', '-', unicodedata.normalize('NFKD', n).encode('ascii', 'ignore').decode().lower()).strip('-')
 TR = json.load(open(ROOT + 'catalog/intl_i18n.json', encoding='utf-8'))

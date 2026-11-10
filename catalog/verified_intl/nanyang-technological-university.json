@@ -1,0 +1,30 @@
+{
+ "name": "Nanyang Technological University",
+ "country": "Singapore",
+ "city": "Singapore",
+ "official_url": "https://www.ntu.edu.sg",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.ntu.edu.sg/admissions/undergraduate/admission-guide/international-qualifications",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2027-01-20",
+  "intake": "AY2027 intake; window 15 Oct 2026 - 20 Jan 2027 for all other qualifications",
+  "url": "https://www.ntu.edu.sg/admissions/undergraduate/admission-guide/international-qualifications",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "SGD",
+  "note": "Non-subsidised 2026 fee page lists 36,350 / 40,600 but column labels unclear, so not recorded",
+  "url": "https://www.ntu.edu.sg/admissions/undergraduate/fees-and-funding/tuition-fees/accepted-programme-offer-in-2026",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Uzbekistan falls under 'all other qualifications not listed' (assessed case by case; my reading); IELTS Academic 6.5 overall with 6.5 Writing and Speaking if English was not studied at junior and senior high school.",
+  "url": "https://www.ntu.edu.sg/admissions/undergraduate/admission-guide/international-qualifications"
+ },
+ "bachelor_in_english": null
+}
