@@ -16,7 +16,7 @@
   "year": 2026
  },
  "tuition": {
-  "amount": 215000,
+  "amount": null,
   "currency": "HKD",
   "note": "Annual non-local UG, 2026-27 cohort; page shows '$' only, HKD not explicitly stated",
   "url": "https://registry.hkust.edu.hk/resource-library/tuition-rates-ug",

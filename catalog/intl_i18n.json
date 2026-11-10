@@ -470,5 +470,87 @@
    "Ariza yili iyuligacha 12 yillik umumiy ta’lim va dastur old shartlari; O‘zbekiston nomi bilan ko‘rsatilmagan, shuning uchun malaka “boshqa maktab malakalari” sifatida baholanadi (qabul bo‘limiga murojaat qiling).",
    "12 лет общего образования к июлю года подачи плюс профильные требования программы; Узбекистан по названию не указан, поэтому квалификация оценивается как «прочие школьные квалификации» (обратитесь в приёмную)."
   ]
+ },
+ "the-hong-kong-university-of-science-and-technology": {
+  "intake": [
+   "2027-yil qabuli; ustuvor bosqich muddati (2026-11-26 dan rolling, 2027-06-30 da yopiladi)",
+   "Набор 2027; срок приоритетного раунда (скользящий приём с 26.11.2026, закрывается 30.06.2027)"
+  ],
+  "req": [
+   "Xalqaro malaka bilan o‘rta maktabni tugatgan (IB, A-levels, SAT/ACT/AP yoki milliy tizim), 10-sinfdan boshlab maktab hisobotlari, shaxsiy bayonot, tavsiyachi va ingliz tili isboti (IELTS Academic 6.0 umumiy); ariza to‘lovi 600 HKD.",
+   "Окончание школы с международной квалификацией (IB, A-levels, SAT/ACT/AP или национальная система), школьные отчёты с 10 класса, личное эссе, рекомендатель и подтверждение английского (IELTS Academic 6.0 в целом); сбор 600 HKD."
+  ]
+ },
+ "the-university-of-hong-kong": {
+  "intake": [
+   "2027-yil qabuli; birinchi bosqich muddati (keyin rolling, ariza 2027-08-25 da yopiladi)",
+   "Набор 2027; срок первого раунда (далее скользящий приём, заявки закрываются 25.08.2027)"
+  ],
+  "note": [
+   "Mahalliy bo‘lmagan bakalavr yillik to‘lovi 2026–27; Engineering, Science, Medicine, Dentistry va ayrim fakultetlarda 249 000 HKD",
+   "Годовая плата бакалавриата для иногородних 2026–27; 249 000 HKD для Engineering, Science, Medicine, Dentistry и некоторых школ"
+  ],
+  "req": [
+   "Non-JUPAS xalqaro malakalar yo‘li orqali ariza: maktab hisobotlari, kutilayotgan/haqiqiy baholar (IB, A-levels va h.k.), shaxsiy bayonot, tavsiyachi; IELTS Academic 6.5 umumiy, Writing va Speaking’da kamida 6.0. O‘zbekiston baholari alohida ko‘rsatilmagan.",
+   "Заявка по пути Non-JUPAS с международными квалификациями: школьные отчёты, прогнозные/итоговые оценки (IB, A-levels и т.п.), личное эссе, рекомендатель; IELTS Academic 6.5 в целом, не ниже 6.0 по Writing и Speaking. Оценки Узбекистана отдельно не указаны."
+  ]
+ },
+ "kth-royal-institute-of-technology": {
+  "intake": [
+   "2027-yil kuzi, 1-bosqich (EI/EIHdan tashqari abituriyentlarga tavsiya etiladi)",
+   "Осень 2027, раунд 1 (рекомендуется абитуриентам вне ЕС/ЕЭЗ)"
+  ],
+  "note": [
+   "ICT bo‘yicha to‘liq BSc dasturi, EI/EIH/Shveytsariyadan tashqari; ariza to‘lovi 900 SEK; sahifa oxirgi marta 2025-02-17 da o‘zgargan",
+   "Полная программа BSc по ICT, вне ЕС/ЕЭЗ/Швейцарии; сбор за подачу 900 SEK; страница последний раз изменена 17.02.2025"
+  ],
+  "req": [
+   "Matematika 4 va Fizika 2 ga teng o‘rta ta’lim, English 6 (IELTS 6.5, hech bir qismda 5.5 dan past emas), yakuniy baholar hujjatlangan (taxminiy baho qabul qilinmaydi); tanlov baholar o‘rtachasi bo‘yicha. O‘zbekiston ro‘yxatda yo‘q; info@kth.se ga yozing.",
+   "Среднее образование, эквивалентное Mathematics 4 и Physics 2, English 6 (IELTS 6.5, не ниже 5.5 по каждому разделу), итоговые оценки подтверждены документально (прогнозные не принимаются); отбор по среднему баллу. Узбекистана в списке нет; пишите на info@kth.se."
+  ]
+ },
+ "lund-university": {
+  "intake": [
+   "2027-yil kuzi semestri",
+   "Осенний семестр 2027"
+  ],
+  "note": [
+   "3 yillik to‘liq dastur, International Business bakalavr (misol), EI/EIH/Shveytsariyadan tashqari; birinchi to‘lov 65 000 SEK",
+   "Полная 3-летняя программа, бакалавриат International Business (пример), вне ЕС/ЕЭЗ/Швейцарии; первый взнос 65 000 SEK"
+  ],
+  "req": [
+   "O‘zbekistonda universitetga kirish huquqini beradigan o‘rta ta’lim, English 6 ga teng (IELTS 6.5, hech bir qismda 5.5 dan past emas) va dasturning o‘z talablari; 15-yanvargacha universityadmissions.se orqali ariza.",
+   "Среднее образование, дающее право поступления в университет в Узбекистане, English 6 или эквивалент (IELTS 6.5, не ниже 5.5 по каждому разделу) и требования программы; заявка через universityadmissions.se до 15 января."
+  ]
+ },
+ "koc-university": {
+  "note": [
+   "Yiliga, ko‘pchilik dasturlar 2025/2026 (Tibbiyot 59 000); yotoqxonasiz",
+   "В год, большинство программ 2025/2026 (Медицина 59 000); без общежития"
+  ],
+  "req": [
+   "Davlat ro‘yxatda bo‘lmasa, milliy malakalar qabul qilinmaydi: xalqaro malaka (SAT, ACT, A-Levels, IB, AP), 9–11-sinf transkripti, tavsiyanoma va motivatsion xat, hamda TOEFL iBT (yangi shkalada minimum 4,5; 2026-yil 21-yanvargacha 80). IELTS qabul qilinmaydi. O‘zbekiston sahifada alohida ko‘rsatilmagan.",
+   "Национальные квалификации не принимаются, если страна не в списке: нужна международная квалификация (SAT, ACT, A-Levels, IB, AP), транскрипт 9–11 классов, рекомендации и мотивационное письмо, а также TOEFL iBT (минимум 4,5 по новой шкале; 80 до 21 января 2026). IELTS не принимается. Узбекистан на странице отдельно не указан."
+  ]
+ },
+ "middle-east-technical-university": {
+  "note": [
+   "Semestriga, Anqara, Muhandislik/Arxitektura/fanlar (ijtimoiy fanlar/iqtisodiyot uchun semestriga 800 USD); 2026–2027 jadvali",
+   "За семестр, Анкара, Инженерия/Архитектура/науки (800 USD за семестр для социальных наук/экономики); таблица 2026–2027"
+  ],
+  "req": [
+   "Xalqaro abituriyent sifatida onlayn ariza, o‘rta ta’lim natijalari bilan (A-levels, SAT, IB va h.k.); ariza uchun ingliz tili bali shart emas, lekin TOEFL/PTE bali bo‘lmagan qabul qilinganlar METU ingliz tili imtihonini yoki bir yillik tayyorlovni o‘tadi. 2022-yil 24-dekabrdan keyingi IELTS qabul qilinmaydi.",
+   "Онлайн-заявка как иностранный абитуриент с результатами среднего образования (A-levels, SAT, IB и т.п.); балл по английскому для подачи не нужен, но принятые без действующего TOEFL/PTE сдают экзамен METU по английскому или проходят год подготовки. IELTS, сданный после 24 декабря 2022, не принимается."
+  ]
+ },
+ "sabanci-university": {
+  "note": [
+   "Yillik, xalqaro bakalavrlar, 2026–2027",
+   "Год, иностранные студенты бакалавриата, 2026–2027"
+  ],
+  "req": [
+   "Oxirgi kurs yoki bitirgan o‘quvchi qabul qilinadigan bitta imtihon/diplom natijasi (masalan SAT, kod 7100), transkript va diplomni topshiradi; ariza to‘lovi 30 USD. O‘zbekiston ko‘rsatilmagan; ug-admissions@sabanciuniv.edu ga yozing.",
+   "Выпускник или ученик последнего класса подаёт результат одного принимаемого экзамена/диплома (например, SAT с кодом 7100), транскрипт и диплом; сбор 30 USD. Узбекистан не указан; пишите на ug-admissions@sabanciuniv.edu."
+  ]
  }
 }
