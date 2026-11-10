@@ -50,7 +50,7 @@ class Client {
     r = await a.call('PUT', '/api/data', { data: { 'qabul:apps': JSON.stringify([1, 2, 3]), evil: 'x', 'qabul:sync': 'x' } }); ok(r.s === 200, 'Free: 3 ta ariza 200', r.s);
     r = await a.call('GET', '/api/me'); ok(Object.keys(r.j.data).join() === 'qabul:apps', 'faqat qabul:* kalitlari saqlanadi', Object.keys(r.j.data));
     r = await a.call('PUT', '/api/data', { data: {}, baseRev: 99 }); ok(r.s === 409 && r.j.code === 'REV_CONFLICT', 'versiya toʻqnashuvi 409', r.s);
-    r = await a.call('POST', '/api/finder', { profile: PROFILE }); ok(r.s === 200 && r.j.shown === 10 && r.j.total === 52 && !r.j.items[0].why, 'Free finder: 10 ta, tushuntirishsiz', [r.s, r.j && r.j.shown]);
+    r = await a.call('POST', '/api/finder', { profile: PROFILE }); ok(r.s === 200 && r.j.shown === 10 && r.j.total === JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'data', 'universities.json'), 'utf8')).length && !r.j.items[0].why, 'Free finder: 10 ta, tushuntirishsiz', [r.s, r.j && r.j.shown]);
     ok(new Set(r.j.items.map(x => x.tier)).size === 3, 'Free finder: uchala daraja aralash');
     r = await a.call('POST', '/api/predict', { id: 'mit', profile: PROFILE }); ok(r.s === 200 && r.j.full === false && !r.j.parts, 'Free predict: faqat ball');
     r = await a.call('POST', '/api/finder', { profile: {} }); ok(r.s === 400, 'boʻsh profil → 400');
