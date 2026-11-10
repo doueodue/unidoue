@@ -1,0 +1,30 @@
+{
+ "name": "University of Toronto",
+ "country": "Canada",
+ "city": "Toronto",
+ "official_url": "https://www.utoronto.ca",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://future.utoronto.ca/english-language-requirements",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-15",
+  "intake": "Fall 2027",
+  "url": "https://future.utoronto.ca/deadlines",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 66356.22,
+  "currency": "CAD",
+  "note": "2025-26 international Arts/Science/Commerce/Management range CAD 66,356.22-67,173.09 per year incl. incidental fees; 2026-27 not yet posted on page opened",
+  "url": "https://future.utoronto.ca/sites/default/files/assets/files/2025/2026-27-International-UAB_1.pdf",
+  "year": 2025
+ },
+ "requirement": {
+  "text": "Needs Grade 12/senior-year secondary completion with English and required prerequisites (e.g. math), plus IELTS Academic 6.5 overall with no band below 6.0; Uzbekistan not specifically mentioned.",
+  "url": "https://future.utoronto.ca/sites/default/files/assets/files/2025/2026-27-International-UAB_1.pdf"
+ },
+ "bachelor_in_english": null
+}

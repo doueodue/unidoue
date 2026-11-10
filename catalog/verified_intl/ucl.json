@@ -1,0 +1,30 @@
+{
+ "name": "UCL",
+ "country": "England",
+ "city": "London",
+ "official_url": "https://www.ucl.ac.uk",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-01-14",
+  "intake": "September 2026 entry (page for 2026 entry; 2027 date not verified)",
+  "url": "https://www.ucl.ac.uk/prospective-students/undergraduate/degrees/computer-science-bsc-2026",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 46700,
+  "currency": "GBP",
+  "note": "Computer Science BSc overseas fee 2026/27 entrants",
+  "url": "https://www.ucl.ac.uk/prospective-students/undergraduate/degrees/computer-science-bsc-2026",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Apply via UCAS; programme page states English language Level 1 (see UCL English requirements page, which could not be opened); Uzbekistan qualification requirement not verified.",
+  "url": "https://www.ucl.ac.uk/prospective-students/undergraduate/degrees/computer-science-bsc-2026"
+ },
+ "bachelor_in_english": null
+}

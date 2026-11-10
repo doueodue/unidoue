@@ -1,0 +1,30 @@
+{
+ "name": "University of Oxford",
+ "country": "England",
+ "city": "Oxford",
+ "official_url": "https://www.ox.ac.uk",
+ "language": "English",
+ "ielts": {
+  "min_overall": 7.5,
+  "url": "https://ox.ac.uk/admissions/undergraduate/applying-to-oxford/for-international-students/english-language-requirements?wssl=1",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-10-15",
+  "intake": "2027 entry (October 2027)",
+  "url": "https://www.ucas.com/applying/applying-to-university/dates-and-deadlines-for-uni-applications",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 37380,
+  "currency": "GBP",
+  "note": "Overseas course fees 2026 entry range GBP 37,380-62,820 per year (lowest figure shown); varies by course",
+  "url": "https://assets-oxweb.admin.ox.ac.uk/2026-08/Undergraduate%20Fees%20and%20Funding%20booklet%202026.WEB_.pdf",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Apply via UCAS by the 15 October deadline with school-leaving results and IELTS Academic 7.5 overall (7.0 each component), shown by 31 July of the offer year; Uzbekistan-specific qualifications not listed on pages opened.",
+  "url": "https://ox.ac.uk/admissions/undergraduate/applying-to-oxford/for-international-students/english-language-requirements?wssl=1"
+ },
+ "bachelor_in_english": null
+}

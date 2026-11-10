@@ -1,0 +1,30 @@
+{
+ "name": "University of Cambridge",
+ "country": "England",
+ "city": "Cambridge",
+ "official_url": "https://www.undergraduate.study.cam.ac.uk",
+ "language": "English",
+ "ielts": {
+  "min_overall": 7.5,
+  "url": "https://www.undergraduate.study.cam.ac.uk/apply/before/entry-requirements",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2026-10-15",
+  "intake": "2027 entry (October 2027)",
+  "url": "https://www.ucas.com/applying/applying-to-university/dates-and-deadlines-for-uni-applications",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 41652,
+  "currency": "GBP",
+  "note": "2026-27 example: Economics subject fee 29,052 + Christ's college fee 12,600; subject fees 29,052-70,554 plus college fee 11,500-14,950",
+  "url": "https://www.undergraduate.study.cam.ac.uk/files/publications/undergraduate_tuition_fees_2026-27.pdf",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Apply through UCAS by 15 October with qualifications equivalent to A Levels/IB (Uzbekistan not mentioned; check with chosen College) and IELTS Academic 7.5 overall, usually 7.0 per element.",
+  "url": "https://www.undergraduate.study.cam.ac.uk/apply/before/entry-requirements"
+ },
+ "bachelor_in_english": null
+}

@@ -1,0 +1,30 @@
+{
+ "name": "McGill University",
+ "country": "Canada",
+ "city": "Montreal",
+ "official_url": "https://www.mcgill.ca",
+ "language": "English and French",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.mcgill.ca/undergraduate-admissions/apply/english-proficiency",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-15",
+  "intake": "Fall 2027 (page published 2026 lists January 15; year inferred)",
+  "url": "https://www.mcgill.ca/undergraduate-admissions/apply/requirements/international/advanced-levels",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 56000.1,
+  "currency": "CAD",
+  "note": "2026-27 international BA tuition; full-year total with fees and insurance CAD 59,546.32",
+  "url": "https://www.mcgill.ca/student-accounts/files/student-accounts/new_intl_ugrad_degree_students_admitted_2026-27_0.pdf",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Needs competitive secondary results with program prerequisites and, unless 4 years of schooling in an English-primary country, IELTS Academic 6.5 overall with 6.0 per component; Uzbekistan not specifically listed on pages opened.",
+  "url": "https://www.mcgill.ca/undergraduate-admissions/apply/english-proficiency"
+ },
+ "bachelor_in_english": null
+}

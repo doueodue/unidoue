@@ -1,0 +1,30 @@
+{
+ "name": "University of British Columbia",
+ "country": "Canada",
+ "city": "Vancouver",
+ "official_url": "https://www.ubc.ca",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://you.ubc.ca/applying-ubc/requirements/english-language-competency/",
+  "year": 2027
+ },
+ "deadline": {
+  "date": "2027-01-15",
+  "intake": "2027/28 Winter Session",
+  "url": "https://vancouver.calendar.ubc.ca/academic-year-202627/january-2027",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 51530.4,
+  "currency": "CAD",
+  "note": "2026/27 international Vancouver Arts annual tuition; Science 53,082; Engineering 66,199.66; Commerce 66,678.30",
+  "url": "https://students.ubc.ca/finances/tuition-fees/undergraduate-tuition-fees/",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Needs secondary-school completion meeting program prerequisites and IELTS Academic 6.5 overall with no part below 6.0 (English documents due 15 February); Uzbekistan-specific details not verified.",
+  "url": "https://you.ubc.ca/applying-ubc/requirements/english-language-competency/"
+ },
+ "bachelor_in_english": null
+}

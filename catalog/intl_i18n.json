@@ -314,5 +314,79 @@
    "Matematika va fanlardan kuchli o‘rta ta’lim attestati, IELTS 6.5 (har bir bo‘limda kamida 6) yoki unga teng, yozma kirish imtihoni yo‘q; hujjatlar va masofaviy ingliz suhbati orqali tanlov; ariza to‘lovi 105 EUR.",
    "Аттестат о среднем образовании с сильной математикой и естественными науками, IELTS 6.5 (не ниже 6 в каждом разделе) или эквивалент, письменного вступительного экзамена нет; отбор по документам и удалённому интервью на английском; сбор 105 EUR."
   ]
+ },
+ "imperial-college-london": {
+  "intake": [
+   "2027-yil kirish (2027-yil oktyabr)",
+   "Поступление 2027 (октябрь 2027)"
+  ],
+  "note": [
+   "2026–27 chet ellik talabalar to‘lovi, muhandislik fakulteti, 2026-yil qabul guruhi; IELTS 6.5 standart, kursga qarab 7.0 yuqori daraja",
+   "Плата для иностранных студентов 2026–27, инженерный факультет, набор 2026; IELTS 6.5 — стандартный уровень, 7.0 — повышенный в зависимости от курса"
+  ]
+ },
+ "ucl": {
+  "note": [
+   "Computer Science BSc, chet ellik talabalar to‘lovi, 2026/27 qabul qilinganlar uchun",
+   "Computer Science BSc, плата для иностранных студентов, поступившие 2026/27"
+  ]
+ },
+ "university-of-cambridge": {
+  "note": [
+   "2026–27 misol: Iqtisodiyot fan to‘lovi 29 052 + Christ’s kolleji to‘lovi 12 600; fan to‘lovlari 29 052–70 554 plus kollej to‘lovi 11 500–14 950",
+   "Пример 2026–27: Economics — предметная плата 29 052 + плата колледжа Christ’s 12 600; предметная плата 29 052–70 554 плюс плата колледжа 11 500–14 950"
+  ],
+  "req": [
+   "UCAS orqali 15-oktyabrgacha, A Levels/IB ga teng malaka bilan ariza beriladi (O‘zbekiston alohida ko‘rsatilmagan; tanlangan kollej bilan aniqlashtiring) va IELTS Academic 7.5 umumiy, odatda har bir qismda 7.0 kerak.",
+   "Заявка через UCAS до 15 октября с квалификацией, эквивалентной A Levels/IB (Узбекистан отдельно не указан; уточните в выбранном колледже), и IELTS Academic 7.5 в целом, обычно 7.0 по каждому разделу."
+  ]
+ },
+ "university-of-oxford": {
+  "note": [
+   "2026-yil qabul uchun chet ellik talabalar kurs to‘lovlari oralig‘i 37 380–62 820 GBP/yil (eng past ko‘rsatilgan); kursga qarab farq qiladi",
+   "Плата для иностранных студентов при поступлении 2026: диапазон 37 380–62 820 GBP/год (показано наименьшее значение); зависит от курса"
+  ],
+  "req": [
+   "UCAS orqali 15-oktyabrgacha, maktab natijalari va IELTS Academic 7.5 umumiy (har bir qismda 7.0) bilan ariza beriladi, natija taklif yilining 31-iyuligacha ko‘rsatiladi; O‘zbekiston malakalari ochilgan sahifalarda keltirilmagan.",
+   "Заявка через UCAS до 15 октября с результатами школы и IELTS Academic 7.5 в целом (7.0 по каждому разделу), подтверждение до 31 июля года предложения; квалификации Узбекистана на открытых страницах не указаны."
+  ]
+ },
+ "mcgill-university": {
+  "intake": [
+   "2027-yil kuzi (2026-yilda e’lon qilingan sahifada 15-yanvar ko‘rsatilgan; yil taxmin qilingan)",
+   "Осень 2027 (на странице, опубликованной в 2026, указано 15 января; год предположительный)"
+  ],
+  "note": [
+   "2026–27 xalqaro BA o‘qish haqi; to‘lovlar va sug‘urta bilan yillik jami 59 546,32 CAD",
+   "Плата за международный BA 2026–27; всего за год со сборами и страховкой 59 546,32 CAD"
+  ],
+  "req": [
+   "Dastur old shartlari bilan raqobatbardosh o‘rta ta’lim natijalari kerak va, ingliz tili asosiy bo‘lgan mamlakatda 4 yil o‘qimagan bo‘lsangiz, IELTS Academic 6.5 umumiy, har bir qismda 6.0; O‘zbekiston ochilgan sahifalarda alohida ko‘rsatilmagan.",
+   "Нужны конкурентные результаты среднего образования с профильными предметами и, если вы не учились 4 года в стране с английским основным языком, IELTS Academic 6.5 в целом и 6.0 по каждому разделу; Узбекистан на открытых страницах отдельно не указан."
+  ]
+ },
+ "university-of-british-columbia": {
+  "intake": [
+   "2027/28 qishki sessiya",
+   "Зимняя сессия 2027/28"
+  ],
+  "note": [
+   "2026/27 xalqaro Vancouver Arts yillik o‘qish haqi; Science 53 082; Engineering 66 199,66; Commerce 66 678,30",
+   "2026/27 международные студенты, Vancouver Arts, год; Science 53 082; Engineering 66 199,66; Commerce 66 678,30"
+  ]
+ },
+ "university-of-toronto": {
+  "intake": [
+   "2027-yil kuzi",
+   "Осень 2027"
+  ],
+  "note": [
+   "2025–26 xalqaro Arts/Science/Commerce/Management oralig‘i 66 356,22–67 173,09 CAD/yil (qo‘shimcha to‘lovlar bilan); 2026–27 ochilgan sahifada hali e’lon qilinmagan",
+   "2025–26 международные Arts/Science/Commerce/Management: 66 356,22–67 173,09 CAD/год (с доп. сборами); 2026–27 на открытой странице ещё не опубликовано"
+  ],
+  "req": [
+   "12-sinf/oxirgi yil o‘rta ta’limini ingliz tili va kerakli old shartlar (masalan matematika) bilan tugatgan bo‘lish, shuningdek IELTS Academic 6.5 umumiy, hech bir qismda 6.0 dan past emas; O‘zbekiston alohida ko‘rsatilmagan.",
+   "Завершённое среднее образование (12-й класс/последний год) с английским и нужными профильными предметами (например, математика), плюс IELTS Academic 6.5 в целом, не ниже 6.0 по каждому разделу; Узбекистан отдельно не указан."
+  ]
  }
 }

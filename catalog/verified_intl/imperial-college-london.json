@@ -1,0 +1,30 @@
+{
+ "name": "Imperial College London",
+ "country": "England",
+ "city": "London",
+ "official_url": "https://www.imperial.ac.uk",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.imperial.ac.uk/study/apply/english-language/",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-13",
+  "intake": "2027 entry (October 2027)",
+  "url": "https://www.ucas.com/applying/applying-to-university/dates-and-deadlines-for-uni-applications",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 45500,
+  "currency": "GBP",
+  "note": "2026-27 overseas fee, Faculty of Engineering, 2026 entry cohort; IELTS 6.5 is standard level, 7.0 higher level depending on course",
+  "url": "https://www.imperial.ac.uk/students/fees-and-funding/tuition-fees/undergraduate-tuition-fees/2026-27/faculty-of-engineering/",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Apply through UCAS (main deadline 13 January 2027) with school-leaving qualifications meeting the course requirements and IELTS Academic 6.5 (standard) or 7.0 (higher) overall; Uzbekistan-specific qualification not verified.",
+  "url": "https://www.imperial.ac.uk/study/apply/english-language/"
+ },
+ "bachelor_in_english": null
+}
