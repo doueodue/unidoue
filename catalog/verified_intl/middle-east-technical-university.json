@@ -1,0 +1,30 @@
+{
+ "name": "Middle East Technical University",
+ "country": "Turkey",
+ "city": "Ankara",
+ "official_url": "https://iso.metu.edu.tr/",
+ "language": null,
+ "ielts": {
+  "min_overall": null,
+  "url": "https://iso.metu.edu.tr/en/english-proficiency",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2026-07-12",
+  "intake": "2026-2027 academic year (Ankara campus; window 2026-06-01 to 2026-07-12)",
+  "url": "https://iso.metu.edu.tr/en/application-dates",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 1200,
+  "currency": "USD",
+  "note": "Per semester, Ankara, Engineering/Architecture/sciences (800 USD per semester for social sciences/economics); 2026-2027 table",
+  "url": "https://iso.metu.edu.tr/en/system/files/2026-2027_tuition_fees_14092026.pdf",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Apply online as international applicant with secondary qualification results (e.g. A-levels, SAT, IB); English score not required to apply, but admitted students without valid TOEFL/PTE score take METU English Proficiency Exam or one-year prep. IELTS taken after 24 Dec 2022 not accepted.",
+  "url": "https://iso.metu.edu.tr/en/english-proficiency"
+ },
+ "bachelor_in_english": null
+}

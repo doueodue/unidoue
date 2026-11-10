@@ -1,0 +1,30 @@
+{
+ "name": "The University of Hong Kong",
+ "country": "Hong Kong",
+ "city": "Hong Kong",
+ "official_url": "https://admissions.hku.hk/",
+ "language": null,
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://admissions.hku.hk/apply/international-qualifications/english-language-requirement",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-11-25",
+  "intake": "2027 entry; first-round deadline (rolling after; applications close 2027-08-25)",
+  "url": "https://admissions.hku.hk/apply/international-qualifications",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 224000,
+  "currency": "HKD",
+  "note": "Annual non-local undergraduate 2026-27; HK$249,000 for Engineering, Science, Medicine, Dentistry and some schools",
+  "url": "https://www.hku.hk/en/admission-aid/tuition-fee-scholarships",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Apply via Non-JUPAS international qualifications route with school reports, predicted/actual grades (e.g. IB, A-levels), personal statement, referee; IELTS Academic 6.5 overall with Writing and Speaking at least 6.0. Uzbekistan-specific grades not stated.",
+  "url": "https://admissions.hku.hk/apply/international-qualifications"
+ },
+ "bachelor_in_english": null
+}

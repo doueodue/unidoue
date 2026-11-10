@@ -1,0 +1,30 @@
+{
+ "name": "The Hong Kong University of Science and Technology",
+ "country": "Hong Kong",
+ "city": "Hong Kong",
+ "official_url": "https://join.hkust.edu.hk/",
+ "language": null,
+ "ielts": {
+  "min_overall": 6.0,
+  "url": "https://join.hkust.edu.hk/oas/elar.pdf",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-11-25",
+  "intake": "2027 entry; priority round deadline (rolling from 2026-11-26; closes 2027-06-30)",
+  "url": "https://join.hkust.edu.hk/admissions/international-qualifications/application-procedures",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 215000,
+  "currency": "HKD",
+  "note": "Annual non-local UG, 2026-27 cohort; page shows '$' only, HKD not explicitly stated",
+  "url": "https://registry.hkust.edu.hk/resource-library/tuition-rates-ug",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Graduate from high school with an international qualification (IB, A-levels, SAT/ACT/AP or national system), submit school reports from Grade 10, personal statement, referee, English proof (IELTS Academic 6.0 overall); HKD 600 application fee.",
+  "url": "https://join.hkust.edu.hk/admissions/international-qualifications/application-procedures"
+ },
+ "bachelor_in_english": null
+}

@@ -1,0 +1,30 @@
+{
+ "name": "Lund University",
+ "country": "Sweden",
+ "city": "Lund",
+ "official_url": "https://www.lunduniversity.lu.se/",
+ "language": null,
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.lunduniversity.lu.se/study/admission-degree-studies/entry-requirements",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2027-01-15",
+  "intake": "Autumn Semester 2027",
+  "url": "https://www.lunduniversity.lu.se/lubas/i-uoh-lu-EGIBU",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 390000,
+  "currency": "SEK",
+  "note": "Full 3-year programme, International Business bachelor's (example), non-EU/EEA/Swiss; first payment SEK 65,000",
+  "url": "https://www.lunduniversity.lu.se/lubas/i-uoh-lu-EGIBU",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Complete upper secondary education giving university access in Uzbekistan, English 6 equivalent (IELTS 6.5, no section below 5.5), plus any programme-specific requirements; apply via universityadmissions.se by 15 January.",
+  "url": "https://www.lunduniversity.lu.se/study/admission-degree-studies/entry-requirements"
+ },
+ "bachelor_in_english": true
+}

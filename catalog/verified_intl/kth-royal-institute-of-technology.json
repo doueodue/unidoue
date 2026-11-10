@@ -1,0 +1,30 @@
+{
+ "name": "KTH Royal Institute of Technology",
+ "country": "Sweden",
+ "city": "Stockholm",
+ "official_url": "https://www.kth.se/en",
+ "language": null,
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.kth.se/en/studies/bachelor/information-communication-technology/entry-requirements-for-information-and-communication-technology-1.450313",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-15",
+  "intake": "Autumn 2027, Round 1 (recommended for non-EU applicants)",
+  "url": "https://www.kth.se/en/studies/bachelor/how-to-apply-for-bachelor-s-studies-1.450312",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 453000,
+  "currency": "SEK",
+  "note": "Full BSc programme in ICT, non-EU/EEA/Swiss; application fee SEK 900; page last changed 2025-02-17",
+  "url": "https://www.kth.se/en/studies/bachelor/fees-1.646274",
+  "year": 2025
+ },
+ "requirement": {
+  "text": "Completed upper secondary education with Mathematics 4 and Physics 2 equivalent, English 6 (IELTS 6.5, no section below 5.5), final grades documented (no predicted grades); selection by grade average. Uzbekistan not listed; email info@kth.se.",
+  "url": "https://www.kth.se/en/studies/bachelor/information-communication-technology/entry-requirements-for-information-and-communication-technology-1.450313"
+ },
+ "bachelor_in_english": null
+}

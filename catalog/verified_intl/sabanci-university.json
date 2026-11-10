@@ -1,0 +1,30 @@
+{
+ "name": "Sabanci University",
+ "country": "Turkey",
+ "city": "Istanbul",
+ "official_url": "https://iro.sabanciuniv.edu/",
+ "language": null,
+ "ielts": {
+  "min_overall": null,
+  "url": "https://iro.sabanciuniv.edu/en/application-requirements",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2026-08-28",
+  "intake": "2026-2027 academic year (early deadline 2026-03-14)",
+  "url": "https://iro.sabanciuniv.edu/en/how-to-apply",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 36500,
+  "currency": "USD",
+  "note": "Annual, international undergraduates, 2026-2027",
+  "url": "https://iro.sabanciuniv.edu/en/tuition-fee",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Final-year or graduated high school student submitting one accepted exam/diploma result (e.g. SAT with code 7100), transcript and diploma; USD 30 application fee. Uzbekistan not mentioned; contact ug-admissions@sabanciuniv.edu.",
+  "url": "https://iro.sabanciuniv.edu/en/application-requirements"
+ },
+ "bachelor_in_english": null
+}

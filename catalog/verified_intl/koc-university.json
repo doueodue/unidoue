@@ -1,0 +1,30 @@
+{
+ "name": "Koc University",
+ "country": "Turkey",
+ "city": "Istanbul",
+ "official_url": "https://international.ku.edu.tr/",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "https://international.ku.edu.tr/undergraduate-programs/how-to-apply/",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2026-08-05",
+  "intake": "Fall 2026 (extended late deadline; regular 2026-05-31, early 2026-03-01)",
+  "url": "https://international.ku.edu.tr/undergraduate-programs/how-to-apply/",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 38000,
+  "currency": "USD",
+  "note": "Per year, 2025/2026, most programs (Medicine 59000); excludes dorm",
+  "url": "https://international.ku.edu.tr/undergraduate-programs/tuition-and-scholarships/",
+  "year": 2025
+ },
+ "requirement": {
+  "text": "National qualifications not accepted unless country listed; submit international qualification (SAT, ACT, A-Levels, IB, AP), transcripts grades 9-11, recommendation and motivation letters, plus TOEFL iBT (min 4.5 on new scale, 80 before 21 Jan 2026); IELTS not accepted. Uzbekistan not explicitly addressed on page.",
+  "url": "https://international.ku.edu.tr/undergraduate-programs/how-to-apply/"
+ },
+ "bachelor_in_english": null
+}
