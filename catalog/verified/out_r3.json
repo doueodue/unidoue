@@ -1,0 +1,22 @@
+{
+"UC Davis":{"domain":"ucdavis.edu","sat":null,
+"accept":{"value":0.458,"year":"Fall 2026 admits (UC admit data)","url":"https://admission.universityofcalifornia.edu/campuses-majors/davis/first-year-admit-data.html"},
+"gpa":{"value":4.125,"scale":"weighted HS GPA, middle 50% of admits 4.00-4.25 (value=midpoint)","url":"https://www.ucdavis.edu/admissions/undergraduate/student-profile"},
+"ielts":null,"deadline":null,"status":"partial","notes":"UC Davis does not use SAT; UC page 45.8%, ucdavis.edu page says 45% as of Aug 1 2026"},
+"Texas A&M University":{"domain":"tamu.edu","sat":null,"accept":null,"gpa":null,"ielts":null,
+"deadline":{"rd":"2026-12-01","early":[],"cycle":"Fall 2027 College Station","url":"https://admissions.tamu.edu/apply/freshman/index.html"},
+"status":"partial","notes":"Test optional for Fall 2027; no admit rate/SAT stats found on opened official pages; IELTS not on page"},
+"University of Illinois Urbana-Champaign":{"domain":"illinois.edu","sat":{"p25":1440,"p75":1540,"year":"admits over past three years (class profile)","url":"https://admissions.illinois.edu/Apply/Freshman/profile"},
+"accept":null,
+"gpa":{"value":3.85,"scale":"unweighted-style campus middle 50% 3.70-4.00 (value=midpoint)","url":"https://admissions.illinois.edu/Apply/Freshman/profile"},
+"ielts":null,"deadline":null,"status":"partial","notes":"Dates page (EA Nov 1, RD Jan 5) gives no year so deadline omitted"},
+"University of Wisconsin–Madison":{"domain":"wisc.edu","sat":null,
+"accept":{"value":0.43,"year":"Fall 2025 (30,164 admitted of 69,640)","url":"https://www.wisconsin.edu/education-reports-statistics/wp-content/uploads/sites/364/2026/03/MSN_202526_Admissions.pdf"},
+"gpa":{"value":3.9,"scale":"typical unweighted 3.8-4.0 (value=midpoint)","url":"https://admissions.wisc.edu/apply-as-a-freshman/"},
+"ielts":{"value":6.5,"kind":"minimum","url":"https://admissions.wisc.edu/apply-as-a-freshman/"},
+"deadline":null,"status":"partial","notes":"Test optional; deadlines (EA Nov 1, RD Jan 15) page has no year; accept from UW System (wisconsin.edu) report; SAT composite not reported"},
+"Ohio State University":{"domain":"osu.edu","sat":{"p25":1280,"p75":1470,"year":"most recent admitted autumn class (page c.2026)","url":"https://undergrad.osu.edu/apply/freshmen-columbus/who-gets-in"},
+"accept":null,"gpa":null,"ielts":null,
+"deadline":{"rd":"2027-01-15","early":[{"plan":"EA","date":"2026-11-01"}],"cycle":"Autumn 2027 Columbus first-year","url":"https://undergrad.osu.edu/apply/freshmen-columbus/apply-step-by-step"},
+"status":"partial","notes":"No GPA/admit rate on opened pages; IELTS not stated"}
+}
