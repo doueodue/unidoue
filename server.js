@@ -8,6 +8,7 @@
  *
  * Muhit o'zgaruvchilari:
  *  PORT, HOST, DATA_DIR            — port, interfeys, ma'lumotlar papkasi
+ *  DATABASE_URL                    — (ixtiyoriy) Neon Postgres ulanish manzili: hisoblar server qayta ishga tushsa ham saqlanadi
  *  COOKIE_SECURE=1                 — cookie faqat HTTPS (productionda yoqing)
  *  TRUST_PROXY=1                   — Render/Railway/nginx ortida: haqiqiy IP uchun X-Forwarded-For
  *  TG_BOT_TOKEN, TG_CHAT_ID        — mentor so'rovlari Telegramga tushishi uchun
@@ -41,7 +42,48 @@ try {
   }
 }
 const emailIdx = new Map();
-for (const u of Object.values(db.users)) emailIdx.set(u.email, u.id);
+function reindex() { emailIdx.clear(); for (const u of Object.values(db.users)) emailIdx.set(u.email, u.id); }
+reindex();
+
+/* ---- doimiy saqlash: Neon Postgres (SQL over HTTPS, kutubxonasiz). Ixtiyoriy: DATABASE_URL ---- */
+const DATABASE_URL = process.env.DATABASE_URL || '';
+function neonEndpoint() {
+  if (process.env.NEON_SQL_URL) return process.env.NEON_SQL_URL; // sinov uchun
+  const u = new URL(DATABASE_URL);
+  return 'https://' + u.hostname + '/sql';
+}
+async function sql(query, params = []) {
+  const r = await fetch(neonEndpoint(), { method: 'POST', signal: AbortSignal.timeout(15000), headers: { 'Content-Type': 'application/json', 'Neon-Connection-String': DATABASE_URL }, body: JSON.stringify({ query, params }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error('Neon ' + r.status + ' ' + String(j.message || '').slice(0, 160));
+  return j.rows || [];
+}
+let remoteDirty = false, remoteBusy = false, remoteTimer = null, remoteFails = 0;
+async function remotePush() {
+  if (!DATABASE_URL || remoteBusy) return;
+  remoteBusy = true; remoteDirty = false;
+  try {
+    await sql("INSERT INTO unidoue_kv (k, v, updated_at) VALUES ('db', $1::jsonb, now()) ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v, updated_at = now()", [JSON.stringify(db)]);
+    remoteFails = 0;
+  } catch (e) { remoteDirty = true; remoteFails++; console.error('Neon saqlash xatosi:', e.message); }
+  remoteBusy = false;
+  if (remoteDirty) scheduleRemote(Math.min(30000, 1500 * 2 ** Math.min(remoteFails, 4)));
+}
+function scheduleRemote(ms = 1500) { if (DATABASE_URL && !remoteTimer) remoteTimer = setTimeout(() => { remoteTimer = null; remotePush(); }, ms); }
+async function remoteInit() {
+  if (!DATABASE_URL) return;
+  await sql('CREATE TABLE IF NOT EXISTS unidoue_kv (k text PRIMARY KEY, v jsonb NOT NULL, updated_at timestamptz NOT NULL DEFAULT now())');
+  const rows = await sql("SELECT v FROM unidoue_kv WHERE k = 'db'");
+  if (rows.length && rows[0].v) {
+    const raw = typeof rows[0].v === 'string' ? JSON.parse(rows[0].v) : rows[0].v;
+    db = { users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {} };
+    reindex();
+    console.log('Maʼlumotlar Neon bazasidan tiklandi:', Object.keys(db.users).length, 'ta hisob');
+  } else {
+    await remotePush(); // birinchi ishga tushish: mavjud (yoki boʻsh) bazani yozib qoʻyamiz
+    console.log('Neon bazasi tayyorlandi (birinchi ishga tushish).');
+  }
+}
 
 let saveTimer = null;
 function flush() {
@@ -53,8 +95,9 @@ function flush() {
 }
 function save() {
   if (!saveTimer) saveTimer = setTimeout(() => { try { flush(); } catch (e) { console.error('saqlash xatosi', e); } }, 100);
+  scheduleRemote();
 }
-for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { try { flush(); } catch (e) {} process.exit(0); });
+for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, async () => { try { flush(); } catch (e) {} if (DATABASE_URL) { try { clearTimeout(remoteTimer); remoteBusy = false; await Promise.race([remotePush(), new Promise(r => setTimeout(r, 4000))]); } catch (e) {} } process.exit(0); });
 
 
 const Scoring = require('./public/js/scoring.js');
@@ -599,4 +642,5 @@ const server = http.createServer(async (req, res) => {
     fail(res, 500, 'Server xatosi. Keyinroq urinib koʻring.');
   }
 });
-server.listen(PORT, HOST, () => console.log(`UniDoue http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  (data: ${DATA_DIR})`));
+remoteInit().then(() => server.listen(PORT, HOST, () => console.log(`UniDoue http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  (data: ${DATA_DIR}${DATABASE_URL ? ', Neon' : ''})`)),
+  e => { console.error('Neon bazasiga ulanib boʻlmadi — ustiga yozmaslik uchun toʻxtadim:', e.message); process.exit(1); });

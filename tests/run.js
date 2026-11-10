@@ -135,5 +135,38 @@ class Client {
     } catch (e) { failN++; console.log('XATO:', e); }
     s2.kill(); oa.close(); fs.rmSync(dir2, { recursive: true, force: true });
   }
+  // Doimiy saqlash (Neon) — soxta SQL-over-HTTP serveri bilan
+  {
+    let store = null, seenConn = null;
+    const nm = await mock((q, b, r) => {
+      seenConn = q.headers['neon-connection-string']; const { query, params } = JSON.parse(b); r.setHeader('content-type', 'application/json');
+      if (/^CREATE TABLE/i.test(query)) return r.end(JSON.stringify({ rows: [] }));
+      if (/^SELECT/i.test(query)) return r.end(JSON.stringify({ rows: store ? [{ v: JSON.parse(store) }] : [] }));
+      if (/^INSERT/i.test(query)) { store = params[0]; return r.end(JSON.stringify({ rows: [] })); }
+      r.statusCode = 400; r.end(JSON.stringify({ message: 'bad' }));
+    });
+    const env = { ...process.env, ANTHROPIC_API_KEY: '', DATABASE_URL: 'postgresql://u:p@ep-test.example.neon.tech/db', NEON_SQL_URL: `http://localhost:${nm.address().port}/sql` };
+    const boot = async (port, dir) => { const sp = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...env, PORT: port, DATA_DIR: dir }, stdio: 'ignore' }); for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${port}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); } return sp; };
+    const mk = port => { let ck = ''; return async (m, u, bd) => { const r = await fetch(`http://localhost:${port}${u}`, { method: m, headers: { 'Content-Type': 'application/json', ...(ck ? { Cookie: ck } : {}) }, body: bd ? JSON.stringify(bd) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) ck = sc.split(';')[0]; return { s: r.status, j: await r.json().catch(() => null) }; }; };
+    console.log('Doimiy saqlash (Neon)');
+    const d1 = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), d2 = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-'));
+    try {
+      let sp = await boot(PORT + 2, d1), c = mk(PORT + 2);
+      const rg = await c('POST', '/api/register', { email: 'neon@gmail.com', password: 'parol12345', name: 'Neon' }); ok(rg.s === 200 || rg.s === 201, 'hisob ochildi', rg.s);
+      await new Promise(r => setTimeout(r, 2600));
+      ok(!!store && JSON.parse(store).users && Object.keys(JSON.parse(store).users).length === 1, 'baza Neon’ga yozildi');
+      ok(seenConn === env.DATABASE_URL, 'ulanish manzili sarlavhada yuboriladi');
+      sp.kill('SIGKILL'); await new Promise(r => setTimeout(r, 300));
+      sp = await boot(PORT + 3, d2); c = mk(PORT + 3); // butunlay yangi, boʻsh papka
+      const lg = await c('POST', '/api/login', { email: 'neon@gmail.com', password: 'parol12345' });
+      ok(lg.s === 200, 'server qayta ishga tushgach (boʻsh diskda) ham kirish ishlaydi', lg.s);
+      sp.kill();
+    } catch (e) { failN++; console.log('XATO:', e); }
+    // Neon ishlamasa — server bazani boʻsh qilib boshlamasligi kerak
+    const bad = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...env, PORT: PORT + 4, DATA_DIR: d2, NEON_SQL_URL: 'http://localhost:1/sql' }, stdio: 'ignore' });
+    const code = await new Promise(r => { bad.on('exit', r); setTimeout(() => { bad.kill(); r('timeout'); }, 8000); });
+    ok(code === 1, 'Neon ulanmasa server toʻxtaydi (bazani boʻsh qilib yozmaydi)', code);
+    nm.close(); fs.rmSync(d1, { recursive: true, force: true }); fs.rmSync(d2, { recursive: true, force: true });
+  }
   console.log(`\n${pass} ta oʻtdi, ${failN} ta yiqildi`); process.exit(failN ? 1 : 0);
 })();
