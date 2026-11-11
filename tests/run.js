@@ -135,6 +135,22 @@ class Client {
     } catch (e) { failN++; console.log('XATO:', e); }
     s2.kill(); oa.close(); fs.rmSync(dir2, { recursive: true, force: true });
   }
+  // Brevo orqali xat (domensiz variant)
+  {
+    let got = null; const bm = await mock((q, b, r) => { got = { key: q.headers['api-key'], body: JSON.parse(b) }; r.statusCode = 201; r.setHeader('content-type', 'application/json'); r.end('{"messageId":"x"}'); });
+    const dir3 = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), P3 = PORT + 5;
+    const s3 = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: P3, DATA_DIR: dir3, RESEND_API_KEY: '', BREVO_API_KEY: 'bk', BREVO_URL: `http://localhost:${bm.address().port}/v3/smtp/email`, MAIL_FROM: 'UniDoue <noreply@example.com>' }, stdio: 'ignore' });
+    for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${P3}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
+    console.log('Brevo orqali xat');
+    try {
+      const call = async (m, u, b) => { const r = await fetch(`http://localhost:${P3}${u}`, { method: m, headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined }); return { s: r.status, j: await r.json().catch(() => null) }; };
+      await call('POST', '/api/register', { email: 'bv@gmail.com', password: 'parol12345', name: 'Brevo' });
+      const r = await call('POST', '/api/password/forgot', { email: 'bv@gmail.com' }); await new Promise(r => setTimeout(r, 400));
+      ok(r.s === 200 && got && got.key === 'bk', 'Brevo’ga api-key bilan soʻrov ketdi', r.s);
+      ok(got && got.body.sender.email === 'noreply@example.com' && got.body.to[0].email === 'bv@gmail.com' && /token=/.test(got.body.htmlContent), 'joʻnatuvchi, qabul qiluvchi va havola toʻgʻri');
+    } catch (e) { failN++; console.log('XATO:', e); }
+    s3.kill(); bm.close(); fs.rmSync(dir3, { recursive: true, force: true });
+  }
   // Doimiy saqlash (Neon) — soxta SQL-over-HTTP serveri bilan
   {
     let store = null, seenConn = null;

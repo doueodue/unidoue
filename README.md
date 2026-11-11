@@ -17,6 +17,7 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 | `COOKIE_SECURE=1`, `TRUST_PROXY=1` | HTTPS va proksi ortida (production uchun **majburiy**) |
 | `DATA_DIR=/data` | Maʼlumotlar papkasi. Doimiy disk ulang, aks holda hisoblar yoʻqoladi |
 | `ADMIN_TOKEN` | Admin API: soʻrovlarni koʻrish, tarif berish |
+| `BREVO_API_KEY`, `MAIL_FROM` | Parolni tiklash xati (Brevo, domen talab qilmaydi). `MAIL_FROM` = Brevo'da tasdiqlangan joʻnatuvchi, masalan `UniDoue <sizning@gmail.com>` |
 | `DATABASE_URL` | Neon (bepul Postgres) ulanish manzili. **Bepul Render'da hisoblar o'chib ketmasligi uchun kerak.** Kalitsiz ma'lumotlar faqat serverdagi faylda turadi |
 | `ANTHROPIC_API_KEY` | AI mentor, esse tahlili, strategiya, hisobot. **Kalitsiz AI "ulanmagan" holatida turadi** |
 | `AI_MODEL` | AI modeli (standart: `claude-sonnet-5-5`) |

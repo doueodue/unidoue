@@ -8,6 +8,7 @@
  *
  * Muhit o'zgaruvchilari:
  *  PORT, HOST, DATA_DIR            — port, interfeys, ma'lumotlar papkasi
+ *  BREVO_API_KEY                   — (ixtiyoriy) Brevo orqali xat yuborish (domensiz); MAIL_FROM = tasdiqlangan joʻnatuvchi
  *  DATABASE_URL                    — (ixtiyoriy) Neon Postgres ulanish manzili: hisoblar server qayta ishga tushsa ham saqlanadi
  *  COOKIE_SECURE=1                 — cookie faqat HTTPS (productionda yoqing)
  *  TRUST_PROXY=1                   — Render/Railway/nginx ortida: haqiqiy IP uchun X-Forwarded-For
@@ -110,7 +111,21 @@ const AI_MODEL = process.env.AI_MODEL || (AI_PROVIDER === 'openai' ? '' : 'claud
 const AI_URL = AI_PROVIDER === 'openai' ? String(process.env.AI_BASE_URL).replace(/\/+$/, '') + '/chat/completions' : (process.env.ANTHROPIC_URL || 'https://api.anthropic.com/v1/messages');
 const MAIL_URL = process.env.RESEND_URL || 'https://api.resend.com/emails';
 const RESEND_KEY = process.env.RESEND_API_KEY || '';
+const BREVO_KEY = process.env.BREVO_API_KEY || '';
+const BREVO_URL = process.env.BREVO_URL || 'https://api.brevo.com/v3/smtp/email';
+const MAIL_PROVIDER = RESEND_KEY ? 'resend' : (BREVO_KEY ? 'brevo' : '');
 const MAIL_FROM = process.env.MAIL_FROM || 'UniDoue <onboarding@resend.dev>';
+// Xat yuborish: Resend yoki Brevo (domen talab qilmaydi — faqat tasdiqlangan joʻnatuvchi email)
+async function sendMail(to, subject, html) {
+  let r;
+  if (MAIL_PROVIDER === 'resend') {
+    r = await fetch(MAIL_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: MAIL_FROM, to: [to], subject, html }), signal: AbortSignal.timeout(15000) });
+  } else {
+    const m = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(MAIL_FROM), sender = m ? { name: m[1] || 'UniDoue', email: m[2] } : { name: 'UniDoue', email: MAIL_FROM.trim() };
+    r = await fetch(BREVO_URL, { method: 'POST', headers: { 'api-key': BREVO_KEY, 'Content-Type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ sender, to: [{ email: to }], subject, htmlContent: html }), signal: AbortSignal.timeout(15000) });
+  }
+  if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(MAIL_PROVIDER + ' ' + r.status + ' ' + t.slice(0, 200)); }
+}
 const F_FREE = ['finder_basic', 'profile', 'compare_basic', 'predictor_basic', 'essay_basic', 'mentor_basic'];
 const F_PLUS = [...F_FREE, 'finder_adv', 'scholarships', 'predictor', 'tracker'];
 const F_PRO = [...F_PLUS, 'mentor_adv', 'strategy', 'essay_adv', 'reports', 'priority'];
@@ -247,7 +262,7 @@ function accountInfo(u) {
     plan: pl.id, planUntil: pl.id === 'free' ? null : (u.planUntil || null),
     limits: { ai: pl.ai, apps: pl.apps, finder: pl.finder, compare: pl.compare }, features: pl.features,
     usage: { ai: us.ai, period: us.p }, consent: { mentorMemory: !!(u.consent && u.consent.mentorMemory) },
-    config: { ai: !!AI_PROVIDER, email: !!RESEND_KEY, payments: false }
+    config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: false }
   };
 }
 const meBody = u => ({ user: publicUser(u), account: accountInfo(u), rev: u.rev || 0, hasData: !!(u.data && Object.keys(u.data).length), data: u.data || {} });
@@ -470,7 +485,7 @@ async function api(req, res, pathname) {
 
   if (pathname === '/api/plans' && method === 'GET') {
     return send(res, 200, { plans: Object.values(PLANS).map(p => ({ id: p.id, name: p.name, price: p.price, ai: p.ai, apps: p.apps, finder: p.finder, compare: p.compare, features: p.features })),
-      config: { ai: !!AI_PROVIDER, email: !!RESEND_KEY, payments: false } });
+      config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: false } });
   }
 
   if (pathname === '/api/plan/downgrade' && method === 'POST') {
@@ -527,7 +542,7 @@ async function api(req, res, pathname) {
   }
 
   if (pathname === '/api/password/forgot' && method === 'POST') {
-    if (!RESEND_KEY) return send(res, 503, { error: 'Parolni tiklash hozircha ulanmagan: serverda RESEND_API_KEY sozlanishi kerak. Telegram orqali murojaat qiling.', code: 'EMAIL_NOT_CONFIGURED' });
+    if (!MAIL_PROVIDER) return send(res, 503, { error: 'Parolni tiklash hozircha ulanmagan: serverda RESEND_API_KEY yoki BREVO_API_KEY sozlanishi kerak. Telegram orqali murojaat qiling.', code: 'EMAIL_NOT_CONFIGURED' });
     if (limited('pf:' + ip, 8, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Keyinroq urinib koʻring.');
     const b = await readJson(req), email = clean(b.email, 254).toLowerCase();
     const id = emailIdx.get(email), u = id && db.users[id];
@@ -535,10 +550,9 @@ async function api(req, res, pathname) {
       const token = crypto.randomBytes(32).toString('base64url');
       db.resets[sha256(token)] = { uid: u.id, exp: Date.now() + 30 * 60000 }; save();
       const base = process.env.APP_URL || (isHttps(req) ? 'https://' : 'http://') + req.headers.host;
-      fetch(MAIL_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: MAIL_FROM, to: [u.email], subject: 'UniDoue: parolni tiklash',
-          html: `<p>Parolni tiklash uchun havola (30 daqiqa amal qiladi):</p><p><a href="${base}/reset?token=${token}">Yangi parol oʻrnatish</a></p><p>Bu soʻrovni siz yubormagan boʻlsangiz, xatni eʼtiborsiz qoldiring.</p>` }),
-        signal: AbortSignal.timeout(15000) }).catch(e => console.error('Email xatosi:', e.message));
+      sendMail(u.email, 'UniDoue: parolni tiklash',
+        `<p>Parolni tiklash uchun havola (30 daqiqa amal qiladi):</p><p><a href="${base}/reset?token=${token}">Yangi parol oʻrnatish</a></p><p>Bu soʻrovni siz yubormagan boʻlsangiz, xatni eʼtiborsiz qoldiring.</p>`)
+        .catch(e => console.error('Email xatosi:', e.message));
     }
     return send(res, 200, { ok: true });
   }
