@@ -2,8 +2,8 @@
 
 Xorijda oʻqish platformasi: universitet qidiruvi (Safety/Target/Reach), qabul bashorati, solishtirish, arizalar kuzatuvchisi, esse yordamchisi, AI mentor, tariflar.
 
-- `/` — eski sayt (barcha eski funksiyalar saqlangan)
-- `/app` — yangi platforma (hisob, dashboard, tariflar, AI vositalar)
+- `/` va `/app` — UniDoue platformasi (hisob, dashboard, tariflar, AI vositalar). Eski bosh sahifa olib tashlangan
+- `/admin` — sayt egasi uchun admin sahifa (`ADMIN_TOKEN` bilan)
 
 ## Ishga tushirish
 ```bash

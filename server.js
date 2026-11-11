@@ -626,7 +626,7 @@ async function notifyTelegram(r) {
 
 
 /* ---------------- statik fayllar (faqat ruxsat etilgan roʻyxat) ---------------- */
-const PAGES = { '/': 'index.html', '/index.html': 'index.html', '/privacy': 'privacy.html', '/delete-account': 'delete-account.html', '/app': 'app.html', '/reset': 'reset.html', '/admin': 'admin.html' };
+const PAGES = { '/': 'app.html', '/privacy': 'privacy.html', '/delete-account': 'delete-account.html', '/app': 'app.html', '/reset': 'reset.html', '/admin': 'admin.html' };
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.png': 'image/png',
   '.webmanifest': 'application/manifest+json; charset=utf-8', '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 function serveStatic(req, res, pathname) {
@@ -651,9 +651,10 @@ function serveStatic(req, res, pathname) {
 const server = http.createServer(async (req, res) => {
   try {
     const pathname = new URL(req.url, 'http://x').pathname;
-    secHeaders(res, pathname === '/app' || pathname === '/reset' || pathname === '/admin' || pathname.startsWith('/js/') || pathname === '/app.css');
+    secHeaders(res, pathname === '/' || pathname === '/app' || pathname === '/reset' || pathname === '/admin' || pathname.startsWith('/js/') || pathname === '/app.css');
     if (pathname.startsWith('/api/')) return await api(req, res, pathname);
     if (req.method !== 'GET' && req.method !== 'HEAD') { res.statusCode = 405; return res.end(); }
+    if (pathname === '/index.html') { res.statusCode = 301; res.setHeader('Location', '/'); return res.end(); }
     if (pathname === '/healthz') { res.setHeader('Content-Type', 'text/plain'); return res.end('ok'); }
     if (pathname === '/favicon.ico') { res.statusCode = 204; return res.end(); }
     if (serveStatic(req, res, pathname)) return;

@@ -107,9 +107,10 @@ class Client {
     r = await new Client().call('POST', '/api/login', { email: 'reset@gmail.com', password: 'yangi-parol1' }); ok(r.s === 200, 'yangi parol bilan kirish');
 
     console.log('Statik fayllar va sarlavhalar');
-    for (const [u, code] of [['/', 200], ['/app', 200], ['/js/main.js', 200], ['/data/universities.json', 200], ['/data/intl.json', 200], ['/js/views4.js', 200], ['/js/i18n.js', 200], ['/admin', 200], ['/js/admin.js', 200], ['/catalog/verified_intl/eth-zurich.json', 404], ['/server.js', 404], ['/package.json', 404], ['/data/db.json', 404], ['/catalog/scholarships.json', 404], ['/js/../server.js', 404], ['/%2e%2e/server.js', 404], ['/.git/config', 404]]) {
+    for (const [u, code] of [['/', 200], ['/app', 200], ['/index.html', 301], ['/js/main.js', 200], ['/data/universities.json', 200], ['/data/intl.json', 200], ['/js/views4.js', 200], ['/js/i18n.js', 200], ['/admin', 200], ['/js/admin.js', 200], ['/catalog/verified_intl/eth-zurich.json', 404], ['/server.js', 404], ['/package.json', 404], ['/data/db.json', 404], ['/catalog/scholarships.json', 404], ['/js/../server.js', 404], ['/%2e%2e/server.js', 404], ['/.git/config', 404]]) {
       const x = await fetch(B + u, { redirect: 'manual' }); ok(x.status === code, `GET ${u} → ${code}`, x.status);
     }
+    const hm = await fetch(B + '/'); const ht = await hm.text(); ok(/id="root"/.test(ht) && /script-src 'self';/.test(hm.headers.get('content-security-policy') || ''), 'bosh sahifa (/) — yangi ilova, qattiq CSP bilan');
     const ap = await fetch(B + '/app'); ok(/script-src 'self';/.test(ap.headers.get('content-security-policy') || ''), '/app CSP: skriptlar faqat oʻzimizdan');
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
