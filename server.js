@@ -424,7 +424,16 @@ async function api(req, res, pathname) {
     return send(res, 201, { ok: true });
   }
 
+  if (pathname === '/api/admin/users' && method === 'GET') {
+    if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
+    const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (!tok || !crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok)))) return fail(res, 401, 'Ruxsat yoʻq.');
+    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
+    return send(res, 200, { users });
+  }
+
   if (pathname === '/api/admin/requests' && method === 'GET') {
+    if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
     const tok = process.env.ADMIN_TOKEN;
     const got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
     const a = Buffer.from(sha256(got)), b2 = Buffer.from(sha256(tok || ''));
@@ -617,7 +626,7 @@ async function notifyTelegram(r) {
 
 
 /* ---------------- statik fayllar (faqat ruxsat etilgan roʻyxat) ---------------- */
-const PAGES = { '/': 'index.html', '/index.html': 'index.html', '/privacy': 'privacy.html', '/delete-account': 'delete-account.html', '/app': 'app.html', '/reset': 'reset.html' };
+const PAGES = { '/': 'index.html', '/index.html': 'index.html', '/privacy': 'privacy.html', '/delete-account': 'delete-account.html', '/app': 'app.html', '/reset': 'reset.html', '/admin': 'admin.html' };
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.png': 'image/png',
   '.webmanifest': 'application/manifest+json; charset=utf-8', '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 function serveStatic(req, res, pathname) {
@@ -642,7 +651,7 @@ function serveStatic(req, res, pathname) {
 const server = http.createServer(async (req, res) => {
   try {
     const pathname = new URL(req.url, 'http://x').pathname;
-    secHeaders(res, pathname === '/app' || pathname === '/reset' || pathname.startsWith('/js/') || pathname === '/app.css');
+    secHeaders(res, pathname === '/app' || pathname === '/reset' || pathname === '/admin' || pathname.startsWith('/js/') || pathname === '/app.css');
     if (pathname.startsWith('/api/')) return await api(req, res, pathname);
     if (req.method !== 'GET' && req.method !== 'HEAD') { res.statusCode = 405; return res.end(); }
     if (pathname === '/healthz') { res.setHeader('Content-Type', 'text/plain'); return res.end('ok'); }

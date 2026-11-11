@@ -57,6 +57,10 @@ class Client {
     r = await a.call('POST', '/api/plan/request', { plan: 'plus' }); ok(r.s === 201, 'tarif soʻrovi');
     r = await a.call('POST', '/api/admin/plan', { email: em, plan: 'plus' }); ok(r.s === 401, 'admin tokensiz → 401');
     r = await a.call('POST', '/api/admin/plan', { email: em, plan: 'plus', days: 30 }, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200, 'admin Plus beradi', r.s);
+    r = await new Client().call('GET', '/api/admin/users'); ok(r.s === 401, 'admin: tokensiz foydalanuvchilar roʻyxati yopiq', r.s);
+    r = await new Client().call('GET', '/api/admin/users', null, { Authorization: 'Bearer notogri' }); ok(r.s === 401, 'admin: notoʻgʻri token rad etiladi', r.s);
+    r = await new Client().call('GET', '/api/admin/users', null, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200 && r.j.users.length > 0 && r.j.users.every(u => u.email && !('hash' in u) && !('data' in u)), 'admin: roʻyxat bor, parol xeshi va maʼlumotlar chiqmaydi', r.s);
+    r = await new Client().call('GET', '/api/admin/requests', null, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200 && Array.isArray(r.j.requests), 'admin: soʻrovlar roʻyxati', r.s);
     r = await a.call('GET', '/api/scholarships'); ok(r.s === 200, 'Plus: stipendiya 200', r.s);
     r = await a.call('POST', '/api/finder', { profile: PROFILE, tier: 'target' }); ok(r.s === 200 && r.j.items[0].why && r.j.items.every(x => x.tier === 'target'), 'Plus finder: tushuntirish + filtr');
     r = await a.call('POST', '/api/predict', { id: 'mit', profile: PROFILE }); ok(r.j.full === true && r.j.parts.length >= 3, 'Plus predict: toʻliq');
@@ -103,7 +107,7 @@ class Client {
     r = await new Client().call('POST', '/api/login', { email: 'reset@gmail.com', password: 'yangi-parol1' }); ok(r.s === 200, 'yangi parol bilan kirish');
 
     console.log('Statik fayllar va sarlavhalar');
-    for (const [u, code] of [['/', 200], ['/app', 200], ['/js/main.js', 200], ['/data/universities.json', 200], ['/data/intl.json', 200], ['/js/views4.js', 200], ['/js/i18n.js', 200], ['/catalog/verified_intl/eth-zurich.json', 404], ['/server.js', 404], ['/package.json', 404], ['/data/db.json', 404], ['/catalog/scholarships.json', 404], ['/js/../server.js', 404], ['/%2e%2e/server.js', 404], ['/.git/config', 404]]) {
+    for (const [u, code] of [['/', 200], ['/app', 200], ['/js/main.js', 200], ['/data/universities.json', 200], ['/data/intl.json', 200], ['/js/views4.js', 200], ['/js/i18n.js', 200], ['/admin', 200], ['/js/admin.js', 200], ['/catalog/verified_intl/eth-zurich.json', 404], ['/server.js', 404], ['/package.json', 404], ['/data/db.json', 404], ['/catalog/scholarships.json', 404], ['/js/../server.js', 404], ['/%2e%2e/server.js', 404], ['/.git/config', 404]]) {
       const x = await fetch(B + u, { redirect: 'manual' }); ok(x.status === code, `GET ${u} → ${code}`, x.status);
     }
     const ap = await fetch(B + '/app'); ok(/script-src 'self';/.test(ap.headers.get('content-security-policy') || ''), '/app CSP: skriptlar faqat oʻzimizdan');

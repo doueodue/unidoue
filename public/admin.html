@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — UniDoue</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main style="max-width:980px;margin:0 auto;padding:24px 16px 80px" id="adm">
+  <h1 style="margin:0 0 4px">UniDoue admin</h1>
+  <p class="hint">Faqat sayt egasi uchun. Kirish uchun Render'dagi <code>ADMIN_TOKEN</code> kerak.</p>
+  <form id="lf" class="card" style="max-width:460px" novalidate>
+    <label class="f" for="tk">Admin token</label>
+    <input id="tk" type="password" autocomplete="off" maxlength="200">
+    <div class="msg" id="lm" role="alert"></div>
+    <button class="btn primary" type="submit" style="margin-top:10px">Kirish</button>
+  </form>
+  <div id="panel" hidden>
+    <div style="display:flex;gap:8px;align-items:center;margin:8px 0 16px"><button class="btn sm" id="rf" type="button">Yangilash</button><button class="btn sm" id="lo" type="button">Chiqish</button><span class="hint" id="st"></span></div>
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">Tarif berish</h3>
+      <div class="row"><div><label class="f" for="pe">Foydalanuvchi emaili</label><input id="pe" type="email" maxlength="254" placeholder="ism@gmail.com"></div>
+      <div><label class="f" for="pp">Tarif</label><select id="pp"><option value="plus">Plus</option><option value="pro">Pro</option><option value="free">Free</option></select></div>
+      <div><label class="f" for="pd">Kun</label><input id="pd" type="number" min="1" max="3660" value="30"></div></div>
+      <div class="msg" id="pm" role="status"></div>
+      <button class="btn primary" id="pg" type="button" style="margin-top:10px">Berish</button>
+    </div>
+    <h3>So‘rovlar <span class="badge mute" id="rc"></span></h3><div id="rl"></div>
+    <h3 style="margin-top:28px">Foydalanuvchilar <span class="badge mute" id="uc"></span></h3><div id="ul"></div>
+  </div>
+</main>
+<script src="/js/admin.js" type="module"></script>
+</body>
+</html>
