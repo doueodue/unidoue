@@ -280,15 +280,24 @@ function profileFacts(u) {
   try {
     const P = JSON.parse((u.data || {})['qabul:profile'] || '{}'), S = JSON.parse((u.data || {})['qabul:p'] || '{}');
     const c = (v, n) => String(v == null ? '' : v).replace(/[<>]/g, '').slice(0, n);
+    if (/^\d{4}-\d\d-\d\d$/.test(String(P.pgd || ''))) out.push('Graduation date: ' + P.pgd);
     if (P.pg) out.push('Grade: ' + c(P.pg, 30)); if (P.py) out.push('Target year: ' + c(P.py, 10)); if (P.pm) out.push('Interested field: ' + c(P.pm, 60)); if (P.pc) out.push('City: ' + c(P.pc, 40));
     if (S.gpa) out.push(`GPA: ${c(S.gpa, 6)} on a ${c(S.sc, 4)}-point scale`); if (S.sat) out.push('SAT: ' + c(S.sat, 5)); if (S.ielts) out.push('IELTS: ' + c(S.ielts, 4));
   } catch (e) {}
   return out.join('; ');
 }
+// Modelning oʻz “bugun” tushunchasi eskirgan boʻladi — haqiqiy sanani har soʻrovda beramiz
+const tashkentISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+function todayCtx() {
+  const iso = tashkentISO();
+  const [y, m] = iso.split('-').map(Number);
+  const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  return `\nCurrent date: ${iso} (${MON[m - 1]} ${y}). Always use this as "today". Never start plans in the past and never assume it is an earlier year; every month-by-month plan must begin with ${MON[m - 1]} ${y} and show the year next to each month.`;
+}
 function buildAi(u, tool, b, deep) {
   const cl = (v, n) => String(v == null ? '' : v).replace(/<\/?student_text>/gi, '').slice(0, n);
   const mem = u.consent && u.consent.mentorMemory ? profileFacts(u) : '';
-  const ctx = mem ? `\nStudent profile (shared with permission): ${mem}.` : '';
+  const ctx = todayCtx() + (mem ? `\nStudent profile (shared with permission): ${mem}.` : '');
   if (tool === 'mentor') {
     const h = (Array.isArray(b.messages) ? b.messages : []).slice(can(u, 'mentor_adv') ? -8 : -4).filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string');
     if (!h.length || h[h.length - 1].role !== 'user') return { error: 'Savol yozing.' };
@@ -304,10 +313,10 @@ function buildAi(u, tool, b, deep) {
     return { system: SYS + ctx, messages: [{ role: 'user', content: ask + '\n<student_text>' + t + '</student_text>' }] };
   }
   const names = (Array.isArray(b.universities) ? b.universities : []).slice(0, 8).map(x => cl(x, 80));
-  const cat = catalog(), facts = names.map(n => { const c = cat.find(x => x.n === n); return c ? `${n}: SAT mid-50% ${c.sat[0]}-${c.sat[1]}${c.satV ? ' (verified)' : ' (UNVERIFIED sample)'}, deadline ${c.rd}${c.rdV ? ' (verified)' : ' (UNVERIFIED)'}` : n; });
+  const todayISO = tashkentISO(), cat = catalog(), facts = names.map(n => { const c = cat.find(x => x.n === n); return c ? `${n}: SAT mid-50% ${c.sat[0]}-${c.sat[1]}${c.satV ? ' (verified)' : ' (UNVERIFIED sample)'}, deadline ${c.rd}${c.rd < todayISO ? ' (ALREADY PASSED: refers to a past cycle, next date unknown)' : ''}${c.rdV ? ' (verified)' : ' (UNVERIFIED)'}` : n; });
   if (!names.length) return { error: 'Kamida bitta universitet tanlang.' };
   const ask = tool === 'strategy'
-    ? 'Create a personalised admission strategy: how to split the list into safety/target/reach, a month-by-month plan until the earliest deadline, and what to improve first.'
+    ? 'Create a personalised admission strategy: how to split the list into safety/target/reach, a month-by-month plan from the current month (see the current date above) until the earliest upcoming deadline, and what to improve first. Use only deadlines that are still in the future; if a listed deadline has already passed, say it refers to the next cycle and must be re-checked.'
     : 'Write a detailed report for the first university: fit with the student, what to verify officially, preparation plan, and risks.';
   return { system: SYS + ctx, messages: [{ role: 'user', content: `${ask}\nUniversities and known facts (flagged ones must be verified by the student):\n${facts.join('\n')}` }] };
 }

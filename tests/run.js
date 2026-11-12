@@ -136,6 +136,8 @@ class Client {
       const me = await call('GET', '/api/me'); ok(me.j.account.config.ai === true, 'AI sozlangan deb koʻrinadi');
       const r = await call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'Salom' }] });
       ok(r.s === 200 && r.j.reply === 'OA javobi' && r.j.usage.ai === 1, 'javob olinadi, 1 kredit', r.j);
+      const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date());
+      ok(last && last.body.messages[0].content.includes('Current date: ' + ymd), 'AI ko‘rsatmasida bugungi sana bor', last && last.body.messages[0].content.slice(-260));
       ok(last && last.url === '/v1/chat/completions' && last.auth === 'Bearer k2' && last.body.model === 'test-model' && last.body.messages[0].role === 'system', 'soʻrov formati (Bearer, model, system)', last && last.url);
     } catch (e) { failN++; console.log('XATO:', e); }
     s2.kill(); oa.close(); fs.rmSync(dir2, { recursive: true, force: true });
