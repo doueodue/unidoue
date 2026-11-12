@@ -45,7 +45,7 @@ Nima qila olasiz:
 
 Ma’lumotlar haqida: universitet ma’lumotlari rasmiy saytlardan olinadi. Tasdiqlanmagan qiymatlar “taxminiy” deb belgilanadi yoki ko‘rsatilmaydi. Muddat va talablarni arizadan oldin universitetning rasmiy sahifasida albatta tekshiring.
 
-Tariflar: Free (bepul) va pullik Plus/Pro rejalar. Bepul tarifda AI kreditlari va ba’zi imkoniyatlar cheklangan.
+Tariflar: Free (bepul) va pullik Pro reja. Bepul tarifda AI kreditlari va ba’zi imkoniyatlar cheklangan.
 
 UniDoue qabulni kafolatlamaydi va hech qanday universitet bilan rasmiy bog‘liq emas.
 ```
@@ -68,7 +68,7 @@ UniDoue — помощник для абитуриентов, которые п�
 
 О данных: сведения об университетах берутся с официальных сайтов. Непроверенные значения помечены как «приблизительные» или не показываются. Сроки и требования обязательно проверяйте на официальной странице университета.
 
-Тарифы: Free (бесплатно) и платные Plus/Pro. В бесплатном тарифе ИИ-кредиты и часть функций ограничены.
+Тарифы: Free (бесплатно) и платный Pro. В бесплатном тарифе ИИ-кредиты и часть функций ограничены.
 
 UniDoue не гарантирует поступление и не связан официально ни с одним университетом.
 ```
@@ -92,7 +92,7 @@ What you can do:
 
 About the data: university information comes from official websites. Unverified values are labelled "approximate" or not shown. Always confirm deadlines and requirements on the university's official page.
 
-Plans: Free and paid Plus/Pro. AI credits and some features are limited on the free plan.
+Plans: Free and paid Pro. AI credits and some features are limited on the free plan.
 
 UniDoue does not guarantee admission and is not officially affiliated with any university.
 ```
@@ -107,7 +107,7 @@ UniDoue does not guarantee admission and is not officially affiliated with any u
   - Xavfsizlik: ulanish shifrlangan (HTTPS); foydalanuvchi o‘chirishni so‘rashi mumkin (ilova ichida va `/delete-account` orqali).
   - Uchinchi tomonlar: hosting (Render), baza (Neon), AI xizmati (Groq/Anthropic), email (Brevo), Telegram (mentor so‘rovlari). Google’ning “xizmat ko‘rsatuvchi” (service provider) qoidalarini o‘qib, “sharing” belgisini to‘g‘ri tanlang.
 - **Hisobni o‘chirish URL’i:** `https://unidoue.onrender.com/delete-account`.
-- **Ilova kirishi:** ilova hisob talab qiladi → Play “App access” bo‘limida **test hisobi** (email + parol) ko‘rsatish kerak. Sinov uchun alohida hisob oching va Plus/Pro bering.
+- **Ilova kirishi:** ilova hisob talab qiladi → Play “App access” bo‘limida **test hisobi** (email + parol) ko‘rsatish kerak. Sinov uchun alohida hisob oching va Pro bering.
 
 ## 5. Fayllar
 - `store/screenshots/1..6-*.png` — telefon skrinshotlari (1082×2100, nisbat < 2:1; haqiqiy ilovadan).

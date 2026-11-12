@@ -43,20 +43,19 @@ class Client {
     r = await a.call('PUT', '/api/data', { data: {} }, { Origin: 'https://evil.com' }); ok(r.s === 403, 'CSRF: begona Origin rad etiladi');
 
     console.log('Tarif cheklovlari (serverda)');
-    r = await a.call('GET', '/api/scholarships'); ok(r.s === 402 && r.j.code === 'PLAN_REQUIRED', 'Free: stipendiya 402', r.s);
-    r = await a.call('POST', '/api/compare', { ids: ['mit', 'yale-university', 'harvard-university'] }); ok(r.s === 402, 'Free: 3 ta solishtirish 402', r.s);
+    r = await a.call('GET', '/api/scholarships'); ok(r.s === 200, 'Free: stipendiya 200', r.s);
+    r = await a.call('POST', '/api/compare', { ids: ['mit', 'yale-university', 'harvard-university'] }); ok(r.s === 200, 'Free: 3 ta solishtirish 200', r.s);
+    r = await a.call('POST', '/api/compare', { ids: ['mit', 'yale-university', 'harvard-university', 'stanford-university'] }); ok(r.s === 402, 'Free: 4 ta solishtirish 402', r.s);
     r = await a.call('POST', '/api/compare', { ids: ['mit', 'yale-university'] }); ok(r.s === 200 && r.j.items.length === 2, 'Free: 2 ta solishtirish 200', r.s);
-    r = await a.call('PUT', '/api/data', { data: { 'qabul:apps': JSON.stringify([1, 2, 3, 4]) } }); ok(r.s === 402 && r.j.code === 'PLAN_LIMIT', 'Free: 4 ta ariza 402', r.s);
+    r = await a.call('PUT', '/api/data', { data: { 'qabul:apps': JSON.stringify(Array.from({ length: 1001 }, (_, k) => k)) } }); ok(r.s === 402 && r.j.code === 'PLAN_LIMIT', 'Free: 1001 ta ariza 402', r.s);
     r = await a.call('PUT', '/api/data', { data: { 'qabul:apps': JSON.stringify([1, 2, 3]), evil: 'x', 'qabul:sync': 'x' } }); ok(r.s === 200, 'Free: 3 ta ariza 200', r.s);
     r = await a.call('GET', '/api/me'); ok(Object.keys(r.j.data).join() === 'qabul:apps', 'faqat qabul:* kalitlari saqlanadi', Object.keys(r.j.data));
     r = await a.call('PUT', '/api/data', { data: {}, baseRev: 99 }); ok(r.s === 409 && r.j.code === 'REV_CONFLICT', 'versiya toʻqnashuvi 409', r.s);
-    r = await a.call('POST', '/api/finder', { profile: PROFILE }); ok(r.s === 200 && r.j.shown === 10 && r.j.total === JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'data', 'universities.json'), 'utf8')).length && !r.j.items[0].why, 'Free finder: 10 ta, tushuntirishsiz', [r.s, r.j && r.j.shown]);
-    ok(new Set(r.j.items.map(x => x.tier)).size === 3, 'Free finder: uchala daraja aralash');
-    r = await a.call('POST', '/api/predict', { id: 'mit', profile: PROFILE }); ok(r.s === 200 && r.j.full === false && !r.j.parts, 'Free predict: faqat ball');
+    r = await a.call('POST', '/api/finder', { profile: PROFILE }); ok(r.s === 200 && r.j.shown === r.j.total && r.j.total === JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'data', 'universities.json'), 'utf8')).length && !!r.j.items[0].why, 'Free finder: 10 ta, tushuntirishsiz', [r.s, r.j && r.j.shown]);
+    ok(new Set(r.j.items.map(x => x.tier)).size === 3, 'Free finder: uchala daraja');
+    r = await a.call('POST', '/api/predict', { id: 'mit', profile: PROFILE }); ok(r.s === 200 && r.j.full === true && r.j.parts.length >= 3, 'Free predict: toʻliq');
     r = await a.call('POST', '/api/finder', { profile: {} }); ok(r.s === 400, 'boʻsh profil → 400');
-    r = await a.call('POST', '/api/plan/request', { plan: 'plus' }); ok(r.s === 201, 'tarif soʻrovi');
-    r = await a.call('POST', '/api/admin/plan', { email: em, plan: 'plus' }); ok(r.s === 401, 'admin tokensiz → 401');
-    r = await a.call('POST', '/api/admin/plan', { email: em, plan: 'plus', days: 30 }, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200, 'admin Plus beradi', r.s);
+    r = await a.call('POST', '/api/plan/request', { plan: 'pro' }); ok(r.s === 201, 'tarif soʻrovi');
     r = await new Client().call('GET', '/api/admin/users'); ok(r.s === 401, 'admin: tokensiz foydalanuvchilar roʻyxati yopiq', r.s);
     r = await new Client().call('GET', '/api/admin/users', null, { Authorization: 'Bearer notogri' }); ok(r.s === 401, 'admin: notoʻgʻri token rad etiladi', r.s);
     r = await new Client().call('GET', '/api/admin/users', null, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200 && r.j.users.length > 0 && r.j.users.every(u => u.email && !('hash' in u) && !('data' in u)), 'admin: roʻyxat bor, parol xeshi va maʼlumotlar chiqmaydi', r.s);
@@ -72,6 +71,8 @@ class Client {
     r = await a.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'Salom' }] }); ok(r.s === 200 && r.j.reply === 'Test javobi' && r.j.usage.ai === 1, 'mentor: javob va 1 kredit', r.j);
     aiMode = 'fail'; r = await a.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'Salom' }] }); ok(r.s === 502, 'AI xatosi → 502', r.s);
     aiMode = 'ok'; r = await a.call('GET', '/api/me'); ok(r.j.account.usage.ai === 1, 'xatoda kredit yechilmaydi', r.j.account.usage);
+    r = await a.call('POST', '/api/admin/plan', { email: em, plan: 'pro' }); ok(r.s === 401, 'admin tokensiz → 401');
+    r = await a.call('POST', '/api/admin/plan', { email: em, plan: 'pro', days: 30 }, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200, 'admin Plus beradi', r.s);
     await a.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'profil?' }] });
     ok(!JSON.stringify(aiLast).includes('SAT: 1480'), 'ruxsatsiz profil AIga yuborilmaydi');
     await a.call('PUT', '/api/data', { data: { 'qabul:p': JSON.stringify({ gpa: '4.6', sc: '5', sat: '1480', ielts: '7' }) }, baseRev: (await a.call('GET', '/api/me')).j.rev });

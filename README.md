@@ -27,7 +27,7 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 ## Tarif berish (toʻlov ulanmaguncha)
 ```bash
 curl -X POST https://SAYT/api/admin/plan -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -H "Content-Type: application/json" -d '{"email":"user@gmail.com","plan":"plus","days":30}'
+  -H "Content-Type: application/json" -d '{"email":"user@gmail.com","plan":"pro","days":30}'
 ```
 Foydalanuvchi soʻrovlari: `GET /api/admin/requests`. Toʻlov provayderi ulanganda shu endpoint webhookdan chaqiriladi.
 

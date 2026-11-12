@@ -5,7 +5,7 @@ const ROUTES = [
   { id: 'dashboard', t: 'Bosh panel', i: 'home', sec: 'Asosiy', v: () => import('./views1.js').then(m => m.dashboard) },
   { id: 'finder', t: 'Universitet qidiruvi', i: 'search', v: () => import('./views2.js').then(m => m.finder) },
   { id: 'intl', t: 'Boshqa davlatlar', i: 'search', v: () => import('./views4.js').then(m => m.intl) },
-  { id: 'scholarships', t: 'Stipendiyalar', i: 'gift', tag: 'Plus', v: () => import('./views2.js').then(m => m.scholarships) },
+  { id: 'scholarships', t: 'Stipendiyalar', i: 'gift', v: () => import('./views2.js').then(m => m.scholarships) },
   { id: 'predictor', t: 'Qabul bashorati', i: 'chart', v: () => import('./views2.js').then(m => m.predictor) },
   { id: 'compare', t: 'Solishtirish', i: 'cmp', v: () => import('./views2.js').then(m => m.compare) },
   { id: 'tracker', t: 'Arizalarim', i: 'list', sec: 'Ish joyi', v: () => import('./views1.js').then(m => m.tracker) },
@@ -74,7 +74,7 @@ function shell() {
 export function updatePlanUI() {
   if (!$('#sf-u') || !S.user) return;
   const a = S.account || {}; $('#sf-u').textContent = S.user.name || S.user.email; $('#sf-p').textContent = S.user.email;
-  const pb = $('#pb'); pb.textContent = ({ free: 'Free', plus: 'Plus', pro: 'Pro' })[a.plan] || 'Free'; pb.className = 'badge' + (a.plan === 'pro' ? ' ok' : '');
+  const pb = $('#pb'); pb.textContent = ({ free: 'Free', pro: 'Pro' })[a.plan] || 'Free'; pb.className = 'badge' + (a.plan === 'pro' ? ' ok' : '');
 }
 document.addEventListener('unidoue:account', updatePlanUI);
 

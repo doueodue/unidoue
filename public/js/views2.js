@@ -1,4 +1,4 @@
-import { $, $$, S, api, ls, esc, toast, svg, fmtDate, daysLeft, catalog, upsell, errorBox } from './core.js';
+import { $, $$, S, api, ls, esc, toast, svg, fmtDate, daysLeft, catalog, upsell, errorBox, modal } from './core.js';
 import { getProfile, DOCS } from './views1.js';
 import { t } from './i18n.js';
 const ctry = c => (c ? `<div class="ctry">${esc(t(c))}</div>` : '');
@@ -8,6 +8,29 @@ const profBody = () => { const { Q } = getProfile(); return { gpa: Q.gpa, sc: Q.
 const hasInput = () => { const { Q } = getProfile(); return !!(Q.gpa || Q.sat || Q.ielts); };
 const needProfile = () => `<div class="card empty"><b>Avval natijalaringizni kiriting</b>GPA, SAT yoki IELTS ni profilda to‘ldiring.<br><a class="btn primary" style="margin-top:14px" href="#/profile">Profilga o‘tish</a></div>`;
 const vb = (ok, t = 'tekshirilgan') => `<span class="badge ${ok ? 'ok' : 'mute'}" title="${ok ? 'Rasmiy manbadan' : 'Namuna qiymat, rasmiy sayt bilan tekshiring'}">${ok ? t : 'taxminiy'}</span>`;
+
+/* ===== Universitet haqida (hammaga bepul; faqat katalogdagi tasdiqlangan ma'lumot) ===== */
+const safeUrl = u => (/^https:\/\//.test(u || '') ? u : '');
+const lnk = (u, txt) => (safeUrl(u) ? ` <a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${txt}</a>` : '');
+export async function aboutUni(id) {
+  const c = (await catalog()).find(x => x.id === id); if (!c) return;
+  const src = c.src || {}, row = (k, v) => `<div style="display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid var(--line)"><span style="color:var(--muted)">${k}</span><span style="text-align:right">${v}</span></div>`;
+  const rows = [];
+  rows.push(row('Davlat', esc(t(c.country || ''))));
+  if (c.city) rows.push(row('Shahar', esc(c.city)));
+  if (c.address) rows.push(row('Manzil', esc(c.address)));
+  if (c.site) rows.push(row('Rasmiy sayt', `<a href="${esc(safeUrl(c.site))}" target="_blank" rel="noopener noreferrer">${esc(c.site.replace(/^https:\/\//, ''))}</a>`));
+  rows.push(row('SAT oralig‘i', c.sat ? `${c.sat[0]}–${c.sat[1]} ${vb(c.satV)}${lnk(src.sat, 'manba')}` : 'ma’lumot yo‘q'));
+  if (c.acc != null) rows.push(row('Qabul darajasi', `${c.acc}% ${vb(c.accV)}${lnk(src.accept, 'manba')}`));
+  if (c.gpa) rows.push(row('O‘rtacha GPA', `${c.gpa} ${vb(c.gpaV)}`));
+  rows.push(row('IELTS', c.ielts ? `${c.ielts} ${vb(c.ieltsV)}${lnk(src.ielts, 'manba')}` : (c.ieltsKind === 'none_stated' ? 'minimum e’lon qilinmagan' + lnk(src.ielts, 'rasmiy sahifa') : 'ma’lumot yo‘q')));
+  if (c.rd) rows.push(row('Ariza muddati', `${fmtDate(c.rd)} ${vb(c.rdV)}${lnk(src.deadline, 'manba')}`));
+  (c.early || []).forEach(e => rows.push(row('Erta muddat (' + esc(e.plan) + ')', fmtDate(e.date))));
+  const majors = Array.isArray(c.majors) && c.majors.length ? `<h4 style="margin:14px 0 6px">Yo‘nalishlar</h4><div style="display:flex;gap:6px;flex-wrap:wrap">${c.majors.map(m => `<span class="badge mute">${esc(m)}</span>`).join('')}</div>${lnk(c.majorsUrl, 'to‘liq ro‘yxat (rasmiy sayt)')}` : '';
+  const body = `<div style="max-height:62vh;overflow:auto">${rows.join('')}${majors}<p class="hint" style="margin-top:12px">“taxminiy” belgisi qiymat hali rasmiy manba bilan tasdiqlanmaganini bildiradi. Ariza topshirishdan oldin muddat va talablarni universitetning rasmiy sahifasida tekshiring.</p></div>`;
+  const v = await modal({ title: c.n, body, actions: [{ label: 'Yopish', value: 0 }, { label: 'Arizaga qo‘shish', value: 1, cls: 'primary' }] });
+  if (v === 1) addApp(c);
+}
 
 /* ================= UNIVERSITET QIDIRUVI ================= */
 export async function finder(el) {
@@ -28,9 +51,10 @@ export async function finder(el) {
       out.innerHTML = `<div class="grid g2">${r.items.map(u => `<article class="card hover"><div style="display:flex;gap:14px;align-items:flex-start"><div class="score">${u.score}</div><div style="flex:1;min-width:0">${ctry(u.country)}<h3 style="margin:0">${esc(u.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><span class="badge ${u.tier}">${TIER[u.tier]}</span>${vb(u.verified, 'SAT tekshirilgan')}${u.deadline ? `<span class="badge mute">${fmtDate(u.deadline)}${u.deadlineVerified ? '' : ' (taxminiy)'}</span>` : ''}</div></div></div>
         ${u.why ? `<p style="margin:14px 0 6px;font-weight:600">${esc(u.level)}</p><ul style="margin:0;padding-left:18px;color:var(--ink-2);font-size:13.5px;display:grid;gap:4px">${u.why.map(w => `<li>${esc(w.t)}</li>`).join('')}</ul><p class="hint">${esc(u.basis)}${u.confident ? '' : ' · bu daraja taxminiy'}</p>`
           : `<div class="lock" style="margin-top:12px;border-radius:12px"><div class="lock-in"><p>Nima uchun mos ekani: SAT, GPA va IELTS bo‘yicha tushuntirish shu yerda ko‘rinadi.</p><p>Universitet ko‘rsatkichlari bilan solishtirish batafsil yoziladi.</p></div><div class="lock-cta"><button class="btn primary sm" data-up>Tushuntirishni ochish (Plus)</button></div></div>`}
-        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn sm" data-add="${esc(u.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(u.id)}">Solishtirish</button><a class="btn sm" href="#/predictor?u=${encodeURIComponent(u.id)}">Bashorat</a></div></article>`).join('')}</div>
-        ${r.shown < r.total ? `<div class="card" style="margin-top:18px;text-align:center"><b>${r.shown} / ${r.total} natija ko‘rsatilmoqda.</b><p class="sub" style="margin:6px 0 12px">Free tarifda eng mos ${r.limit} ta universitet ko‘rinadi.</p><a class="btn primary" href="#/pricing">Hammasini ko‘rish</a></div>` : ''}`;
-      $$('[data-up]', out).forEach(b => (b.onclick = () => upsell('finder_adv', 'Har bir universitet nima uchun mos ekanini ko‘rish Plus tarifida.')));
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn sm" data-about="${esc(u.id)}">Haqida</button><button class="btn sm" data-add="${esc(u.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(u.id)}">Solishtirish</button><a class="btn sm" href="#/predictor?u=${encodeURIComponent(u.id)}">Bashorat</a></div></article>`).join('')}</div>
+        ${r.shown < r.total ? `<div class="card" style="margin-top:18px;text-align:center"><b>${r.shown} / ${r.total} natija ko‘rsatilmoqda.</b><p class="sub" style="margin:6px 0 12px">Eng mos ${r.limit} ta universitet ko‘rinadi.</p><a class="btn primary" href="#/pricing">Hammasini ko‘rish</a></div>` : ''}`;
+      $$('[data-up]', out).forEach(b => (b.onclick = () => upsell('finder_adv', 'Har bir universitet nima uchun mos ekanini ko‘rish Pro tarifida.')));
+      $$('[data-about]', out).forEach(b => (b.onclick = () => aboutUni(b.dataset.about)));
       $$('[data-add]', out).forEach(b => (b.onclick = () => addApp(cat.find(c => c.id === b.dataset.add))));
       $$('[data-cmp]', out).forEach(b => (b.onclick = () => addCmp(b.dataset.cmp)));
     } catch (e) { if (my === seq) { out.innerHTML = errorBox(e.message, true); const b = $('[data-retry]', out); if (b) b.onclick = load; } }
@@ -57,7 +81,7 @@ function addCmp(id) {
 export async function scholarships(el) {
   el.innerHTML = `<div class="page-h"><div><h2><em>Stipendiya</em> qidiruvi</h2><p>Tasdiqlangan stipendiyalar: talablar, muddat va moliyalashtirish turi.</p></div></div>`;
   if (!S.account.features.includes('scholarships')) {
-    el.innerHTML += `<div class="card lock"><div class="lock-in"><h3>Stipendiyalar ro‘yxati</h3><p>Talablar, muddatlar, summa va ariza havolalari shu yerda.</p><p>Filtrlar: mamlakat, moliyalashtirish turi.</p></div><div class="lock-cta"><b>Stipendiya qidiruvi Plus tarifida</b><a class="btn primary" href="#/pricing">Tariflarni ko‘rish</a></div></div>`; return;
+    el.innerHTML += `<div class="card lock"><div class="lock-in"><h3>Stipendiyalar ro‘yxati</h3><p>Talablar, muddatlar, summa va ariza havolalari shu yerda.</p><p>Filtrlar: mamlakat, moliyalashtirish turi.</p></div><div class="lock-cta"><b>Stipendiya qidiruvi Pro tarifida</b><a class="btn primary" href="#/pricing">Tariflarni ko‘rish</a></div></div>`; return;
   }
   el.insertAdjacentHTML('beforeend', `<div class="card" style="margin-bottom:16px"><div class="row"><div><label class="f" for="s-q">Qidirish</label><input id="s-q" type="text" maxlength="80" placeholder="Nomi yoki tashkilot"></div><div><label class="f" for="s-c">Mamlakat</label><select id="s-c"><option value="">Hammasi</option><option>AQSh</option><option>Buyuk Britaniya</option><option>Germaniya</option><option>Janubiy Koreya</option><option>Turkiya</option><option>Xalqaro</option></select></div><div><label class="f" for="s-f">Moliyalashtirish</label><select id="s-f"><option value="">Hammasi</option><option value="full">To‘liq</option><option value="partial">Qisman</option></select></div></div></div><div id="s-r"></div>`);
   const out = $('#s-r', el); let t = 0;
@@ -88,7 +112,7 @@ export async function predictor(el) {
       <section class="card s7">${r.full ? `<h3>Ball qanday hisoblandi</h3><p class="sub">Har bir mezon uchun hissa.</p>${r.parts.map(x => `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between"><b>${esc(x.k)}</b><span>${x.v}/100 · ulushi ${x.w}%</span></div><div class="bar" style="margin:6px 0"><i style="width:${x.v}%"></i></div><small style="color:var(--muted)">${esc(x.t)}</small></div>`).join('')}
         <h3 style="margin-top:14px">Nimani yaxshilash kerak</h3>${r.advice.length ? `<ul style="padding-left:18px;color:var(--ink-2)">${r.advice.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : '<p class="sub">Qo‘shimcha tavsiya yo‘q.</p>'}
         <div style="display:flex;gap:6px;flex-wrap:wrap">${vb(r.verified.sat, 'SAT oralig‘i tekshirilgan')}${vb(r.verified.acceptance, 'qabul darajasi tekshirilgan')}${vb(r.verified.deadline, 'muddat tekshirilgan')}</div>`
-        : `<div class="lock"><div class="lock-in"><h3>Ball qanday hisoblandi</h3><p>SAT, GPA, IELTS va faoliyat bo‘yicha batafsil tahlil.</p><p>Nimani yaxshilash kerakligi haqida tavsiyalar.</p><p>Safety / Target / Reach darajasi.</p></div><div class="lock-cta"><b>To‘liq tahlil Plus tarifida</b><a class="btn primary" href="#/pricing">Tariflarni ko‘rish</a></div></div>`}</section></div>
+        : `<div class="lock"><div class="lock-in"><h3>Ball qanday hisoblandi</h3><p>SAT, GPA, IELTS va faoliyat bo‘yicha batafsil tahlil.</p><p>Nimani yaxshilash kerakligi haqida tavsiyalar.</p><p>Safety / Target / Reach darajasi.</p></div><div class="lock-cta"><b>To‘liq tahlil Pro tarifida</b><a class="btn primary" href="#/pricing">Tariflarni ko‘rish</a></div></div>`}</section></div>
       <div class="notice" style="margin-top:16px">${svg('info')}<div>${esc(r.disclaimer)}</div></div>`;
     } catch (e) { out.innerHTML = errorBox(e.message); }
   };
@@ -122,7 +146,8 @@ async function browse(el) {
   <div class="card" style="margin-bottom:16px"><label class="f" for="b-q">Qidirish</label><input id="b-q" type="text" maxlength="60" placeholder="Universitet nomi"></div><div id="b-r"></div>`;
   const out = $('#b-r', el), draw = q => {
     const rows = cat.filter(c => c.n.toLowerCase().includes(q.toLowerCase()));
-    out.innerHTML = rows.length ? `<div class="grid g2">${rows.map(c => `<article class="card hover">${ctry(c.country)}<h3>${esc(c.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${vb(c.satV, 'SAT tekshirilgan')}<span class="badge mute">SAT ${c.sat[0]}–${c.sat[1]}</span><span class="badge mute">Muddat: ${fmtDate(c.rd)}${c.rdV ? '' : ' (taxminiy)'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-add="${esc(c.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(c.id)}">Solishtirish</button></div></article>`).join('')}</div>` : '<div class="card empty"><b>Hech narsa topilmadi</b></div>';
+    out.innerHTML = rows.length ? `<div class="grid g2">${rows.map(c => `<article class="card hover">${ctry(c.country)}<h3>${esc(c.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${vb(c.satV, 'SAT tekshirilgan')}<span class="badge mute">SAT ${c.sat[0]}–${c.sat[1]}</span><span class="badge mute">Muddat: ${fmtDate(c.rd)}${c.rdV ? '' : ' (taxminiy)'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-about="${esc(c.id)}">Haqida</button><button class="btn sm" data-add="${esc(c.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(c.id)}">Solishtirish</button></div></article>`).join('')}</div>` : '<div class="card empty"><b>Hech narsa topilmadi</b></div>';
+    $$('[data-about]', out).forEach(b => (b.onclick = () => aboutUni(b.dataset.about)));
     $$('[data-add]', out).forEach(b => (b.onclick = () => addApp(cat.find(c => c.id === b.dataset.add))));
     $$('[data-cmp]', out).forEach(b => (b.onclick = () => addCmp(b.dataset.cmp)));
   };

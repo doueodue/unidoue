@@ -75,9 +75,9 @@ export async function dashboard(el) {
     m.innerHTML = `<div class="list">${r.items.slice(0, 5).map(u => `<div class="li"><div class="score">${u.score}</div><div class="grow"><b>${esc(u.n)}</b><small>${u.verified ? 'tekshirilgan ma’lumot' : 'taxminiy ma’lumot'}</small></div><span class="badge ${u.tier}">${TIER[u.tier]}</span></div>`).join('')}</div><a class="btn sm" style="margin-top:12px" href="#/finder">Hammasini ko‘rish</a>`;
   }).catch(e => (m.innerHTML = errorBox(e.message)));
 
-  // stipendiyalar (faqat Plus+; serverda tekshiriladi)
+  // stipendiyalar (serverda tekshiriladi)
   const sc = $('#d-sch', el);
-  if (!a.features.includes('scholarships')) sc.innerHTML = `<h3>Stipendiyalar</h3><p class="sub">Stipendiya qidiruvi Plus tarifida.</p><a class="btn sm" href="#/pricing">Tariflarni ko‘rish</a>`;
+  if (!a.features.includes('scholarships')) sc.innerHTML = `<h3>Stipendiyalar</h3><p class="sub">Stipendiya qidiruvi hozir mavjud emas.</p><a class="btn sm" href="#/pricing">Tariflarni ko‘rish</a>`;
   else api('/api/scholarships').then(r => { sc.innerHTML = `<h3>Stipendiyalar</h3>` + (r.items.length ? `<div class="list" style="margin-top:8px">${r.items.slice(0, 3).map(x => `<div class="li"><div class="grow"><b>${esc(x.name)}</b><small>${esc(x.provider || '')}</small></div></div>`).join('')}</div><a class="btn sm" style="margin-top:10px" href="#/scholarships">Hammasi</a>` : '<p class="sub">Tasdiqlangan stipendiyalar bazasi hozircha to‘ldirilmoqda.</p>'); }).catch(() => (sc.innerHTML = '<h3>Stipendiyalar</h3><p class="sub">Yuklab bo‘lmadi.</p>'));
 }
 
@@ -110,20 +110,19 @@ export async function tracker(el) {
 
 /* ================= TARIFLAR ================= */
 const FEAT = {
-  free: ['10 ta universitet natijasi', 'Safety / Target / Reach darajasi', 'Asosiy profil va moslik bali', '2 ta universitetni solishtirish', '3 tagacha ariza kuzatuvi', '15 AI kredit / oy'],
-  plus: ['Barcha universitetlar + nima uchun mos ekanligi', 'Stipendiya qidiruvi', 'To‘liq qabul bashorati va maslahatlar', 'Cheksiz arizalar kuzatuvi', '3 ta universitetni solishtirish', '50 AI kredit / oy'],
-  pro: ['Plusdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Shaxsiy qabul strategiyasi', 'Chuqur esse tahlili', 'Universitet hisobotlari', '4 ta universitetni solishtirish', '300 AI kredit / oy', 'Ustuvor yordam']
+  free: ['Barcha universitetlar + nima uchun mos ekanligi', 'Universitet haqida ma’lumot (manbalar bilan)', 'Stipendiya qidiruvi', 'To‘liq qabul bashorati va maslahatlar', 'Cheksiz arizalar kuzatuvi', '3 ta universitetni solishtirish', '15 AI kredit / oy'],
+  pro: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Shaxsiy qabul strategiyasi', 'Chuqur esse tahlili', 'Universitet hisobotlari', '4 ta universitetni solishtirish', '300 AI kredit / oy', 'Ustuvor yordam']
 };
-const ORDER = { free: 0, plus: 1, pro: 2 };
+const ORDER = { free: 0, pro: 1 };
 export async function pricing(el) {
   const { plans, config } = await api('/api/plans'); await refreshAccount(); const cur = S.account.plan;
   el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b>${S.account.usage.ai} / ${S.account.limits.ai}</b>.</p></div></div>
-  ${config.payments ? '' : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov tizimi hali ulanmagan.</b> Plus yoki Pro uchun so‘rov yuboring: administrator tarifni qo‘lda yoqadi. To‘lov qabul qilinmaydi va tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
-  <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === 'plus' ? 'feat' : ''}">${p.id === 'plus' ? '<span class="badge pop">Mashhur</span>' : ''}<div><h3>${p.name}</h3></div><div class="price">$${p.price === 0 ? '0' : p.price}<small>${p.price ? ' / oy' : ''}</small></div>
+  ${config.payments ? '' : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov tizimi hali ulanmagan.</b> Pro uchun so‘rov yuboring: administrator tarifni qo‘lda yoqadi. To‘lov qabul qilinmaydi va tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
+  <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === 'pro' ? 'feat' : ''}">${p.id === 'pro' ? '<span class="badge pop">Mashhur</span>' : ''}<div><h3>${p.name}</h3></div><div class="price">$${p.price === 0 ? '0' : p.price}<small>${p.price ? ' / oy' : ''}</small></div>
     <ul>${FEAT[p.id].map(f => `<li>${f}</li>`).join('')}</ul><div style="margin-top:auto">${
       p.id === cur ? '<button class="btn" disabled style="width:100%">Joriy tarif</button>'
       : ORDER[p.id] < ORDER[cur] ? `<button class="btn" style="width:100%" data-down="${p.id}">${p.name} ga o‘tish</button>`
-      : `<button class="btn ${p.id === 'plus' ? 'primary' : 'dark'}" style="width:100%" data-up="${p.id}">${p.name} uchun so‘rov yuborish</button>`}</div></section>`).join('')}</div>
+      : `<button class="btn ${p.id === 'pro' ? 'primary' : 'dark'}" style="width:100%" data-up="${p.id}">${p.name} uchun so‘rov yuborish</button>`}</div></section>`).join('')}</div>
   <div class="card" style="margin-top:18px"><h3>AI kredit qanday sarflanadi</h3><p class="sub">Limit har oy yangilanadi. Xatolik bo‘lsa, kredit yechilmaydi.</p><div class="row"><div class="stat"><b>1</b><span>mentor savoli</span></div><div class="stat"><b>2 / 4</b><span>esse tahlili (oddiy / chuqur)</span></div><div class="stat"><b>6</b><span>strategiya yoki hisobot</span></div></div></div>
   <p class="hint" style="margin-top:14px">Qabul natijasi hech bir tarifda kafolatlanmaydi. Narxlar AQSh dollarida.</p>`;
   $$('[data-up]', el).forEach(b => (b.onclick = async () => { b.disabled = true; try { await api('/api/plan/request', 'POST', { plan: b.dataset.up }); toast('So‘rov yuborildi. Administrator siz bilan bog‘lanadi.'); } catch (e) { toast(e.message, 'err'); } b.disabled = false; }));

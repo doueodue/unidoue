@@ -114,6 +114,6 @@ export async function catalog() {
 /** Plan yetishmasa chiroyli taklif oynasi. */
 export async function upsell(feature, text) {
   const names = { scholarships: 'Stipendiya qidiruvi', predictor: 'To‘liq qabul bashorati', strategy: 'Shaxsiy qabul strategiyasi', reports: 'Universitet hisobotlari', essay_adv: 'Chuqur esse tahlili', tracker: 'Cheksiz arizalar', compare: 'Ko‘proq universitetni solishtirish', finder_adv: 'Kengaytirilgan qidiruv' };
-  const v = await modal({ title: names[feature] || 'Yuqoriroq tarif kerak', body: `<p>${esc(text || 'Bu imkoniyat Plus yoki Pro tarifida mavjud.')}</p>`, actions: [{ label: 'Keyinroq', value: 0 }, { label: 'Tariflarni ko‘rish', value: 1, cls: 'primary' }] });
+  const v = await modal({ title: names[feature] || 'Yuqoriroq tarif kerak', body: `<p>${esc(text || 'Bu imkoniyat Pro tarifida mavjud.')}</p>`, actions: [{ label: 'Keyinroq', value: 0 }, { label: 'Tariflarni ko‘rish', value: 1, cls: 'primary' }] });
   if (v === 1) location.hash = '#/pricing';
 }

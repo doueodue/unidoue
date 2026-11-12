@@ -126,12 +126,10 @@ async function sendMail(to, subject, html) {
   }
   if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(MAIL_PROVIDER + ' ' + r.status + ' ' + t.slice(0, 200)); }
 }
-const F_FREE = ['finder_basic', 'profile', 'compare_basic', 'predictor_basic', 'essay_basic', 'mentor_basic'];
-const F_PLUS = [...F_FREE, 'finder_adv', 'scholarships', 'predictor', 'tracker'];
-const F_PRO = [...F_PLUS, 'mentor_adv', 'strategy', 'essay_adv', 'reports', 'priority'];
+const F_FREE = ['finder_basic', 'profile', 'compare_basic', 'predictor_basic', 'essay_basic', 'mentor_basic', 'finder_adv', 'scholarships', 'predictor', 'tracker'];
+const F_PRO = [...F_FREE, 'mentor_adv', 'strategy', 'essay_adv', 'reports', 'priority'];
 const PLANS = {
-  free: { id: 'free', name: 'Free', price: 0, ai: 15, apps: 3, finder: 10, compare: 2, features: F_FREE },
-  plus: { id: 'plus', name: 'Plus', price: 4.99, ai: 50, apps: 1000, finder: 101, compare: 3, features: F_PLUS },
+  free: { id: 'free', name: 'Free', price: 0, ai: 15, apps: 1000, finder: 101, compare: 3, features: F_FREE },
   pro:  { id: 'pro',  name: 'Pro',  price: 9.99, ai: 300, apps: 1000, finder: 101, compare: 4, features: F_PRO }
 };
 const AI_COST = { mentor: 1, essay: 2, essay_deep: 4, strategy: 6, report: 6 };
@@ -509,7 +507,7 @@ async function api(req, res, pathname) {
   if (pathname === '/api/plan/downgrade' && method === 'POST') {
     const u = sessionUser(req);
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
-    const b = await readJson(req), order = { free: 0, plus: 1, pro: 2 }, target = b.plan || 'free';
+    const b = await readJson(req), order = { free: 0, pro: 1 }, target = b.plan || 'free';
     if (!PLANS[target] || order[target] >= order[effPlan(u).id]) return fail(res, 400, 'Bu pastroq tarif emas.');
     u.plan = target; if (target === 'free') u.planUntil = null; save();
     return send(res, 200, { account: accountInfo(u) });
@@ -520,7 +518,7 @@ async function api(req, res, pathname) {
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
     if (limited('plr:' + u.id, 3, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp soʻrov. Keyinroq urinib koʻring.');
     const b = await readJson(req);
-    if (b.plan !== 'plus' && b.plan !== 'pro') return fail(res, 400, 'Notoʻgʻri tarif.');
+    if (b.plan !== 'pro') return fail(res, 400, 'Notoʻgʻri tarif.');
     const r = { id: crypto.randomBytes(6).toString('hex'), ts: new Date().toISOString(), uid: u.id, email: u.email, name: u.name, contact: u.email, service: 'Tarif: ' + PLANS[b.plan].name, message: 'Tarifni yoqish soʻrovi (toʻlov tizimi hali ulanmagan).' };
     db.requests.push(r); save(); notifyTelegram(r);
     return send(res, 201, { ok: true });
