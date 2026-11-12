@@ -9,9 +9,31 @@ const accountChanged = () => document.dispatchEvent(new CustomEvent('unidoue:acc
 
 function completion() {
   const { P, Q } = getProfile();
-  const items = [['Ism', P.pn], ['Shahar', P.pc], ['Sinf', P.pg], ['Maqsad yili', P.py], ['Yo‘nalish', P.pm], ['GPA', Q.gpa], ['SAT', Q.sat], ['IELTS', Q.ielts]];
+  const items = [['Ism', P.pn], ['Shahar', P.pc], ['Sinf', P.pg], ['Maqsad yili', P.py], ['Bitiruv sanasi', P.pgd], ['Yo‘nalish', P.pm], ['GPA', Q.gpa], ['SAT', Q.sat], ['IELTS', Q.ielts]];
   const done = items.filter(i => i[1] != null && String(i[1]).trim() !== '').length;
   return { pct: pct(done, items.length), missing: items.filter(i => i[1] == null || String(i[1]).trim() === '').map(i => i[0]) };
+}
+
+/* ===== Graduategacha hisoblagich ===== */
+const isoDay = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+const shiftY = y => { const d = new Date(); d.setFullYear(d.getFullYear() + y); return isoDay(d); };
+const gradMin = () => shiftY(-10), gradMax = () => shiftY(15);
+const gradOk = v => /^\d{4}-\d\d-\d\d$/.test(v) && v >= gradMin() && v <= gradMax() && !isNaN(new Date(v + 'T12:00:00'));
+function gradTip(n) {
+  if (n > 540) return 'Hali vaqt bor: testlarga tayyorlaning va universitetlar ro‘yxatini shakllantiring.';
+  if (n > 180) return 'SAT/IELTS topshirish va esse yozishni boshlash vaqti.';
+  if (n > 60) return 'Arizalar va hujjatlarni yakunlash vaqti.';
+  return 'So‘nggi sprint: muddatlar va topshirilmagan hujjatlarni tekshiring.';
+}
+function gradCard(P) {
+  if (!P.pgd || !gradOk(P.pgd)) return `<section class="card s12 grad-card grad-empty"><div class="grad-l"><span class="grad-ic">🎓</span><div><h3>Graduategacha necha kun qoldi?</h3><p class="sub">Bitiruv sanangizni kiriting, hisoblagich shu yerda turadi.</p></div></div>
+    <form class="grad-f" id="gd-f"><input id="gd-in" type="date" aria-label="Bitiruv sanasi" min="${gradMin()}" max="${gradMax()}"><button class="btn primary" type="submit">Saqlash</button></form></section>`;
+  const n = daysLeft(P.pgd);
+  if (n < 0) return `<section class="card s12 grad-card"><div class="grad-l"><span class="grad-ic">🎓</span><div><h3>Siz bitirgansiz!</h3><p class="sub">Bitiruv sanasi: ${fmtDate(P.pgd)}. Keyingi qadam — arizalar va muddatlar.</p></div></div><a class="btn sm" href="#/profile">Sanani o‘zgartirish</a></section>`;
+  const wk = Math.floor(n / 7), mo = Math.floor(n / 30.44);
+  return `<section class="card s12 grad-card"><div class="grad-l"><span class="grad-ic">🎓</span><div><h3>Graduategacha</h3><p class="sub">${fmtDate(P.pgd)}</p></div></div>
+    <div class="grad-n"><b>${n}</b><span>${n === 1 ? 'kun' : 'kun'} qoldi</span></div>
+    <div class="grad-r"><div class="grad-chips"><span>${wk} hafta</span><span>≈ ${mo} oy</span></div><p>${gradTip(n)}</p><a class="link-btn" href="#/profile">Sanani o‘zgartirish</a></div></section>`;
 }
 
 /* ================= BOSH PANEL ================= */
@@ -24,6 +46,7 @@ export async function dashboard(el) {
   <section class="card hero-card s12"><h2>Salom, <em>${esc(name)}</em></h2>
     <p>${c.pct < 100 ? `Profilingiz ${c.pct}% to‘liq. To‘liq profil universitet tavsiyalarini aniqroq qiladi.` : 'Profilingiz to‘liq. Universitetlar va muddatlarni kuzatishda davom eting.'}</p>
     <div class="acts"><a class="btn light" href="#/${c.pct < 100 ? 'profile' : 'finder'}">${c.pct < 100 ? 'Profilni to‘ldirish' : 'Universitetlarni ko‘rish'}</a><a class="btn ghost" href="#/mentor">AI mentordan so‘rash</a></div></section>
+  ${gradCard(P)}
   <div class="card s4"><div class="stat"><b>${c.pct}%</b><span>Profil to‘liqligi</span></div><div class="bar" style="margin-top:12px"><i style="width:${c.pct}%"></i></div>${c.missing.length ? `<p class="hint">Yetishmaydi: ${esc(c.missing.slice(0, 4).join(', '))}</p>` : ''}</div>
   <div class="card s4"><div class="stat"><b>${apps.length}</b><span>Arizalar</span></div><div class="bar" style="margin-top:12px"><i style="width:${pct(docsDone, docsAll)}%"></i></div><p class="hint">Hujjatlar: ${docsDone}/${docsAll || 0}</p></div>
   <div class="card s4"><div class="stat"><b>${up[0] ? daysLeft(up[0].d) + ' kun' : '—'}</b><span>${up[0] ? esc(up[0].n) + ' muddatigacha' : 'Yaqin muddat yo‘q'}</span></div></div>
@@ -41,6 +64,9 @@ export async function dashboard(el) {
   <section class="card s6"><h3>AI mentor</h3><p class="sub">Universitet, ariza va esse bo‘yicha savollar.</p>
     ${a.config.ai ? `<p>Savolingizni yozing, mentor profilingizni (ruxsat bergan bo‘lsangiz) hisobga oladi.</p><a class="btn primary" style="margin-top:14px" href="#/mentor">Suhbatni boshlash</a>`
       : `<div class="notice">${svg('info')}<div>AI mentor hozircha ulanmagan: sayt egasi serverda AI kalitini sozlagach, shu yerda ishlaydi.</div></div>`}</section></div>`;
+
+  const gf = $('#gd-f', el);
+  if (gf) gf.onsubmit = ev => { ev.preventDefault(); const v = $('#gd-in', el).value; if (!gradOk(v)) { toast('Sanani to‘g‘ri tanlang.', 'err'); return; } ls.set('qabul:profile', { ...ls.get('qabul:profile', {}), pgd: v, updatedAt: new Date().toISOString() }); toast('Saqlandi ✓'); el.innerHTML = ''; dashboard(el); };
 
   // mos universitetlar (serverda hisoblanadi)
   const m = $('#d-match', el), prof = { gpa: Q.gpa, sc: Q.sc, sat: Q.sat, ielts: Q.ielts, ex: Q.ex, ach: Q.ach };
@@ -115,6 +141,7 @@ export async function profile(el) {
     <div class="field"><label class="f" for="pn">Ism</label><input id="pn" type="text" maxlength="40" value="${esc(P.pn || S.user.name)}"></div>
     <div class="row"><div class="field"><label class="f" for="pc">Shahar</label><input id="pc" type="text" maxlength="40" value="${esc(P.pc)}"></div><div class="field"><label class="f" for="pm">Qiziqqan yo‘nalish</label><input id="pm" type="text" maxlength="60" value="${esc(P.pm)}" placeholder="Informatika, biznes…"></div></div>
     <div class="row"><div class="field"><label class="f" for="pg">Sinf</label><select id="pg">${opt([['9-sinf', '9-sinf'], ['10-sinf', '10-sinf'], ['11-sinf', '11-sinf'], ['Bitirganman', 'Bitirganman']], P.pg || '11-sinf')}</select></div><div class="field"><label class="f" for="py">Maqsad yili</label><select id="py">${opt([[2027, 2027], [2028, 2028], [2029, 2029]], P.py || 2027)}</select></div></div>
+    <div class="field"><label class="f" for="pgd">Bitiruv (graduate) sanasi</label><input id="pgd" type="date" value="${esc(P.pgd || '')}" min="${gradMin()}" max="${gradMax()}"><div class="hint">Bosh panelda “graduategacha necha kun qoldi” hisoblagichi chiqadi.</div></div>
     <h3 style="margin-top:8px">Akademik natijalar</h3><p class="sub">Kamida bittasini kiriting.</p>
     <div class="row"><div class="field"><label class="f" for="pgpa">GPA</label><div style="display:flex;gap:6px"><input id="pgpa" type="number" step="0.01" min="0" max="100" value="${esc(Q.gpa)}" style="min-width:0"><select id="psc" style="width:88px">${opt([[4, '/ 4'], [5, '/ 5'], [10, '/ 10'], [100, '/ 100']], Q.sc || 5)}</select></div></div><div class="field"><label class="f" for="psat">SAT</label><input id="psat" type="number" min="400" max="1600" value="${esc(Q.sat)}"></div><div class="field"><label class="f" for="pie">IELTS</label><input id="pie" type="number" step="0.5" min="0" max="9" value="${esc(Q.ielts)}"></div></div>
     <div class="row"><div class="field"><label class="f" for="pex">Olimpiada, loyiha, volontyorlik</label><select id="pex">${opt([[0, 'Hali yo‘q'], [1, 'Bir oz'], [2, 'Yaxshi'], [3, 'Juda kuchli']], Q.ex ?? 1)}</select></div><div class="field"><label class="f" for="pach">Akademik yutuqlar</label><select id="pach">${opt([['', 'Kiritilmagan'], [0, 'Yo‘q'], [1, 'Maktab olimpiadasi'], [2, 'Respublika / viloyat'], [3, 'Xalqaro']], Q.ach ?? '')}</select></div></div>
@@ -126,9 +153,10 @@ export async function profile(el) {
   $('#p-f', el).onsubmit = ev => {
     ev.preventDefault(); const g = id => $('#' + id, el).value.trim(), m = $('#p-m', el); m.className = 'msg err';
     if (g('pn').length < 2) { m.textContent = 'Ismingizni kiriting.'; return; }
+    if (g('pgd') && !gradOk(g('pgd'))) { m.textContent = 'Bitiruv sanasini tekshiring (oxirgi 10 yil va keyingi 15 yil oralig‘ida bo‘lsin).'; return; }
     const gpa = g('pgpa'), sc = +g('psc'), sat = g('psat'), ie = g('pie');
     if ((gpa && (!(+gpa > 0) || +gpa > sc)) || (sat && (+sat < 400 || +sat > 1600)) || (ie && (+ie < 0 || +ie > 9))) { m.textContent = 'Natijalarni tekshiring: GPA shkaladan oshmasin, SAT 400–1600, IELTS 0–9.'; return; }
-    ls.set('qabul:profile', { ...P, pn: g('pn'), pc: g('pc'), pm: g('pm'), pg: g('pg'), py: g('py'), created: true, updatedAt: new Date().toISOString() });
+    ls.set('qabul:profile', { ...P, pn: g('pn'), pc: g('pc'), pm: g('pm'), pg: g('pg'), py: g('py'), pgd: g('pgd'), created: true, updatedAt: new Date().toISOString() });
     ls.set('qabul:p', { gpa, sc: String(sc), sat, ielts: ie, ex: g('pex'), ach: g('pach') });
     m.className = 'msg ok'; m.textContent = 'Saqlandi ✓';
   };
