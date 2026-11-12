@@ -183,6 +183,6 @@ html[data-season=kuz] .hero-card p{color:#f1d9bf}
 html[data-season=kuz] .bar{background:#f3e6d6}
 html[data-season=kuz] .grad-card{background:linear-gradient(120deg,#fff 0%,#fff3e4 55%,#fde5c8 100%);border-color:#f3d8b8}
 .leaves{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
-.leaves i{position:absolute;top:-30px;border-radius:0 100% 0 100%;opacity:.8;animation:leaf-fall linear infinite,leaf-sway ease-in-out infinite alternate;will-change:transform}
+.leaves .lf{position:absolute;top:-50px;opacity:.92;filter:drop-shadow(0 2px 2px rgba(60,20,0,.25));animation:leaf-fall linear infinite,leaf-sway ease-in-out infinite alternate;will-change:transform}
 @keyframes leaf-fall{to{top:105vh}}
-@keyframes leaf-sway{from{transform:translateX(-30px) rotate(-40deg)}to{transform:translateX(40px) rotate(160deg)}}
+@keyframes leaf-sway{from{transform:translateX(-30px) rotate(-35deg) rotateY(0)}to{transform:translateX(40px) rotate(150deg) rotateY(70deg)}}
