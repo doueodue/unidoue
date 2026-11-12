@@ -1,0 +1,102 @@
+{
+  "updated": "2026-11-12",
+  "items": [
+    {
+      "id": "chevening-uzbekistan",
+      "name": "Chevening stipendiyasi",
+      "provider": "Buyuk Britaniya hukumati (FCDO) va hamkor tashkilotlar",
+      "countries": ["Buyuk Britaniya"],
+      "level": "Magistratura",
+      "eligibility": "Oʻzbekiston fuqarolari uchun alohida sahifa mavjud; batafsil mezonlar Chevening rasmiy saytida.",
+      "requirements": "Onlayn ariza, elektron pochta va telefon raqami; har bosqichda noyob kirish kodi kerak.",
+      "url": "https://www.chevening.org/scholarship/uzbekistan/",
+      "verifiedAt": "2026-11-12"
+    },
+    {
+      "id": "gks-korea",
+      "name": "Global Korea Scholarship (GKS)",
+      "provider": "Koreya hukumati, NIIED",
+      "countries": ["Janubiy Koreya"],
+      "funding": "full",
+      "level": "Magistratura, doktorantura (GKS-G)",
+      "amount": "Aviachipta, oylik stipendiya (magistratura uchun yiliga 16 560 000 KRW) va oʻqish xarajatlari.",
+      "eligibility": "Oʻzbekiston elchixona kvotasiga kiradi (umumiy 13 oʻrin). 40 yoshdan kichik; bakalavr yoki magistr diplomi.",
+      "requirements": "Oʻrtacha ball: sinfda top 20% yoki 80%+; ariza, motivatsion xat, oʻquv reja, tavsiyanoma, apostil qilingan hujjatlar.",
+      "url": "https://www.studyinkorea.go.kr/en/sub/gks/allnew_invite.do",
+      "verifiedAt": "2026-11-12"
+    },
+    {
+      "id": "turkiye-burslari",
+      "name": "Türkiye Burslari",
+      "provider": "Turkiya hukumati",
+      "countries": ["Turkiya"],
+      "funding": "full",
+      "level": "Bakalavr, magistratura, doktorantura",
+      "amount": "Oʻqish toʻlovi, yotoqxona, tibbiy sugʻurta va stipendiya.",
+      "eligibility": "Barcha mamlakat fuqarolari uchun yagona qabul davri (2026 yil: 10 yanvar–20 fevral).",
+      "requirements": "Onlayn ariza; batafsil mezonlar rasmiy saytdagi \"How to Apply\" bo‘limida.",
+      "url": "https://turkiyeburslari.gov.tr/",
+      "verifiedAt": "2026-11-12"
+    },
+    {
+      "id": "stipendium-hungaricum",
+      "name": "Stipendium Hungaricum",
+      "provider": "Vengriya hukumati, Tempus Public Foundation",
+      "countries": ["Vengriya"],
+      "level": "Bakalavr, magistratura, PhD, qisqa kurslar",
+      "amount": "Oʻzbekiston uchun 170 tagacha grant oʻrni (asosiy roʻyxat) va zaxira roʻyxat.",
+      "eligibility": "Oʻzbekiston fuqarolari; muhandislik, tibbiyot, IT, energetika kabi yoʻnalishlar ustuvor.",
+      "requirements": "Hujjatlar apply.stipendiumhungaricum.hu orqali onlayn topshiriladi; onlayn suhbat boʻlishi mumkin.",
+      "url": "https://stipendiumhungaricum.hu/",
+      "verifiedAt": "2026-11-12"
+    },
+    {
+      "id": "swiss-excellence",
+      "name": "Swiss Government Excellence Scholarships",
+      "provider": "Shveytsariya hukumati (SERI/FCS)",
+      "countries": ["Shveytsariya"],
+      "level": "Tadqiqot (postdok/PhD uchun), magistr diplomi bilan",
+      "amount": "Oyiga 2 450 CHF.",
+      "eligibility": "Oʻzbekiston mamlakatlar roʻyxatida. Magistr darajasi, 35 yoshgacha; Shveytsariyadagi ilmiy rahbar kerak.",
+      "requirements": "Tadqiqot loyihasi sifati, shaxsiy profil; Shveytsariya oliy ta’lim muassasasidan rahbar tavsiyasi.",
+      "url": "https://www.sbfi.admin.ch/scholarships_en",
+      "verifiedAt": "2026-11-12"
+    },
+    {
+      "id": "gates-cambridge",
+      "name": "Gates Cambridge Scholarship",
+      "provider": "Gates Cambridge Trust, Kembrij universiteti",
+      "countries": ["Buyuk Britaniya"],
+      "funding": "full",
+      "level": "Magistratura, PhD",
+      "amount": "Yiliga 35 000–66 000 funt: kontrakt toʻlovi, stipendiya, yoʻl, viza va sugʻurta.",
+      "eligibility": "Buyuk Britaniyadan tashqari fuqarolar; barcha fanlar, jumladan Kembrijdagi har qanday kurs.",
+      "requirements": "Akademik yutuq, kurs tanlash sababi, boshqalar hayotini yaxshilashga intilish va liderlik.",
+      "url": "https://www.student-funding.cam.ac.uk/fund/gates-cambridge-scholarship-2025",
+      "verifiedAt": "2026-11-12"
+    },
+    {
+      "id": "eiffel-excellence",
+      "name": "Eiffel Excellence Scholarship",
+      "provider": "Fransiya hukumati, Campus France",
+      "countries": ["Fransiya"],
+      "level": "Magistratura, PhD",
+      "eligibility": "Fransiya fuqarosi emas; magistr uchun 29 yoshgacha, PhD uchun 35 yoshgacha (ENS de Lyon e’loniga koʻra).",
+      "requirements": "Magistratura uchun alohida dasturga ham ariza topshirish shart; nomzodni Fransiya universiteti taqdim etadi.",
+      "url": "https://www.ens-lyon.fr/en/article/about-us/eiffel-excellence-scholarship-program-application-2027-2028",
+      "verifiedAt": "2026-11-12"
+    },
+    {
+      "id": "el-yurt-umidi",
+      "name": "El-Yurt Umidi jamgʻarmasi stipendiyasi",
+      "provider": "El-Yurt Umidi jamgʻarmasi (Oʻzbekiston)",
+      "countries": ["Xalqaro"],
+      "level": "Bakalavr, magistratura, doktorantura",
+      "amount": "2025 yil tanlovida 450 oʻrin: 130 bakalavr, 220 magistratura, 100 doktorantura.",
+      "eligibility": "Oʻzbekiston fuqarolari; STEM va iqtisodiyot tarmoqlari ustuvor. Bitiruvchilar tanlovsiz ishga olinadi.",
+      "requirements": "Chet el oliygohidan qabul xati, til sertifikati, motivatsion esse; hujjatlar el-yurt.uz orqali topshiriladi.",
+      "url": "https://gov.uz/en/yoshlar/news/view/42957",
+      "verifiedAt": "2026-11-12"
+    }
+  ]
+}

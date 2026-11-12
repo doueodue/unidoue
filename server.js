@@ -130,7 +130,7 @@ const F_FREE = ['finder_basic', 'profile', 'compare_basic', 'predictor_basic', '
 const F_PRO = [...F_FREE, 'mentor_adv', 'strategy', 'essay_adv', 'reports', 'priority'];
 const PLANS = {
   free: { id: 'free', name: 'Free', price: 0, ai: 15, apps: 1000, finder: 101, compare: 3, features: F_FREE },
-  pro:  { id: 'pro',  name: 'Pro',  price: 9.99, ai: 300, apps: 1000, finder: 101, compare: 4, features: F_PRO }
+  pro:  { id: 'pro',  name: 'Pro',  price: 4.99, ai: 300, apps: 1000, finder: 101, compare: 4, features: F_PRO }
 };
 const AI_COST = { mentor: 1, essay: 2, essay_deep: 4, strategy: 6, report: 6 };
 const month = () => new Date().toISOString().slice(0, 7);
