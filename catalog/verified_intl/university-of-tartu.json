@@ -1,0 +1,30 @@
+{
+ "name": "University of Tartu",
+ "country": "Estonia",
+ "city": "Tartu",
+ "official_url": "https://ut.ee/en",
+ "language": "English / Estonian",
+ "ielts": {
+  "min_overall": 6.0,
+  "url": "https://www.ut.ee/requirements",
+  "year": 2026
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 4200,
+  "currency": "EUR",
+  "note": "Business Administration (English-taught bachelor's), per year; fees vary by programme",
+  "url": "https://ut.ee/en/curriculum/business-administration",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Completed higher secondary education plus proof of English proficiency (IELTS Academic overall 6.0, no part below 5.5). Business Administration applicants are scored on a motivation letter and an online mathematics entry test; application fee EUR 100.",
+  "url": "https://ut.ee/en/content/frequently-asked-questions"
+ },
+ "bachelor_in_english": true
+}

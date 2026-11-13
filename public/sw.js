@@ -1,5 +1,5 @@
 /* UniDoue service worker: API hech qachon keshlanmaydi; sahifa avval tarmoqdan, oflayn boʻlsa keshdan. */
-const V = 'unidoue-v11';
+const V = 'unidoue-v12';
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(['/', '/app', '/app.css', '/icons/icon-192.png'])).then(() => self.skipWaiting()));
 });

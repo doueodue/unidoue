@@ -1,556 +1,676 @@
 {
- "australian-national-university": {
-  "req": [
-   "Ariza beruvchi ANU ning minimal akademik talabiga o‘rta ta’lim (yoki Avstraliya bakalavriatining bir yili) orqali javob berishi, shuningdek dastur va ingliz tili talablarini bajarishi kerak. O‘zbekistonga oid alohida talab sahifada tasdiqlanmagan.",
-   "Абитуриент должен соответствовать минимальному академическому требованию ANU по аттестату о среднем образовании (или после одного года австралийского бакалавриата), а также требованиям программы и по английскому языку. Отдельное требование для Узбекистана на странице не подтверждено."
-  ]
- },
- "university-of-melbourne": {
-  "req": [
-   "Talablar daraja bo‘yicha farq qiladi (fan bo‘yicha old shartlar, ingliz tili, talaba vizasi). Avstraliya Year 12/IB dan tashqari xalqaro abituriyentlar to‘g‘ridan-to‘g‘ri murojaat qiladi. Ko‘pchilik bakalavr yo‘nalishlari uchun IELTS Academic 6.5 (bironta bo‘limda 6.0 dan past bo‘lmasin), Oral Health uchun 7.0. O‘zbekistonga oid alohida talab sahifada ko‘rsatilmagan.",
-   "Требования различаются по программам (профильные предметы, английский, студенческая виза). Иностранные абитуриенты вне австралийского Year 12/IB подают заявку напрямую. Для большинства бакалаврских программ IELTS Academic 6.5 (не ниже 6.0 в каждом разделе), для Oral Health 7.0. Отдельное требование для Узбекистана на странице не указано."
-  ]
- },
- "university-of-sydney": {
-  "intake": [
-   "2027-yil 1-semestr, xalqaro bakalavr abituriyentlari",
-   "1-й семестр 2027, иностранные абитуриенты бакалавриата"
-  ],
-  "req": [
-   "Xalqaro bakalavr abituriyentlari yopilish sanasigacha universitetga to‘g‘ridan-to‘g‘ri ariza beradi (UAC yo‘li faqat Avstraliyada Year 12 yoki IB tugatayotganlar uchun). O‘zbekistonga oid akademik va ingliz tili talablari sahifada tasdiqlanmagan.",
-   "Иностранные абитуриенты бакалавриата подают заявку напрямую в университет до даты закрытия (путь через UAC только для тех, кто заканчивает австралийский Year 12 или IB в Австралии). Требования для Узбекистана (академические и по английскому) на странице не подтверждены."
-  ]
- },
- "aalto-university": {
-  "intake": [
-   "2027-yil kuzi, ingliz tilidagi bakalavr (2027-yil 7–22-yanvar; sahifada ma’lumotlar qisman zid)",
-   "Осень 2027, бакалавриат на английском (7–22 января 2027; данные на странице частично противоречивы)"
-  ],
-  "note": [
-   "Biznes/texnologiya (San’at va arxitektura uchun 15 000); o‘qish huquqi 2025-yil 1-avgustdan",
-   "Бизнес/технологии (Искусство и архитектура 15 000); право на обучение с 1 августа 2025"
-  ],
-  "req": [
-   "Finlyandiya/IB/EB diplomi bo‘lmasa, SAT/ACT bilan ariza beriladi (2026 qabul uchun minimum: biznes uchun SAT 1200; fan va texnologiya uchun SAT 1350 va Math 700). Dizayn va media uchun kirish imtihoni va ingliz tili testi bor.",
-   "Без финского/IB/EB диплома подают заявку с SAT/ACT (минимум для набора 2026: SAT 1200 для бизнеса; 1350 и Math 700 для науки и технологий). Для дизайна и медиа есть вступительный экзамен и тест по английскому."
-  ]
- },
- "tampere-university": {
-  "intake": [
-   "2027-yil kuzi, ingliz tilidagi bakalavr (2027-yil 7–21-yanvar)",
-   "Осень 2027, бакалавриат на английском (7–21 января 2027)"
-  ],
-  "note": [
-   "EI/EIH dan tashqari talabalar, 2027-yilda qabul qilinadiganlar, barcha bakalavr dasturlari",
-   "студенты вне ЕС/ЕЭЗ, принятые в 2027 году, все программы бакалавриата"
-  ],
-  "req": [
-   "Chet eldagi o‘rta ta’lim diplomi o‘z yurtingizda universitetda o‘qish huquqini berishi kerak; Finlyandiya/IB/EB/DIA bo‘lmasa SAT/ACT ballari orqali ariza beriladi (I qabul guruhi).",
-   "Иностранный диплом о среднем образовании должен давать право поступления в университет у вас на родине; без финского/IB/EB/DIA заявка подаётся по баллам SAT/ACT (группа приёма I)."
-  ]
- },
- "university-of-helsinki": {
-  "intake": [
-   "2027-yil kuzi: 1-guruh (SAT/ACT) 5–19-yanvar 2027; 2-guruh 2027-yil 23-martda yopiladi",
-   "Осень 2027: группа 1 (SAT/ACT) 5–19 января 2027; группа 2 закрывается 23 марта 2027"
-  ],
-  "note": [
-   "EI/EIH dan tashqari talabalar, inglizcha bakalavr dasturlari",
-   "студенты вне ЕС/ЕЭЗ, англоязычные программы бакалавриата"
-  ],
-  "req": [
-   "Finlyandiya attestati, IB, EB yoki DIA/Reifeprüfung bo‘lmagan abituriyentlar 1-guruhda SAT yoki ACT bilan, shuningdek o‘z yurtida universitetga kirish huquqini beradigan diplom bilan ariza beradi; ingliz tili isboti (IELTS Academic 6.5) talab qilinadi.",
-   "Абитуриенты без финского аттестата, IB, EB или DIA/Reifeprüfung подают заявку в группе 1 с SAT или ACT и дипломом, дающим право поступления в вуз на родине; нужно подтверждение английского (IELTS Academic 6.5)."
-  ]
- },
- "sciences-po": {
-  "intake": [
-   "2027-yil sentyabri, xalqaro yo‘nalish (oxirgi bosqich; oldingi bosqichlar 2026-yil 4-noyabr va 2027-yil 13-yanvar)",
-   "Сентябрь 2027, международный путь (последний раунд; предыдущие 4 ноября 2026 и 13 января 2027)"
-  ],
-  "note": [
-   "to‘liq yillik to‘lov, soliq rezidentligi EIHdan tashqarida, 2026–2027",
-   "полная годовая плата, налоговое резидентство вне ЕЭЗ, 2026–2027"
-  ],
-  "req": [
-   "Chet el o‘rta ta’lim diplomi (IB, A-level va boshqalar) bilan xalqaro yo‘nalish orqali ariza beriladi; ariza to‘lovi 150 EUR; motivatsion matnlar tanlangan dastur tilida (frantsuz yoki mintaqaviy kampuslarda ingliz) yoziladi. IELTS minimumi tasdiqlanmadi.",
-   "Заявка подаётся через международный путь с зарубежным аттестатом (IB, A-level и др.); сбор за подачу 150 EUR; мотивационные тексты пишутся на языке выбранной программы (французский или английский в региональных кампусах). Минимум IELTS не подтверждён."
-  ]
- },
- "heidelberg-university": {
-  "req": null
- },
- "ludwig-maximilians-universitat-munchen": {
-  "req": [
-   "Yevropadan tashqari attestatlar rasmiy tenglik tekshiruvidan (ANABIN/DAAD) o‘tishi kerak, aks holda Studienkolleg yili talab qilinadi; bakalavr abituriyentlariga uni-assist VPD, tan olingan nemis tili isboti kerak va ariza International Office orqali beriladi.",
-   "Неевропейские аттестаты проходят проверку эквивалентности (ANABIN/DAAD), иначе нужен год Studienkolleg; бакалаврам нужны uni-assist VPD и признанное подтверждение немецкого, заявка подаётся через International Office."
-  ]
- },
- "technical-university-of-munich": {
-  "note": [
-   "Yangi EI dan tashqari bakalavr talabalari uchun semestriga: odatda 2 000 yoki 3 000 (dasturga qarab); 2027/28 qish semestridan 2 300/3 400 ga oshadi",
-   "За семестр для новых студентов бакалавриата вне ЕС: обычно 2 000 или 3 000 (в зависимости от программы); с зимнего семестра 2027/28 вырастет до 2 300/3 400"
-  ],
-  "req": [
-   "O‘zbekiston attestati bilan xalqaro abituriyent sifatida ariza beriladi; ariza muddati tugashidan oldin nemis tili (yoki talab qilinsa ingliz tili) isboti kerak, ko‘p dasturlarda qobiliyat baholash bor. Attestatni tan olish va uni-assist/Studienkolleg talablarini ariza portalida tekshiring.",
-   "Заявка подаётся как иностранным абитуриентом с узбекским аттестатом; до окончания срока подачи нужно подтверждение немецкого (или английского, если требуется), во многих программах есть оценка способностей. Признание аттестата и требования uni-assist/Studienkolleg проверьте на портале."
-  ]
- },
- "politecnico-di-milano": {
-  "req": [
-   "Chet eldagi EI dan tashqari abituriyentlarga 12–13 yillik o‘qishdan keyingi o‘rta ma’lumot hujjati (yoki tayyorlov yili) kerak, TOL/CEnT-S/SAT asosidagi qabul testidan o‘tish (minimum 30/100), dastur tili darajasini isbotlash va Universitaly orqali o‘qish vizasini olish shart.",
-   "Абитуриентам из-за пределов ЕС нужен документ о среднем образовании после 12–13 лет обучения (или подготовительный год), прохождение вступительного теста TOL/CEnT-S/SAT (минимум 30/100), подтверждение языка программы и студенческая виза через Universitaly."
-  ]
- },
- "sapienza-university-of-rome": {
-  "req": [
-   "Kamida 12 yillik o‘qishdan keyingi attestat; majburiy dastlabki saralash, Universitaly ro‘yxatdan o‘tishi va o‘qish vizasi; dasturga qarab B2 ingliz yoki italyan tili; ayrim dasturlarda qabul testi bor.",
-   "Аттестат после не менее 12 лет обучения; обязательный предварительный отбор, регистрация в Universitaly и студенческая виза; английский или итальянский B2 в зависимости от программы; в некоторых программах есть вступительный тест."
-  ]
- },
- "university-of-bologna": {
-  "req": [
-   "Attestat bilan Universitaly’da oldindan ro‘yxatdan o‘ting; ochiq dasturlarda TOLC testi, italyan tilidagi dasturlarda italyan tili isboti talab qilinadi, elchixona qo‘shimcha til sertifikatlarini so‘rashi mumkin; shartsiz tasdiqlash uchun birinchi to‘lov bo‘lagi kerak.",
-   "Предварительная регистрация в Universitaly с аттестатом; для программ со свободным доступом нужен тест TOLC, для программ на итальянском — подтверждение итальянского, посольство может запросить дополнительные языковые сертификаты; для безусловного подтверждения нужен первый взнос оплаты."
-  ]
- },
- "kaist": {
-  "req": [
-   "Abituriyent chet el fuqarosi bo‘lishi (Koreya ikkinchi fuqaroligisiz) va 2026-yil 31-avgustgacha maktabni tugatishi kerak; ariza to‘lovi 80 USD. Muddat, IELTS va o‘qish narxi ochilgan sahifalarda topilmadi.",
-   "Абитуриент должен быть иностранным гражданином (без корейского двойного гражданства) и окончить школу до 31 августа 2026; сбор 80 USD. Сроки, IELTS и стоимость на открытых страницах не найдены."
-  ]
- },
- "seoul-national-university": {
-  "req": [
-   "Koreya fuqarosi bo‘lmagan abituriyent iyul oynasida onlayn ariza va tavsiyanomalarni topshiradi; ingliz tili, talablar va o‘qish narxi biriktirilgan qo‘llanma PDF’ida, bu tasdiqlanmagan.",
-   "Иностранный абитуриент подаёт онлайн-заявку и рекомендательные письма в июльском окне; английский, требования и стоимость указаны в приложенном PDF-руководстве, это не проверено."
-  ]
- },
- "yonsei-university": {
-  "req": [
-   "Abituriyent ham, ikkala ota-onasi ham Koreya fuqarosi bo‘lmasligi, 2026-yil avgustigacha attestatga ega bo‘lishi va koreys yoki ingliz tili bilimini tasdiqlashi kerak (IELTS minimumi ko‘rsatilmagan); ariza to‘lovi 150 000 KRW.",
-   "Абитуриент и оба родителя не должны быть гражданами Кореи, нужен аттестат к августу 2026 и подтверждение корейского или английского (минимум IELTS не указан); сбор 150 000 KRW."
-  ]
- },
- "university-of-edinburgh": {
-  "intake": [
-   "2027-yil sentyabri, UCAS muddati (tibbiyotdan tashqari barcha UK/EI/xalqaro abituriyentlar uchun)",
-   "Сентябрь 2027, срок UCAS (для всех абитуриентов из Великобритании/ЕС/зарубежья, кроме медицины)"
-  ],
-  "note": [
-   "xalqaro talabalar, oddiy darajalar, 2026-yilning taxminiy «dan» narxi; 2027 hali ma’lum emas; laboratoriya/studiya yo‘nalishlari 36 800",
-   "иностранные студенты, стандартные программы, ориентировочная цена «от» на 2026; 2027 уточняется; лабораторные/студийные программы 36 800"
-  ],
-  "req": [
-   "O‘zbekiston attestati bilan to‘g‘ridan-to‘g‘ri qabul yo‘q; A Levels, IB yoki SAT/ACT/AP, yoki bir yillik International Foundation Programme (o‘rtacha 70%+ bo‘lgan attestat bilan) kerak. Ingliz tili talabi dasturga qarab farq qiladi (ayrimlarida IELTS 6.5, har bir bo‘limda 5.5).",
-   "Узбекский аттестат не принимается для прямого поступления; нужны A Levels, IB или SAT/ACT/AP, либо годичная International Foundation Programme (аттестат со средним баллом 70%+). Требования по английскому зависят от программы (например, IELTS 6.5, не ниже 5.5 в каждом разделе)."
-  ]
- },
- "university-of-glasgow": {
-  "intake": [
-   "2027-yil sentyabri, xalqaro abituriyentlar (UCAS asosiy muddati 2027-yil 13-yanvar)",
-   "Сентябрь 2027, иностранные абитуриенты (основной срок UCAS 13 января 2027)"
-  ],
-  "note": [
-   "xalqaro, 2026/27, gumanitar va ijtimoiy fanlar; fan/muhandislik 33 210",
-   "иностранные студенты, 2026/27, гуманитарные и социальные науки; естественные науки/инженерия 33 210"
-  ],
-  "req": [
-   "O‘zbekistonga oid alohida sahifa topilmadi; IELTS 6.5 (umumiy), hech bir bo‘limda 6.0 dan past bo‘lmasin. Talabga javob bermaganlar Glasgow International College tayyorlov sertifikatlari yoki pre-sessional ingliz tili kursini olishi mumkin.",
-   "Отдельной страницы для Узбекистана не найдено; нужен IELTS 6.5 (общий), не ниже 6.0 в каждом разделе. Тем, кто не соответствует требованиям, доступны подготовительные программы Glasgow International College или pre-sessional английский."
-  ]
- },
- "university-of-st-andrews": {
-  "intake": [
-   "2027-yil sentyabri, to‘liq va teng ko‘rib chiqish, xalqaro abituriyentlar",
-   "Сентябрь 2027, полное и равное рассмотрение, иностранные абитуриенты"
-  ],
-  "note": [
-   "chet ellik talabalar 2026–27, san’at/ilohiyot/fan; tibbiyot 39 620",
-   "иностранные студенты 2026–27, искусство/богословие/науки; медицина 39 620"
-  ],
-  "req": [
-   "Milliy attestat bilan St Andrews International Foundation sertifikati, IB 36–38, A-level AAB–A*A*A yoki SQA Highers AAAB–AAAAB kerak. Ingliz tili testi talab qilinadi (fakultetga qarab IELTS 6.5–7.0).",
-   "С национальным аттестатом нужен сертификат St Andrews International Foundation, IB 36–38, A-level AAB–A*A*A или SQA Highers AAAB–AAAAB. Требуется тест по английскому (IELTS 6.5–7.0 в зависимости от факультета)."
-  ]
- },
- "epfl": {
-  "intake": [
-   "Kuz (sentyabr) qabuli, ariza 30-aprelgacha, chet el attestati egalari uchun",
-   "Осенний набор (сентябрь), заявка до 30 апреля, для обладателей зарубежных аттестатов"
-  ],
-  "note": [
-   "Shveytsariyaga o‘qish uchun kelgan chet elliklar uchun semestriga 2 190 CHF (2025-yil kuzidan), x2",
-   "2 190 CHF за семестр для иностранцев, переезжающих в Швейцарию для учёбы (с осени 2025), x2"
-  ],
-  "req": [
-   "EI/EFTA/Buyuk Britaniyadan tashqari abituriyentlar faqat attestati qat’iy baho mezonlariga mos kelsa tayyorlov yiliga (CMS) ko‘rib chiqiladi, aks holda kirish imtihonidan o‘tishi kerak; frantsuz tili B2 (C1 tavsiya etiladi) talab qilinadi.",
-   "Абитуриенты вне ЕС/ЕАСТ/Великобритании рассматриваются только на подготовительный год (CMS), если аттестат отвечает строгим критериям оценок, иначе нужно сдать вступительный экзамен; требуется французский B2 (рекомендуется C1)."
-  ]
- },
- "eth-zurich": {
-  "intake": [
-   "2027-yil kuzi, Shveytsariyadan tashqari attestatli abituriyentlar (ariza oynasi 1-dekabr – 31-mart)",
-   "Осень 2027, абитуриенты с нешвейцарскими аттестатами (окно подачи 1 декабря – 31 марта)"
-  ],
-  "note": [
-   "semestriga 2 190 CHF (2025-yil kuzidan chet ellik talabalar uchun uch baravar to‘lov), x2",
-   "2 190 CHF за семестр (с осени 2025 утроенная плата для иностранных студентов), x2"
-  ],
-  "req": [
-   "Qabul davlatga va attestatga bog‘liq (swissuniversities/ETH davlatlar ro‘yxati); ayrim abituriyentlar ETH kirish imtihonidan o‘tishi kerak. O‘qitish nemis tilida bo‘lgani uchun 31-martgacha nemis tili isboti talab qilinadi.",
-   "Приём зависит от страны и аттестата (список стран swissuniversities/ETH); некоторым абитуриентам нужно сдать вступительный экзамен ETH. Так как обучение на немецком, подтверждение немецкого требуется до 31 марта."
-  ]
- },
- "university-of-zurich": {
-  "req": [
-   "C1 darajadagi nemis tili talab qilinadi; chet el attestati Shveytsariya maturasiga mos bo‘lishi kerak, aks holda ECUS qo‘shimcha imtihoni (avgustda) va o‘z yurtidagi universitetga qabul qilinganlik isboti kerak.",
-   "Требуется немецкий на уровне C1; зарубежный аттестат должен соответствовать швейцарской матуре, иначе нужен дополнительный экзамен ECUS (в августе) и подтверждение зачисления в вуз на родине."
-  ]
- },
- "aberystwyth-university": {
-  "note": [
-   "xalqaro, 2026/27, gumanitar fanlar; tabiiy fanlar 21 875",
-   "иностранные студенты, 2026/27, гуманитарные науки; естественные науки 21 875"
-  ],
-  "req": null
- },
- "cardiff-university": {
-  "req": [
-   "O‘zbekiston attestati (4.0/5.0) va tan olingan bir yillik tayyorlov kursi (International Foundation Year), yoki A-levels/IB. Odatda IELTS 6.5 kerak; universitetning o‘z ingliz tili chiqish testi ham qabul qilinadi.",
-   "Узбекский аттестат (4.0/5.0) плюс признанный годичный подготовительный курс (International Foundation Year) либо A-levels/IB. Обычно нужен IELTS 6.5; принимается и внутренний выходной тест по английскому."
-  ]
- },
- "peking-university": {
-  "req": [
-   "Xitoy fuqarosi bo‘lmagan, 18–25 yoshdagi, attestatli abituriyent; xitoy, ingliz tillari va matematikadan yozma imtihon topshiriladi (o‘qitish xitoy tilida); ariza to‘lovi 800 RMB.",
-   "Иностранный гражданин 18–25 лет с аттестатом; сдаются письменные экзамены по китайскому, английскому и математике (обучение на китайском); сбор 800 RMB."
-  ]
- },
- "tsinghua-university": {
-  "intake": [
-   "2027-yil kuzi (1-bosqich; 2-bosqich 2027-02-28 da yopiladi)",
-   "Осень 2027 (раунд 1; раунд 2 закрывается 28.02.2027)"
-  ],
-  "note": [
-   "yiliga, inglizcha dasturlar; xitoy-inglizcha dasturlar 26 000–30 000 CNY",
-   "в год, программы на английском; китайско-английские программы 26 000–30 000 CNY"
-  ],
-  "req": [
-   "Xitoy fuqarosi bo‘lmagan, 2027-yil 1-sentyabrga 18 yoshga to‘lgan, a’lo o‘zlashtirishli abituriyent; inglizcha dasturlarga TOEFL/IELTS (minimum ko‘rsatilmagan), xitoy-inglizcha dasturlarga HSK 5 (har bir bo‘limda 60+) va ingliz tili isboti kerak.",
-   "Иностранный гражданин, которому к 1 сентября 2027 исполнилось 18 лет, с сильной успеваемостью; для программ на английском нужен TOEFL/IELTS (минимум не указан), для китайско-английских — HSK 5 (60+ в каждом разделе) и подтверждение английского."
-  ]
- },
- "zhejiang-university": {
-  "note": [
-   "yiliga, inglizcha muhandislik dasturlari",
-   "в год, инженерные программы на английском"
-  ],
-  "req": [
-   "25 yoshgacha, Xitoy pasportiga ega bo‘lmagan, maktabni tugatgan va CSCA bali bor abituriyent (inglizcha dasturlar uchun ingliz tili varianti); inglizcha dasturga TOEFL/IELTS yoki shunga o‘xshash topshiriladi; to‘lov 800 RMB.",
-   "Держатель нехинайского паспорта младше 25 лет, окончивший школу, с баллом CSCA (английский вариант для программ на английском); для программ на английском подаётся TOEFL/IELTS или аналог; сбор 800 RMB."
-  ]
- },
- "university-of-auckland": {
-  "intake": [
-   "2027-yil 1-semestr, xalqaro abituriyentlar (ko‘pchilik bakalavr dasturlari)",
-   "1-й семестр 2027, иностранные абитуриенты (большинство программ бакалавриата)"
-  ],
-  "req": [
-   "Umumiy bakalavr qabuli uchun IELTS Academic 6.0 (hech bir bo‘limda 5.5 dan past bo‘lmasin); Tibbiyot 7.5, Hamshiralik 6.5, Muhandislik (Honours) 6.5 uchun yuqoriroq. O‘zbekistonga oid akademik talab ochilgan sahifalarda tasdiqlanmagan.",
-   "Для общего поступления в бакалавриат нужен IELTS Academic 6.0 (не ниже 5.5 в каждом разделе); выше для Медицины 7.5, Сестринского дела 6.5, Инженерии (Honours) 6.5. Академическое требование для Узбекистана на открытых страницах не подтверждено."
-  ]
- },
- "university-of-otago": {
-  "req": [
-   "Akademik yoki ingliz tili talablariga javob bermaganlar Otago Pathway va English Language Centre orqali tayyorlov dasturlaridan foydalanishi mumkin. O‘zbekistonga oid talab va IELTS bali ochilgan sahifada tasdiqlanmagan.",
-   "Тем, кто не соответствует академическим или языковым требованиям, доступны подготовительные программы через Otago Pathway и English Language Centre. Требование для Узбекистана и балл IELTS на открытой странице не подтверждены."
-  ]
- },
- "victoria-university-of-wellington": {
-  "req": [
-   "Bakalavr uchun IELTS Academic 6.0 (hech bir bo‘limda 5.5 dan past bo‘lmasin). Talabga javob bermaganlar faqat UP International College New Zealand orqali o‘tiladigan Foundation Studies dasturini olishi mumkin.",
-   "Для бакалавриата нужен IELTS Academic 6.0 (не ниже 5.5 в каждом разделе). Не отвечающим требованиям доступна программа Foundation Studies, которая проводится только через UP International College New Zealand."
-  ]
- },
- "kyoto-university": {
-  "note": [
-   "iUP bakalavriati uchun yillik to‘lov (qabul to‘lovi 282 000 JPY); 2025-yil 1-iyul holatiga. IELTS minimumi belgilanmagan; muvaffaqiyatli abituriyentlarda odatda IELTS 6.5",
-   "Годовая плата за бакалавриат iUP (вступительный взнос 282 000 JPY); по состоянию на 1 июля 2025. Минимум IELTS не установлен; у успешных абитуриентов обычно IELTS 6.5"
-  ],
-  "req": [
-   "Yapon bo‘lmagan, Yaponiyadan tashqarida 12 yillik o‘qishni 2026-yil 30-sentyabrgacha tugatgan (yoki tugatadigan) bo‘lishi va 2023-yil 1-noyabrdan keyin topshirilgan qabul qilinadigan ingliz tili testini (IELTS, TOEFL va h.k.) topshirishi kerak.",
-   "Не японец, завершивший (или завершающий) 12 лет обучения вне Японии к 30 сентября 2026, и приложивший признанный тест английского (IELTS, TOEFL и др.), сданный после 1 ноября 2023."
-  ]
- },
- "university-of-tokyo": {
-  "req": [
-   "An’anaviy dasturlar yapon tilida o‘tadi va yuqori yapon tili darajasini talab qiladi; inglizcha variantlar: PEAK (oxirgi qabul 2026-yil sentyabr) va yangi UTokyo Design (2027-yil sentyabr).",
-   "Традиционные программы ведутся на японском и требуют высокого уровня японского; английские варианты — PEAK (последний набор в сентябре 2026) и новая UTokyo Design (сентябрь 2027)."
-  ]
- },
- "waseda-university": {
-  "intake": [
-   "2027-yil sentyabr qabuli (AO, onlayn ariza 2027-yil 7–28-yanvar)",
-   "Набор сентября 2027 (AO, онлайн-заявка 7–28 января 2027)"
-  ],
-  "req": [
-   "Yaponiya tizimidan tashqari maktab bitiruvchilari inglizcha dasturga ariza beradi; hujjatlar ta’lim tizimiga bog‘liq (Application Guide’ga qarang); faqat JCulP dasturida minimal ingliz tili bali belgilangan.",
-   "Выпускники школ вне японской системы подают заявку на программу на английском; документы зависят от системы образования (см. Application Guide); минимальный балл по английскому установлен только для JCulP."
-  ]
- },
- "sorbonne-universite": {
-  "req": [
-   "Qabul uchun kamida B2 darajadagi frantsuz tili kerak; Fransiya/Yevropaga tegishli bo‘lmagan diplomi borlar yashash mamlakatiga qarab «Études en France» tizimidagi dastlabki ariza (DAP) yoki elchixonadagi qog‘oz DAP orqali murojaat qiladi.",
-   "Для зачисления нужен французский не ниже B2; обладатели неевропейских дипломов подают предварительную заявку (DAP) через «Études en France» или бумажную DAP в посольстве, в зависимости от страны проживания."
-  ]
- },
- "ecole-polytechnique": {
-  "intake": [
-   "Sahifada 2026 deb belgilangan bakalavr qabul sikli, 3-bosqich (1-bosqich 2026-yil 20-oktyabr, 2-bosqich 2027-yil 6-yanvar); boshlanish sanasi ko‘rsatilmagan",
-   "Цикл набора в бакалавриат отмечен как 2026, раунд 3 (раунд 1: 20 октября 2026, раунд 2: 6 января 2027); дата начала не указана"
-  ],
-  "req": [
-   "Matematika va fanlardan kuchli o‘rta ta’lim attestati, IELTS 6.5 (har bir bo‘limda kamida 6) yoki unga teng, yozma kirish imtihoni yo‘q; hujjatlar va masofaviy ingliz suhbati orqali tanlov; ariza to‘lovi 105 EUR.",
-   "Аттестат о среднем образовании с сильной математикой и естественными науками, IELTS 6.5 (не ниже 6 в каждом разделе) или эквивалент, письменного вступительного экзамена нет; отбор по документам и удалённому интервью на английском; сбор 105 EUR."
-  ]
- },
- "imperial-college-london": {
-  "intake": [
-   "2027-yil kirish (2027-yil oktyabr)",
-   "Поступление 2027 (октябрь 2027)"
-  ],
-  "note": [
-   "2026–27 chet ellik talabalar to‘lovi, muhandislik fakulteti, 2026-yil qabul guruhi; IELTS 6.5 standart, kursga qarab 7.0 yuqori daraja",
-   "Плата для иностранных студентов 2026–27, инженерный факультет, набор 2026; IELTS 6.5 — стандартный уровень, 7.0 — повышенный в зависимости от курса"
-  ]
- },
- "ucl": {
-  "note": [
-   "Computer Science BSc, chet ellik talabalar to‘lovi, 2026/27 qabul qilinganlar uchun",
-   "Computer Science BSc, плата для иностранных студентов, поступившие 2026/27"
-  ]
- },
- "university-of-cambridge": {
-  "note": [
-   "2026–27 misol: Iqtisodiyot fan to‘lovi 29 052 + Christ’s kolleji to‘lovi 12 600; fan to‘lovlari 29 052–70 554 plus kollej to‘lovi 11 500–14 950",
-   "Пример 2026–27: Economics — предметная плата 29 052 + плата колледжа Christ’s 12 600; предметная плата 29 052–70 554 плюс плата колледжа 11 500–14 950"
-  ],
-  "req": [
-   "UCAS orqali 15-oktyabrgacha, A Levels/IB ga teng malaka bilan ariza beriladi (O‘zbekiston alohida ko‘rsatilmagan; tanlangan kollej bilan aniqlashtiring) va IELTS Academic 7.5 umumiy, odatda har bir qismda 7.0 kerak.",
-   "Заявка через UCAS до 15 октября с квалификацией, эквивалентной A Levels/IB (Узбекистан отдельно не указан; уточните в выбранном колледже), и IELTS Academic 7.5 в целом, обычно 7.0 по каждому разделу."
-  ]
- },
- "university-of-oxford": {
-  "note": [
-   "2026-yil qabul uchun chet ellik talabalar kurs to‘lovlari oralig‘i 37 380–62 820 GBP/yil (eng past ko‘rsatilgan); kursga qarab farq qiladi",
-   "Плата для иностранных студентов при поступлении 2026: диапазон 37 380–62 820 GBP/год (показано наименьшее значение); зависит от курса"
-  ],
-  "req": [
-   "UCAS orqali 15-oktyabrgacha, maktab natijalari va IELTS Academic 7.5 umumiy (har bir qismda 7.0) bilan ariza beriladi, natija taklif yilining 31-iyuligacha ko‘rsatiladi; O‘zbekiston malakalari ochilgan sahifalarda keltirilmagan.",
-   "Заявка через UCAS до 15 октября с результатами школы и IELTS Academic 7.5 в целом (7.0 по каждому разделу), подтверждение до 31 июля года предложения; квалификации Узбекистана на открытых страницах не указаны."
-  ]
- },
- "mcgill-university": {
-  "intake": [
-   "2027-yil kuzi (2026-yilda e’lon qilingan sahifada 15-yanvar ko‘rsatilgan; yil taxmin qilingan)",
-   "Осень 2027 (на странице, опубликованной в 2026, указано 15 января; год предположительный)"
-  ],
-  "note": [
-   "2026–27 xalqaro BA o‘qish haqi; to‘lovlar va sug‘urta bilan yillik jami 59 546,32 CAD",
-   "Плата за международный BA 2026–27; всего за год со сборами и страховкой 59 546,32 CAD"
-  ],
-  "req": [
-   "Dastur old shartlari bilan raqobatbardosh o‘rta ta’lim natijalari kerak va, ingliz tili asosiy bo‘lgan mamlakatda 4 yil o‘qimagan bo‘lsangiz, IELTS Academic 6.5 umumiy, har bir qismda 6.0; O‘zbekiston ochilgan sahifalarda alohida ko‘rsatilmagan.",
-   "Нужны конкурентные результаты среднего образования с профильными предметами и, если вы не учились 4 года в стране с английским основным языком, IELTS Academic 6.5 в целом и 6.0 по каждому разделу; Узбекистан на открытых страницах отдельно не указан."
-  ]
- },
- "university-of-british-columbia": {
-  "intake": [
-   "2027/28 qishki sessiya",
-   "Зимняя сессия 2027/28"
-  ],
-  "note": [
-   "2026/27 xalqaro Vancouver Arts yillik o‘qish haqi; Science 53 082; Engineering 66 199,66; Commerce 66 678,30",
-   "2026/27 международные студенты, Vancouver Arts, год; Science 53 082; Engineering 66 199,66; Commerce 66 678,30"
-  ]
- },
- "university-of-toronto": {
-  "intake": [
-   "2027-yil kuzi",
-   "Осень 2027"
-  ],
-  "note": [
-   "2025–26 xalqaro Arts/Science/Commerce/Management oralig‘i 66 356,22–67 173,09 CAD/yil (qo‘shimcha to‘lovlar bilan); 2026–27 ochilgan sahifada hali e’lon qilinmagan",
-   "2025–26 международные Arts/Science/Commerce/Management: 66 356,22–67 173,09 CAD/год (с доп. сборами); 2026–27 на открытой странице ещё не опубликовано"
-  ],
-  "req": [
-   "12-sinf/oxirgi yil o‘rta ta’limini ingliz tili va kerakli old shartlar (masalan matematika) bilan tugatgan bo‘lish, shuningdek IELTS Academic 6.5 umumiy, hech bir qismda 6.0 dan past emas; O‘zbekiston alohida ko‘rsatilmagan.",
-   "Завершённое среднее образование (12-й класс/последний год) с английским и нужными профильными предметами (например, математика), плюс IELTS Academic 6.5 в целом, не ниже 6.0 по каждому разделу; Узбекистан отдельно не указан."
-  ]
- },
- "trinity-college-dublin": {
-  "intake": [
-   "2027-yil sentyabri (ustuvor muddat 1-fevral; tibbiyot/stomatologiya/musiqa/drama 1-fevralda yopiladi)",
-   "Сентябрь 2027 (приоритетный срок 1 февраля; медицина/стоматология/музыка/театр закрываются 1 февраля)"
-  ],
-  "note": [
-   "EIdan tashqari 1-kurs, ko‘pchilik gumanitar/biznes/huquq kurslari 2027/28; Science/Engineering/CS 30 450",
-   "Год 1 для студентов вне ЕС, большинство гуманитарных/бизнес/юридических курсов 2027/28; Science/Engineering/CS 30 450"
-  ],
-  "req": [
-   "Matrikulyatsiya talablariga (ingliz tili, matematika, ingliz tilidan tashqari til va to‘liq fanlar to‘plami) javob berish, IELTS 6.5 umumiy, har bir qismda 6.0 va kurs talablari; O‘zbekistonga oid qoidalar Trinity’ning davlatlar sahifalarida (ochilmadi).",
-   "Соответствие требованиям к аттестату (английский, математика, неанглийский язык и полный набор предметов), IELTS 6.5 в целом и 6.0 по каждому разделу, а также требования курса; правила для Узбекистана — на страницах Trinity по странам (не открывались)."
-  ]
- },
- "university-college-dublin": {
-  "req": [
-   "IELTS Academic 6.5 umumiy, har bir qismda 6.0 (qayta topshirishsiz); o‘z mamlakatingizdagi attestat talablarini tekshiring; viza kerak bo‘lgan talabalar 1-iyulgacha ariza beradi.",
-   "IELTS Academic 6.5 в целом и 6.0 по каждому разделу (без пересдач); проверьте требования к аттестату вашей страны; студенты, которым нужна виза, подают заявку до 1 июля."
-  ]
- },
- "delft-university-of-technology": {
-  "intake": [
-   "2027-yil sentyabri (numerus fixus dasturlari, Studielink orqali)",
-   "Сентябрь 2027 (программы numerus fixus, через Studielink)"
-  ],
-  "note": [
-   "EIdan tashqari bakalavr institutsional to‘lovi 2026/27",
-   "Институциональная плата бакалавриата для студентов вне ЕС 2026/27"
-  ],
-  "req": [
-   "O‘zbekiston davlatlar bo‘yicha diplomlar ro‘yxatida yo‘q; diplom alohida baholanadi (qabul bo‘limiga murojaat qiling). Inglizcha BSc dasturlari uchun IELTS Academic 6.5 umumiy.",
-   "Узбекистан отсутствует в списке дипломов по странам; диплом оценивается индивидуально (обратитесь в приёмную). Для программ BSc на английском нужен IELTS Academic 6.5 в целом."
-  ]
- },
- "university-of-amsterdam": {
-  "intake": [
-   "2027-yil sentyabri (viza/turar joy uchun tavsiya 1-aprel; numerus fixus dasturlari 15-yanvar)",
-   "Сентябрь 2027 (рекомендуемый срок 1 апреля для визы/жилья; программы numerus fixus — 15 января)"
-  ],
-  "note": [
-   "EIHdan tashqari bakalavr to‘lovi 2027–28, ro‘yxatdagi eng pasti (Iqtisodiyot va biznes); 21 900 gacha (Science), tibbiyot 34 500",
-   "Плата бакалавриата вне ЕЭЗ 2027–28, наименьшая из перечисленных (Economics and Business); до 21 900 (Science), медицина 34 500"
-  ],
-  "req": [
-   "Teng xalqaro o‘rta ta’lim diplomi (ro‘yxatda yo‘q malakalar alohida baholanadi), IELTS Academic 6.5 umumiy, har bir qismda 6.0, CV, majburiy UvA Matching, ariza to‘lovi 100 EUR.",
-   "Эквивалентный международный диплом о среднем образовании (не перечисленные квалификации оцениваются индивидуально), IELTS Academic 6.5 в целом и 6.0 по разделам, CV, обязательный UvA Matching, сбор 100 EUR."
-  ]
- },
- "utrecht-university": {
-  "intake": [
-   "2027-yil sentyabri, EIdan tashqari abituriyentlar (dastur sahifasi: Global Sustainability Science)",
-   "Сентябрь 2027, абитуриенты вне ЕС (страница программы: Global Sustainability Science)"
-  ],
-  "req": [
-   "EIdan tashqari abituriyentlarga pasport nusxasi, kirish talablariga mos malaka hujjatlari, ingliz tili bilimi (test natijalari shartli keyin ham berilishi mumkin) va Studielink orqali 100 EUR ariza to‘lovi kerak.",
-   "Абитуриентам вне ЕС нужны скан паспорта, документы о квалификации, соответствующие требованиям, знание английского (результаты теста могут быть предоставлены условно позже) и сбор 100 EUR через Studielink."
-  ]
- },
- "nanyang-technological-university": {
-  "intake": [
-   "2027 o‘quv yili qabuli; “boshqa malakalar” uchun ariza oynasi 2026-yil 15-oktyabr – 2027-yil 20-yanvar",
-   "Набор на 2027 учебный год; окно подачи для «прочих квалификаций» 15 октября 2026 – 20 января 2027"
-  ],
-  "req": [
-   "O‘zbekiston “ro‘yxatda ko‘rsatilmagan boshqa malakalar” toifasiga kiradi (alohida baholanadi; bu mening talqinim); agar o‘rta maktabda ingliz tilida o‘qimagan bo‘lsangiz, IELTS Academic 6.5 umumiy, Writing va Speaking’da 6.5.",
-   "Узбекистан относится к категории «прочие квалификации, не указанные в списке» (оценка индивидуальная; это моё толкование); если английский не изучался в старшей школе, нужен IELTS Academic 6.5 в целом и 6.5 по Writing и Speaking."
-  ]
- },
- "national-university-of-singapore": {
-  "intake": [
-   "2027/2028 o‘quv yili (2026-yil 16-dekabr – 2027-yil 17-fevral)",
-   "Учебный год 2027/2028 (16 декабря 2026 – 17 февраля 2027)"
-  ],
-  "note": [
-   "Subsidiyasiz, yiliga GST bilan, gumanitar va aniq fanlar, 2026/27 o‘quv yili (Computing/Engineering 39 700)",
-   "Без субсидий, в год с GST, гуманитарные и естественные науки, 2026/27 (Computing/Engineering 39 700)"
-  ],
-  "req": [
-   "Ariza yili iyuligacha 12 yillik umumiy ta’lim va dastur old shartlari; O‘zbekiston nomi bilan ko‘rsatilmagan, shuning uchun malaka “boshqa maktab malakalari” sifatida baholanadi (qabul bo‘limiga murojaat qiling).",
-   "12 лет общего образования к июлю года подачи плюс профильные требования программы; Узбекистан по названию не указан, поэтому квалификация оценивается как «прочие школьные квалификации» (обратитесь в приёмную)."
-  ]
- },
- "the-hong-kong-university-of-science-and-technology": {
-  "intake": [
-   "2027-yil qabuli; ustuvor bosqich muddati (2026-11-26 dan rolling, 2027-06-30 da yopiladi)",
-   "Набор 2027; срок приоритетного раунда (скользящий приём с 26.11.2026, закрывается 30.06.2027)"
-  ],
-  "req": [
-   "Xalqaro malaka bilan o‘rta maktabni tugatgan (IB, A-levels, SAT/ACT/AP yoki milliy tizim), 10-sinfdan boshlab maktab hisobotlari, shaxsiy bayonot, tavsiyachi va ingliz tili isboti (IELTS Academic 6.0 umumiy); ariza to‘lovi 600 HKD.",
-   "Окончание школы с международной квалификацией (IB, A-levels, SAT/ACT/AP или национальная система), школьные отчёты с 10 класса, личное эссе, рекомендатель и подтверждение английского (IELTS Academic 6.0 в целом); сбор 600 HKD."
-  ]
- },
- "the-university-of-hong-kong": {
-  "intake": [
-   "2027-yil qabuli; birinchi bosqich muddati (keyin rolling, ariza 2027-08-25 da yopiladi)",
-   "Набор 2027; срок первого раунда (далее скользящий приём, заявки закрываются 25.08.2027)"
-  ],
-  "note": [
-   "Mahalliy bo‘lmagan bakalavr yillik to‘lovi 2026–27; Engineering, Science, Medicine, Dentistry va ayrim fakultetlarda 249 000 HKD",
-   "Годовая плата бакалавриата для иногородних 2026–27; 249 000 HKD для Engineering, Science, Medicine, Dentistry и некоторых школ"
-  ],
-  "req": [
-   "Non-JUPAS xalqaro malakalar yo‘li orqali ariza: maktab hisobotlari, kutilayotgan/haqiqiy baholar (IB, A-levels va h.k.), shaxsiy bayonot, tavsiyachi; IELTS Academic 6.5 umumiy, Writing va Speaking’da kamida 6.0. O‘zbekiston baholari alohida ko‘rsatilmagan.",
-   "Заявка по пути Non-JUPAS с международными квалификациями: школьные отчёты, прогнозные/итоговые оценки (IB, A-levels и т.п.), личное эссе, рекомендатель; IELTS Academic 6.5 в целом, не ниже 6.0 по Writing и Speaking. Оценки Узбекистана отдельно не указаны."
-  ]
- },
- "kth-royal-institute-of-technology": {
-  "intake": [
-   "2027-yil kuzi, 1-bosqich (EI/EIHdan tashqari abituriyentlarga tavsiya etiladi)",
-   "Осень 2027, раунд 1 (рекомендуется абитуриентам вне ЕС/ЕЭЗ)"
-  ],
-  "note": [
-   "ICT bo‘yicha to‘liq BSc dasturi, EI/EIH/Shveytsariyadan tashqari; ariza to‘lovi 900 SEK; sahifa oxirgi marta 2025-02-17 da o‘zgargan",
-   "Полная программа BSc по ICT, вне ЕС/ЕЭЗ/Швейцарии; сбор за подачу 900 SEK; страница последний раз изменена 17.02.2025"
-  ],
-  "req": [
-   "Matematika 4 va Fizika 2 ga teng o‘rta ta’lim, English 6 (IELTS 6.5, hech bir qismda 5.5 dan past emas), yakuniy baholar hujjatlangan (taxminiy baho qabul qilinmaydi); tanlov baholar o‘rtachasi bo‘yicha. O‘zbekiston ro‘yxatda yo‘q; info@kth.se ga yozing.",
-   "Среднее образование, эквивалентное Mathematics 4 и Physics 2, English 6 (IELTS 6.5, не ниже 5.5 по каждому разделу), итоговые оценки подтверждены документально (прогнозные не принимаются); отбор по среднему баллу. Узбекистана в списке нет; пишите на info@kth.se."
-  ]
- },
- "lund-university": {
-  "intake": [
-   "2027-yil kuzi semestri",
-   "Осенний семестр 2027"
-  ],
-  "note": [
-   "3 yillik to‘liq dastur, International Business bakalavr (misol), EI/EIH/Shveytsariyadan tashqari; birinchi to‘lov 65 000 SEK",
-   "Полная 3-летняя программа, бакалавриат International Business (пример), вне ЕС/ЕЭЗ/Швейцарии; первый взнос 65 000 SEK"
-  ],
-  "req": [
-   "O‘zbekistonda universitetga kirish huquqini beradigan o‘rta ta’lim, English 6 ga teng (IELTS 6.5, hech bir qismda 5.5 dan past emas) va dasturning o‘z talablari; 15-yanvargacha universityadmissions.se orqali ariza.",
-   "Среднее образование, дающее право поступления в университет в Узбекистане, English 6 или эквивалент (IELTS 6.5, не ниже 5.5 по каждому разделу) и требования программы; заявка через universityadmissions.se до 15 января."
-  ]
- },
- "koc-university": {
-  "note": [
-   "Yiliga, ko‘pchilik dasturlar 2025/2026 (Tibbiyot 59 000); yotoqxonasiz",
-   "В год, большинство программ 2025/2026 (Медицина 59 000); без общежития"
-  ],
-  "req": [
-   "Davlat ro‘yxatda bo‘lmasa, milliy malakalar qabul qilinmaydi: xalqaro malaka (SAT, ACT, A-Levels, IB, AP), 9–11-sinf transkripti, tavsiyanoma va motivatsion xat, hamda TOEFL iBT (yangi shkalada minimum 4,5; 2026-yil 21-yanvargacha 80). IELTS qabul qilinmaydi. O‘zbekiston sahifada alohida ko‘rsatilmagan.",
-   "Национальные квалификации не принимаются, если страна не в списке: нужна международная квалификация (SAT, ACT, A-Levels, IB, AP), транскрипт 9–11 классов, рекомендации и мотивационное письмо, а также TOEFL iBT (минимум 4,5 по новой шкале; 80 до 21 января 2026). IELTS не принимается. Узбекистан на странице отдельно не указан."
-  ]
- },
- "middle-east-technical-university": {
-  "note": [
-   "Semestriga, Anqara, Muhandislik/Arxitektura/fanlar (ijtimoiy fanlar/iqtisodiyot uchun semestriga 800 USD); 2026–2027 jadvali",
-   "За семестр, Анкара, Инженерия/Архитектура/науки (800 USD за семестр для социальных наук/экономики); таблица 2026–2027"
-  ],
-  "req": [
-   "Xalqaro abituriyent sifatida onlayn ariza, o‘rta ta’lim natijalari bilan (A-levels, SAT, IB va h.k.); ariza uchun ingliz tili bali shart emas, lekin TOEFL/PTE bali bo‘lmagan qabul qilinganlar METU ingliz tili imtihonini yoki bir yillik tayyorlovni o‘tadi. 2022-yil 24-dekabrdan keyingi IELTS qabul qilinmaydi.",
-   "Онлайн-заявка как иностранный абитуриент с результатами среднего образования (A-levels, SAT, IB и т.п.); балл по английскому для подачи не нужен, но принятые без действующего TOEFL/PTE сдают экзамен METU по английскому или проходят год подготовки. IELTS, сданный после 24 декабря 2022, не принимается."
-  ]
- },
- "sabanci-university": {
-  "note": [
-   "Yillik, xalqaro bakalavrlar, 2026–2027",
-   "Год, иностранные студенты бакалавриата, 2026–2027"
-  ],
-  "req": [
-   "Oxirgi kurs yoki bitirgan o‘quvchi qabul qilinadigan bitta imtihon/diplom natijasi (masalan SAT, kod 7100), transkript va diplomni topshiradi; ariza to‘lovi 30 USD. O‘zbekiston ko‘rsatilmagan; ug-admissions@sabanciuniv.edu ga yozing.",
-   "Выпускник или ученик последнего класса подаёт результат одного принимаемого экзамена/диплома (например, SAT с кодом 7100), транскрипт и диплом; сбор 30 USD. Узбекистан не указан; пишите на ug-admissions@sabanciuniv.edu."
-  ]
- }
+"australian-national-university": {
+"req": [
+"Ariza beruvchi ANU ning minimal akademik talabiga o‘rta ta’lim (yoki Avstraliya bakalavriatining bir yili) orqali javob berishi, shuningdek dastur va ingliz tili talablarini bajarishi kerak. O‘zbekistonga oid alohida talab sahifada tasdiqlanmagan.",
+"Абитуриент должен соответствовать минимальному академическому требованию ANU по аттестату о среднем образовании (или после одного года австралийского бакалавриата), а также требованиям программы и по английскому языку. Отдельное требование для Узбекистана на странице не подтверждено."
+]
+},
+"university-of-melbourne": {
+"req": [
+"Talablar daraja bo‘yicha farq qiladi (fan bo‘yicha old shartlar, ingliz tili, talaba vizasi). Avstraliya Year 12/IB dan tashqari xalqaro abituriyentlar to‘g‘ridan-to‘g‘ri murojaat qiladi. Ko‘pchilik bakalavr yo‘nalishlari uchun IELTS Academic 6.5 (bironta bo‘limda 6.0 dan past bo‘lmasin), Oral Health uchun 7.0. O‘zbekistonga oid alohida talab sahifada ko‘rsatilmagan.",
+"Требования различаются по программам (профильные предметы, английский, студенческая виза). Иностранные абитуриенты вне австралийского Year 12/IB подают заявку напрямую. Для большинства бакалаврских программ IELTS Academic 6.5 (не ниже 6.0 в каждом разделе), для Oral Health 7.0. Отдельное требование для Узбекистана на странице не указано."
+]
+},
+"university-of-sydney": {
+"intake": [
+"2027-yil 1-semestr, xalqaro bakalavr abituriyentlari",
+"1-й семестр 2027, иностранные абитуриенты бакалавриата"
+],
+"req": [
+"Xalqaro bakalavr abituriyentlari yopilish sanasigacha universitetga to‘g‘ridan-to‘g‘ri ariza beradi (UAC yo‘li faqat Avstraliyada Year 12 yoki IB tugatayotganlar uchun). O‘zbekistonga oid akademik va ingliz tili talablari sahifada tasdiqlanmagan.",
+"Иностранные абитуриенты бакалавриата подают заявку напрямую в университет до даты закрытия (путь через UAC только для тех, кто заканчивает австралийский Year 12 или IB в Австралии). Требования для Узбекистана (академические и по английскому) на странице не подтверждены."
+]
+},
+"aalto-university": {
+"intake": [
+"2027-yil kuzi, ingliz tilidagi bakalavr (2027-yil 7–22-yanvar; sahifada ma’lumotlar qisman zid)",
+"Осень 2027, бакалавриат на английском (7–22 января 2027; данные на странице частично противоречивы)"
+],
+"note": [
+"Biznes/texnologiya (San’at va arxitektura uchun 15 000); o‘qish huquqi 2025-yil 1-avgustdan",
+"Бизнес/технологии (Искусство и архитектура 15 000); право на обучение с 1 августа 2025"
+],
+"req": [
+"Finlyandiya/IB/EB diplomi bo‘lmasa, SAT/ACT bilan ariza beriladi (2026 qabul uchun minimum: biznes uchun SAT 1200; fan va texnologiya uchun SAT 1350 va Math 700). Dizayn va media uchun kirish imtihoni va ingliz tili testi bor.",
+"Без финского/IB/EB диплома подают заявку с SAT/ACT (минимум для набора 2026: SAT 1200 для бизнеса; 1350 и Math 700 для науки и технологий). Для дизайна и медиа есть вступительный экзамен и тест по английскому."
+]
+},
+"tampere-university": {
+"intake": [
+"2027-yil kuzi, ingliz tilidagi bakalavr (2027-yil 7–21-yanvar)",
+"Осень 2027, бакалавриат на английском (7–21 января 2027)"
+],
+"note": [
+"EI/EIH dan tashqari talabalar, 2027-yilda qabul qilinadiganlar, barcha bakalavr dasturlari",
+"студенты вне ЕС/ЕЭЗ, принятые в 2027 году, все программы бакалавриата"
+],
+"req": [
+"Chet eldagi o‘rta ta’lim diplomi o‘z yurtingizda universitetda o‘qish huquqini berishi kerak; Finlyandiya/IB/EB/DIA bo‘lmasa SAT/ACT ballari orqali ariza beriladi (I qabul guruhi).",
+"Иностранный диплом о среднем образовании должен давать право поступления в университет у вас на родине; без финского/IB/EB/DIA заявка подаётся по баллам SAT/ACT (группа приёма I)."
+]
+},
+"university-of-helsinki": {
+"intake": [
+"2027-yil kuzi: 1-guruh (SAT/ACT) 5–19-yanvar 2027; 2-guruh 2027-yil 23-martda yopiladi",
+"Осень 2027: группа 1 (SAT/ACT) 5–19 января 2027; группа 2 закрывается 23 марта 2027"
+],
+"note": [
+"EI/EIH dan tashqari talabalar, inglizcha bakalavr dasturlari",
+"студенты вне ЕС/ЕЭЗ, англоязычные программы бакалавриата"
+],
+"req": [
+"Finlyandiya attestati, IB, EB yoki DIA/Reifeprüfung bo‘lmagan abituriyentlar 1-guruhda SAT yoki ACT bilan, shuningdek o‘z yurtida universitetga kirish huquqini beradigan diplom bilan ariza beradi; ingliz tili isboti (IELTS Academic 6.5) talab qilinadi.",
+"Абитуриенты без финского аттестата, IB, EB или DIA/Reifeprüfung подают заявку в группе 1 с SAT или ACT и дипломом, дающим право поступления в вуз на родине; нужно подтверждение английского (IELTS Academic 6.5)."
+]
+},
+"sciences-po": {
+"intake": [
+"2027-yil sentyabri, xalqaro yo‘nalish (oxirgi bosqich; oldingi bosqichlar 2026-yil 4-noyabr va 2027-yil 13-yanvar)",
+"Сентябрь 2027, международный путь (последний раунд; предыдущие 4 ноября 2026 и 13 января 2027)"
+],
+"note": [
+"to‘liq yillik to‘lov, soliq rezidentligi EIHdan tashqarida, 2026–2027",
+"полная годовая плата, налоговое резидентство вне ЕЭЗ, 2026–2027"
+],
+"req": [
+"Chet el o‘rta ta’lim diplomi (IB, A-level va boshqalar) bilan xalqaro yo‘nalish orqali ariza beriladi; ariza to‘lovi 150 EUR; motivatsion matnlar tanlangan dastur tilida (frantsuz yoki mintaqaviy kampuslarda ingliz) yoziladi. IELTS minimumi tasdiqlanmadi.",
+"Заявка подаётся через международный путь с зарубежным аттестатом (IB, A-level и др.); сбор за подачу 150 EUR; мотивационные тексты пишутся на языке выбранной программы (французский или английский в региональных кампусах). Минимум IELTS не подтверждён."
+]
+},
+"heidelberg-university": {
+"req": null
+},
+"ludwig-maximilians-universitat-munchen": {
+"req": [
+"Yevropadan tashqari attestatlar rasmiy tenglik tekshiruvidan (ANABIN/DAAD) o‘tishi kerak, aks holda Studienkolleg yili talab qilinadi; bakalavr abituriyentlariga uni-assist VPD, tan olingan nemis tili isboti kerak va ariza International Office orqali beriladi.",
+"Неевропейские аттестаты проходят проверку эквивалентности (ANABIN/DAAD), иначе нужен год Studienkolleg; бакалаврам нужны uni-assist VPD и признанное подтверждение немецкого, заявка подаётся через International Office."
+]
+},
+"technical-university-of-munich": {
+"note": [
+"Yangi EI dan tashqari bakalavr talabalari uchun semestriga: odatda 2 000 yoki 3 000 (dasturga qarab); 2027/28 qish semestridan 2 300/3 400 ga oshadi",
+"За семестр для новых студентов бакалавриата вне ЕС: обычно 2 000 или 3 000 (в зависимости от программы); с зимнего семестра 2027/28 вырастет до 2 300/3 400"
+],
+"req": [
+"O‘zbekiston attestati bilan xalqaro abituriyent sifatida ariza beriladi; ariza muddati tugashidan oldin nemis tili (yoki talab qilinsa ingliz tili) isboti kerak, ko‘p dasturlarda qobiliyat baholash bor. Attestatni tan olish va uni-assist/Studienkolleg talablarini ariza portalida tekshiring.",
+"Заявка подаётся как иностранным абитуриентом с узбекским аттестатом; до окончания срока подачи нужно подтверждение немецкого (или английского, если требуется), во многих программах есть оценка способностей. Признание аттестата и требования uni-assist/Studienkolleg проверьте на портале."
+]
+},
+"politecnico-di-milano": {
+"req": [
+"Chet eldagi EI dan tashqari abituriyentlarga 12–13 yillik o‘qishdan keyingi o‘rta ma’lumot hujjati (yoki tayyorlov yili) kerak, TOL/CEnT-S/SAT asosidagi qabul testidan o‘tish (minimum 30/100), dastur tili darajasini isbotlash va Universitaly orqali o‘qish vizasini olish shart.",
+"Абитуриентам из-за пределов ЕС нужен документ о среднем образовании после 12–13 лет обучения (или подготовительный год), прохождение вступительного теста TOL/CEnT-S/SAT (минимум 30/100), подтверждение языка программы и студенческая виза через Universitaly."
+]
+},
+"sapienza-university-of-rome": {
+"req": [
+"Kamida 12 yillik o‘qishdan keyingi attestat; majburiy dastlabki saralash, Universitaly ro‘yxatdan o‘tishi va o‘qish vizasi; dasturga qarab B2 ingliz yoki italyan tili; ayrim dasturlarda qabul testi bor.",
+"Аттестат после не менее 12 лет обучения; обязательный предварительный отбор, регистрация в Universitaly и студенческая виза; английский или итальянский B2 в зависимости от программы; в некоторых программах есть вступительный тест."
+]
+},
+"university-of-bologna": {
+"req": [
+"Attestat bilan Universitaly’da oldindan ro‘yxatdan o‘ting; ochiq dasturlarda TOLC testi, italyan tilidagi dasturlarda italyan tili isboti talab qilinadi, elchixona qo‘shimcha til sertifikatlarini so‘rashi mumkin; shartsiz tasdiqlash uchun birinchi to‘lov bo‘lagi kerak.",
+"Предварительная регистрация в Universitaly с аттестатом; для программ со свободным доступом нужен тест TOLC, для программ на итальянском — подтверждение итальянского, посольство может запросить дополнительные языковые сертификаты; для безусловного подтверждения нужен первый взнос оплаты."
+]
+},
+"kaist": {
+"req": [
+"Abituriyent chet el fuqarosi bo‘lishi (Koreya ikkinchi fuqaroligisiz) va 2026-yil 31-avgustgacha maktabni tugatishi kerak; ariza to‘lovi 80 USD. Muddat, IELTS va o‘qish narxi ochilgan sahifalarda topilmadi.",
+"Абитуриент должен быть иностранным гражданином (без корейского двойного гражданства) и окончить школу до 31 августа 2026; сбор 80 USD. Сроки, IELTS и стоимость на открытых страницах не найдены."
+]
+},
+"seoul-national-university": {
+"req": [
+"Koreya fuqarosi bo‘lmagan abituriyent iyul oynasida onlayn ariza va tavsiyanomalarni topshiradi; ingliz tili, talablar va o‘qish narxi biriktirilgan qo‘llanma PDF’ida, bu tasdiqlanmagan.",
+"Иностранный абитуриент подаёт онлайн-заявку и рекомендательные письма в июльском окне; английский, требования и стоимость указаны в приложенном PDF-руководстве, это не проверено."
+]
+},
+"yonsei-university": {
+"req": [
+"Abituriyent ham, ikkala ota-onasi ham Koreya fuqarosi bo‘lmasligi, 2026-yil avgustigacha attestatga ega bo‘lishi va koreys yoki ingliz tili bilimini tasdiqlashi kerak (IELTS minimumi ko‘rsatilmagan); ariza to‘lovi 150 000 KRW.",
+"Абитуриент и оба родителя не должны быть гражданами Кореи, нужен аттестат к августу 2026 и подтверждение корейского или английского (минимум IELTS не указан); сбор 150 000 KRW."
+]
+},
+"university-of-edinburgh": {
+"intake": [
+"2027-yil sentyabri, UCAS muddati (tibbiyotdan tashqari barcha UK/EI/xalqaro abituriyentlar uchun)",
+"Сентябрь 2027, срок UCAS (для всех абитуриентов из Великобритании/ЕС/зарубежья, кроме медицины)"
+],
+"note": [
+"xalqaro talabalar, oddiy darajalar, 2026-yilning taxminiy «dan» narxi; 2027 hali ma’lum emas; laboratoriya/studiya yo‘nalishlari 36 800",
+"иностранные студенты, стандартные программы, ориентировочная цена «от» на 2026; 2027 уточняется; лабораторные/студийные программы 36 800"
+],
+"req": [
+"O‘zbekiston attestati bilan to‘g‘ridan-to‘g‘ri qabul yo‘q; A Levels, IB yoki SAT/ACT/AP, yoki bir yillik International Foundation Programme (o‘rtacha 70%+ bo‘lgan attestat bilan) kerak. Ingliz tili talabi dasturga qarab farq qiladi (ayrimlarida IELTS 6.5, har bir bo‘limda 5.5).",
+"Узбекский аттестат не принимается для прямого поступления; нужны A Levels, IB или SAT/ACT/AP, либо годичная International Foundation Programme (аттестат со средним баллом 70%+). Требования по английскому зависят от программы (например, IELTS 6.5, не ниже 5.5 в каждом разделе)."
+]
+},
+"university-of-glasgow": {
+"intake": [
+"2027-yil sentyabri, xalqaro abituriyentlar (UCAS asosiy muddati 2027-yil 13-yanvar)",
+"Сентябрь 2027, иностранные абитуриенты (основной срок UCAS 13 января 2027)"
+],
+"note": [
+"xalqaro, 2026/27, gumanitar va ijtimoiy fanlar; fan/muhandislik 33 210",
+"иностранные студенты, 2026/27, гуманитарные и социальные науки; естественные науки/инженерия 33 210"
+],
+"req": [
+"O‘zbekistonga oid alohida sahifa topilmadi; IELTS 6.5 (umumiy), hech bir bo‘limda 6.0 dan past bo‘lmasin. Talabga javob bermaganlar Glasgow International College tayyorlov sertifikatlari yoki pre-sessional ingliz tili kursini olishi mumkin.",
+"Отдельной страницы для Узбекистана не найдено; нужен IELTS 6.5 (общий), не ниже 6.0 в каждом разделе. Тем, кто не соответствует требованиям, доступны подготовительные программы Glasgow International College или pre-sessional английский."
+]
+},
+"university-of-st-andrews": {
+"intake": [
+"2027-yil sentyabri, to‘liq va teng ko‘rib chiqish, xalqaro abituriyentlar",
+"Сентябрь 2027, полное и равное рассмотрение, иностранные абитуриенты"
+],
+"note": [
+"chet ellik talabalar 2026–27, san’at/ilohiyot/fan; tibbiyot 39 620",
+"иностранные студенты 2026–27, искусство/богословие/науки; медицина 39 620"
+],
+"req": [
+"Milliy attestat bilan St Andrews International Foundation sertifikati, IB 36–38, A-level AAB–A*A*A yoki SQA Highers AAAB–AAAAB kerak. Ingliz tili testi talab qilinadi (fakultetga qarab IELTS 6.5–7.0).",
+"С национальным аттестатом нужен сертификат St Andrews International Foundation, IB 36–38, A-level AAB–A*A*A или SQA Highers AAAB–AAAAB. Требуется тест по английскому (IELTS 6.5–7.0 в зависимости от факультета)."
+]
+},
+"epfl": {
+"intake": [
+"Kuz (sentyabr) qabuli, ariza 30-aprelgacha, chet el attestati egalari uchun",
+"Осенний набор (сентябрь), заявка до 30 апреля, для обладателей зарубежных аттестатов"
+],
+"note": [
+"Shveytsariyaga o‘qish uchun kelgan chet elliklar uchun semestriga 2 190 CHF (2025-yil kuzidan), x2",
+"2 190 CHF за семестр для иностранцев, переезжающих в Швейцарию для учёбы (с осени 2025), x2"
+],
+"req": [
+"EI/EFTA/Buyuk Britaniyadan tashqari abituriyentlar faqat attestati qat’iy baho mezonlariga mos kelsa tayyorlov yiliga (CMS) ko‘rib chiqiladi, aks holda kirish imtihonidan o‘tishi kerak; frantsuz tili B2 (C1 tavsiya etiladi) talab qilinadi.",
+"Абитуриенты вне ЕС/ЕАСТ/Великобритании рассматриваются только на подготовительный год (CMS), если аттестат отвечает строгим критериям оценок, иначе нужно сдать вступительный экзамен; требуется французский B2 (рекомендуется C1)."
+]
+},
+"eth-zurich": {
+"intake": [
+"2027-yil kuzi, Shveytsariyadan tashqari attestatli abituriyentlar (ariza oynasi 1-dekabr – 31-mart)",
+"Осень 2027, абитуриенты с нешвейцарскими аттестатами (окно подачи 1 декабря – 31 марта)"
+],
+"note": [
+"semestriga 2 190 CHF (2025-yil kuzidan chet ellik talabalar uchun uch baravar to‘lov), x2",
+"2 190 CHF за семестр (с осени 2025 утроенная плата для иностранных студентов), x2"
+],
+"req": [
+"Qabul davlatga va attestatga bog‘liq (swissuniversities/ETH davlatlar ro‘yxati); ayrim abituriyentlar ETH kirish imtihonidan o‘tishi kerak. O‘qitish nemis tilida bo‘lgani uchun 31-martgacha nemis tili isboti talab qilinadi.",
+"Приём зависит от страны и аттестата (список стран swissuniversities/ETH); некоторым абитуриентам нужно сдать вступительный экзамен ETH. Так как обучение на немецком, подтверждение немецкого требуется до 31 марта."
+]
+},
+"university-of-zurich": {
+"req": [
+"C1 darajadagi nemis tili talab qilinadi; chet el attestati Shveytsariya maturasiga mos bo‘lishi kerak, aks holda ECUS qo‘shimcha imtihoni (avgustda) va o‘z yurtidagi universitetga qabul qilinganlik isboti kerak.",
+"Требуется немецкий на уровне C1; зарубежный аттестат должен соответствовать швейцарской матуре, иначе нужен дополнительный экзамен ECUS (в августе) и подтверждение зачисления в вуз на родине."
+]
+},
+"aberystwyth-university": {
+"note": [
+"xalqaro, 2026/27, gumanitar fanlar; tabiiy fanlar 21 875",
+"иностранные студенты, 2026/27, гуманитарные науки; естественные науки 21 875"
+],
+"req": null
+},
+"cardiff-university": {
+"req": [
+"O‘zbekiston attestati (4.0/5.0) va tan olingan bir yillik tayyorlov kursi (International Foundation Year), yoki A-levels/IB. Odatda IELTS 6.5 kerak; universitetning o‘z ingliz tili chiqish testi ham qabul qilinadi.",
+"Узбекский аттестат (4.0/5.0) плюс признанный годичный подготовительный курс (International Foundation Year) либо A-levels/IB. Обычно нужен IELTS 6.5; принимается и внутренний выходной тест по английскому."
+]
+},
+"peking-university": {
+"req": [
+"Xitoy fuqarosi bo‘lmagan, 18–25 yoshdagi, attestatli abituriyent; xitoy, ingliz tillari va matematikadan yozma imtihon topshiriladi (o‘qitish xitoy tilida); ariza to‘lovi 800 RMB.",
+"Иностранный гражданин 18–25 лет с аттестатом; сдаются письменные экзамены по китайскому, английскому и математике (обучение на китайском); сбор 800 RMB."
+]
+},
+"tsinghua-university": {
+"intake": [
+"2027-yil kuzi (1-bosqich; 2-bosqich 2027-02-28 da yopiladi)",
+"Осень 2027 (раунд 1; раунд 2 закрывается 28.02.2027)"
+],
+"note": [
+"yiliga, inglizcha dasturlar; xitoy-inglizcha dasturlar 26 000–30 000 CNY",
+"в год, программы на английском; китайско-английские программы 26 000–30 000 CNY"
+],
+"req": [
+"Xitoy fuqarosi bo‘lmagan, 2027-yil 1-sentyabrga 18 yoshga to‘lgan, a’lo o‘zlashtirishli abituriyent; inglizcha dasturlarga TOEFL/IELTS (minimum ko‘rsatilmagan), xitoy-inglizcha dasturlarga HSK 5 (har bir bo‘limda 60+) va ingliz tili isboti kerak.",
+"Иностранный гражданин, которому к 1 сентября 2027 исполнилось 18 лет, с сильной успеваемостью; для программ на английском нужен TOEFL/IELTS (минимум не указан), для китайско-английских — HSK 5 (60+ в каждом разделе) и подтверждение английского."
+]
+},
+"zhejiang-university": {
+"note": [
+"yiliga, inglizcha muhandislik dasturlari",
+"в год, инженерные программы на английском"
+],
+"req": [
+"25 yoshgacha, Xitoy pasportiga ega bo‘lmagan, maktabni tugatgan va CSCA bali bor abituriyent (inglizcha dasturlar uchun ingliz tili varianti); inglizcha dasturga TOEFL/IELTS yoki shunga o‘xshash topshiriladi; to‘lov 800 RMB.",
+"Держатель нехинайского паспорта младше 25 лет, окончивший школу, с баллом CSCA (английский вариант для программ на английском); для программ на английском подаётся TOEFL/IELTS или аналог; сбор 800 RMB."
+]
+},
+"university-of-auckland": {
+"intake": [
+"2027-yil 1-semestr, xalqaro abituriyentlar (ko‘pchilik bakalavr dasturlari)",
+"1-й семестр 2027, иностранные абитуриенты (большинство программ бакалавриата)"
+],
+"req": [
+"Umumiy bakalavr qabuli uchun IELTS Academic 6.0 (hech bir bo‘limda 5.5 dan past bo‘lmasin); Tibbiyot 7.5, Hamshiralik 6.5, Muhandislik (Honours) 6.5 uchun yuqoriroq. O‘zbekistonga oid akademik talab ochilgan sahifalarda tasdiqlanmagan.",
+"Для общего поступления в бакалавриат нужен IELTS Academic 6.0 (не ниже 5.5 в каждом разделе); выше для Медицины 7.5, Сестринского дела 6.5, Инженерии (Honours) 6.5. Академическое требование для Узбекистана на открытых страницах не подтверждено."
+]
+},
+"university-of-otago": {
+"req": [
+"Akademik yoki ingliz tili talablariga javob bermaganlar Otago Pathway va English Language Centre orqali tayyorlov dasturlaridan foydalanishi mumkin. O‘zbekistonga oid talab va IELTS bali ochilgan sahifada tasdiqlanmagan.",
+"Тем, кто не соответствует академическим или языковым требованиям, доступны подготовительные программы через Otago Pathway и English Language Centre. Требование для Узбекистана и балл IELTS на открытой странице не подтверждены."
+]
+},
+"victoria-university-of-wellington": {
+"req": [
+"Bakalavr uchun IELTS Academic 6.0 (hech bir bo‘limda 5.5 dan past bo‘lmasin). Talabga javob bermaganlar faqat UP International College New Zealand orqali o‘tiladigan Foundation Studies dasturini olishi mumkin.",
+"Для бакалавриата нужен IELTS Academic 6.0 (не ниже 5.5 в каждом разделе). Не отвечающим требованиям доступна программа Foundation Studies, которая проводится только через UP International College New Zealand."
+]
+},
+"kyoto-university": {
+"note": [
+"iUP bakalavriati uchun yillik to‘lov (qabul to‘lovi 282 000 JPY); 2025-yil 1-iyul holatiga. IELTS minimumi belgilanmagan; muvaffaqiyatli abituriyentlarda odatda IELTS 6.5",
+"Годовая плата за бакалавриат iUP (вступительный взнос 282 000 JPY); по состоянию на 1 июля 2025. Минимум IELTS не установлен; у успешных абитуриентов обычно IELTS 6.5"
+],
+"req": [
+"Yapon bo‘lmagan, Yaponiyadan tashqarida 12 yillik o‘qishni 2026-yil 30-sentyabrgacha tugatgan (yoki tugatadigan) bo‘lishi va 2023-yil 1-noyabrdan keyin topshirilgan qabul qilinadigan ingliz tili testini (IELTS, TOEFL va h.k.) topshirishi kerak.",
+"Не японец, завершивший (или завершающий) 12 лет обучения вне Японии к 30 сентября 2026, и приложивший признанный тест английского (IELTS, TOEFL и др.), сданный после 1 ноября 2023."
+]
+},
+"university-of-tokyo": {
+"req": [
+"An’anaviy dasturlar yapon tilida o‘tadi va yuqori yapon tili darajasini talab qiladi; inglizcha variantlar: PEAK (oxirgi qabul 2026-yil sentyabr) va yangi UTokyo Design (2027-yil sentyabr).",
+"Традиционные программы ведутся на японском и требуют высокого уровня японского; английские варианты — PEAK (последний набор в сентябре 2026) и новая UTokyo Design (сентябрь 2027)."
+]
+},
+"waseda-university": {
+"intake": [
+"2027-yil sentyabr qabuli (AO, onlayn ariza 2027-yil 7–28-yanvar)",
+"Набор сентября 2027 (AO, онлайн-заявка 7–28 января 2027)"
+],
+"req": [
+"Yaponiya tizimidan tashqari maktab bitiruvchilari inglizcha dasturga ariza beradi; hujjatlar ta’lim tizimiga bog‘liq (Application Guide’ga qarang); faqat JCulP dasturida minimal ingliz tili bali belgilangan.",
+"Выпускники школ вне японской системы подают заявку на программу на английском; документы зависят от системы образования (см. Application Guide); минимальный балл по английскому установлен только для JCulP."
+]
+},
+"sorbonne-universite": {
+"req": [
+"Qabul uchun kamida B2 darajadagi frantsuz tili kerak; Fransiya/Yevropaga tegishli bo‘lmagan diplomi borlar yashash mamlakatiga qarab «Études en France» tizimidagi dastlabki ariza (DAP) yoki elchixonadagi qog‘oz DAP orqali murojaat qiladi.",
+"Для зачисления нужен французский не ниже B2; обладатели неевропейских дипломов подают предварительную заявку (DAP) через «Études en France» или бумажную DAP в посольстве, в зависимости от страны проживания."
+]
+},
+"ecole-polytechnique": {
+"intake": [
+"Sahifada 2026 deb belgilangan bakalavr qabul sikli, 3-bosqich (1-bosqich 2026-yil 20-oktyabr, 2-bosqich 2027-yil 6-yanvar); boshlanish sanasi ko‘rsatilmagan",
+"Цикл набора в бакалавриат отмечен как 2026, раунд 3 (раунд 1: 20 октября 2026, раунд 2: 6 января 2027); дата начала не указана"
+],
+"req": [
+"Matematika va fanlardan kuchli o‘rta ta’lim attestati, IELTS 6.5 (har bir bo‘limda kamida 6) yoki unga teng, yozma kirish imtihoni yo‘q; hujjatlar va masofaviy ingliz suhbati orqali tanlov; ariza to‘lovi 105 EUR.",
+"Аттестат о среднем образовании с сильной математикой и естественными науками, IELTS 6.5 (не ниже 6 в каждом разделе) или эквивалент, письменного вступительного экзамена нет; отбор по документам и удалённому интервью на английском; сбор 105 EUR."
+]
+},
+"imperial-college-london": {
+"intake": [
+"2027-yil kirish (2027-yil oktyabr)",
+"Поступление 2027 (октябрь 2027)"
+],
+"note": [
+"2026–27 chet ellik talabalar to‘lovi, muhandislik fakulteti, 2026-yil qabul guruhi; IELTS 6.5 standart, kursga qarab 7.0 yuqori daraja",
+"Плата для иностранных студентов 2026–27, инженерный факультет, набор 2026; IELTS 6.5 — стандартный уровень, 7.0 — повышенный в зависимости от курса"
+]
+},
+"ucl": {
+"note": [
+"Computer Science BSc, chet ellik talabalar to‘lovi, 2026/27 qabul qilinganlar uchun",
+"Computer Science BSc, плата для иностранных студентов, поступившие 2026/27"
+]
+},
+"university-of-cambridge": {
+"note": [
+"2026–27 misol: Iqtisodiyot fan to‘lovi 29 052 + Christ’s kolleji to‘lovi 12 600; fan to‘lovlari 29 052–70 554 plus kollej to‘lovi 11 500–14 950",
+"Пример 2026–27: Economics — предметная плата 29 052 + плата колледжа Christ’s 12 600; предметная плата 29 052–70 554 плюс плата колледжа 11 500–14 950"
+],
+"req": [
+"UCAS orqali 15-oktyabrgacha, A Levels/IB ga teng malaka bilan ariza beriladi (O‘zbekiston alohida ko‘rsatilmagan; tanlangan kollej bilan aniqlashtiring) va IELTS Academic 7.5 umumiy, odatda har bir qismda 7.0 kerak.",
+"Заявка через UCAS до 15 октября с квалификацией, эквивалентной A Levels/IB (Узбекистан отдельно не указан; уточните в выбранном колледже), и IELTS Academic 7.5 в целом, обычно 7.0 по каждому разделу."
+]
+},
+"university-of-oxford": {
+"note": [
+"2026-yil qabul uchun chet ellik talabalar kurs to‘lovlari oralig‘i 37 380–62 820 GBP/yil (eng past ko‘rsatilgan); kursga qarab farq qiladi",
+"Плата для иностранных студентов при поступлении 2026: диапазон 37 380–62 820 GBP/год (показано наименьшее значение); зависит от курса"
+],
+"req": [
+"UCAS orqali 15-oktyabrgacha, maktab natijalari va IELTS Academic 7.5 umumiy (har bir qismda 7.0) bilan ariza beriladi, natija taklif yilining 31-iyuligacha ko‘rsatiladi; O‘zbekiston malakalari ochilgan sahifalarda keltirilmagan.",
+"Заявка через UCAS до 15 октября с результатами школы и IELTS Academic 7.5 в целом (7.0 по каждому разделу), подтверждение до 31 июля года предложения; квалификации Узбекистана на открытых страницах не указаны."
+]
+},
+"mcgill-university": {
+"intake": [
+"2027-yil kuzi (2026-yilda e’lon qilingan sahifada 15-yanvar ko‘rsatilgan; yil taxmin qilingan)",
+"Осень 2027 (на странице, опубликованной в 2026, указано 15 января; год предположительный)"
+],
+"note": [
+"2026–27 xalqaro BA o‘qish haqi; to‘lovlar va sug‘urta bilan yillik jami 59 546,32 CAD",
+"Плата за международный BA 2026–27; всего за год со сборами и страховкой 59 546,32 CAD"
+],
+"req": [
+"Dastur old shartlari bilan raqobatbardosh o‘rta ta’lim natijalari kerak va, ingliz tili asosiy bo‘lgan mamlakatda 4 yil o‘qimagan bo‘lsangiz, IELTS Academic 6.5 umumiy, har bir qismda 6.0; O‘zbekiston ochilgan sahifalarda alohida ko‘rsatilmagan.",
+"Нужны конкурентные результаты среднего образования с профильными предметами и, если вы не учились 4 года в стране с английским основным языком, IELTS Academic 6.5 в целом и 6.0 по каждому разделу; Узбекистан на открытых страницах отдельно не указан."
+]
+},
+"university-of-british-columbia": {
+"intake": [
+"2027/28 qishki sessiya",
+"Зимняя сессия 2027/28"
+],
+"note": [
+"2026/27 xalqaro Vancouver Arts yillik o‘qish haqi; Science 53 082; Engineering 66 199,66; Commerce 66 678,30",
+"2026/27 международные студенты, Vancouver Arts, год; Science 53 082; Engineering 66 199,66; Commerce 66 678,30"
+]
+},
+"university-of-toronto": {
+"intake": [
+"2027-yil kuzi",
+"Осень 2027"
+],
+"note": [
+"2025–26 xalqaro Arts/Science/Commerce/Management oralig‘i 66 356,22–67 173,09 CAD/yil (qo‘shimcha to‘lovlar bilan); 2026–27 ochilgan sahifada hali e’lon qilinmagan",
+"2025–26 международные Arts/Science/Commerce/Management: 66 356,22–67 173,09 CAD/год (с доп. сборами); 2026–27 на открытой странице ещё не опубликовано"
+],
+"req": [
+"12-sinf/oxirgi yil o‘rta ta’limini ingliz tili va kerakli old shartlar (masalan matematika) bilan tugatgan bo‘lish, shuningdek IELTS Academic 6.5 umumiy, hech bir qismda 6.0 dan past emas; O‘zbekiston alohida ko‘rsatilmagan.",
+"Завершённое среднее образование (12-й класс/последний год) с английским и нужными профильными предметами (например, математика), плюс IELTS Academic 6.5 в целом, не ниже 6.0 по каждому разделу; Узбекистан отдельно не указан."
+]
+},
+"trinity-college-dublin": {
+"intake": [
+"2027-yil sentyabri (ustuvor muddat 1-fevral; tibbiyot/stomatologiya/musiqa/drama 1-fevralda yopiladi)",
+"Сентябрь 2027 (приоритетный срок 1 февраля; медицина/стоматология/музыка/театр закрываются 1 февраля)"
+],
+"note": [
+"EIdan tashqari 1-kurs, ko‘pchilik gumanitar/biznes/huquq kurslari 2027/28; Science/Engineering/CS 30 450",
+"Год 1 для студентов вне ЕС, большинство гуманитарных/бизнес/юридических курсов 2027/28; Science/Engineering/CS 30 450"
+],
+"req": [
+"Matrikulyatsiya talablariga (ingliz tili, matematika, ingliz tilidan tashqari til va to‘liq fanlar to‘plami) javob berish, IELTS 6.5 umumiy, har bir qismda 6.0 va kurs talablari; O‘zbekistonga oid qoidalar Trinity’ning davlatlar sahifalarida (ochilmadi).",
+"Соответствие требованиям к аттестату (английский, математика, неанглийский язык и полный набор предметов), IELTS 6.5 в целом и 6.0 по каждому разделу, а также требования курса; правила для Узбекистана — на страницах Trinity по странам (не открывались)."
+]
+},
+"university-college-dublin": {
+"req": [
+"IELTS Academic 6.5 umumiy, har bir qismda 6.0 (qayta topshirishsiz); o‘z mamlakatingizdagi attestat talablarini tekshiring; viza kerak bo‘lgan talabalar 1-iyulgacha ariza beradi.",
+"IELTS Academic 6.5 в целом и 6.0 по каждому разделу (без пересдач); проверьте требования к аттестату вашей страны; студенты, которым нужна виза, подают заявку до 1 июля."
+]
+},
+"delft-university-of-technology": {
+"intake": [
+"2027-yil sentyabri (numerus fixus dasturlari, Studielink orqali)",
+"Сентябрь 2027 (программы numerus fixus, через Studielink)"
+],
+"note": [
+"EIdan tashqari bakalavr institutsional to‘lovi 2026/27",
+"Институциональная плата бакалавриата для студентов вне ЕС 2026/27"
+],
+"req": [
+"O‘zbekiston davlatlar bo‘yicha diplomlar ro‘yxatida yo‘q; diplom alohida baholanadi (qabul bo‘limiga murojaat qiling). Inglizcha BSc dasturlari uchun IELTS Academic 6.5 umumiy.",
+"Узбекистан отсутствует в списке дипломов по странам; диплом оценивается индивидуально (обратитесь в приёмную). Для программ BSc на английском нужен IELTS Academic 6.5 в целом."
+]
+},
+"university-of-amsterdam": {
+"intake": [
+"2027-yil sentyabri (viza/turar joy uchun tavsiya 1-aprel; numerus fixus dasturlari 15-yanvar)",
+"Сентябрь 2027 (рекомендуемый срок 1 апреля для визы/жилья; программы numerus fixus — 15 января)"
+],
+"note": [
+"EIHdan tashqari bakalavr to‘lovi 2027–28, ro‘yxatdagi eng pasti (Iqtisodiyot va biznes); 21 900 gacha (Science), tibbiyot 34 500",
+"Плата бакалавриата вне ЕЭЗ 2027–28, наименьшая из перечисленных (Economics and Business); до 21 900 (Science), медицина 34 500"
+],
+"req": [
+"Teng xalqaro o‘rta ta’lim diplomi (ro‘yxatda yo‘q malakalar alohida baholanadi), IELTS Academic 6.5 umumiy, har bir qismda 6.0, CV, majburiy UvA Matching, ariza to‘lovi 100 EUR.",
+"Эквивалентный международный диплом о среднем образовании (не перечисленные квалификации оцениваются индивидуально), IELTS Academic 6.5 в целом и 6.0 по разделам, CV, обязательный UvA Matching, сбор 100 EUR."
+]
+},
+"utrecht-university": {
+"intake": [
+"2027-yil sentyabri, EIdan tashqari abituriyentlar (dastur sahifasi: Global Sustainability Science)",
+"Сентябрь 2027, абитуриенты вне ЕС (страница программы: Global Sustainability Science)"
+],
+"req": [
+"EIdan tashqari abituriyentlarga pasport nusxasi, kirish talablariga mos malaka hujjatlari, ingliz tili bilimi (test natijalari shartli keyin ham berilishi mumkin) va Studielink orqali 100 EUR ariza to‘lovi kerak.",
+"Абитуриентам вне ЕС нужны скан паспорта, документы о квалификации, соответствующие требованиям, знание английского (результаты теста могут быть предоставлены условно позже) и сбор 100 EUR через Studielink."
+]
+},
+"nanyang-technological-university": {
+"intake": [
+"2027 o‘quv yili qabuli; “boshqa malakalar” uchun ariza oynasi 2026-yil 15-oktyabr – 2027-yil 20-yanvar",
+"Набор на 2027 учебный год; окно подачи для «прочих квалификаций» 15 октября 2026 – 20 января 2027"
+],
+"req": [
+"O‘zbekiston “ro‘yxatda ko‘rsatilmagan boshqa malakalar” toifasiga kiradi (alohida baholanadi; bu mening talqinim); agar o‘rta maktabda ingliz tilida o‘qimagan bo‘lsangiz, IELTS Academic 6.5 umumiy, Writing va Speaking’da 6.5.",
+"Узбекистан относится к категории «прочие квалификации, не указанные в списке» (оценка индивидуальная; это моё толкование); если английский не изучался в старшей школе, нужен IELTS Academic 6.5 в целом и 6.5 по Writing и Speaking."
+]
+},
+"national-university-of-singapore": {
+"intake": [
+"2027/2028 o‘quv yili (2026-yil 16-dekabr – 2027-yil 17-fevral)",
+"Учебный год 2027/2028 (16 декабря 2026 – 17 февраля 2027)"
+],
+"note": [
+"Subsidiyasiz, yiliga GST bilan, gumanitar va aniq fanlar, 2026/27 o‘quv yili (Computing/Engineering 39 700)",
+"Без субсидий, в год с GST, гуманитарные и естественные науки, 2026/27 (Computing/Engineering 39 700)"
+],
+"req": [
+"Ariza yili iyuligacha 12 yillik umumiy ta’lim va dastur old shartlari; O‘zbekiston nomi bilan ko‘rsatilmagan, shuning uchun malaka “boshqa maktab malakalari” sifatida baholanadi (qabul bo‘limiga murojaat qiling).",
+"12 лет общего образования к июлю года подачи плюс профильные требования программы; Узбекистан по названию не указан, поэтому квалификация оценивается как «прочие школьные квалификации» (обратитесь в приёмную)."
+]
+},
+"the-hong-kong-university-of-science-and-technology": {
+"intake": [
+"2027-yil qabuli; ustuvor bosqich muddati (2026-11-26 dan rolling, 2027-06-30 da yopiladi)",
+"Набор 2027; срок приоритетного раунда (скользящий приём с 26.11.2026, закрывается 30.06.2027)"
+],
+"req": [
+"Xalqaro malaka bilan o‘rta maktabni tugatgan (IB, A-levels, SAT/ACT/AP yoki milliy tizim), 10-sinfdan boshlab maktab hisobotlari, shaxsiy bayonot, tavsiyachi va ingliz tili isboti (IELTS Academic 6.0 umumiy); ariza to‘lovi 600 HKD.",
+"Окончание школы с международной квалификацией (IB, A-levels, SAT/ACT/AP или национальная система), школьные отчёты с 10 класса, личное эссе, рекомендатель и подтверждение английского (IELTS Academic 6.0 в целом); сбор 600 HKD."
+]
+},
+"the-university-of-hong-kong": {
+"intake": [
+"2027-yil qabuli; birinchi bosqich muddati (keyin rolling, ariza 2027-08-25 da yopiladi)",
+"Набор 2027; срок первого раунда (далее скользящий приём, заявки закрываются 25.08.2027)"
+],
+"note": [
+"Mahalliy bo‘lmagan bakalavr yillik to‘lovi 2026–27; Engineering, Science, Medicine, Dentistry va ayrim fakultetlarda 249 000 HKD",
+"Годовая плата бакалавриата для иногородних 2026–27; 249 000 HKD для Engineering, Science, Medicine, Dentistry и некоторых школ"
+],
+"req": [
+"Non-JUPAS xalqaro malakalar yo‘li orqali ariza: maktab hisobotlari, kutilayotgan/haqiqiy baholar (IB, A-levels va h.k.), shaxsiy bayonot, tavsiyachi; IELTS Academic 6.5 umumiy, Writing va Speaking’da kamida 6.0. O‘zbekiston baholari alohida ko‘rsatilmagan.",
+"Заявка по пути Non-JUPAS с международными квалификациями: школьные отчёты, прогнозные/итоговые оценки (IB, A-levels и т.п.), личное эссе, рекомендатель; IELTS Academic 6.5 в целом, не ниже 6.0 по Writing и Speaking. Оценки Узбекистана отдельно не указаны."
+]
+},
+"kth-royal-institute-of-technology": {
+"intake": [
+"2027-yil kuzi, 1-bosqich (EI/EIHdan tashqari abituriyentlarga tavsiya etiladi)",
+"Осень 2027, раунд 1 (рекомендуется абитуриентам вне ЕС/ЕЭЗ)"
+],
+"note": [
+"ICT bo‘yicha to‘liq BSc dasturi, EI/EIH/Shveytsariyadan tashqari; ariza to‘lovi 900 SEK; sahifa oxirgi marta 2025-02-17 da o‘zgargan",
+"Полная программа BSc по ICT, вне ЕС/ЕЭЗ/Швейцарии; сбор за подачу 900 SEK; страница последний раз изменена 17.02.2025"
+],
+"req": [
+"Matematika 4 va Fizika 2 ga teng o‘rta ta’lim, English 6 (IELTS 6.5, hech bir qismda 5.5 dan past emas), yakuniy baholar hujjatlangan (taxminiy baho qabul qilinmaydi); tanlov baholar o‘rtachasi bo‘yicha. O‘zbekiston ro‘yxatda yo‘q; info@kth.se ga yozing.",
+"Среднее образование, эквивалентное Mathematics 4 и Physics 2, English 6 (IELTS 6.5, не ниже 5.5 по каждому разделу), итоговые оценки подтверждены документально (прогнозные не принимаются); отбор по среднему баллу. Узбекистана в списке нет; пишите на info@kth.se."
+]
+},
+"lund-university": {
+"intake": [
+"2027-yil kuzi semestri",
+"Осенний семестр 2027"
+],
+"note": [
+"3 yillik to‘liq dastur, International Business bakalavr (misol), EI/EIH/Shveytsariyadan tashqari; birinchi to‘lov 65 000 SEK",
+"Полная 3-летняя программа, бакалавриат International Business (пример), вне ЕС/ЕЭЗ/Швейцарии; первый взнос 65 000 SEK"
+],
+"req": [
+"O‘zbekistonda universitetga kirish huquqini beradigan o‘rta ta’lim, English 6 ga teng (IELTS 6.5, hech bir qismda 5.5 dan past emas) va dasturning o‘z talablari; 15-yanvargacha universityadmissions.se orqali ariza.",
+"Среднее образование, дающее право поступления в университет в Узбекистане, English 6 или эквивалент (IELTS 6.5, не ниже 5.5 по каждому разделу) и требования программы; заявка через universityadmissions.se до 15 января."
+]
+},
+"koc-university": {
+"note": [
+"Yiliga, ko‘pchilik dasturlar 2025/2026 (Tibbiyot 59 000); yotoqxonasiz",
+"В год, большинство программ 2025/2026 (Медицина 59 000); без общежития"
+],
+"req": [
+"Davlat ro‘yxatda bo‘lmasa, milliy malakalar qabul qilinmaydi: xalqaro malaka (SAT, ACT, A-Levels, IB, AP), 9–11-sinf transkripti, tavsiyanoma va motivatsion xat, hamda TOEFL iBT (yangi shkalada minimum 4,5; 2026-yil 21-yanvargacha 80). IELTS qabul qilinmaydi. O‘zbekiston sahifada alohida ko‘rsatilmagan.",
+"Национальные квалификации не принимаются, если страна не в списке: нужна международная квалификация (SAT, ACT, A-Levels, IB, AP), транскрипт 9–11 классов, рекомендации и мотивационное письмо, а также TOEFL iBT (минимум 4,5 по новой шкале; 80 до 21 января 2026). IELTS не принимается. Узбекистан на странице отдельно не указан."
+]
+},
+"middle-east-technical-university": {
+"note": [
+"Semestriga, Anqara, Muhandislik/Arxitektura/fanlar (ijtimoiy fanlar/iqtisodiyot uchun semestriga 800 USD); 2026–2027 jadvali",
+"За семестр, Анкара, Инженерия/Архитектура/науки (800 USD за семестр для социальных наук/экономики); таблица 2026–2027"
+],
+"req": [
+"Xalqaro abituriyent sifatida onlayn ariza, o‘rta ta’lim natijalari bilan (A-levels, SAT, IB va h.k.); ariza uchun ingliz tili bali shart emas, lekin TOEFL/PTE bali bo‘lmagan qabul qilinganlar METU ingliz tili imtihonini yoki bir yillik tayyorlovni o‘tadi. 2022-yil 24-dekabrdan keyingi IELTS qabul qilinmaydi.",
+"Онлайн-заявка как иностранный абитуриент с результатами среднего образования (A-levels, SAT, IB и т.п.); балл по английскому для подачи не нужен, но принятые без действующего TOEFL/PTE сдают экзамен METU по английскому или проходят год подготовки. IELTS, сданный после 24 декабря 2022, не принимается."
+]
+},
+"sabanci-university": {
+"note": [
+"Yillik, xalqaro bakalavrlar, 2026–2027",
+"Год, иностранные студенты бакалавриата, 2026–2027"
+],
+"req": [
+"Oxirgi kurs yoki bitirgan o‘quvchi qabul qilinadigan bitta imtihon/diplom natijasi (masalan SAT, kod 7100), transkript va diplomni topshiradi; ariza to‘lovi 30 USD. O‘zbekiston ko‘rsatilmagan; ug-admissions@sabanciuniv.edu ga yozing.",
+"Выпускник или ученик последнего класса подаёт результат одного принимаемого экзамена/диплома (например, SAT с кодом 7100), транскрипт и диплом; сбор 30 USD. Узбекистан не указан; пишите на ug-admissions@sabanciuniv.edu."
+]
+},
+"university-of-tartu": {
+"req": [
+"Tugallangan o‘rta ta’lim va ingliz tili bilimi isboti (IELTS Academic umumiy 6.0, hech bir qism 5.5 dan past emas). Business Administration abituriyentlari motivatsion xat va onlayn matematika kirish testi bo‘yicha baholanadi; ariza yig‘imi 100 EUR.",
+"Законченное среднее образование и подтверждение знания английского (IELTS Academic общий 6.0, ни один раздел не ниже 5.5). Абитуриенты Business Administration оцениваются по мотивационному письму и онлайн-тесту по математике; регистрационный сбор 100 EUR."
+],
+"note": [
+"Business Administration (ingliz tilidagi bakalavr), yiliga; to‘lov yo‘nalishga qarab farq qiladi",
+"Business Administration (бакалавриат на английском), в год; стоимость зависит от программы"
+]
+},
+"corvinus-university-of-budapest": {
+"req": [
+"Kirish imtihonlari (yoki imtihondan ozod qilish) qo‘llanadi; rasmiy ariza boshlash uchun 100 EUR ariza yig‘imi talab qilinadi. Ingliz tili bilimi talab etiladi (tafsilotlar universitetning qabul talablari sahifalarida).",
+"Предусмотрены вступительные экзамены (или освобождение от них); для начала официальной подачи требуется регистрационный сбор 100 EUR. Требуется знание английского языка (подробности на страницах требований к поступлению университета)."
+],
+"intake": [
+"2027-yil sentyabr, bakalavr (vizali fuqarolar uchun yakuniy muddat 2027-yil 24-may; erta ariza 2027-yil 20-yanvar; vizasiz fuqarolar 2027-yil 12-avgust)",
+"Сентябрь 2027, бакалавриат (окончательный срок для граждан, которым нужна виза, 24 мая 2027; ранняя подача 20 января 2027; граждане без визы 12 августа 2027)"
+],
+"note": [
+"EEA dan tashqari talabalar uchun yiliga, International Business BSc (semestrga 3 500 EUR); boshqa yo‘nalishlar yiliga 6 600–7 000 EUR",
+"Для студентов не из EEA, в год, International Business BSc (3 500 EUR за семестр); другие программы 6 600–7 000 EUR в год"
+]
+},
+"ie-university": {
+"req": [
+"O‘rta ta’lim diplomi, oxirgi ikki o‘quv yili transkripti, standart test (SAT/ACT tavsiya etilgan minimumlar) yoki IE University Admission Test, CV, bitta tavsiyanoma, shaxsiy ifoda ishi va ariza yig‘imi; ingliz tili isboti (IELTS kamida 7).",
+"Аттестат о среднем образовании, транскрипт за последние два учебных года, стандартизированный тест (рекомендуемые минимумы SAT/ACT) или IE University Admission Test, резюме, одно рекомендательное письмо, эссе-самопрезентация и регистрационный сбор; подтверждение английского (IELTS не ниже 7)."
+],
+"intake": [
+"2027-yil sentyabr qabuli, 2-bosqich (3-bosqich: 2027-yil 5-mart)",
+"Набор на сентябрь 2027, 2-й раунд (3-й раунд: 5 марта 2027)"
+],
+"note": [
+"Global BBA, birinchi yil uchun yillik to‘lov; to‘lov yo‘nalishga qarab farq qiladi va har yili o‘zgartiriladi",
+"Global BBA, плата за первый год в год; зависит от программы и ежегодно корректируется"
+]
+},
+"nova-school-of-business-and-economics": {
+"req": [
+"O‘rta maktab diplomi va/yoki imtihon sertifikati hamda oxirgi uch yil transkripti; masalan Economics & Management uchun A-Level AAB (Matematika A) yoki IB 36 ball (Matematika 6+); ingliz tilidagi CV, motivatsion xat, ingliz tili isboti va 70 EUR ariza yig‘imi. Shartlar faqat 2026/27 uchun amal qiladi.",
+"Аттестат о среднем образовании и/или экзаменационный сертификат с транскриптами за последние три года; например для Economics & Management A-Level AAB (математика A) или IB 36 баллов (математика 6+); резюме на английском, мотивационное письмо, подтверждение английского и сбор 70 EUR. Условия действуют только на 2026/27."
+],
+"intake": [
+"Bahor qabuli (fevraldan iyungacha semestr), to‘g‘ridan-to‘g‘ri ariza 2026-yil 10-noyabrdan 4-dekabrgacha, Lissabon vaqti bilan 17:00",
+"Весенний набор (семестр с февраля по июнь), прямая подача с 10 ноября по 4 декабря 2026, до 17:00 по времени Лиссабона"
+]
+},
+"aarhus-university": {
+"req": [
+"Tegishli xorijiy o‘rta ta’lim imtihoni va dasturga xos talablar; English B uchun IELTS 6.5 (hech bir bo‘lim 6.0 dan past emas), English A uchun IELTS 7.0. EU/EEAdan tashqari abituriyentlar o‘qish haqi va 150 EUR ariza yig‘imini to‘laydi; hujjatlar muddati 15-mart soat 12:00.",
+"Соответствующий иностранный экзамен о среднем образовании и требования программы; для English B IELTS 6.5 (ни один раздел не ниже 6.0), для English A IELTS 7.0. Абитуриенты не из EU/EEA оплачивают обучение и сбор 150 EUR; срок подачи документов 15 марта до 12:00."
+]
+},
+"khalifa-university": {
+"req": [
+"Oxirgi ikki yil ichida tugatilgan 12-sinf (yoki unga teng) – Matematika va bitta fan bilan, o‘quv dasturi minimumlariga javob berishi kerak (masalan IB 24 ball, amerika/CBSE uchun 80%); IELTS Academic 6.0 yoki TOEFL iBT 79; tasdiqlangan sertifikatlar, video suhbat va tanlanganlar uchun KU qabul testlari.",
+"Закончен 12-й класс (или эквивалент) в течение последних двух лет с математикой и одним естественным предметом, с учётом минимумов по системе обучения (например IB 24 балла, 80% для американской/CBSE); IELTS Academic 6.0 или TOEFL iBT 79; заверенные аттестаты, видеособеседование и вступительные тесты KU для отобранных кандидатов."
+],
+"intake": [
+"2027-yil kuzi bakalavriatiga arizalar (2027-yil 1-fevralgacha qabul qilinadi)",
+"Заявки на бакалавриат, осень 2027 (принимаются до 1 февраля 2027)"
+],
+"note": [
+"Bakalavr, bir kredit-soat uchun taxminan 2 500 AED (semestrda 12–16 kredit); yotoqxona va transport alohida",
+"Бакалавриат, около 2 500 AED за кредит-час (12–16 кредитов в семестр); проживание и транспорт отдельно"
+]
+},
+"modul-university-vienna": {
+"req": [
+"Kamida 24 ballli IB diplomi (Matematika 4 SL / 3 HL), C va undan yuqori baholi uchta A-Level yoki GPA 3.0 va AP/SAT/ACT natijali AQSh maktab attestati; aks holda Foundation dasturi va kirish imtihoni. Suhbat ingliz tilida; vizaga muhtoj abituriyentlar ingliz tili isbotini taqdim etadi.",
+"Диплом IB не менее 24 баллов (математика 4 SL / 3 HL), три A-Level с оценкой не ниже C или американский аттестат с GPA 3.0 и результатами AP/SAT/ACT; иначе подготовительная программа Foundation и вступительный экзамен. Собеседование на английском; абитуриентам, которым нужна виза, необходимо подтверждение английского."
+],
+"note": [
+"Aksar bakalavr dasturlari uchun semestrga (2026-yil 1-yanvar holatiga); erta ariza uchun yiliga 1 000–2 000 EUR chegirma",
+"За семестр для большинства бакалаврских программ (по состоянию на 1 января 2026); скидки за раннюю подачу 1 000–2 000 EUR в год"
+]
+},
+"university-of-warsaw": {
+"req": [
+"Universitet tan olgan sertifikat bilan kamida B2 darajadagi ingliz tili bilimi isboti majburiy; sertifikatsiz ariza topshirib bo‘lmaydi. Talab etilgan hujjatlar qabuldan oldin yuklanishi, malaka oshirilgach asl nusxalar yoki notarial nusxalar yuborilishi kerak (2026/2027 qoidalari).",
+"Обязательно подтверждение английского не ниже уровня B2 сертификатом, признаваемым университетом; подача без сертификата невозможна. Необходимые документы нужно загрузить до зачисления, а оригиналы или нотариальные копии отправить после прохождения отбора (правила 2026/2027)."
+]
+},
+"masaryk-university": {
+"req": [
+"O‘rta maktab attestati va transkripti, pasport/ID nusxasi va ingliz tili isboti (masalan Social Studies uchun B2 sertifikati); fakultetga xos qo‘shimchalar: motivatsion xat, esse, kirish imtihoni yoki onlayn suhbat. Muddatlar fakultetga qarab farq qiladi (masalan sentyabr qabuli uchun Arts 30-aprel, Social Studies 15-may).",
+"Аттестат о среднем образовании и транскрипт, копия паспорта/ID и подтверждение английского (например сертификат B2 для Social Studies); дополнительно по факультету: мотивационное письмо, эссе, вступительный экзамен или онлайн-собеседование. Сроки различаются по факультетам (например для сентябрьского набора Arts 30 апреля, Social Studies 15 мая)."
+],
+"note": [
+"Social Studies fakulteti, o‘quv yiliga, 2027-yil fevral qabuli (2026-yil sentyabr uchun 3 000 EUR); to‘lov fakultet va dasturga qarab farq qiladi",
+"Факультет Social Studies, в учебный год, набор февраль 2027 (3 000 EUR для сентября 2026); стоимость зависит от факультета и программы"
+]
+},
+"vrije-universiteit-brussel": {
+"req": [
+"Xorijiy (Belgiyaga tegishli bo‘lmagan) diplom egalari akademik tayyorgarlik, natijalar, motivatsiya va til bilimi bo‘yicha qo‘shimcha saralashdan o‘tadi; Business Economics kabi ingliz tilidagi dasturlar uchun ingliz tili isboti talab qilinadi. 2027–2028 o‘quv yili uchun arizalar 2026-yil 15-noyabrdan ochiladi.",
+"Обладатели иностранного (небельгийского) диплома проходят дополнительный отбор по академической подготовке, результатам, мотивации и знанию языка; для англоязычных программ, например Business Economics, требуется подтверждение английского. Приём заявок на 2027–2028 учебный год открывается 15 ноября 2026."
+]
+},
+"taylors-university": {
+"req": [
+"SPM/O-Level va Pre-U/Foundation: Matematika va ingliz tilidan 5 ta kredit (yoki Diplom va 3 ta kredit); ingliz tili isboti: MUET Band 3, CEFR past B2 yoki ingliz tilida o‘qitilgan Pre-U/Diplom. Qabul: fevral, aprel, sentyabr.",
+"SPM/O-Level с Pre-U/Foundation: 5 кредитов, включая математику и английский (или Diploma с 3 кредитами); подтверждение английского: MUET Band 3, CEFR низкий B2 или Pre-U/Diploma на английском. Набор: февраль, апрель, сентябрь."
+],
+"note": [
+"3 yil uchun jami, Bachelor of Business (Honours), 2026-yil qabuli, 6% xizmat solig‘isiz; to‘lovlar har yili qayta ko‘rib chiqiladi",
+"Всего за 3 года, Bachelor of Business (Honours), набор 2026, без сервисного налога 6%; стоимость пересматривается ежегодно"
+]
+},
+"bi-norwegian-business-school": {
+"req": [
+"Oliy ta’limga kirish malakasi va hujjatlashtirilgan ingliz tili bilimi (IELTS Academic 6.0; 2 yildan eski natijalar qabul qilinmaydi); pasport nusxasi, moliyaviy reja, ingliz tilidagi motivatsion xat va CV, rasmiy transkriptlar. Xalqaro abituriyentlar uchun ustuvor muddat 1-mart, EU/EEAdan tashqari uchun yakuniy muddat 1-iyun.",
+"Квалификация для поступления в вуз и документально подтверждённый английский (IELTS Academic 6.0; результаты старше 2 лет не принимаются); копия паспорта, финансовый план, мотивационное письмо и резюме на английском, официальные транскрипты. Приоритетный срок для иностранных абитуриентов 1 марта, окончательный для не из EU/EEA 1 июня."
+],
+"note": [
+"O‘quv yiliga, Bachelor of Business Administration, EU/EEA/Shveytsariyadan tashqari talabalar uchun, 2027–28 o‘quv yili",
+"За учебный год, Bachelor of Business Administration, для студентов не из EU/EEA/Швейцарии, 2027–28 учебный год"
+]
+}
 }

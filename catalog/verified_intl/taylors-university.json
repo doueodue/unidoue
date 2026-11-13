@@ -1,0 +1,30 @@
+{
+ "name": "Taylor's University",
+ "country": "Malaysia",
+ "city": "Subang Jaya",
+ "official_url": "https://university.taylors.edu.my",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 43534,
+  "currency": "USD",
+  "note": "Total for 3 years, Bachelor of Business (Honours), 2026 intake, excluding 6% service tax; fees reviewed annually",
+  "url": "https://university.taylors.edu.my/en/study/explore-all-programmes/business/undergraduate/bachelor-of-business.html",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "SPM/O-Level plus Pre-U/Foundation with 5 credits including Mathematics and English (or a Diploma with 3 credits); English proof such as MUET Band 3, CEFR low B2 or a Pre-U/Diploma taught in English. Intakes: February, April, September.",
+  "url": "https://university.taylors.edu.my/en/study/explore-all-programmes/business/undergraduate/bachelor-of-business.html"
+ },
+ "bachelor_in_english": true
+}

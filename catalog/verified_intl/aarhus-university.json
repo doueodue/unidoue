@@ -1,0 +1,30 @@
+{
+ "name": "Aarhus University",
+ "country": "Denmark",
+ "city": "Aarhus",
+ "official_url": "https://international.au.dk",
+ "language": "English / Danish",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://bachelor.au.dk/en/international-applicants/moreinfo/language-requirements",
+  "year": 2026
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "EUR",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "A qualifying foreign secondary school exam plus programme-specific requirements; English B requires IELTS 6.5 (no section below 6.0), English A requires IELTS 7.0. Non-EU/EEA applicants pay tuition fees and a 150 EUR application fee; the deadline for documentation is 15 March at 12.00 noon.",
+  "url": "https://bachelor.au.dk/en/admission/international-applicants"
+ },
+ "bachelor_in_english": true
+}

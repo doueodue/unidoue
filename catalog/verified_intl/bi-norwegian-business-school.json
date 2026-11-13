@@ -1,0 +1,30 @@
+{
+ "name": "BI Norwegian Business School",
+ "country": "Norway",
+ "city": "Oslo",
+ "official_url": "https://www.bi.no/en/",
+ "language": "English / Norwegian",
+ "ielts": {
+  "min_overall": 6.0,
+  "url": "https://www.bi.no/en/programmes-and-individual-courses/admissions/admission-requirements/bachelor-programmes/",
+  "year": 2025
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 144000,
+  "currency": "NOK",
+  "note": "Per academic year, Bachelor of Business Administration, students from outside EU/EEA/Switzerland, academic year 2027-28",
+  "url": "https://www.bi.no/en/programmes-and-individual-courses/admissions/tuition-fees/tuition-fee-bachelor-of-business-administration/",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Higher education entrance qualification and documented English proficiency (IELTS Academic 6.0; scores older than 2 years not accepted); passport copy, financial plan, motivation letter and CV in English, official transcripts. International priority deadline 1 March, final 1 June for non-EU/EEA applicants.",
+  "url": "https://www.bi.no/en/programmes-and-individual-courses/admissions/how-to-apply-full-time-programmes/"
+ },
+ "bachelor_in_english": true
+}

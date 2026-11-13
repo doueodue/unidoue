@@ -1,0 +1,30 @@
+{
+ "name": "Nova School of Business and Economics",
+ "country": "Portugal",
+ "city": "Carcavelos (Lisbon area)",
+ "official_url": "https://www.novasbe.unl.pt",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.0,
+  "url": "https://www.novasbe.unl.pt/en/programs/apply/bachelors/international-students",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2026-12-04",
+  "intake": "Spring intake (semester February to June), direct application window 10 Nov - 4 Dec 2026, 5 pm Lisbon time",
+  "url": "https://www.novasbe.unl.pt/en/programs/apply/bachelors/international-students",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "EUR",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "High school diploma and/or school examination certificate with transcripts for the last three years; e.g. A-Level AAB with Mathematics A or IB 36 points (Mathematics 6+) for Economics & Management; CV, motivation letter, proof of English and 70 EUR application fee. Conditions valid for 2026/27 only.",
+  "url": "https://www.novasbe.unl.pt/en/programs/apply/bachelors/international-students"
+ },
+ "bachelor_in_english": true
+}

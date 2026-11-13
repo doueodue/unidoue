@@ -1,0 +1,122 @@
+{
+ "university-of-tartu": {
+  "req": [
+   "Tugallangan o‘rta ta’lim va ingliz tili bilimi isboti (IELTS Academic umumiy 6.0, hech bir qism 5.5 dan past emas). Business Administration abituriyentlari motivatsion xat va onlayn matematika kirish testi bo‘yicha baholanadi; ariza yig‘imi 100 EUR.",
+   "Законченное среднее образование и подтверждение знания английского (IELTS Academic общий 6.0, ни один раздел не ниже 5.5). Абитуриенты Business Administration оцениваются по мотивационному письму и онлайн-тесту по математике; регистрационный сбор 100 EUR."
+  ],
+  "note": [
+   "Business Administration (ingliz tilidagi bakalavr), yiliga; to‘lov yo‘nalishga qarab farq qiladi",
+   "Business Administration (бакалавриат на английском), в год; стоимость зависит от программы"
+  ]
+ },
+ "corvinus-university-of-budapest": {
+  "req": [
+   "Kirish imtihonlari (yoki imtihondan ozod qilish) qo‘llanadi; rasmiy ariza boshlash uchun 100 EUR ariza yig‘imi talab qilinadi. Ingliz tili bilimi talab etiladi (tafsilotlar universitetning qabul talablari sahifalarida).",
+   "Предусмотрены вступительные экзамены (или освобождение от них); для начала официальной подачи требуется регистрационный сбор 100 EUR. Требуется знание английского языка (подробности на страницах требований к поступлению университета)."
+  ],
+  "intake": [
+   "2027-yil sentyabr, bakalavr (vizali fuqarolar uchun yakuniy muddat 2027-yil 24-may; erta ariza 2027-yil 20-yanvar; vizasiz fuqarolar 2027-yil 12-avgust)",
+   "Сентябрь 2027, бакалавриат (окончательный срок для граждан, которым нужна виза, 24 мая 2027; ранняя подача 20 января 2027; граждане без визы 12 августа 2027)"
+  ],
+  "note": [
+   "EEA dan tashqari talabalar uchun yiliga, International Business BSc (semestrga 3 500 EUR); boshqa yo‘nalishlar yiliga 6 600–7 000 EUR",
+   "Для студентов не из EEA, в год, International Business BSc (3 500 EUR за семестр); другие программы 6 600–7 000 EUR в год"
+  ]
+ },
+ "ie-university": {
+  "req": [
+   "O‘rta ta’lim diplomi, oxirgi ikki o‘quv yili transkripti, standart test (SAT/ACT tavsiya etilgan minimumlar) yoki IE University Admission Test, CV, bitta tavsiyanoma, shaxsiy ifoda ishi va ariza yig‘imi; ingliz tili isboti (IELTS kamida 7).",
+   "Аттестат о среднем образовании, транскрипт за последние два учебных года, стандартизированный тест (рекомендуемые минимумы SAT/ACT) или IE University Admission Test, резюме, одно рекомендательное письмо, эссе-самопрезентация и регистрационный сбор; подтверждение английского (IELTS не ниже 7)."
+  ],
+  "intake": [
+   "2027-yil sentyabr qabuli, 2-bosqich (3-bosqich: 2027-yil 5-mart)",
+   "Набор на сентябрь 2027, 2-й раунд (3-й раунд: 5 марта 2027)"
+  ],
+  "note": [
+   "Global BBA, birinchi yil uchun yillik to‘lov; to‘lov yo‘nalishga qarab farq qiladi va har yili o‘zgartiriladi",
+   "Global BBA, плата за первый год в год; зависит от программы и ежегодно корректируется"
+  ]
+ },
+ "nova-school-of-business-and-economics": {
+  "req": [
+   "O‘rta maktab diplomi va/yoki imtihon sertifikati hamda oxirgi uch yil transkripti; masalan Economics & Management uchun A-Level AAB (Matematika A) yoki IB 36 ball (Matematika 6+); ingliz tilidagi CV, motivatsion xat, ingliz tili isboti va 70 EUR ariza yig‘imi. Shartlar faqat 2026/27 uchun amal qiladi.",
+   "Аттестат о среднем образовании и/или экзаменационный сертификат с транскриптами за последние три года; например для Economics & Management A-Level AAB (математика A) или IB 36 баллов (математика 6+); резюме на английском, мотивационное письмо, подтверждение английского и сбор 70 EUR. Условия действуют только на 2026/27."
+  ],
+  "intake": [
+   "Bahor qabuli (fevraldan iyungacha semestr), to‘g‘ridan-to‘g‘ri ariza 2026-yil 10-noyabrdan 4-dekabrgacha, Lissabon vaqti bilan 17:00",
+   "Весенний набор (семестр с февраля по июнь), прямая подача с 10 ноября по 4 декабря 2026, до 17:00 по времени Лиссабона"
+  ]
+ },
+ "aarhus-university": {
+  "req": [
+   "Tegishli xorijiy o‘rta ta’lim imtihoni va dasturga xos talablar; English B uchun IELTS 6.5 (hech bir bo‘lim 6.0 dan past emas), English A uchun IELTS 7.0. EU/EEAdan tashqari abituriyentlar o‘qish haqi va 150 EUR ariza yig‘imini to‘laydi; hujjatlar muddati 15-mart soat 12:00.",
+   "Соответствующий иностранный экзамен о среднем образовании и требования программы; для English B IELTS 6.5 (ни один раздел не ниже 6.0), для English A IELTS 7.0. Абитуриенты не из EU/EEA оплачивают обучение и сбор 150 EUR; срок подачи документов 15 марта до 12:00."
+  ]
+ },
+ "khalifa-university": {
+  "req": [
+   "Oxirgi ikki yil ichida tugatilgan 12-sinf (yoki unga teng) – Matematika va bitta fan bilan, o‘quv dasturi minimumlariga javob berishi kerak (masalan IB 24 ball, amerika/CBSE uchun 80%); IELTS Academic 6.0 yoki TOEFL iBT 79; tasdiqlangan sertifikatlar, video suhbat va tanlanganlar uchun KU qabul testlari.",
+   "Закончен 12-й класс (или эквивалент) в течение последних двух лет с математикой и одним естественным предметом, с учётом минимумов по системе обучения (например IB 24 балла, 80% для американской/CBSE); IELTS Academic 6.0 или TOEFL iBT 79; заверенные аттестаты, видеособеседование и вступительные тесты KU для отобранных кандидатов."
+  ],
+  "intake": [
+   "2027-yil kuzi bakalavriatiga arizalar (2027-yil 1-fevralgacha qabul qilinadi)",
+   "Заявки на бакалавриат, осень 2027 (принимаются до 1 февраля 2027)"
+  ],
+  "note": [
+   "Bakalavr, bir kredit-soat uchun taxminan 2 500 AED (semestrda 12–16 kredit); yotoqxona va transport alohida",
+   "Бакалавриат, около 2 500 AED за кредит-час (12–16 кредитов в семестр); проживание и транспорт отдельно"
+  ]
+ },
+ "modul-university-vienna": {
+  "req": [
+   "Kamida 24 ballli IB diplomi (Matematika 4 SL / 3 HL), C va undan yuqori baholi uchta A-Level yoki GPA 3.0 va AP/SAT/ACT natijali AQSh maktab attestati; aks holda Foundation dasturi va kirish imtihoni. Suhbat ingliz tilida; vizaga muhtoj abituriyentlar ingliz tili isbotini taqdim etadi.",
+   "Диплом IB не менее 24 баллов (математика 4 SL / 3 HL), три A-Level с оценкой не ниже C или американский аттестат с GPA 3.0 и результатами AP/SAT/ACT; иначе подготовительная программа Foundation и вступительный экзамен. Собеседование на английском; абитуриентам, которым нужна виза, необходимо подтверждение английского."
+  ],
+  "note": [
+   "Aksar bakalavr dasturlari uchun semestrga (2026-yil 1-yanvar holatiga); erta ariza uchun yiliga 1 000–2 000 EUR chegirma",
+   "За семестр для большинства бакалаврских программ (по состоянию на 1 января 2026); скидки за раннюю подачу 1 000–2 000 EUR в год"
+  ]
+ },
+ "university-of-warsaw": {
+  "req": [
+   "Universitet tan olgan sertifikat bilan kamida B2 darajadagi ingliz tili bilimi isboti majburiy; sertifikatsiz ariza topshirib bo‘lmaydi. Talab etilgan hujjatlar qabuldan oldin yuklanishi, malaka oshirilgach asl nusxalar yoki notarial nusxalar yuborilishi kerak (2026/2027 qoidalari).",
+   "Обязательно подтверждение английского не ниже уровня B2 сертификатом, признаваемым университетом; подача без сертификата невозможна. Необходимые документы нужно загрузить до зачисления, а оригиналы или нотариальные копии отправить после прохождения отбора (правила 2026/2027)."
+  ]
+ },
+ "masaryk-university": {
+  "req": [
+   "O‘rta maktab attestati va transkripti, pasport/ID nusxasi va ingliz tili isboti (masalan Social Studies uchun B2 sertifikati); fakultetga xos qo‘shimchalar: motivatsion xat, esse, kirish imtihoni yoki onlayn suhbat. Muddatlar fakultetga qarab farq qiladi (masalan sentyabr qabuli uchun Arts 30-aprel, Social Studies 15-may).",
+   "Аттестат о среднем образовании и транскрипт, копия паспорта/ID и подтверждение английского (например сертификат B2 для Social Studies); дополнительно по факультету: мотивационное письмо, эссе, вступительный экзамен или онлайн-собеседование. Сроки различаются по факультетам (например для сентябрьского набора Arts 30 апреля, Social Studies 15 мая)."
+  ],
+  "note": [
+   "Social Studies fakulteti, o‘quv yiliga, 2027-yil fevral qabuli (2026-yil sentyabr uchun 3 000 EUR); to‘lov fakultet va dasturga qarab farq qiladi",
+   "Факультет Social Studies, в учебный год, набор февраль 2027 (3 000 EUR для сентября 2026); стоимость зависит от факультета и программы"
+  ]
+ },
+ "vrije-universiteit-brussel": {
+  "req": [
+   "Xorijiy (Belgiyaga tegishli bo‘lmagan) diplom egalari akademik tayyorgarlik, natijalar, motivatsiya va til bilimi bo‘yicha qo‘shimcha saralashdan o‘tadi; Business Economics kabi ingliz tilidagi dasturlar uchun ingliz tili isboti talab qilinadi. 2027–2028 o‘quv yili uchun arizalar 2026-yil 15-noyabrdan ochiladi.",
+   "Обладатели иностранного (небельгийского) диплома проходят дополнительный отбор по академической подготовке, результатам, мотивации и знанию языка; для англоязычных программ, например Business Economics, требуется подтверждение английского. Приём заявок на 2027–2028 учебный год открывается 15 ноября 2026."
+  ]
+ },
+ "taylors-university": {
+  "req": [
+   "SPM/O-Level va Pre-U/Foundation: Matematika va ingliz tilidan 5 ta kredit (yoki Diplom va 3 ta kredit); ingliz tili isboti: MUET Band 3, CEFR past B2 yoki ingliz tilida o‘qitilgan Pre-U/Diplom. Qabul: fevral, aprel, sentyabr.",
+   "SPM/O-Level с Pre-U/Foundation: 5 кредитов, включая математику и английский (или Diploma с 3 кредитами); подтверждение английского: MUET Band 3, CEFR низкий B2 или Pre-U/Diploma на английском. Набор: февраль, апрель, сентябрь."
+  ],
+  "note": [
+   "3 yil uchun jami, Bachelor of Business (Honours), 2026-yil qabuli, 6% xizmat solig‘isiz; to‘lovlar har yili qayta ko‘rib chiqiladi",
+   "Всего за 3 года, Bachelor of Business (Honours), набор 2026, без сервисного налога 6%; стоимость пересматривается ежегодно"
+  ]
+ },
+ "bi-norwegian-business-school": {
+  "req": [
+   "Oliy ta’limga kirish malakasi va hujjatlashtirilgan ingliz tili bilimi (IELTS Academic 6.0; 2 yildan eski natijalar qabul qilinmaydi); pasport nusxasi, moliyaviy reja, ingliz tilidagi motivatsion xat va CV, rasmiy transkriptlar. Xalqaro abituriyentlar uchun ustuvor muddat 1-mart, EU/EEAdan tashqari uchun yakuniy muddat 1-iyun.",
+   "Квалификация для поступления в вуз и документально подтверждённый английский (IELTS Academic 6.0; результаты старше 2 лет не принимаются); копия паспорта, финансовый план, мотивационное письмо и резюме на английском, официальные транскрипты. Приоритетный срок для иностранных абитуриентов 1 марта, окончательный для не из EU/EEA 1 июня."
+  ],
+  "note": [
+   "O‘quv yiliga, Bachelor of Business Administration, EU/EEA/Shveytsariyadan tashqari talabalar uchun, 2027–28 o‘quv yili",
+   "За учебный год, Bachelor of Business Administration, для студентов не из EU/EEA/Швейцарии, 2027–28 учебный год"
+  ]
+ }
+}

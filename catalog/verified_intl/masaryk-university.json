@@ -1,0 +1,30 @@
+{
+ "name": "Masaryk University",
+ "country": "Czechia",
+ "city": "Brno",
+ "official_url": "https://www.muni.cz/en",
+ "language": "English / Czech",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 3500,
+  "currency": "EUR",
+  "note": "Faculty of Social Studies, per academic year, studies starting February 2027 (3,000 EUR for September 2026); fees vary by faculty and programme",
+  "url": "https://www.muni.cz/en/admissions/bachelors-and-masters-studies/tuition-fees-and-financial-aid",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Secondary school certificate and transcript, ID/passport copy and proof of English (e.g. B2 certificate for Social Studies); faculty-specific extras such as a statement of purpose, essay, entrance exam or online interview. Deadlines differ by faculty (e.g. Arts 30 April, Social Studies 15 May for September intake).",
+  "url": "https://www.muni.cz/en/admissions/bachelors-and-masters-studies/how-to-apply"
+ },
+ "bachelor_in_english": true
+}

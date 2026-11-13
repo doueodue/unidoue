@@ -1,0 +1,30 @@
+{
+ "name": "Khalifa University",
+ "country": "United Arab Emirates",
+ "city": "Abu Dhabi",
+ "official_url": "https://www.ku.ac.ae",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.0,
+  "url": "https://www.ku.ac.ae/undergraduate-admissions",
+  "year": 2027
+ },
+ "deadline": {
+  "date": "2027-02-01",
+  "intake": "Fall 2027 undergraduate applications (accepted until 1 Feb 2027)",
+  "url": "https://www.ku.ac.ae/undergraduate-admissions",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 81250,
+  "currency": "AED",
+  "note": "Bachelor, about 2,500 AED per credit hour (12-16 credits per semester); housing and transport extra",
+  "url": "https://www.ku.ac.ae/undergraduate-admissions",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Completed Grade 12 (or equivalent) within the last two years with Mathematics and one science, meeting curriculum minimums (e.g. IB 24 points, 80% for American/CBSE); IELTS Academic 6.0 or TOEFL iBT 79; attested certificates, video interview and KU Admission Tests for shortlisted applicants.",
+  "url": "https://www.ku.ac.ae/undergraduate-admissions"
+ },
+ "bachelor_in_english": true
+}

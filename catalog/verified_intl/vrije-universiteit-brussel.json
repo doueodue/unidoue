@@ -1,0 +1,30 @@
+{
+ "name": "Vrije Universiteit Brussel",
+ "country": "Belgium",
+ "city": "Brussels",
+ "official_url": "https://www.vub.be/en",
+ "language": "English / Dutch",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "EUR",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Applicants with a foreign (non-Belgian) diploma undergo additional screening of academic background, results, motivation and language proficiency; proof of English is required for English-taught programmes such as Business Economics. Applications for 2027-2028 open on 15 November 2026.",
+  "url": "https://vub.be/en/studying-vub/all-study-programmes-vub/bachelors-and-masters-programmes-vub/business-economics/admission-and-enrolment"
+ },
+ "bachelor_in_english": true
+}

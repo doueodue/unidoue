@@ -1,0 +1,30 @@
+{
+ "name": "IE University",
+ "country": "Spain",
+ "city": "Segovia / Madrid",
+ "official_url": "https://www.ie.edu/university/",
+ "language": "English / Spanish",
+ "ielts": {
+  "min_overall": 7.0,
+  "url": "https://static.ie.edu/marketing/web/IEU/IEU_Admissions%20Policy.pdf",
+  "year": 2027
+ },
+ "deadline": {
+  "date": "2027-01-15",
+  "intake": "September 2027 intake, Round 2 (Round 3: 5 Mar 2027)",
+  "url": "https://www.ie.edu/university/admission/admission-process/admissions-rounds/",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 45120,
+  "currency": "EUR",
+  "note": "Global BBA, first-year fee per year; fees differ by programme and are adjusted annually",
+  "url": "https://www.ie.edu/university/studies/academic-programs/global-bachelor-business-administration/admissions-fees/",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Secondary diploma, transcripts for the last two school years, a standardized test (SAT/ACT recommended minimums) or the IE University Admission Test, CV, one recommendation letter, personal expression piece and application fee; English proof (IELTS minimum 7).",
+  "url": "https://static.ie.edu/marketing/web/IEU/IEU_Admissions%20Policy.pdf"
+ },
+ "bachelor_in_english": true
+}
