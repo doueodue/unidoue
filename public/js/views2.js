@@ -17,7 +17,7 @@ export async function aboutUni(id) {
   const src = c.src || {}, row = (k, v) => `<div style="display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid var(--line)"><span style="color:var(--muted)">${k}</span><span style="text-align:right">${v}</span></div>`;
   const rows = [];
   rows.push(row('Davlat', esc(t(c.country || ''))));
-  if (c.city) rows.push(row('Shahar', esc(c.city)));
+  if (c.city) rows.push(row('Shahar', esc(c.city + (c.state ? ', ' + c.state : ''))));
   if (c.address) rows.push(row('Manzil', esc(c.address)));
   if (c.site) rows.push(row('Rasmiy sayt', `<a href="${esc(safeUrl(c.site))}" target="_blank" rel="noopener noreferrer">${esc(c.site.replace(/^https:\/\//, ''))}</a>`));
   rows.push(row('SAT oralig‘i', c.sat ? `${c.sat[0]}–${c.sat[1]} ${vb(c.satV)}${lnk(src.sat, 'manba')}` : 'ma’lumot yo‘q'));

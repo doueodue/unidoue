@@ -39,6 +39,15 @@ for n, b in base.items():
              src={k: (v.get(k) or {}).get('url') for k in ('sat', 'accept', 'ielts', 'deadline')} if v else {})
     if ie.get('kind') == 'none_stated': o['ielts'] = None
     out.append(o)
+# manzil/shahar/yoʻnalishlar (rasmiy saytlardan; faqat tasdiqlangani) — catalog/about_us.json
+import os
+_ap = ROOT + 'catalog/about_us.json'
+if os.path.exists(_ap):
+    _ab = json.load(open(_ap, encoding='utf-8')).get('items', {})
+    for o in out:
+        a = _ab.get(o['id']) or {}
+        for k in ('city', 'state', 'address', 'site', 'majors', 'majorsUrl'):
+            if a.get(k): o[k] = a[k]
 # faqat kamida bitta tekshirilgan maʼlumoti bor universitetlar koʻrsatiladi; qolganlari alohida faylda
 FL = ('satV', 'accV', 'rdV', 'ieltsV', 'gpaV')
 hidden = [o for o in out if not any(o[k] for k in FL)]
