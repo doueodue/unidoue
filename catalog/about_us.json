@@ -1,0 +1,1075 @@
+{
+ "updated": "2026-11-13",
+ "items": {
+  "stanford-university": {
+   "city": "Stanford",
+   "state": "CA",
+   "address": "450 Jane Stanford Way, Stanford, CA 94305-2004",
+   "site": "https://www.stanford.edu/",
+   "majors": [
+    "Aeronautics and Astronautics",
+    "African and African American Studies",
+    "American Studies",
+    "Anthropology",
+    "Applied Physics",
+    "Archaeology",
+    "Art History",
+    "Bioengineering",
+    "Biology"
+   ],
+   "majorsUrl": "https://majors.stanford.edu/majors",
+   "address_src": "https://www.stanford.edu/contact"
+  },
+  "yale-university": {
+   "city": "New Haven",
+   "state": "CT",
+   "address": "38 Hillhouse Avenue, New Haven, CT 06511",
+   "site": "https://www.yale.edu/",
+   "majors": [
+    "African Studies",
+    "American Studies",
+    "Anthropology",
+    "Applied Mathematics",
+    "Applied Physics",
+    "Archaeological Studies",
+    "Architecture",
+    "Art",
+    "Astronomy",
+    "Astrophysics",
+    "Biomedical Engineering",
+    "Black Studies"
+   ],
+   "majorsUrl": "https://catalog.yale.edu/ycps/majors-in-yale-college/",
+   "address_src": "https://admissions.yale.edu/contact"
+  },
+  "princeton-university": {
+   "city": "Princeton",
+   "state": "NJ",
+   "site": "https://www.princeton.edu/",
+   "majors": [
+    "Economics",
+    "Computer Science",
+    "English",
+    "Psychology",
+    "Chemistry",
+    "Physics",
+    "Politics",
+    "Sociology",
+    "History",
+    "Mathematics"
+   ],
+   "majorsUrl": "https://www.princeton.edu/academics/areas-of-study"
+  },
+  "columbia-university": {
+   "city": "New York",
+   "state": "NY",
+   "address": "213 Low Library, 2960 Broadway, New York, NY 10027-6902",
+   "site": "https://www.columbia.edu/",
+   "majors": [
+    "African American Studies",
+    "American Studies",
+    "Anthropology",
+    "Applied Mathematics",
+    "Archaeology",
+    "Architecture",
+    "Art History",
+    "Astronomy",
+    "Astrophysics",
+    "Biology",
+    "Biochemistry"
+   ],
+   "majorsUrl": "https://www.college.columbia.edu/academics/programs",
+   "address_src": "https://visit.columbia.edu/content/contact-us"
+  },
+  "university-of-pennsylvania": {
+   "city": "Philadelphia",
+   "state": "PA",
+   "address": "3535 Market Street, Suite 850, Philadelphia, PA 19104",
+   "site": "https://www.upenn.edu/",
+   "majors": [
+    "Africana Studies",
+    "Ancient History",
+    "Anthropology",
+    "Architecture",
+    "Biochemistry",
+    "Biology",
+    "Biophysics",
+    "Chemistry",
+    "Cinema and Media Studies",
+    "Classical Studies",
+    "Cognitive Science",
+    "Communication"
+   ],
+   "majorsUrl": "https://catalog.upenn.edu/undergraduate/arts-sciences/majors/",
+   "address_src": "https://admissions.upenn.edu/visit-connect/contact-us"
+  },
+  "brown-university": {
+   "city": "Providence",
+   "state": "RI",
+   "address": "201 Thayer St, 14th Floor, Providence, RI 02912",
+   "site": "https://www.brown.edu/",
+   "majors": [
+    "Africana Studies",
+    "American Studies",
+    "Anthropology",
+    "Applied Mathematics",
+    "Archaeology and the Ancient World",
+    "Architecture",
+    "Astronomy",
+    "Behavioral Decision Sciences",
+    "Biochemistry & Molecular Biology"
+   ],
+   "majorsUrl": "https://bulletin.brown.edu/the-college/concentrations/",
+   "address_src": "https://admission.brown.edu/ask"
+  },
+  "cornell-university": {
+   "city": "Ithaca",
+   "state": "NY",
+   "address": "Martin Y. Tang Welcome Center, 616 Thurston Ave., Ithaca, NY 14853",
+   "site": "https://www.cornell.edu/",
+   "majors": [
+    "Africana Studies",
+    "Agricultural Sciences",
+    "American Studies",
+    "Animal Science",
+    "Anthropology",
+    "Applied Economics and Management",
+    "Archaeology",
+    "Architecture",
+    "Asian Studies",
+    "Astronomy"
+   ],
+   "majorsUrl": "https://www.cornell.edu/academics/fields.cfm",
+   "address_src": "https://www.cornell.edu/contact/"
+  },
+  "dartmouth-college": {
+   "city": "Hanover",
+   "state": "NH",
+   "site": "https://home.dartmouth.edu/"
+  },
+  "duke-university": {
+   "city": "Durham",
+   "state": "NC",
+   "address": "2080 Duke University Road, Durham, NC 27708",
+   "site": "https://www.duke.edu/",
+   "majors": [
+    "Biology",
+    "Biomedical Engineering",
+    "Chemistry",
+    "Civil Engineering",
+    "Computer Science",
+    "Economics",
+    "Mathematics",
+    "Mechanical Engineering",
+    "Neuroscience",
+    "Philosophy"
+   ],
+   "majorsUrl": "https://admissions.duke.edu/academic-possibilities/",
+   "address_src": "https://www.duke.edu/contact/"
+  },
+  "california-institute-of-technology": {
+   "city": "Pasadena",
+   "state": "CA",
+   "address": "1200 E. California Blvd., Pasadena, CA 91125",
+   "site": "https://www.caltech.edu/",
+   "majors": [
+    "Applied and Computational Mathematics",
+    "Astrophysics",
+    "Chemical Engineering",
+    "Computer Science",
+    "Economics",
+    "English",
+    "Geological and Planetary Sciences",
+    "Mathematics",
+    "Political Science"
+   ],
+   "majorsUrl": "https://www.admissions.caltech.edu/why-caltech/academics/majors-minors",
+   "address_src": "https://www.caltech.edu/contact"
+  },
+  "johns-hopkins-university": {
+   "city": "Baltimore",
+   "state": "MD",
+   "address": "3400 N. Charles Street, Baltimore, MD 21218",
+   "site": "https://www.jhu.edu/",
+   "majors": [
+    "Anthropology",
+    "Biology",
+    "Chemistry",
+    "Economics",
+    "Film and Media Studies",
+    "German",
+    "Italian",
+    "Mathematics",
+    "Neuroscience",
+    "Psychology",
+    "Spanish",
+    "Writing Seminars"
+   ],
+   "majorsUrl": "https://krieger.jhu.edu/academics/majors-minors/",
+   "address_src": "https://www.jhu.edu/contact/"
+  },
+  "northwestern-university": {
+   "city": "Evanston",
+   "state": "IL",
+   "address": "633 Clark Street, Evanston, IL 60208",
+   "site": "https://www.northwestern.edu/",
+   "majors": [
+    "Anthropology",
+    "Biological Sciences",
+    "Chemistry",
+    "Data Science",
+    "Economics",
+    "History",
+    "Journalism",
+    "Linguistics",
+    "Mathematics",
+    "Neuroscience",
+    "Psychology"
+   ],
+   "majorsUrl": "https://admissions.northwestern.edu/academics/majors-minors/",
+   "address_src": "https://www.northwestern.edu/contact.html"
+  },
+  "university-of-chicago": {
+   "city": "Chicago",
+   "state": "IL",
+   "address": "5801 S. Ellis Ave., Chicago, IL 60637",
+   "site": "https://www.uchicago.edu/",
+   "majors": [
+    "Anthropology",
+    "Biological Sciences",
+    "Chemistry",
+    "Data Science",
+    "Economics",
+    "History",
+    "Linguistics",
+    "Mathematics",
+    "Neuroscience",
+    "Philosophy",
+    "Psychology",
+    "Sociology"
+   ],
+   "majorsUrl": "https://www.uchicago.edu/academics/undergraduate-programs",
+   "address_src": "https://www.uchicago.edu/contact-us"
+  },
+  "rice-university": {
+   "city": "Houston",
+   "state": "TX",
+   "address": "6100 Main Street, Houston, Texas 77005-1827",
+   "site": "https://www.rice.edu/",
+   "majors": [
+    "Anthropology",
+    "Business",
+    "Chemistry",
+    "Economics",
+    "English",
+    "History",
+    "Linguistics",
+    "Mathematics",
+    "Neuroscience",
+    "Physics",
+    "Religion",
+    "Sociology"
+   ],
+   "majorsUrl": "https://ga.rice.edu/undergraduate-students/academic-opportunities/majors-minors-certificates/",
+   "address_src": "https://ga.rice.edu/important-notices/contact-information/"
+  },
+  "vanderbilt-university": {
+   "city": "Nashville",
+   "state": "TN",
+   "address": "Office of Undergraduate Admissions, PMB 7811, 2305 West End Avenue, Nashville, Tennessee 37240",
+   "site": "https://www.vanderbilt.edu/",
+   "majors": [
+    "Anthropology",
+    "Biological Sciences",
+    "Chemistry",
+    "Economics",
+    "French",
+    "German Studies",
+    "History",
+    "Mathematics",
+    "Neuroscience",
+    "Philosophy",
+    "Sociology",
+    "Theatre"
+   ],
+   "majorsUrl": "https://as.vanderbilt.edu/undergraduate-programs/majors-minors/",
+   "address_src": "https://admissions.vanderbilt.edu/contact/"
+  },
+  "university-of-notre-dame": {
+   "city": "Notre Dame",
+   "state": "IN",
+   "address": "McKenna Hall, University of Notre Dame, Notre Dame, IN 46556",
+   "site": "https://www.nd.edu/",
+   "majors": [
+    "Accountancy",
+    "Biological Sciences",
+    "Chemistry",
+    "Economics",
+    "Finance",
+    "Global Affairs",
+    "History",
+    "Japanese",
+    "Mathematics",
+    "Psychology",
+    "Sociology",
+    "Theology"
+   ],
+   "majorsUrl": "https://www.nd.edu/academics/programs/",
+   "address_src": "https://admissions.nd.edu/contact/"
+  },
+  "washington-university-in-st-louis": {
+   "city": "St. Louis",
+   "state": "MO",
+   "site": "https://wustl.edu/",
+   "majors": [
+    "African and African-American Studies",
+    "Economics and Computer Science",
+    "Film and Media Studies",
+    "Germanic Languages and Literatures",
+    "Interdisciplinary Project in the Humanities",
+    "Jewish, Islamic, and Middle Eastern Studies",
+    "Mathematics and Computer Science",
+    "Romance Languages and Literatures",
+    "Women, Gender, and Sexuality Studies"
+   ],
+   "majorsUrl": "https://bulletin.wustl.edu/undergrad/artsci/majors/"
+  },
+  "carnegie-mellon-university": {
+   "city": "Pittsburgh",
+   "state": "PA",
+   "address": "5000 Forbes Avenue, Pittsburgh, PA 15213",
+   "site": "https://www.cmu.edu/",
+   "address_src": "https://www.cmu.edu/admission/contact-us",
+   "majors": [
+    "Chemical Engineering",
+    "Civil Engineering",
+    "Electrical and Computer Engineering",
+    "Environmental Engineering",
+    "Materials Science and Engineering",
+    "Mechanical Engineering"
+   ],
+   "majorsUrl": "https://engineering.cmu.edu/education/undergraduate-studies/curriculum/programs/index.html"
+  },
+  "emory-university": {
+   "city": "Atlanta",
+   "state": "GA",
+   "address": "201 Dowman Drive, Atlanta, GA 30322",
+   "site": "https://www.emory.edu/",
+   "majors": [
+    "Accounting",
+    "African American Studies",
+    "American Studies",
+    "Ancient Mediterranean Studies",
+    "Anthropology",
+    "Applied Mathematics",
+    "Arabic",
+    "Art History"
+   ],
+   "majorsUrl": "https://apply.emory.edu/academics/majors-minors.html",
+   "address_src": "https://www.emory.edu/contact/emory-university"
+  },
+  "georgetown-university": {
+   "city": "Washington",
+   "state": "DC",
+   "address": "3700 O St., N.W., Washington, D.C. 20057",
+   "site": "https://www.georgetown.edu/",
+   "majors": [
+    "Accounting",
+    "Biology",
+    "Chemistry",
+    "Economics",
+    "Finance",
+    "Government",
+    "History",
+    "Marketing",
+    "Mathematics",
+    "Philosophy",
+    "Psychology",
+    "Sociology"
+   ],
+   "majorsUrl": "https://uadmissions.georgetown.edu/academic-offerings/",
+   "address_src": "https://www.georgetown.edu/contact/"
+  },
+  "tufts-university": {
+   "city": "Medford",
+   "state": "MA",
+   "address": "Office of Undergraduate Admissions, Bendetson Hall, Medford, MA 02155",
+   "site": "https://www.tufts.edu/",
+   "majors": [
+    "Anthropology",
+    "Biology",
+    "Computer Science",
+    "Data Science",
+    "Economics",
+    "Film and Media Studies",
+    "History",
+    "International Relations",
+    "Mechanical Engineering",
+    "Psychology",
+    "Religion",
+    "Sociology"
+   ],
+   "majorsUrl": "https://admissions.tufts.edu/discover-tufts/academics/majors-and-minors/",
+   "address_src": "https://www.tufts.edu/about/contact-us"
+  },
+  "boston-college": {
+   "city": "Chestnut Hill",
+   "state": "MA",
+   "address": "Boston College Undergraduate Admission, 140 Commonwealth Avenue, Devlin 208, Chestnut Hill, MA 02467",
+   "site": "https://www.bc.edu/",
+   "majors": [
+    "Accounting",
+    "Biology",
+    "Chemistry",
+    "Economics",
+    "Finance",
+    "History",
+    "International Studies",
+    "Mathematics",
+    "Neuroscience",
+    "Philosophy",
+    "Sociology",
+    "Theology"
+   ],
+   "majorsUrl": "https://www.bc.edu/bc-web/admission/majors-minors.html",
+   "address_src": "https://www.bc.edu/bc-web/admission/visit/contact-admission.html"
+  },
+  "boston-university": {
+   "city": "Boston",
+   "state": "MA",
+   "address": "One Silber Way, Boston, MA 02215",
+   "site": "https://www.bu.edu/",
+   "majors": [
+    "Advertising",
+    "Biology",
+    "Computer Science",
+    "Data Science",
+    "Economics",
+    "Film & Television",
+    "History",
+    "Journalism",
+    "Mechanical Engineering",
+    "Neuroscience",
+    "Psychology",
+    "Sociology"
+   ],
+   "majorsUrl": "https://www.bu.edu/admissions/why-bu/academics/majors/",
+   "address_src": "https://www.bu.edu/about/contact-us/"
+  },
+  "northeastern-university": {
+   "city": "Boston",
+   "state": "MA",
+   "address": "360 Huntington Avenue, Boston, MA 02115",
+   "site": "https://www.northeastern.edu/",
+   "majors": [
+    "Bioengineering",
+    "Business Administration",
+    "Chemical Engineering",
+    "Civil Engineering",
+    "Computer Science",
+    "Electrical Engineering",
+    "Environmental Engineering",
+    "Industrial Engineering",
+    "Mechanical Engineering",
+    "Nursing"
+   ],
+   "majorsUrl": "https://catalog.northeastern.edu/undergraduate/university-academics/degrees/",
+   "address_src": "https://graduate.northeastern.edu/global-campus-network/boston-campus/"
+  },
+  "brandeis-university": {
+   "city": "Waltham",
+   "state": "MA",
+   "address": "Shapiro Admissions Center, Brandeis University, 415 South Street, Waltham, MA 02453",
+   "site": "https://www.brandeis.edu/",
+   "majors": [
+    "Anthropology",
+    "Biology",
+    "Chemistry",
+    "Computer Science",
+    "Economics",
+    "English",
+    "History",
+    "Mathematics",
+    "Neuroscience",
+    "Philosophy",
+    "Psychology",
+    "Sociology"
+   ],
+   "majorsUrl": "https://www.brandeis.edu/registrar/bulletin/2025-2026/courses/major-minor.html",
+   "address_src": "https://www.brandeis.edu/admissions/about/contact.html"
+  },
+  "case-western-reserve-university": {
+   "city": "Cleveland",
+   "state": "OH",
+   "address": "10900 Euclid Avenue, Cleveland, OH 44106-7068",
+   "site": "https://case.edu/",
+   "majors": [
+    "Accounting",
+    "Biology",
+    "Chemistry",
+    "Dance",
+    "Economics",
+    "Finance",
+    "History",
+    "Mathematics",
+    "Nursing",
+    "Philosophy",
+    "Sociology",
+    "Theater Arts"
+   ],
+   "majorsUrl": "https://bulletin.case.edu/undergraduate-academics/majors-minors/",
+   "address_src": "https://case.edu/artsci/about/contact/main.html"
+  },
+  "university-of-rochester": {
+   "city": "Rochester",
+   "state": "NY",
+   "address": "Office of Admissions, University of Rochester, 300 Wilson Boulevard, Rochester, NY 14627-0251",
+   "site": "https://www.rochester.edu/",
+   "address_src": "https://admissions.rochester.edu/contact/",
+   "majors": [
+    "Biology",
+    "Chemistry",
+    "Computer Science",
+    "Economics",
+    "English",
+    "History",
+    "Mathematics",
+    "Neuroscience",
+    "Philosophy",
+    "Physics",
+    "Political Science",
+    "Psychology"
+   ],
+   "majorsUrl": "https://www.rochester.edu/college/academics/search.html"
+  },
+  "wake-forest-university": {
+   "city": "Winston-Salem",
+   "state": "NC",
+   "address": "1834 Wake Forest Road, Winston-Salem, NC 27109",
+   "site": "https://www.wfu.edu/",
+   "majors": [
+    "Accountancy",
+    "Biology",
+    "Chemistry",
+    "Economics",
+    "Finance",
+    "German & German Studies",
+    "History",
+    "Mathematics",
+    "Neuroscience",
+    "Philosophy",
+    "Sociology",
+    "Theatre"
+   ],
+   "majorsUrl": "https://admissions.wfu.edu/academics/majors-minors/",
+   "address_src": "https://about.wfu.edu/contact-us/"
+  },
+  "lehigh-university": {
+   "city": "Bethlehem",
+   "state": "PA",
+   "address": "27 Memorial Drive West, Bethlehem, PA 18015",
+   "site": "https://www2.lehigh.edu/",
+   "majors": [
+    "Accounting",
+    "Biology",
+    "Chemistry",
+    "Economics",
+    "Finance",
+    "History",
+    "Journalism",
+    "Mathematics",
+    "Neuroscience",
+    "Psychology",
+    "Sociology",
+    "Theatre"
+   ],
+   "majorsUrl": "https://www2.lehigh.edu/academics/undergraduate-studies/degree-programs",
+   "address_src": "https://www2.lehigh.edu/about/contact-lehigh"
+  },
+  "villanova-university": {
+   "city": "Villanova",
+   "state": "PA",
+   "address": "Office of Undergraduate Admission, 800 E. Lancaster Avenue, Villanova, PA 19085",
+   "site": "https://www.villanova.edu/",
+   "majors": [
+    "Accounting",
+    "Business Analytics",
+    "Economics",
+    "Finance",
+    "International Business",
+    "Management",
+    "Management Information Systems",
+    "Marketing",
+    "Real Estate"
+   ],
+   "majorsUrl": "https://www.villanova.edu/university/business/academics/undergraduate-programs/degrees.html",
+   "address_src": "https://www.villanova.edu/university/undergraduate-admission/contact-admission.html"
+  },
+  "tulane-university": {
+   "city": "New Orleans",
+   "state": "LA",
+   "address": "6823 St. Charles Avenue, New Orleans, LA 70118",
+   "site": "https://tulane.edu/",
+   "majors": [
+    "Anthropology",
+    "Biochemistry",
+    "Biological Sciences",
+    "Chemistry",
+    "Economics",
+    "English",
+    "History",
+    "Mathematics",
+    "Philosophy",
+    "Physics",
+    "Political Science",
+    "Psychology"
+   ],
+   "majorsUrl": "https://catalog.tulane.edu/academic-programs/",
+   "address_src": "https://tulane.edu/contact-us"
+  },
+  "southern-methodist-university": {
+   "city": "Dallas",
+   "state": "TX",
+   "address": "Laura Lee Blanton Building, 6185 Airline Road, 2nd Floor, Dallas, TX 75275",
+   "site": "https://www.smu.edu/",
+   "majors": [
+    "Accounting",
+    "Anthropology",
+    "Chemistry",
+    "Computer Science",
+    "Economics",
+    "English",
+    "Finance",
+    "Marketing",
+    "Mathematics",
+    "Physics",
+    "Political Science",
+    "Psychology"
+   ],
+   "majorsUrl": "https://www.smu.edu/dedman/academics/undergraduate-majors",
+   "address_src": "https://www.smu.edu/admission/visit/mapsdirections"
+  },
+  "rensselaer-polytechnic-institute": {
+   "city": "Troy",
+   "state": "NY",
+   "address": "Rensselaer Polytechnic Institute, 110 8th Street, Troy, New York 12180-3590",
+   "site": "https://www.rpi.edu/",
+   "majors": [
+    "Architecture",
+    "Biology",
+    "Chemistry",
+    "Computer Science",
+    "Physics",
+    "Mathematics",
+    "Chemical Engineering",
+    "Civil Engineering",
+    "Electrical Engineering",
+    "Mechanical Engineering",
+    "Economics",
+    "Biomedical Engineering"
+   ],
+   "majorsUrl": "https://www.rpi.edu/academics",
+   "address_src": "https://undergrad.admissions.rpi.edu/accepted-students/campus-contacts"
+  },
+  "worcester-polytechnic-institute": {
+   "city": "Worcester",
+   "state": "MA",
+   "address": "100 Institute Road, Worcester, MA 01609-2280",
+   "site": "https://www.wpi.edu/",
+   "majors": [
+    "Computer Science",
+    "Mechanical Engineering",
+    "Electrical & Computer Engineering",
+    "Biomedical Engineering",
+    "Chemical Engineering",
+    "Civil Engineering",
+    "Data Science",
+    "Business",
+    "Economics",
+    "Physics",
+    "Chemistry",
+    "Biochemistry"
+   ],
+   "majorsUrl": "https://www.wpi.edu/academics/study",
+   "address_src": "https://www.wpi.edu/admissions/undergraduate/connect"
+  },
+  "rose-hulman-institute-of-technology": {
+   "city": "Terre Haute",
+   "state": "IN",
+   "site": "https://www.rose-hulman.edu/",
+   "majors": [
+    "Biochemistry",
+    "Biology",
+    "Biomedical Engineering",
+    "Chemical Engineering",
+    "Chemistry",
+    "Civil Engineering",
+    "Computer Engineering",
+    "Computer Science",
+    "Electrical Engineering",
+    "Mathematics",
+    "Mechanical Engineering",
+    "Physics"
+   ],
+   "majorsUrl": "https://www.rose-hulman.edu/academics/degrees-and-programs/majors.html"
+  },
+  "university-of-southern-california": {
+   "city": "Los Angeles",
+   "state": "CA",
+   "site": "https://www.usc.edu/"
+  },
+  "uc-berkeley": {
+   "city": "Berkeley",
+   "state": "CA",
+   "address": "110 Sproul Hall #5800, Berkeley, CA 94720-5800",
+   "site": "https://www.berkeley.edu/",
+   "majors": [
+    "Computer Science",
+    "Data Science",
+    "Statistics",
+    "Economics",
+    "Political Science",
+    "Psychology",
+    "Sociology",
+    "English",
+    "History",
+    "Architecture",
+    "Physics",
+    "Neuroscience"
+   ],
+   "majorsUrl": "https://admissions.berkeley.edu/academics/academic-programs-majors-uc-berkeley-minors/",
+   "address_src": "https://admissions.berkeley.edu/contact-us/"
+  },
+  "ucla": {
+   "city": "Los Angeles",
+   "state": "CA",
+   "address": "405 Hilgard Avenue, Los Angeles, CA 90095",
+   "site": "https://www.ucla.edu/",
+   "majors": [
+    "Anthropology",
+    "Biology",
+    "Chemistry",
+    "Computer Science",
+    "Economics",
+    "English",
+    "Film and Television",
+    "Mechanical Engineering",
+    "Neuroscience",
+    "Philosophy",
+    "Political Science",
+    "Psychology"
+   ],
+   "majorsUrl": "https://admission.ucla.edu/apply/majors",
+   "address_src": "https://newsroom.ucla.edu/ucla-fast-facts"
+  },
+  "uc-san-diego": {
+   "city": "La Jolla",
+   "state": "CA",
+   "address": "9500 Gilman Drive, La Jolla, CA 92093-0021",
+   "site": "https://ucsd.edu/",
+   "majors": [
+    "Biochemistry",
+    "Chemistry",
+    "Computer Science",
+    "Economics",
+    "Electrical Engineering",
+    "History",
+    "Mathematics",
+    "Mechanical Engineering",
+    "Philosophy",
+    "Physics",
+    "Psychology",
+    "Sociology"
+   ],
+   "majorsUrl": "https://students.ucsd.edu/academics/advising/majors-minors/undergraduate-majors.html",
+   "address_src": "https://ucsd.edu/about/contact.html"
+  },
+  "uc-irvine": {
+   "city": "Irvine",
+   "state": "CA",
+   "address": "Office of Undergraduate Admissions, 260 Aldrich Hall, Irvine, CA 92697-1075",
+   "site": "https://uci.edu/",
+   "majors": [
+    "Chemistry",
+    "Physics",
+    "Mathematics",
+    "Economics",
+    "English",
+    "History",
+    "Psychology",
+    "Political Science",
+    "Sociology",
+    "Computer Science",
+    "Mechanical Engineering",
+    "Philosophy"
+   ],
+   "majorsUrl": "https://catalogue.uci.edu/undergraduatedegrees/",
+   "address_src": "https://admissions.uci.edu/contact.php"
+  },
+  "uc-santa-barbara": {
+   "city": "Santa Barbara",
+   "state": "CA",
+   "site": "https://www.ucsb.edu/",
+   "majors": [
+    "Anthropology",
+    "Biological Sciences",
+    "Chemistry",
+    "Communication",
+    "Computer Science",
+    "Economics",
+    "English",
+    "History",
+    "Mechanical Engineering",
+    "Philosophy",
+    "Political Science",
+    "Sociology"
+   ],
+   "majorsUrl": "https://admissions.sa.ucsb.edu/majors"
+  },
+  "uc-davis": {
+   "city": "Davis",
+   "state": "CA",
+   "address": "Undergraduate Admissions, University of California, Davis, One Shields Avenue, Davis, CA 95616-8507",
+   "site": "https://www.ucdavis.edu/",
+   "majors": [
+    "Psychology",
+    "Biological Sciences",
+    "Neurobiology, Physiology and Behavior",
+    "Managerial Economics",
+    "Economics",
+    "Animal Science",
+    "Biochemistry and Molecular Biology",
+    "Computer Science",
+    "Communication",
+    "Political Science"
+   ],
+   "majorsUrl": "https://www.ucdavis.edu/majors/blog/top-ten-majors",
+   "address_src": "https://www.ucdavis.edu/admissions/undergraduate/contact"
+  },
+  "university-of-virginia": {
+   "city": "Charlottesville",
+   "state": "VA",
+   "address": "Peabody Hall, P.O. Box 400160, 190 McCormick Road, Charlottesville, VA 22904-4160",
+   "site": "https://www.virginia.edu/",
+   "majors": [
+    "Biology",
+    "Chemistry",
+    "Computer Science",
+    "Economics",
+    "English",
+    "History",
+    "Mathematics",
+    "Nursing",
+    "Philosophy",
+    "Physics",
+    "Psychology",
+    "Sociology"
+   ],
+   "majorsUrl": "https://www.virginia.edu/academics/majors/",
+   "address_src": "https://www.virginia.edu/contact-us/"
+  },
+  "unc-chapel-hill": {
+   "city": "Chapel Hill",
+   "state": "NC",
+   "address": "Student and Academic Services Building North (SASB), 450 Ridge Road, Chapel Hill, NC 27599",
+   "site": "https://www.unc.edu/",
+   "majors": [
+    "Biology",
+    "Business Administration",
+    "Chemistry",
+    "Computer Science",
+    "Economics",
+    "History",
+    "Mathematics",
+    "Neuroscience",
+    "Nursing",
+    "Philosophy",
+    "Physics",
+    "Psychology"
+   ],
+   "majorsUrl": "https://catalog.unc.edu/undergraduate/programs-study/",
+   "address_src": "https://registrar.unc.edu/contact-us/"
+  },
+  "georgia-institute-of-technology": {
+   "city": "Atlanta",
+   "state": "GA",
+   "address": "North Ave NW, Atlanta, GA 30332",
+   "site": "https://www.gatech.edu/",
+   "majors": [
+    "Computer Science",
+    "Mechanical Engineering",
+    "Electrical Engineering",
+    "Civil Engineering",
+    "Aerospace Engineering",
+    "Biomedical Engineering",
+    "Architecture",
+    "Business Administration",
+    "Economics",
+    "Biology",
+    "Chemistry",
+    "Psychology"
+   ],
+   "majorsUrl": "https://www.gatech.edu/academics/bachelors-degree-programs",
+   "address_src": "https://www.gatech.edu/about/visit"
+  },
+  "university-of-texas-at-austin": {
+   "city": "Austin",
+   "state": "TX",
+   "address": "Main Building (MAI), 110 Inner Campus Drive, Austin, TX 78712",
+   "site": "https://www.utexas.edu/",
+   "majors": [
+    "Accounting",
+    "Finance",
+    "Marketing",
+    "Architecture",
+    "Journalism",
+    "Advertising",
+    "Nursing",
+    "Biology",
+    "Chemistry",
+    "Mathematics",
+    "Mechanical Engineering",
+    "Computer Science"
+   ],
+   "majorsUrl": "https://admissions.utexas.edu/explore/colleges-degrees/",
+   "address_src": "https://www.utexas.edu/contact-us"
+  },
+  "texas-a-m-university": {
+   "city": "College Station",
+   "state": "TX",
+   "address": "400 Bizzell St., College Station, TX 77843",
+   "site": "https://www.tamu.edu/",
+   "majors": [
+    "Anthropology",
+    "Biology",
+    "Chemistry",
+    "Communication",
+    "Economics",
+    "English",
+    "History",
+    "Journalism",
+    "Mathematics",
+    "Philosophy",
+    "Physics",
+    "Psychology"
+   ],
+   "majorsUrl": "https://artsci.tamu.edu/academics/degrees/undergraduate/index.html",
+   "address_src": "https://www.tamu.edu/statements/physical-address.html"
+  },
+  "university-of-illinois-urbana-champaign": {
+   "city": "Urbana",
+   "state": "IL",
+   "address": "Office of Undergraduate Admissions, 901 West Illinois Street, Urbana, IL 61801",
+   "site": "https://illinois.edu/",
+   "majors": [
+    "Accountancy",
+    "Advertising",
+    "Aerospace Engineering",
+    "Biology",
+    "Chemistry",
+    "Computer Science",
+    "Economics",
+    "Finance",
+    "Journalism",
+    "Mathematics",
+    "Mechanical Engineering",
+    "Psychology"
+   ],
+   "majorsUrl": "https://myillini.illinois.edu/Programs/Majors",
+   "address_src": "https://www.admissions.illinois.edu/contact/"
+  },
+  "university-of-wisconsin-madison": {
+   "city": "Madison",
+   "state": "WI",
+   "address": "185 Bascom Hall, 500 Lincoln Drive, Madison, Wisconsin 53706",
+   "site": "https://www.wisc.edu/",
+   "address_src": "https://students.wisc.edu/who-we-are/"
+  },
+  "ohio-state-university": {
+   "city": "Columbus",
+   "state": "OH",
+   "address": "Undergraduate Admissions, Student Academic Services Bldg., Rm. 604, 281 W. Lane Ave., Columbus, OH 43210",
+   "site": "https://www.osu.edu/",
+   "majors": [
+    "Architecture",
+    "Biology",
+    "Chemistry",
+    "Economics",
+    "English",
+    "Finance",
+    "Marketing",
+    "Mathematics",
+    "Mechanical Engineering",
+    "Nursing",
+    "Physics",
+    "Psychology"
+   ],
+   "majorsUrl": "https://undergrad.osu.edu/majors-and-academics/majors-by-college",
+   "address_src": "https://undergrad.osu.edu/contact-us"
+  },
+  "mit": {
+   "city": "Cambridge",
+   "state": "MA",
+   "site": "https://www.mit.edu/"
+  },
+  "harvard-university": {
+   "city": "Cambridge",
+   "state": "MA",
+   "address": "Massachusetts Hall, Cambridge, MA 02138",
+   "site": "https://www.harvard.edu/",
+   "address_src": "https://www.harvard.edu/contact-harvard/"
+  },
+  "new-york-university": {
+   "city": "New York",
+   "state": "NY",
+   "address": "70 Washington Square South, New York, NY 10012",
+   "site": "https://www.nyu.edu/",
+   "majors": [
+    "Biology",
+    "Chemistry",
+    "Psychology",
+    "Economics",
+    "Political Science",
+    "Computer Science",
+    "Mechanical Engineering",
+    "Electrical Engineering",
+    "Civil Engineering",
+    "English",
+    "History",
+    "Neuroscience"
+   ],
+   "majorsUrl": "https://cas.nyu.edu/academic-programs/majors-and-minors.html",
+   "address_src": "https://bulletins.nyu.edu/nyu/about/locations-facilities/"
+  },
+  "university-of-michigan": {
+   "city": "Ann Arbor",
+   "state": "MI",
+   "site": "https://umich.edu/"
+  },
+  "purdue-university": {
+   "city": "West Lafayette",
+   "state": "IN",
+   "address": "610 Purdue Mall, West Lafayette, IN 47907",
+   "site": "https://www.purdue.edu/",
+   "majors": [
+    "Accounting",
+    "Actuarial Science",
+    "Aeronautical and Astronautical Engineering",
+    "Agribusiness",
+    "Agricultural Economics",
+    "Animal Sciences",
+    "Animation and Visual Effects",
+    "Anthropology",
+    "Aquatic Sciences",
+    "Astrophysics"
+   ],
+   "majorsUrl": "https://admissions.purdue.edu/academics/majors/",
+   "address_src": "https://www.purdue.edu/home/contact-us/"
+  },
+  "arizona-state-university": {
+   "city": "Tempe",
+   "state": "AZ",
+   "site": "https://www.asu.edu/"
+  }
+ }
+}
