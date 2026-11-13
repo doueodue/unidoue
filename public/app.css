@@ -186,7 +186,7 @@ html[data-season=kuz] .grad-card{background:linear-gradient(120deg,#fff 0%,#fff3
 .leaves .lf{position:absolute;top:-50px;opacity:.92;filter:drop-shadow(0 2px 2px rgba(60,20,0,.25));animation:leaf-fall linear infinite,leaf-sway ease-in-out infinite alternate;will-change:transform}
 @keyframes leaf-fall{to{top:105vh}}
 @keyframes leaf-sway{from{transform:translateX(-30px) rotate(-35deg) rotateY(0)}to{transform:translateX(40px) rotate(150deg) rotateY(70deg)}}
-.tg-card{display:flex;align-items:center;gap:14px;padding:14px 18px;margin:14px 0;text-decoration:none;color:inherit}
+.tg-card{display:flex;margin:0;align-items:center;gap:14px;padding:14px 18px;text-decoration:none;color:inherit}
 .tg-card span:nth-child(2){flex:1;display:flex;flex-direction:column;gap:2px}.tg-card small{color:var(--muted)}
 .tg-ic{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--brand);color:#fff;font-size:20px}
 .nav-tg{display:block;margin:8px 12px;padding:10px 12px;border-radius:10px;color:#fff;text-decoration:none;font-size:14px;background:rgba(255,255,255,.08)}
