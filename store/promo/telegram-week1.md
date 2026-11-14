@@ -12,7 +12,7 @@
 
 ⚠️ Muddatlar dastur va ariza turiga qarab farq qiladi (xalqaro talabalar uchun ham). Arizadan oldin universitetning rasmiy sahifasida tekshiring.
 
-Hammasi ilovada, rasmiy manba havolasi bilan 👉 unidoue.onrender.com
+Hammasi ilovada, rasmiy manba havolasi bilan 👉 unidoue.uz
 
 ## 2. Chorshanba — Universitet haftaligi: Aarhus University (Daniya)
 🇩🇰 Aarhus University — Daniya
@@ -24,7 +24,7 @@ Hammasi ilovada, rasmiy manba havolasi bilan 👉 unidoue.onrender.com
 
 Manba: bachelor.au.dk/en/international-applicants/moreinfo/language-requirements
 
-Boshqa davlat universitetlari ilovada: "Boshqa davlatlar" bo‘limi 👉 unidoue.onrender.com
+Boshqa davlat universitetlari ilovada: "Boshqa davlatlar" bo‘limi 👉 unidoue.uz
 
 ## 3. Juma — Stipendiya: Chevening (Buyuk Britaniya)
 🎁 Chevening stipendiyasi — Buyuk Britaniya hukumati dasturi
@@ -34,7 +34,7 @@ Boshqa davlat universitetlari ilovada: "Boshqa davlatlar" bo‘limi 👉 unidoue
 📌 Ariza onlayn: elektron pochta va telefon raqami kerak, har bosqichda noyob kirish kodi beriladi
 
 Mezonlar va muddatlar: https://www.chevening.org/scholarship/uzbekistan/
-Boshqa stipendiyalar ilovada 👉 unidoue.onrender.com
+Boshqa stipendiyalar ilovada 👉 unidoue.uz
 
 ## 4. Yakshanba — So‘rovnoma (Telegram so‘rovnomasi)
 Savol: Qaysi davlatda o‘qishni xohlaysiz?

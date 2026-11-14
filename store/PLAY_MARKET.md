@@ -5,11 +5,11 @@
 - Tashkilot (organization) hisobida bu talab yo‘q, lekin D-U-N-S raqami va rasmiy hujjatlar kerak.
 - Ro‘yxatdan o‘tish to‘lovi: **$25 (bir marta)**, karta kerak. Shaxsni tasdiqlash (pasport/ID) so‘raladi.
 - O‘zbekistondan ro‘yxatdan o‘tish imkoniyatini hisob ochishda Google ko‘rsatadi; ilova bepul bo‘lgani uchun savdogar (merchant) hisobi kerak emas.
-- Ilova hozir bepul Render serverida: 15 daqiqa faolsizlikdan keyin uxlaydi, birinchi ochilish ~50 soniya kechikishi mumkin. Sinov davrida uptime-ping (masalan UptimeRobot, har 5 daqiqada `https://unidoue.onrender.com/healthz`) bilan uyg‘oq tutish mumkin.
+- Ilova hozir bepul Render serverida: 15 daqiqa faolsizlikdan keyin uxlaydi, birinchi ochilish ~50 soniya kechikishi mumkin. Sinov davrida uptime-ping (masalan UptimeRobot, har 5 daqiqada `https://unidoue.uz/healthz`) bilan uyg‘oq tutish mumkin.
 
 ## 2. Ertangi kun tartibi
 1. https://play.google.com/console → hisob ochish ($25, shaxsni tasdiqlash).
-2. **PWABuilder** (pwabuilder.com) → `https://unidoue.onrender.com` → Package for stores → Android:
+2. **PWABuilder** (pwabuilder.com) → `https://unidoue.uz` → Package for stores → Android:
    - Package ID: `uz.unidoue.app`, App name: `UniDoue`, Version: 1 (versionCode 1).
    - Signing key: **Create new**. Yuklab olingan arxivdagi `.keystore` fayli va parolini **xavfsiz joyda saqlang** (yo‘qolsa ilovani yangilab bo‘lmaydi).
    - Yuklab olingan `.aab` faylini Play Console’ga yuklaysiz.
@@ -21,8 +21,8 @@
 ## 3. Do‘kon sahifasi
 
 **Havolalar**
-- Maxfiylik siyosati: `https://unidoue.onrender.com/privacy`
-- Hisobni o‘chirish: `https://unidoue.onrender.com/delete-account`
+- Maxfiylik siyosati: `https://unidoue.uz/privacy`
+- Hisobni o‘chirish: `https://unidoue.uz/delete-account`
 - Aloqa: Telegram @DOUEODUE; email: sizning Gmail manzilingiz
 
 **Kategoriya:** Education. **Narx:** Bepul.
@@ -106,7 +106,7 @@ UniDoue does not guarantee admission and is not officially affiliated with any u
   - Foydalanuvchi kontenti: profil natijalari (GPA/SAT/IELTS), arizalar, esse/AI savollari matni.
   - Xavfsizlik: ulanish shifrlangan (HTTPS); foydalanuvchi o‘chirishni so‘rashi mumkin (ilova ichida va `/delete-account` orqali).
   - Uchinchi tomonlar: hosting (Render), baza (Neon), AI xizmati (Groq/Anthropic), email (Brevo), Telegram (mentor so‘rovlari). Google’ning “xizmat ko‘rsatuvchi” (service provider) qoidalarini o‘qib, “sharing” belgisini to‘g‘ri tanlang.
-- **Hisobni o‘chirish URL’i:** `https://unidoue.onrender.com/delete-account`.
+- **Hisobni o‘chirish URL’i:** `https://unidoue.uz/delete-account`.
 - **Ilova kirishi:** ilova hisob talab qiladi → Play “App access” bo‘limida **test hisobi** (email + parol) ko‘rsatish kerak. Sinov uchun alohida hisob oching va Pro bering.
 
 ## 5. Fayllar

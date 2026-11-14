@@ -13,7 +13,7 @@ Taqvimingni och. Keyingi 3 hafta ichida 10 ta universitetning eshigi yopiladi �
 Qaysi biri sening ro‘yxatingda? Izohda yoz 👇
 ⚠️ Dastur va ariza turiga qarab sana o‘zgaradi — rasmiy sahifada tekshir.
 
-UniDoue sanalarni o‘zi kuzatadi: unidoue.onrender.com
+UniDoue sanalarni o‘zi kuzatadi: unidoue.uz
 
 ## 2. Chorshanba — "IELTS 6.5 bilan Daniyaga? 🇩🇰"
 Rasm chizing: Aarhus — Daniyaning ikkinchi yirik shahri, dengiz bo‘yi, velosiped va ingliz tilida o‘qish 🚲
@@ -26,7 +26,7 @@ Rasm chizing: Aarhus — Daniyaning ikkinchi yirik shahri, dengiz bo‘yi, velos
 Sen Daniya haqida o‘ylab ko‘rganmisan? 🤔 👍 — ha, 🔥 — yangi eshitdim
 Manba: bachelor.au.dk/en/international-applicants/moreinfo/language-requirements
 
-Yana 120+ universitet: unidoue.onrender.com → "Boshqa davlatlar"
+Yana 120+ universitet: unidoue.uz → "Boshqa davlatlar"
 
 ## 3. Juma — "Hukumat seni o‘qitmoqchi bo‘lsa-chi? 🎁"
 Chevening — Buyuk Britaniya hukumatining stipendiya dasturi 🇬🇧
@@ -38,7 +38,7 @@ Chevening — Buyuk Britaniya hukumatining stipendiya dasturi 🇬🇧
 Eng muhim qoida: sana va mezonlarni faqat rasmiy saytdan ol 👉 chevening.org/scholarship/uzbekistan
 Do‘stingga yubor — kerak bo‘lib qolar 🔖
 
-Boshqa stipendiyalar ilovada: unidoue.onrender.com
+Boshqa stipendiyalar ilovada: unidoue.uz
 
 ## 4. Yakshanba — So‘rovnoma "Xaritani sen chizasan 🗺"
 Keyingi haftalarda qaysi davlatdan ko‘proq universitet qo‘shamiz? Ovoz berish sening qo‘lingda!
