@@ -173,7 +173,7 @@ export async function profile(el) {
 }
 
 /* ================= YO'L XARITASI ================= */
-const stepsFor = (c, Q) => {
+const stepsFor = (c, Q, horizon = 0) => {
   const S = [], add = (o, t) => S.push({ o, t }), sat = Q.sat ? +Q.sat : null, ie = Q.ielts ? +Q.ielts : null;
   add(150, 'Universitet saytida talablar va hujjatlar ro‘yxatini o‘qib chiqing, ariza akkauntini oching');
   if (sat != null) add(120, c && sat < c.sat[0] ? 'SAT natijasini qayta topshirish rejasini tuzing' : 'SAT natijalarini universitet talabiga ko‘ra yuboring');
@@ -187,22 +187,40 @@ const stepsFor = (c, Q) => {
   add(21, 'Attestat va transkriptni tarjima qildiring, tasdiqlatib oling');
   add(7, 'Barcha bo‘limlarni oxirgi marta tekshiring');
   add(0, 'Ariza topshirish muddati!');
+  if (horizon > 200) {
+    add(360, 'Qaysi davlat va yo‘nalishda o‘qishni xohlayotganingizni aniqlang, universitetlar ro‘yxatini tuzing');
+    add(300, 'IELTS va SAT (kerak bo‘lsa) uchun tayyorgarlikni boshlang, imtihon sanasini belgilang');
+    add(240, 'Olimpiada, loyiha, volontyorlik kabi faolliklarni boshlang yoki davom ettiring');
+    add(180, 'IELTS/SAT ni birinchi marta topshiring (natijani yaxshilash uchun vaqt qolsin)');
+  }
   return S;
 };
+
+/* Bitiruv sanasi (yoki maqsad yili) ga ko‘ra muddatni kerakli qabul davriga ko‘chiradi (kuzgi qabul: may–dekabr muddatlari oldingi yilga tushadi). */
+const MON = ['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avg', 'sen', 'okt', 'noy', 'dek'];
+function targetDeadline(d, P) {
+  let entry = null;
+  if (P.pgd && /^\d{4}-\d{2}-\d{2}$/.test(P.pgd)) { const g = new Date(P.pgd + 'T12:00:00'); entry = g.getFullYear() + (g.getMonth() > 7 ? 1 : 0); }
+  else if (P.py && /^\d{4}$/.test(String(P.py))) entry = +P.py;
+  if (!entry) return { d, moved: false };
+  const m = +d.slice(5, 7), want = m >= 5 ? entry - 1 : entry;
+  if (+d.slice(0, 4) >= want) return { d, moved: false, entry };
+  return { d: want + d.slice(4), moved: true, entry };
+}
 export async function roadmap(el) {
-  const cat = await catalog(), apps = ls.get('qabul:apps', []), { Q } = getProfile();
+  const cat = await catalog(), apps = ls.get('qabul:apps', []), { P, Q } = getProfile();
   el.innerHTML = `<div class="page-h"><div><h2>Yo‘l <em>xaritasi</em></h2><p>Ariza muddatidan orqaga hisoblangan qadamlar. Belgilaringiz hisobingizda saqlanadi.</p></div></div>`;
   if (!apps.length) { el.insertAdjacentHTML('beforeend', '<div class="card empty"><b>Avval ariza qo‘shing</b>Yo‘l xaritasi arizalaringiz muddatiga qarab tuziladi.<br><a class="btn primary" style="margin-top:14px" href="#/tracker">Arizalarga o‘tish</a></div>'); return; }
   el.insertAdjacentHTML('beforeend', `<div class="card" style="margin-bottom:16px"><label class="f" for="r-u">Universitet</label><select id="r-u">${apps.map((a, i) => `<option value="${i}">${esc(a.n)}</option>`).join('')}</select></div><div id="r-o"></div>`);
   const out = $('#r-o', el), draw = () => {
-    const a = apps[+$('#r-u', el).value], c = cat.find(x => x.n === a.n), steps = stepsFor(c, Q), key = 'qabul:s:' + a.n, saved = ls.get(key, {}), dd = new Date(a.d + 'T12:00:00');
+    const a0 = apps[+$('#r-u', el).value], c = cat.find(x => x.n === a0.n), tg = targetDeadline(a0.d, P), a = { ...a0, d: tg.d }, dd = new Date(a.d + 'T12:00:00'), steps = stepsFor(c, Q, (dd - Date.now()) / 864e5), key = 'qabul:s:' + a.n, saved = ls.get(key, {});
     const done = () => steps.filter((s, k) => saved[k]).length;
-    out.innerHTML = `<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3>${esc(a.n)}</h3><span class="badge">${fmtDate(a.d)}${c && !c.rdV ? ' · muddat taxminiy' : ''}</span></div><p class="sub" id="r-p"></p><div class="bar" style="margin-bottom:16px"><i id="r-b"></i></div>
-    ${steps.map((s, k) => { const d = new Date(dd - s.o * 864e5), left = Math.ceil((d - Date.now()) / 864e5); return `<label class="li" style="cursor:pointer"><input type="checkbox" data-k="${k}" ${saved[k] ? 'checked' : ''}><span class="grow" ${saved[k] ? 'style="text-decoration:line-through;color:var(--muted)"' : ''}>${esc(s.t)}</span><span class="badge ${left < 0 && !saved[k] ? 'bad' : 'mute'}">${d.getDate()}-${['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avg', 'sen', 'okt', 'noy', 'dek'][d.getMonth()]}</span></label>`; }).join('')}
+    out.innerHTML = `<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3>${esc(a.n)}</h3><span class="badge">${fmtDate(a.d)}${(c && !c.rdV) || tg.moved ? ' · muddat taxminiy' : ''}</span></div>${tg.moved ? `<p class="hint" style="margin:6px 0 12px">Siz ${tg.entry}-yilda o‘qishni boshlaysiz, shuning uchun reja ${fmtDate(a.d)} sanasiga moslandi (katalogdagi ${fmtDate(a0.d)} o‘tgan davr sanasi). Yangi davr muddatini universitetning rasmiy sahifasida tekshiring.</p>` : ''}<p class="sub" id="r-p"></p><div class="bar" style="margin-bottom:16px"><i id="r-b"></i></div>
+    ${steps.map((s, k) => ({ s, k })).sort((x, y) => y.s.o - x.s.o).map(({ s, k }) => { const d = new Date(dd - s.o * 864e5), left = Math.ceil((d - Date.now()) / 864e5); return `<label class="li" style="cursor:pointer"><input type="checkbox" data-k="${k}" ${saved[k] ? 'checked' : ''}><span class="grow" ${saved[k] ? 'style="text-decoration:line-through;color:var(--muted)"' : ''}>${esc(s.t)}</span><span class="badge ${left < 0 && !saved[k] ? 'bad' : 'mute'}">${d.getDate()}-${MON[d.getMonth()]}${d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : ''}</span></label>`; }).join('')}
     <button class="btn sm" id="r-cp" style="margin-top:14px">Rejani nusxalash</button><span class="hint" id="r-cm"></span></div>`;
     const upd = () => { $('#r-p', out).textContent = `${done()} / ${steps.length} qadam bajarildi`; $('#r-b', out).style.width = pct(done(), steps.length) + '%'; }; upd();
     $$('[data-k]', out).forEach(i => (i.onchange = () => { saved[i.dataset.k] = i.checked; ls.set(key, saved); draw(); }));
-    $('#r-cp', out).onclick = () => { const t = `${a.n} — yo‘l xaritasi\n` + steps.map((s, k) => `${saved[k] ? '[x]' : '[ ]'} ${fmtDate(new Date(dd - s.o * 864e5).toISOString().slice(0, 10))} — ${s.t}`).join('\n'); navigator.clipboard.writeText(t).then(() => ($('#r-cm', out).textContent = ' Nusxalandi'), () => ($('#r-cm', out).textContent = ' Nusxalab bo‘lmadi')); };
+    $('#r-cp', out).onclick = () => { const t = `${a.n} — yo‘l xaritasi\n` + steps.map((s, k) => ({ s, k })).sort((x, y) => y.s.o - x.s.o).map(({ s, k }) => `${saved[k] ? '[x]' : '[ ]'} ${fmtDate(new Date(dd - s.o * 864e5).toISOString().slice(0, 10))} — ${s.t}`).join('\n'); navigator.clipboard.writeText(t).then(() => ($('#r-cm', out).textContent = ' Nusxalandi'), () => ($('#r-cm', out).textContent = ' Nusxalab bo‘lmadi')); };
   };
   $('#r-u', el).onchange = draw; draw();
 }
