@@ -1,7 +1,7 @@
 # Telegram — 1-hafta, kreativ variant (faktlar o‘zgarmagan)
 
 ## 1. Dushanba — "Soat tikillayapti ⏳"
-Taqvimingni och. Keyingi 24 kun ichida 10 ta universitetning eshigi yopiladi 🚪
+Taqvimingni och. Keyingi 3 hafta ichida 10 ta universitetning eshigi yopiladi 🚪
 
 🔔 20-noyabr — Tsinghua 🇨🇳
 🔔 25-noyabr — HKUST va HKU 🇭🇰
