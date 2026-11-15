@@ -9,6 +9,7 @@
  * Muhit o'zgaruvchilari:
  *  PORT, HOST, DATA_DIR            — port, interfeys, ma'lumotlar papkasi
  *  BREVO_API_KEY                   — (ixtiyoriy) Brevo orqali xat yuborish (domensiz); MAIL_FROM = tasdiqlangan joʻnatuvchi
+  *  APP_URL                         — (ixtiyoriy) asosiy domen, masalan https://unidoue.uz: parol xati havolasi shu bilan boshlanadi, eski *.onrender.com shunga yoʻnaltiriladi
  *  DATABASE_URL                    — (ixtiyoriy) Neon Postgres ulanish manzili: hisoblar server qayta ishga tushsa ham saqlanadi
  *  COOKIE_SECURE=1                 — cookie faqat HTTPS (productionda yoqing)
  *  TRUST_PROXY=1                   — Render/Railway/nginx ortida: haqiqiy IP uchun X-Forwarded-For
@@ -655,10 +656,16 @@ function serveStatic(req, res, pathname) {
 }
 
 /* ---------------- server ---------------- */
+let APP_ORIGIN = '', APP_HOST = '';
+try { if (process.env.APP_URL) { const u = new URL(process.env.APP_URL); APP_ORIGIN = u.origin; APP_HOST = u.host; } } catch (e) {}
 const server = http.createServer(async (req, res) => {
   try {
     const pathname = new URL(req.url, 'http://x').pathname;
     secHeaders(res, pathname === '/' || pathname === '/app' || pathname === '/reset' || pathname === '/admin' || pathname.startsWith('/js/') || pathname === '/app.css');
+    // Eski *.onrender.com manzilidan asosiy domenga (APP_URL) yoʻnaltirish — faqat sahifalar uchun (API, healthz, .well-known tegilmaydi)
+    if (APP_HOST && (req.method === 'GET' || req.method === 'HEAD') && /\.onrender\.com$/i.test(String(req.headers.host || '').split(':')[0]) && !pathname.startsWith('/api/') && pathname !== '/healthz' && !pathname.startsWith('/.well-known/')) {
+      res.statusCode = 301; res.setHeader('Location', APP_ORIGIN + req.url); return res.end();
+    }
     if (pathname.startsWith('/api/')) return await api(req, res, pathname);
     if (req.method !== 'GET' && req.method !== 'HEAD') { res.statusCode = 405; return res.end(); }
     if (pathname === '/index.html') { res.statusCode = 301; res.setHeader('Location', '/'); return res.end(); }

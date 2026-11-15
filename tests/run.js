@@ -159,6 +159,20 @@ class Client {
     } catch (e) { failN++; console.log('XATO:', e); }
     s3.kill(); bm.close(); fs.rmSync(dir3, { recursive: true, force: true });
   }
+  // Eski onrender.com manzilidan APP_URL ga yoʻnaltirish
+  {
+    const dir4 = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), P4 = PORT + 7;
+    const s4 = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: P4, DATA_DIR: dir4, APP_URL: 'https://unidoue.uz' }, stdio: 'ignore' });
+    for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${P4}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
+    console.log('Domen yoʻnaltirish');
+    const hreq = (host, p) => new Promise(res => { const q = require('node:http').request({ host: 'localhost', port: P4, path: p, headers: { host } }, r => { r.resume(); res({ s: r.statusCode, l: r.headers.location }); }); q.on('error', () => res({ s: 0 })); q.end(); });
+    try {
+      let r = await hreq('unidoue.onrender.com', '/reset?token=abc'); ok(r.s === 301 && r.l === 'https://unidoue.uz/reset?token=abc', 'onrender.com → unidoue.uz (301)', r.s + ' ' + r.l);
+      r = await hreq('unidoue.onrender.com', '/healthz'); ok(r.s === 200, 'healthz yoʻnaltirilmaydi', r.s);
+      r = await hreq('unidoue.uz', '/'); ok(r.s === 200, 'asosiy domen yoʻnaltirilmaydi', r.s);
+    } catch (e) { failN++; console.log('XATO:', e); }
+    s4.kill(); fs.rmSync(dir4, { recursive: true, force: true });
+  }
   // Doimiy saqlash (Neon) — soxta SQL-over-HTTP serveri bilan
   {
     let store = null, seenConn = null;
