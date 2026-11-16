@@ -10,6 +10,7 @@ const ROUTES = [
   { id: 'compare', t: 'Solishtirish', i: 'cmp', v: () => import('./views2.js').then(m => m.compare) },
   { id: 'tracker', t: 'Arizalarim', i: 'list', sec: 'Ish joyi', v: () => import('./views1.js').then(m => m.tracker) },
   { id: 'roadmap', t: 'Yo‘l xaritasi', i: 'list', v: () => import('./views1.js').then(m => m.roadmap) },
+  { id: 'guide', t: 'Hujjatlar yo‘riqnomasi', i: 'list', v: () => import('./views5.js').then(m => m.guide) },
   { id: 'essay', t: 'Esse yordamchisi', i: 'pen', v: () => import('./views3.js').then(m => m.essay) },
   { id: 'mentor', t: 'AI mentor', i: 'bot', v: () => import('./views3.js').then(m => m.mentor) },
   { id: 'pricing', t: 'Tariflar', i: 'card', sec: 'Hisob', v: () => import('./views1.js').then(m => m.pricing) },
@@ -62,6 +63,7 @@ function shell() {
   const nav = ROUTES.map(r => { const h = r.sec && r.sec !== sec ? `<div class="nav-sec">${t(sec = r.sec)}</div>` : ''; return `${h}<a href="#/${r.id}" data-r="${r.id}">${svg(r.i)}<span>${t(r.t)}</span>${r.tag ? `<span class="tag">${r.tag}</span>` : ''}</a>`; }).join('');
   root.innerHTML = `<div class="shell"><aside class="side" id="side"><a class="brand" href="#/dashboard"><i>U</i>UniDoue</a><nav class="nav" aria-label="${t('Asosiy menyu')}">${nav}</nav>
   <a class="nav-tg" href="https://t.me/unidoue" target="_blank" rel="noopener noreferrer">✈ ${t('Telegram kanal')}</a>
+  <a class="nav-tg" href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">💬 ${t('Yordam')}</a>
   <div class="side-foot"><b id="sf-u"></b><small id="sf-p"></small><button class="btn sm" id="lo" type="button">${t('Chiqish')}</button></div></aside>
   <div class="scrim" id="scrim"></div>
   <div class="main"><header class="top"><button class="burger" id="bg" aria-label="Menyu" type="button">${svg('menu')}</button><h1 id="ttl"></h1><span style="margin-left:auto">${langSelect('lang')}</span><span class="badge" id="pb"></span></header>

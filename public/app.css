@@ -191,3 +191,5 @@ html[data-season=kuz] .grad-card{background:linear-gradient(120deg,#fff 0%,#fff3
 .tg-ic{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--brand);color:#fff;font-size:20px}
 .nav-tg{display:block;margin:8px 12px;padding:10px 12px;border-radius:10px;color:#fff;text-decoration:none;font-size:14px;background:rgba(255,255,255,.08)}
 .nav-tg:hover{background:rgba(255,255,255,.16)}
+
+.guide summary{cursor:pointer;list-style:none}.guide summary::-webkit-details-marker{display:none}.guide summary:after{content:'+';float:right;color:var(--muted)}.guide[open] summary:after{content:'–'}
