@@ -6,7 +6,7 @@ const ROUTES = [
   { id: 'finder', t: 'Universitet qidiruvi', i: 'search', v: () => import('./views2.js').then(m => m.finder) },
   { id: 'intl', t: 'Boshqa davlatlar', i: 'search', v: () => import('./views4.js').then(m => m.intl) },
   { id: 'scholarships', t: 'Stipendiyalar', i: 'gift', v: () => import('./views2.js').then(m => m.scholarships) },
-  { id: 'predictor', t: 'Qabul bashorati', i: 'chart', v: () => import('./views2.js').then(m => m.predictor) },
+  { id: 'predictor', t: 'Mosligingizni tekshiring', i: 'chart', v: () => import('./views2.js').then(m => m.predictor) },
   { id: 'compare', t: 'Solishtirish', i: 'cmp', v: () => import('./views2.js').then(m => m.compare) },
   { id: 'tracker', t: 'Arizalarim', i: 'list', sec: 'Ish joyi', v: () => import('./views1.js').then(m => m.tracker) },
   { id: 'roadmap', t: 'Yo‘l xaritasi', i: 'list', v: () => import('./views1.js').then(m => m.roadmap) },

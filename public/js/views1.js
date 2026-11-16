@@ -111,7 +111,7 @@ export async function tracker(el) {
 
 /* ================= TARIFLAR ================= */
 const FEAT = {
-  free: ['Barcha universitetlar + nima uchun mos ekanligi', 'Universitet haqida ma’lumot (manbalar bilan)', 'Stipendiya qidiruvi', 'To‘liq qabul bashorati va maslahatlar', 'Cheksiz arizalar kuzatuvi', '3 ta universitetni solishtirish', '15 AI kredit / oy'],
+  free: ['Barcha universitetlar + nima uchun mos ekanligi', 'Universitet haqida ma’lumot (manbalar bilan)', 'Stipendiya qidiruvi', 'To‘liq moslik tahlili va maslahatlar', 'Cheksiz arizalar kuzatuvi', '3 ta universitetni solishtirish', '15 AI kredit / oy'],
   pro: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Shaxsiy qabul strategiyasi', 'Chuqur esse tahlili', 'Universitet hisobotlari', '4 ta universitetni solishtirish', '300 AI kredit / oy', 'Ustuvor yordam']
 };
 const ORDER = { free: 0, pro: 1 };

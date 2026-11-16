@@ -1,6 +1,6 @@
 # UniDoue 2.0
 
-Xorijda oʻqish platformasi: universitet qidiruvi (Safety/Target/Reach), qabul bashorati, solishtirish, arizalar kuzatuvchisi, esse yordamchisi, AI mentor, tariflar.
+Xorijda oʻqish platformasi: universitet qidiruvi (Safety/Target/Reach), moslik tahlili, solishtirish, arizalar kuzatuvchisi, esse yordamchisi, AI mentor, tariflar.
 
 - `/` va `/app` — UniDoue platformasi (hisob, dashboard, tariflar, AI vositalar). Eski bosh sahifa olib tashlangan
 - `/admin` — sayt egasi uchun admin sahifa (`ADMIN_TOKEN` bilan)

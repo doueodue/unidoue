@@ -39,7 +39,7 @@ Nima qila olasiz:
 • AQShdan tashqari Yevropa, Osiyo, Avstraliya va boshqa davlat universitetlari uchun IELTS minimumi, ariza muddati, o‘qish narxi va kirish talablarini ko‘ring. Har bir ma’lumotning yonida rasmiy manba havolasi bor.
 • Universitetlarni yonma-yon solishtiring.
 • Arizalaringiz, hujjatlaringiz va muddatlaringizni bir joyda kuzating.
-• Qabul bashoratini oling (bu taxminiy baho, kafolat emas).
+• Profilingiz universitet ko‘rsatkichlariga qanchalik mosligini tekshiring (bu taxminiy baho, qabul kafolati yoki ehtimoli emas).
 • Yo‘l xaritasi bo‘yicha qadam-baqadam rejaga amal qiling.
 • Esse yordamchisi va AI mentordan maslahat oling.
 
