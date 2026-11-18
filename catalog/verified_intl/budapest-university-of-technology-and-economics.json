@@ -1,0 +1,30 @@
+{
+ "name": "Budapest University of Technology and Economics",
+ "country": "Hungary",
+ "city": "Budapest",
+ "official_url": "https://www.bme.hu/en",
+ "language": "English / Hungarian",
+ "ielts": {
+  "min_overall": 5.5,
+  "url": "https://xplore.bme.hu/admission/",
+  "year": 2026
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 3200,
+  "currency": "EUR",
+  "note": "Per semester for non-EU students in most BSc programmes, 2026/27 (Mechanical Engineering 3,500 EUR); fees vary by programme",
+  "url": "https://xplore.bme.hu/tuition-fees/",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "High school certificate, English at B2 level (IELTS 5.5, TOEFL iBT 72 or equivalent), electronic e-admission exam or placement test, minimum age 18 at enrolment; weaker maths, physics, chemistry or English may mean a one-year preparatory course. Application fee EUR 150.",
+  "url": "https://xplore.bme.hu/admission/"
+ },
+ "bachelor_in_english": true
+}

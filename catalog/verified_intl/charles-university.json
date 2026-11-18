@@ -1,0 +1,30 @@
+{
+ "name": "Charles University",
+ "country": "Czech Republic",
+ "city": "Prague",
+ "official_url": "https://cuni.cz/UKEN-1.html",
+ "language": "English / Czech",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.mff.cuni.cz/en/admissions/admission-requirements-for-bachelor-s-programmes-in-english/2026-2027",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2027-02-28",
+  "intake": "Autumn 2027 (2027/2028), Faculty of Science bachelor's in English; entrance exam 19-30 April 2027",
+  "url": "https://natur.cuni.cz/en/admissions/bachelor-study/admission-requirements/programmes-taught-in-english?casChecked=1",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 6000,
+  "currency": "EUR",
+  "note": "Faculty of Science bachelor's studied in English, per academic year, for non-EU/EEA applicants starting 2027/2028; fees vary by faculty",
+  "url": "https://natur.cuni.cz/en/students/tuition-fees-for-studying-in-a-foreign-language?casChecked=1",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Faculty of Science (2027/2028): electronic application via SIS; entrance exam scored out of 100 (CV 10, motivation letter 25, school grades 10, online English interview 55); admission fee EUR 100. Computer Science bachelor's (Faculty of Mathematics and Physics, 2026/2027) asks for IELTS 6.5 or TOEFL iBT 85 and proof of mathematical reasoning (SAT/ACT Math, IB Maths HL, A-Level or similar).",
+  "url": "https://natur.cuni.cz/en/admissions/bachelor-study/admission-requirements/programmes-taught-in-english?casChecked=1"
+ },
+ "bachelor_in_english": true
+}

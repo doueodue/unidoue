@@ -1,0 +1,30 @@
+{
+ "name": "Vilnius University",
+ "country": "Lithuania",
+ "city": "Vilnius",
+ "official_url": "https://www.vu.lt/en",
+ "language": "English / Lithuanian",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://www.vu.lt/en/studies/bachelor-studies/global-marketing",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2027-05-01",
+  "intake": "Autumn 2027 (2027/2028 round opens 1 Dec 2026); non-EU/EFTA applicants; 1 July for EU/EFTA and visa-free applicants",
+  "url": "https://www.vu.lt/en/admissions",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 3660,
+  "currency": "EUR",
+  "note": "Global Marketing (English-taught bachelor's), state non-funded place, per year; fees vary by programme",
+  "url": "https://www.vu.lt/en/studies/bachelor-studies/global-marketing",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Completed secondary education with an overall average of at least 60%, no more than five years since graduation for non-EU/EFTA applicants, English certificate at B2 or higher (IELTS Academic 6.5 listed for Global Marketing), a reference and a motivation letter; shortlisted candidates have a motivational interview. Application fee EUR 100.",
+  "url": "https://www.vu.lt/en/studies/bachelor-studies/global-marketing"
+ },
+ "bachelor_in_english": true
+}

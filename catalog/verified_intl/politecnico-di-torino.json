@@ -1,0 +1,30 @@
+{
+ "name": "Politecnico di Torino",
+ "country": "Italy",
+ "city": "Turin",
+ "official_url": "https://www.polito.it/en",
+ "language": "English / Italian",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Secondary school diploma after at least 12 years of schooling (plus the national entrance exam certificate, where your country requires one); English B2 or above for English-taught programmes; the TIL admission test or a SAT score (SAT not valid for Architecture). Non-EU applicants abroad pre-enrol on Universitaly (2026/27 round: language certificate by 22 May, pre-enrolment about 30 June).",
+  "url": "https://www.polito.it/en/education/applying-studying-graduating/admissions-and-enrolment/bachelor-s-degree-programmes/applicants-with-a-non-italian-qualification"
+ },
+ "bachelor_in_english": true
+}

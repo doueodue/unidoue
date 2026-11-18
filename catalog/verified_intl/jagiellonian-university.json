@@ -1,0 +1,30 @@
+{
+ "name": "Jagiellonian University",
+ "country": "Poland",
+ "city": "Krakow",
+ "official_url": "https://en.uj.edu.pl",
+ "language": "English / Polish",
+ "ielts": {
+  "min_overall": 5.5,
+  "url": "https://welcome.uj.edu.pl/en_GB/admission/knowledge-of-language",
+  "year": 2026
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "A secondary-school qualification that gives access to university in your home country (or Polish Matura); foreign candidates are ranked separately and usually selected by an interview, held in English for English-taught programmes. English at B2 or higher (IELTS Academic 5.5, TOEFL iBT 72, Cambridge B2 First) is shown at registration unless verified at the interview. Application fee is non-refundable.",
+  "url": "https://welcome.uj.edu.pl/en_GB/admission/step-by-step"
+ },
+ "bachelor_in_english": true
+}

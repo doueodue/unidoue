@@ -1,0 +1,30 @@
+{
+ "name": "Nazarbayev University",
+ "country": "Kazakhstan",
+ "city": "Astana",
+ "official_url": "https://nu.edu.kz",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.0,
+  "url": "https://nu.edu.kz/admissions/how-to-apply/foundation-undergraduate/regular-admissions/",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2027-06-01",
+  "intake": "2027-28 academic year: IELTS/TOEFL results deadline (applications open Oct 2026 - Aug 2027 for applicants from visa-on-arrival countries)",
+  "url": "https://nu.edu.kz/admissions/how-to-apply/foundation-undergraduate/regular-admissions/",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 15000,
+  "currency": "USD",
+  "note": "Undergraduate programmes, per academic year (2026/2027); same for local and international students (Foundation Year 12,000 USD)",
+  "url": "https://nu.edu.kz/admissions/fees-and-funding/",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "IELTS 6.0 overall (writing 6.0, other parts 5.5) or equivalent TOEFL, taken in person. Academic proof: NUET score 120+ (at least 50 in Mathematics and in Critical Thinking), or digital SAT 1240 / ACT 26, or IB Diploma 30 points, or A-Level/NIS Grade 12 with at least ABB, or olympiad results with an interview. Application fee 10,000 KZT.",
+  "url": "https://nu.edu.kz/?p=14609"
+ },
+ "bachelor_in_english": true
+}

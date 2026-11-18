@@ -1,0 +1,30 @@
+{
+ "name": "Bilkent University",
+ "country": "Turkey",
+ "city": "Ankara",
+ "official_url": "https://w3.bilkent.edu.tr",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 18400,
+  "currency": "USD",
+  "note": "Annual tuition (incl. 10% VAT) for international students admitted from abroad in 2026, academic year 2026-27; page does not label it by study level",
+  "url": "https://w3.bilkent.edu.tr/bilkent/international-and-other-students-tuition-fees/",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Apply directly to the Office of International Students with an international exam or diploma: SAT Reasoning 1000/1600 (Math + Critical Reading), or SAT Subject 500+ in two relevant sections, or three relevant A-Levels at C or higher, or IB Diploma 28/45 with a relevant Higher Level subject, or a TUBITAK-recognised olympiad medal. Proof of English is required; IELTS overall 6.5 with no part below 5.5 exempts from the English preparatory programme.",
+  "url": "https://w3.bilkent.edu.tr/international/how-to-apply"
+ },
+ "bachelor_in_english": true
+}

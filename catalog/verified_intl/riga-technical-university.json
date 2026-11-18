@@ -1,0 +1,30 @@
+{
+ "name": "Riga Technical University",
+ "country": "Latvia",
+ "city": "Riga",
+ "official_url": "https://www.rtu.lv/en",
+ "language": "English / Latvian",
+ "ielts": {
+  "min_overall": 5.5,
+  "url": "https://apply.rtu.lv/courses/course/9-bsc-engineering-technology-mechanics-and-mechanical-engineering",
+  "year": 2026
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 4030,
+  "currency": "EUR",
+  "note": "BSc Engineering Technology, Mechanics and Mechanical Engineering (English-taught), per year; fees vary by programme",
+  "url": "https://apply.rtu.lv/courses/course/9-bsc-engineering-technology-mechanics-and-mechanical-engineering",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Final secondary education certificate with transcript (strong results in mathematics and physics), English proficiency (IELTS 5.5 or equivalent), at least one reference, motivation letter, online video interview and online entrance maths exam. Application fee EUR 165 and deposit EUR 250.",
+  "url": "https://apply.rtu.lv/courses/course/9-bsc-engineering-technology-mechanics-and-mechanical-engineering"
+ },
+ "bachelor_in_english": true
+}

@@ -1,0 +1,30 @@
+{
+ "name": "Chulalongkorn University",
+ "country": "Thailand",
+ "city": "Bangkok",
+ "official_url": "https://www.chula.ac.th/en/",
+ "language": "",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://bba.acc.chula.ac.th/bba-nextgen-admission",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2026-12-25",
+  "intake": "BBA-NextGen 2027 intake, 1st round (early admission) online application 26 Nov - 25 Dec 2026",
+  "url": "https://bba.acc.chula.ac.th/bba-nextgen-admission",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 1028850,
+  "currency": "THB",
+  "note": "BBA International (Chulalongkorn Business School), estimated total for Years 1-4 for students admitted from academic year 2026",
+  "url": "https://bba.acc.chula.ac.th/tuition-and-fees",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "BBA-NextGen 2027: aged 17+ with M6 or equivalent; English proof (IELTS Academic 6.5, or TOEFL iBT, or CU-TEP 101); aptitude test (SAT 1300 or CU-AAT 1270); video resume and portfolio of achievements, then an interview. Non-Thai applicants with a passport do not register in TCAS.",
+  "url": "https://bba.acc.chula.ac.th/bba-nextgen-admission"
+ },
+ "bachelor_in_english": null
+}

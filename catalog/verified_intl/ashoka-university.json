@@ -1,0 +1,30 @@
+{
+ "name": "Ashoka University",
+ "country": "India",
+ "city": "Sonipat",
+ "official_url": "https://www.ashoka.edu.in",
+ "language": "",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-20",
+  "intake": "August 2027 intake, Round 2 (Round 1: 23 Nov 2026; Round 3: 14 Apr 2027; Round 4: 23 May 2027); international applicants are encouraged to apply in Rounds 1 and 2",
+  "url": "https://www.ashoka.edu.in/undergraduate-international-students-admissions-timeline/",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 1122000,
+  "currency": "INR",
+  "note": "Year 1 tuition for August 2027 intake (AY 2027-28), international students; residence INR 228,000 extra; scholarships available",
+  "url": "https://www.ashoka.edu.in/undergraduate-international-students-fee-structure/",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "SAT/ACT scores are not mandatory (recommended); the Ashoka Online Assessment is mandatory for all applicants, followed by an interview for shortlisted candidates. Applicants need a government-approved ID and a computer with a webcam. Admission is merit-based; merit and need-based scholarships are available.",
+  "url": "https://www.ashoka.edu.in/admissions/undergraduate-international-students/"
+ },
+ "bachelor_in_english": null
+}

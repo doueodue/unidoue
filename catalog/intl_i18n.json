@@ -672,5 +672,137 @@
 "O‘quv yiliga, Bachelor of Business Administration, EU/EEA/Shveytsariyadan tashqari talabalar uchun, 2027–28 o‘quv yili",
 "За учебный год, Bachelor of Business Administration, для студентов не из EU/EEA/Швейцарии, 2027–28 учебный год"
 ]
+},
+"nazarbayev-university": {
+"req": [
+"IELTS umumiy 6.0 (writing 6.0, qolgan qismlar 5.5) yoki unga teng TOEFL, imtihon shaxsan topshirilishi kerak. Akademik tasdiq: NUET bali 120+ (matematika va tanqidiy fikrlashdan kamida 50 dan), yoki digital SAT 1240 / ACT 26, yoki IB Diploma 30 ball, yoki A-Level/NIS 12-sinf kamida ABB, yoki olimpiada natijalari va suhbat. Ariza yig‘imi 10 000 KZT.",
+"IELTS общий 6.0 (writing 6.0, остальные разделы 5.5) или эквивалентный TOEFL, сдача очно. Академическое подтверждение: балл NUET 120+ (не менее 50 по математике и критическому мышлению), либо digital SAT 1240 / ACT 26, либо IB Diploma 30 баллов, либо A-Level/NIS 12 класс не ниже ABB, либо результаты олимпиады и собеседование. Регистрационный сбор 10 000 KZT."
+],
+"intake": [
+"2027-28 o‘quv yili: IELTS/TOEFL natijalarini topshirish muddati (vizasiz kirish mamlakatlari abituriyentlari uchun arizalar 2026-yil oktyabrdan 2027-yil avgustgacha qabul qilinadi)",
+"Учебный 2027-28 год: срок подачи результатов IELTS/TOEFL (заявки от абитуриентов из безвизовых стран принимаются с октября 2026 по август 2027)"
+],
+"note": [
+"Bakalavr dasturlari, 2026/2027 o‘quv yili uchun yiliga; mahalliy va xalqaro talabalar uchun bir xil (Foundation Year 12 000 USD)",
+"Программы бакалавриата, за 2026/2027 учебный год; одинаково для местных и иностранных студентов (Foundation Year 12 000 USD)"
+]
+},
+"vilnius-university": {
+"req": [
+"O‘rta ta’lim tugallangan, o‘rtacha baho kamida 60%, EI/EFTA dan tashqari abituriyentlar uchun bitirganiga besh yildan oshmagan bo‘lishi kerak, ingliz tili sertifikati B2 yoki undan yuqori (Global Marketing uchun IELTS Academic 6.5), tavsiyanoma va motivatsion xat; tanlangan nomzodlar motivatsion suhbatdan o‘tadi. Ariza yig‘imi 100 EUR.",
+"Законченное среднее образование со средним баллом не менее 60%, для абитуриентов не из ЕС/ЕАСТ — не более пяти лет после окончания, сертификат английского уровня B2 или выше (для Global Marketing указан IELTS Academic 6.5), рекомендация и мотивационное письмо; отобранные кандидаты проходят мотивационное собеседование. Регистрационный сбор 100 EUR."
+],
+"intake": [
+"2027-yil kuz (2027/2028 qabul 2026-yil 1-dekabrda ochiladi); EI/EFTA dan tashqari abituriyentlar uchun; EI/EFTA va vizasiz abituriyentlar uchun 1-iyul",
+"Осень 2027 (приём 2027/2028 открывается 1 декабря 2026); для абитуриентов не из ЕС/ЕАСТ; 1 июля для ЕС/ЕАСТ и безвизовых абитуриентов"
+],
+"note": [
+"Global Marketing (ingliz tilidagi bakalavr), davlat granti bo‘lmagan o‘rin, yiliga; to‘lov yo‘nalishga qarab farq qiladi",
+"Global Marketing (бакалавриат на английском), место без госфинансирования, в год; стоимость зависит от программы"
+]
+},
+"riga-technical-university": {
+"req": [
+"O‘rta ta’lim tugaganlik sertifikati va baholar ro‘yxati (ayniqsa matematika va fizikadan yaxshi natijalar), ingliz tili bilimi (IELTS 5.5 yoki unga teng), kamida bitta tavsiyanoma, motivatsion xat, onlayn video suhbat va onlayn matematika kirish imtihoni. Ariza yig‘imi 165 EUR va depozit 250 EUR.",
+"Аттестат о среднем образовании с выпиской оценок (сильные результаты по математике и физике), знание английского (IELTS 5.5 или эквивалент), минимум одна рекомендация, мотивационное письмо, онлайн видеоинтервью и онлайн-экзамен по математике. Регистрационный сбор 165 EUR и депозит 250 EUR."
+],
+"note": [
+"BSc Engineering Technology, Mechanics and Mechanical Engineering (ingliz tilida), yiliga; to‘lov yo‘nalishga qarab farq qiladi",
+"BSc Engineering Technology, Mechanics and Mechanical Engineering (на английском), в год; стоимость зависит от программы"
+]
+},
+"ashoka-university": {
+"req": [
+"SAT/ACT majburiy emas (tavsiya etiladi); Ashoka Online Assessment barcha abituriyentlar uchun majburiy, tanlangan nomzodlar suhbatdan o‘tadi. Hukumat tomonidan berilgan shaxsni tasdiqlovchi hujjat va veb-kamerali kompyuter kerak. Qabul saralash asosida; merit va ehtiyojga asoslangan stipendiyalar mavjud.",
+"SAT/ACT не обязательны (рекомендуются); Ashoka Online Assessment обязателен для всех абитуриентов, затем собеседование для отобранных кандидатов. Нужны удостоверение личности государственного образца и компьютер с веб-камерой. Приём на основе заслуг; доступны стипендии по заслугам и по нуждаемости."
+],
+"intake": [
+"2027-yil avgust qabuli, 2-bosqich (1-bosqich: 2026-yil 23-noyabr; 3-bosqich: 2027-yil 14-aprel; 4-bosqich: 2027-yil 23-may); xalqaro abituriyentlarga 1- va 2-bosqichda topshirish tavsiya etiladi",
+"Набор август 2027, 2-й раунд (1-й раунд: 23 ноября 2026; 3-й: 14 апреля 2027; 4-й: 23 мая 2027); иностранным абитуриентам рекомендуется подавать в 1-м и 2-м раундах"
+],
+"note": [
+"Xalqaro talabalar uchun 2027-yil avgust qabuli (2027-28 o‘quv yili) 1-kurs o‘qish haqi; turar joy qo‘shimcha 228 000 INR; stipendiyalar mavjud",
+"1-й курс для иностранных студентов, набор август 2027 (2027-28 уч. год); проживание дополнительно 228 000 INR; доступны стипендии"
+]
+},
+"chulalongkorn-university": {
+"req": [
+"BBA-NextGen 2027: yoshi 17+, M6 yoki unga teng ta’lim; ingliz tili isboti (IELTS Academic 6.5, yoki TOEFL iBT, yoki CU-TEP 101); qobiliyat testi (SAT 1300 yoki CU-AAT 1270); video rezyume va yutuqlar portfoliosi, so‘ng suhbat. Pasportli Tailand fuqarosi bo‘lmagan abituriyentlar TCAS tizimida ro‘yxatdan o‘tmaydi.",
+"BBA-NextGen 2027: возраст от 17 лет, M6 или эквивалент; подтверждение английского (IELTS Academic 6.5, либо TOEFL iBT, либо CU-TEP 101); тест способностей (SAT 1300 или CU-AAT 1270); видеорезюме и портфолио достижений, затем собеседование. Иностранные абитуриенты с паспортом не регистрируются в системе TCAS."
+],
+"intake": [
+"BBA-NextGen 2027 qabuli, 1-bosqich (erta qabul), onlayn ariza 2026-yil 26-noyabr - 25-dekabr",
+"BBA-NextGen, набор 2027, 1-й раунд (ранний приём), онлайн-подача с 26 ноября по 25 декабря 2026"
+],
+"note": [
+"BBA International (Chulalongkorn Business School), 2026-o‘quv yilidan qabul qilinganlar uchun 1-4 kurs bo‘yicha taxminiy umumiy summa",
+"BBA International (Chulalongkorn Business School), ориентировочная сумма за 1-4 курсы для поступивших с 2026 учебного года"
+]
+},
+"hse-university": {
+"req": [
+"International Business bakalavr dasturi (ingliz tilida): qabul Yagona davlat imtihoni (EGE), olimpiada natijalari yoki HSE ichki testlari asosida; xorijiy fuqarolar uchun EGE minimal ballari: matematika 65, ingliz tili 70; o‘rta ta’lim talab qilinadi. HSE xalqaro olimpiadasi va Rossiya hukumati stipendiya dasturlari orqali bepul o‘rinlar mumkin.",
+"Бакалавриат International Business (на английском): поступление по ЕГЭ, результатам олимпиад или внутренним испытаниям НИУ ВШЭ; минимальные баллы ЕГЭ для иностранных граждан: математика 65, английский 70; нужно среднее образование. Бесплатные места возможны через Международную олимпиаду ВШЭ и государственные стипендиальные программы России."
+],
+"intake": [
+"2027-yil kuz (o‘qish 2027-yil 1-sentabrda boshlanadi); HSE xalqaro olimpiadasi orqali bepul o‘qish yo‘nalishi uchun ro‘yxatdan o‘tish tugashi",
+"Осень 2027 (начало занятий 1 сентября 2027); окончание регистрации на бесплатный трек через Международную олимпиаду ВШЭ"
+],
+"note": [
+"International Business bakalavr dasturi (ingliz tilida), yiliga, 2026; HSE da pullik o‘qish yo‘nalishga qarab yiliga 200 000 RUB dan boshlanadi",
+"Бакалавриат International Business (на английском), в год, 2026; платное обучение в ВШЭ начинается от 200 000 RUB в год в зависимости от программы"
+]
+},
+"bilkent-university": {
+"req": [
+"Xalqaro talabalar ofisiga to‘g‘ridan-to‘g‘ri murojaat qilinadi, xalqaro imtihon yoki diplom bilan: SAT Reasoning 1000/1600 (Math + Critical Reading), yoki yo‘nalishga mos ikki bo‘limdan SAT Subject 500+, yoki yo‘nalishga mos uchta A-Level fani C yoki undan yuqori, yoki IB Diploma 28/45 (mos Higher Level fani bilan), yoki TÜBİTAK tan olgan olimpiada medali. Ingliz tili bilimi isboti talab qilinadi; IELTS umumiy 6.5 (hech bir qism 5.5 dan past emas) ingliz tili tayyorlov dasturidan ozod qiladi.",
+"Подача напрямую в Office of International Students с международным экзаменом или дипломом: SAT Reasoning 1000/1600 (Math + Critical Reading), либо SAT Subject 500+ по двум профильным разделам, либо три профильных предмета A-Level не ниже C, либо IB Diploma 28/45 с профильным Higher Level, либо медаль олимпиады, признанной TÜBİTAK. Требуется подтверждение английского; IELTS общий 6.5 (ни один раздел не ниже 5.5) освобождает от подготовительной программы по английскому."
+],
+"note": [
+"Chet eldan qabul qilingan xalqaro talabalar uchun 2026-yilda qabul qilinganlarga yillik o‘qish haqi (10% QQS bilan), 2026-27 o‘quv yili; sahifada o‘qish darajasi ko‘rsatilmagan",
+"Годовая стоимость (с НДС 10%) для иностранных студентов, принятых из-за рубежа в 2026 году, 2026-27 уч. год; на странице не указан уровень обучения"
+]
+},
+"postech": {
+"req": [
+"Xalqaro qabul (umumiy kvotadan tashqari): abituriyent va ikkala ota-onasi Koreya fuqarosi bo‘lmasligi yoki abituriyent barcha 12 yillik ta’limni Koreyadan tashqarida tugatgan bo‘lishi kerak; davlat tomonidan ruxsat etilgan maktabni bitirish talab qilinadi (GED, uyda o‘qish va onlayn hujjatlar qabul qilinmaydi). Saralash hujjatlar bo‘yicha (o‘quv natijalari, tavsiyanomalar); bu yo‘nalishda suhbat yo‘q. 2027-yil kuz uchun arizalar 2027-yil mart oxiri - aprel boshida kutiladi.",
+"Международный набор (вне общей квоты): абитуриент и оба родителя не должны быть гражданами Кореи, либо абитуриент должен пройти все 12 лет обучения за пределами Кореи; требуется окончание государственно аккредитованной школы (GED, домашнее и онлайн-обучение не принимаются). Отбор по документам (успеваемость, рекомендательные письма); собеседования в этом треке нет. Подача на осень 2027 ожидается в конце марта - начале апреля 2027."
+]
+},
+"jagiellonian-university": {
+"req": [
+"O‘z mamlakatingizda universitetga kirish huquqini beradigan o‘rta ta’lim hujjati (yoki Polsha Maturasi); xorijiy nomzodlar alohida reytingga qo‘yiladi va odatda suhbat orqali tanlanadi, ingliz tilidagi dasturlar uchun suhbat inglizcha o‘tadi. Ingliz tili B2 yoki undan yuqori (IELTS Academic 5.5, TOEFL iBT 72, Cambridge B2 First) ro‘yxatdan o‘tishda ko‘rsatiladi, agar suhbatda tekshirilmasa. Ariza yig‘imi qaytarilmaydi.",
+"Документ о среднем образовании, дающий право поступления в вуз в вашей стране (или польская Matura); иностранные кандидаты ранжируются отдельно и обычно отбираются по собеседованию, для программ на английском оно проходит на английском. Английский уровня B2 и выше (IELTS Academic 5.5, TOEFL iBT 72, Cambridge B2 First) подтверждается при регистрации, если не проверяется на собеседовании. Регистрационный сбор не возвращается."
+]
+},
+"budapest-university-of-technology-and-economics": {
+"req": [
+"O‘rta maktab attestati, ingliz tili B2 darajasida (IELTS 5.5, TOEFL iBT 72 yoki unga teng), elektron e-admission imtihoni yoki saralash testi, qabul vaqtida yoshi kamida 18; matematika, fizika, kimyo yoki ingliz tili zaif bo‘lsa, bir yillik tayyorlov kursi tavsiya etilishi mumkin. Ariza yig‘imi 150 EUR.",
+"Аттестат о среднем образовании, английский уровня B2 (IELTS 5.5, TOEFL iBT 72 или эквивалент), электронный экзамен e-admission или тест на определение уровня, возраст не менее 18 лет на момент зачисления; при слабой подготовке по математике, физике, химии или английскому может потребоваться годичный подготовительный курс. Регистрационный сбор 150 EUR."
+],
+"note": [
+"Ko‘pchilik BSc dasturlarida EI a’zosi bo‘lmagan talabalar uchun semestriga, 2026/27 (Mechanical Engineering 3500 EUR); to‘lov yo‘nalishga qarab farq qiladi",
+"За семестр для студентов не из ЕС на большинстве программ BSc, 2026/27 (Mechanical Engineering 3500 EUR); стоимость зависит от программы"
+]
+},
+"charles-university": {
+"req": [
+"Tabiiy fanlar fakulteti (2027/2028): SIS orqali elektron ariza; 100 ballik kirish imtihoni (CV 10, motivatsion xat 25, maktab baholari 10, onlayn inglizcha suhbat 55); qabul yig‘imi 100 EUR. Computer Science bakalavriati (Matematika va fizika fakulteti, 2026/2027) uchun IELTS 6.5 yoki TOEFL iBT 85 va matematik fikrlash isboti (SAT/ACT Math, IB Maths HL, A-Level yoki shunga o‘xshash) so‘raladi.",
+"Факультет естественных наук (2027/2028): электронная заявка через SIS; вступительное испытание на 100 баллов (CV 10, мотивационное письмо 25, школьные оценки 10, онлайн-интервью на английском 55); сбор 100 EUR. Для бакалавриата Computer Science (факультет математики и физики, 2026/2027) требуются IELTS 6.5 или TOEFL iBT 85 и подтверждение математического мышления (SAT/ACT Math, IB Maths HL, A-Level и т.п.)."
+],
+"intake": [
+"2027-yil kuz (2027/2028), Tabiiy fanlar fakulteti, ingliz tilidagi bakalavriat; kirish imtihoni 2027-yil 19-30 aprel",
+"Осень 2027 (2027/2028), факультет естественных наук, бакалавриат на английском; вступительное испытание 19-30 апреля 2027"
+],
+"note": [
+"Tabiiy fanlar fakulteti ingliz tilidagi bakalavriati, o‘quv yiliga, 2027/2028 da boshlaydigan EI/EEA dan tashqari abituriyentlar uchun; to‘lov fakultetga qarab farq qiladi",
+"Бакалавриат факультета естественных наук на английском, за учебный год, для абитуриентов не из ЕС/ЕЭЗ, начинающих в 2027/2028; стоимость зависит от факультета"
+]
+},
+"politecnico-di-torino": {
+"req": [
+"Kamida 12 yillik o‘qishdan keyingi o‘rta ta’lim diplomi (mamlakatingiz talab qilsa, milliy kirish imtihoni sertifikati ham); ingliz tilidagi dasturlar uchun ingliz tili B2 yoki undan yuqori; TIL kirish testi yoki SAT natijasi (Architecture uchun SAT yaroqsiz). Chet eldagi EI a’zosi bo‘lmagan abituriyentlar Universitaly orqali oldindan ro‘yxatdan o‘tadi (2026/27 davri: til sertifikati 22-maygacha, oldindan ro‘yxatdan o‘tish taxminan 30-iyun).",
+"Диплом о среднем образовании после не менее 12 лет обучения (и сертификат национального вступительного экзамена, если его требует ваша страна); английский уровня B2 и выше для программ на английском; вступительный тест TIL или результат SAT (SAT не принимается для Architecture). Абитуриенты не из ЕС, находящиеся за границей, предварительно регистрируются на Universitaly (цикл 2026/27: языковой сертификат до 22 мая, предрегистрация около 30 июня)."
+]
 }
 }

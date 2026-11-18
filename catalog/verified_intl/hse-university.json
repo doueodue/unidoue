@@ -1,0 +1,30 @@
+{
+ "name": "HSE University",
+ "country": "Russia",
+ "city": "Moscow",
+ "official_url": "https://www.hse.ru/en/",
+ "language": "English / Russian",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-02-02",
+  "intake": "Autumn 2027 (studies start 1 Sept 2027); end of registration for the HSE International Olympiad tuition-free track",
+  "url": "https://admissions.hse.ru/en/undergraduate-apply/",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 1300000,
+  "currency": "RUB",
+  "note": "Bachelor's in International Business (taught in English), per year, 2026; fee-paying studies at HSE start from 200,000 RUB per year depending on programme",
+  "url": "https://www.hse.ru/en/ba/ib/",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "International Business bachelor's (taught in English): entry by Unified State Exam, olympiad results or HSE internal tests; minimum USE scores for foreign citizens are Mathematics 65 and English 70; secondary education required. Tuition-free places are possible through the HSE International Olympiad and Russian government scholarship programmes.",
+  "url": "https://www.hse.ru/en/ba/ib/"
+ },
+ "bachelor_in_english": true
+}
