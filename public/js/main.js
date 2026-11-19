@@ -51,11 +51,39 @@ function authScreen(mode = 'login') {
     btn.disabled = true; const t0 = btn.textContent; btn.textContent = t('Kuting…'); m.textContent = '';
     try {
       if (fg) { await api('/api/password/forgot', 'POST', { email: em }); m.className = 'msg ok'; m.textContent = 'Agar bu email ro‘yxatda bo‘lsa, tiklash havolasi yuborildi. Pochtangizni tekshiring.'; }
-      else { const me = await api(reg ? '/api/register' : '/api/login', 'POST', reg ? { email: em, password: pw, name: nm } : { email: em, password: pw }); adopt(me); start(); return; }
+      else { const me = await api(reg ? '/api/register' : '/api/login', 'POST', reg ? { email: em, password: pw, name: nm } : { email: em, password: pw }); if (me.user.verified === false) { verifyScreen(me); return; } adopt(me); start(); return; }
     } catch (e) { m.textContent = e.message; }
     btn.disabled = false; btn.textContent = t0;
   };
 }
+
+/* ---------- email tasdiqlash ekrani ---------- */
+function verifyScreen(me) {
+  S.user = me.user;
+  root.innerHTML = `<main class="auth-form" style="min-height:100dvh"><form class="auth-box" id="vf" novalidate>
+  <h1>${t('Emailingizni tasdiqlang')}</h1><p class="sub">${t('6 xonali kodni')} <b>${esc(me.user.email)}</b> ${t('manziliga yubordik. Pochtangizni (Spam papkasini ham) tekshiring.')}</p>
+  <div class="field"><label class="f" for="vc">${t('Tasdiqlash kodi')}</label><input id="vc" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
+  <div class="msg" id="vm" role="alert"></div>
+  <button class="btn primary" id="vb" type="submit" style="width:100%;margin-top:6px">${t('Tasdiqlash')}</button>
+  <p class="hint" style="margin-top:16px;text-align:center"><button type="button" class="link-btn" id="vr">${t('Kodni qayta yuborish')}</button> · <button type="button" class="link-btn" id="vo">${t('Chiqish')}</button></p>
+  </form></main>`;
+  const m = $('#vm');
+  $('#vf').onsubmit = async ev => {
+    ev.preventDefault(); m.className = 'msg err'; m.textContent = '';
+    const code = $('#vc').value.replace(/\s/g, '');
+    if (!/^\d{6}$/.test(code)) { m.textContent = 'Kod 6 ta raqamdan iborat.'; return; }
+    const btn = $('#vb'); btn.disabled = true;
+    try { const r = await api('/api/verify', 'POST', { code }); adopt(r); start(); return; } catch (e) { m.textContent = e.message; }
+    btn.disabled = false;
+  };
+  $('#vr').onclick = async () => {
+    m.className = 'msg err'; m.textContent = '';
+    try { await api('/api/verify/resend', 'POST', {}); m.className = 'msg ok'; m.textContent = 'Yangi kod yuborildi.'; } catch (e) { m.textContent = e.message; }
+  };
+  $('#vo').onclick = async () => { try { await api('/api/logout', 'POST', {}); } catch (e) {} location.reload(); };
+  $('#vc').focus();
+}
+document.addEventListener('unidoue:unverified', () => { if (S.user) verifyScreen({ user: S.user }); });
 
 /* ---------- ilova qobig‘i ---------- */
 function shell() {
@@ -98,7 +126,7 @@ document.addEventListener('unidoue:signedout', () => { toast('Sessiya tugadi. Qa
 (async function boot() {
   try {
     const me = await api('/api/me');
-    if (me.user) { adopt(me); start(); } else authScreen('login');
+    if (me.user && me.user.verified === false) verifyScreen(me); else if (me.user) { adopt(me); start(); } else authScreen('login');
   } catch (e) {
     root.innerHTML = `<div style="min-height:100dvh;display:grid;place-items:center;padding:20px">${errorBox(e.message, true)}</div>`;
     const b = $('[data-retry]'); if (b) b.onclick = () => location.reload();

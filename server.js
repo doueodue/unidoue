@@ -127,6 +127,15 @@ async function sendMail(to, subject, html) {
   }
   if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(MAIL_PROVIDER + ' ' + r.status + ' ' + t.slice(0, 200)); }
 }
+
+// Email tasdiqlash: faqat xat yuborish sozlangan boʻlsa majburiy (REQUIRE_EMAIL_VERIFY=0 bilan oʻchiriladi).
+const VERIFY_ON = !!MAIL_PROVIDER && process.env.REQUIRE_EMAIL_VERIFY !== '0';
+async function issueCode(u) {
+  const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+  u.vcode = { h: sha256(u.id + ':' + code), exp: Date.now() + 15 * 60000, tries: 0, sent: Date.now() };
+  await sendMail(u.email, 'UniDoue: tasdiqlash kodi',
+    `<p>UniDoue tasdiqlash kodingiz:</p><p style="font-size:28px;letter-spacing:6px"><b>${code}</b></p><p>Kod 15 daqiqa amal qiladi. Bu soʻrovni siz yubormagan boʻlsangiz, xatni eʼtiborsiz qoldiring.</p>`);
+}
 const F_FREE = ['finder_basic', 'profile', 'compare_basic', 'predictor_basic', 'essay_basic', 'mentor_basic', 'finder_adv', 'scholarships', 'predictor', 'tracker'];
 const F_PRO = [...F_FREE, 'mentor_adv', 'strategy', 'essay_adv', 'reports', 'priority'];
 const PLANS = {
@@ -254,7 +263,7 @@ function readJson(req) {
   });
 }
 
-const publicUser = u => ({ id: u.id, email: u.email, name: u.name });
+const publicUser = u => ({ id: u.id, email: u.email, name: u.name, verified: u.verified !== false });
 function accountInfo(u) {
   const pl = effPlan(u), us = usageOf(u);
   return {
@@ -336,6 +345,38 @@ async function api(req, res, pathname) {
   }
   const ip = clientIp(req);
 
+  // Tasdiqlanmagan hisob: faqat tasdiqlash, chiqish va oʻchirishga ruxsat (server tomonda majburlanadi)
+  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/admin/')) {
+    const gu = sessionUser(req);
+    if (gu && gu.verified === false && !['/api/me', '/api/logout', '/api/verify', '/api/verify/resend', '/api/account'].includes(pathname))
+      return send(res, 403, { error: 'Avval emailingizni tasdiqlang.', code: 'EMAIL_UNVERIFIED' });
+  }
+
+  if (pathname === '/api/verify' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (u.verified !== false) return send(res, 200, meBody(u));
+    if (limited('vf:' + u.id, 20, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Keyinroq urinib koʻring.');
+    const b = await readJson(req), code = clean(b.code, 10).replace(/\s/g, ''), v = u.vcode;
+    if (!v || v.exp < Date.now()) return fail(res, 400, 'Kod eskirgan. Yangi kod soʻrang.');
+    if (v.tries >= 5) return fail(res, 400, 'Juda koʻp xato urinish. Yangi kod soʻrang.');
+    v.tries++;
+    const a = Buffer.from(sha256(u.id + ':' + code)), c = Buffer.from(v.h);
+    if (!/^\d{6}$/.test(code) || a.length !== c.length || !crypto.timingSafeEqual(a, c)) { save(); return fail(res, 400, 'Kod notoʻgʻri.'); }
+    u.verified = true; delete u.vcode; save();
+    return send(res, 200, meBody(u));
+  }
+
+  if (pathname === '/api/verify/resend' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (u.verified !== false) return send(res, 200, { ok: true });
+    if (u.vcode && Date.now() - u.vcode.sent < 60000) return fail(res, 429, 'Yangi kodni 1 daqiqadan keyin soʻrang.');
+    if (limited('vr:' + u.id, 5, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Keyinroq urinib koʻring.');
+    try { await issueCode(u); save(); } catch (e) { console.error('Tasdiqlash xati:', e.message); return fail(res, 503, 'Xatni yuborib boʻlmadi. Keyinroq urinib koʻring.'); }
+    return send(res, 200, { ok: true });
+  }
+
   if (pathname === '/api/me' && method === 'GET') {
     const u = sessionUser(req);
     return send(res, 200, u ? meBody(u) : { user: null });
@@ -352,6 +393,11 @@ async function api(req, res, pathname) {
     const hash = await hashPw(pw);
     if (emailIdx.has(email)) return fail(res, 409, 'Bu email bilan hisob allaqachon bor. “Kirish” ni bosing.');
     const u = { id: crypto.randomBytes(8).toString('hex'), email, name, hash, created: Date.now(), rev: 0, data: {} };
+    if (VERIFY_ON) {
+      u.verified = false;
+      try { await issueCode(u); } catch (e) { console.error('Tasdiqlash xati:', e.message); return fail(res, 503, 'Tasdiqlash xatini yuborib boʻlmadi. Keyinroq urinib koʻring yoki Telegram orqali murojaat qiling.'); }
+      if (emailIdx.has(email)) return fail(res, 409, 'Bu email bilan hisob allaqachon bor. “Kirish” ni bosing.');
+    }
     db.users[u.id] = u; emailIdx.set(email, u.id);
     createSession(req, res, u.id);
     return send(res, 201, meBody(u));

@@ -28,7 +28,7 @@ class Client {
   const ai = await mock((q, b, r) => { aiLast = JSON.parse(b); if (aiMode === 'fail') { r.statusCode = 500; return r.end('{"error":{"type":"x"}}'); } r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ content: [{ type: 'text', text: 'Test javobi' }] })); });
   const mail = await mock((q, b, r) => { mails.push(JSON.parse(b)); r.setHeader('content-type', 'application/json'); r.end('{"id":"1"}'); });
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-'));
-  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
+  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, REQUIRE_EMAIL_VERIFY: '0', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
   for (let i = 0; i < 40; i++) { try { if ((await fetch(B + '/healthz')).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
   const PROFILE = { gpa: 4.6, sc: 5, sat: 1480, ielts: 7, ex: 2 };
   try {
@@ -205,6 +205,36 @@ class Client {
     const code = await new Promise(r => { bad.on('exit', r); setTimeout(() => { bad.kill(); r('timeout'); }, 8000); });
     ok(code === 1, 'Neon ulanmasa server toʻxtaydi (bazani boʻsh qilib yozmaydi)', code);
     nm.close(); fs.rmSync(d1, { recursive: true, force: true }); fs.rmSync(d2, { recursive: true, force: true });
+  }
+  {
+    console.log('Email tasdiqlash');
+    const vm = []; let vmFail = false;
+    const mm = await mock((q, b, r) => { if (vmFail) { r.statusCode = 500; return r.end('x'); } vm.push(JSON.parse(b)); r.setHeader('content-type', 'application/json'); r.end('{"id":"1"}'); });
+    const vd = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), vp = PORT + 5;
+    const vs = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: vp, DATA_DIR: vd, ANTHROPIC_API_KEY: '', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mm.address().port}/emails`, REQUIRE_EMAIL_VERIFY: '' }, stdio: 'ignore' });
+    for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${vp}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
+    try {
+      let ck = ''; const c = async (m, u, bd) => { const r = await fetch(`http://localhost:${vp}${u}`, { method: m, headers: { 'Content-Type': 'application/json', ...(ck ? { Cookie: ck } : {}) }, body: bd ? JSON.stringify(bd) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) ck = sc.split(';')[0]; return { s: r.status, j: await r.json().catch(() => null) }; };
+      vmFail = true;
+      let r = await c('POST', '/api/register', { email: 'fail@gmail.com', password: 'parol12345', name: 'Fail' }); ok(r.s === 503, 'xat ketmasa hisob ochilmaydi', r.s);
+      vmFail = false;
+      r = await c('POST', '/api/register', { email: 'v@gmail.com', password: 'parol12345', name: 'Vali' });
+      ok(r.s === 201 && r.j.user.verified === false, 'yangi hisob tasdiqlanmagan', r.j);
+      const code = (vm.at(-1).html.match(/<b>(\d{6})<\/b>/) || [])[1]; ok(!!code, 'xatda 6 xonali kod bor');
+      ok(!JSON.stringify(r.j).includes(code), 'javobda kod yoʻq');
+      r = await c('GET', '/api/state'); ok(r.s === 403 && r.j.code === 'EMAIL_UNVERIFIED', 'tasdiqlanmagan foydalanuvchi API dan foydalana olmaydi', r.s);
+      r = await c('PUT', '/api/data', { data: {} }); ok(r.s === 403, 'maʼlumot yozish yopiq', r.s);
+      r = await c('POST', '/api/verify', { code: code === '000000' ? '111111' : '000000' }); ok(r.s === 400, 'notoʻgʻri kod rad etiladi', r.s);
+      r = await c('POST', '/api/verify/resend', {}); ok(r.s === 429, 'qayta yuborish 1 daqiqa kutadi', r.s);
+      r = await c('POST', '/api/verify', { code }); ok(r.s === 200 && r.j.user.verified === true, 'toʻgʻri kod tasdiqlaydi', r.s);
+      r = await c('PUT', '/api/data', { data: {} }); ok(r.s === 200, 'tasdiqlangach API ochiladi', r.s);
+      // 5 ta xato urinishdan keyin toʻgʻri kod ham ishlamaydi
+      ck = ''; r = await c('POST', '/api/register', { email: 'w@gmail.com', password: 'parol12345', name: 'Wali' });
+      const c2 = (vm.at(-1).html.match(/<b>(\d{6})<\/b>/) || [])[1], bad = c2 === '123456' ? '654321' : '123456';
+      for (let i = 0; i < 5; i++) await c('POST', '/api/verify', { code: bad });
+      r = await c('POST', '/api/verify', { code: c2 }); ok(r.s === 400, '5 xato urinishdan keyin kod bloklanadi', r.s);
+    } catch (e) { failN++; console.log('XATO:', e); }
+    vs.kill(); mm.close(); fs.rmSync(vd, { recursive: true, force: true });
   }
   console.log(`\n${pass} ta oʻtdi, ${failN} ta yiqildi`); process.exit(failN ? 1 : 0);
 })();

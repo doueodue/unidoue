@@ -14,6 +14,7 @@ export async function api(path, method = 'GET', body) {
   try { j = await r.json(); } catch (e) {}
   if (!r.ok) {
     const err = Object.assign(new Error(j.error || (r.status === 404 ? 'Topilmadi.' : 'Xatolik yuz berdi.')), { status: r.status, code: j.code, data: j });
+    if (r.status === 403 && j.code === 'EMAIL_UNVERIFIED') document.dispatchEvent(new CustomEvent('unidoue:unverified'));
     if (r.status === 401 && S.user) { S.user = null; document.dispatchEvent(new CustomEvent('unidoue:signedout')); }
     throw err;
   }
