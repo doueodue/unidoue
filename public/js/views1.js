@@ -115,10 +115,22 @@ const FEAT = {
   pro: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Shaxsiy qabul strategiyasi', 'Chuqur esse tahlili', 'Universitet hisobotlari', '4 ta universitetni solishtirish', '300 AI kredit / oy', 'Ustuvor yordam']
 };
 const ORDER = { free: 0, pro: 1 };
+function payBox(a, cur) {
+  const pay = a.pay || {};
+  if (cur === 'pro') return a.planUntil ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>Pro faol.</b> Amal qilish muddati: <b>${new Date(a.planUntil).toLocaleDateString('uz-UZ')}</b> gacha. Uzaytirish uchun to‘lovdan keyin <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing.</div></div>` : '';
+  if (!pay.requested) return '';
+  const info = pay.info ? `Karta: <b>${esc(pay.info.card)}</b>${pay.info.holder ? ' (' + esc(pay.info.holder) + ')' : ''}. ` : 'To‘lov rekvizitlarini olish uchun ';
+  return `<div class="card" style="margin-bottom:18px"><h3>Pro uchun to‘lov</h3><p class="sub">So‘rovingiz qabul qilindi. Pro to‘lov tekshirilgandan keyin qo‘lda yoqiladi, avtomatik emas.</p>
+    <ol style="margin:0 0 10px 18px;padding:0"><li>Narx: <b>$4.99 / oy</b>. ${info}${pay.info ? '' : '<a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing. '}</li>
+    <li>To‘lov izohiga yoki xabarga shu kodni yozing: <b>${esc(pay.ref)}</b></li>
+    <li>Chekni (skrinshot) <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yuboring va hisob emailingizni ayting: <b>${esc(S.user.email)}</b></li></ol>
+    <p class="hint">Odatda tekshirish va yoqish bir necha soat ichida bo‘ladi.</p></div>`;
+}
 export async function pricing(el) {
   const { plans, config } = await api('/api/plans'); await refreshAccount(); const cur = S.account.plan;
   el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b>${S.account.usage.ai} / ${S.account.limits.ai}</b>.</p></div></div>
-  ${config.payments ? '' : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov tizimi hali ulanmagan.</b> Pro uchun so‘rov yuboring: administrator tarifni qo‘lda yoqadi. To‘lov qabul qilinmaydi va tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
+  ${payBox(S.account, cur)}
+  ${config.payments ? '' : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov qo‘lda qabul qilinadi.</b> So‘rov yuboring, to‘lov ko‘rsatmasini olasiz. Administrator to‘lovni tekshirib, Pro ni qo‘lda yoqadi. Tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
   <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === 'pro' ? 'feat' : ''}">${p.id === 'pro' ? '<span class="badge pop">Mashhur</span>' : ''}<div><h3>${p.name}</h3></div><div class="price">$${p.price === 0 ? '0' : p.price}<small>${p.price ? ' / oy' : ''}</small></div>
     <ul>${FEAT[p.id].map(f => `<li>${f}</li>`).join('')}</ul><div style="margin-top:auto">${
       p.id === cur ? '<button class="btn" disabled style="width:100%">Joriy tarif</button>'
@@ -126,7 +138,7 @@ export async function pricing(el) {
       : `<button class="btn ${p.id === 'pro' ? 'primary' : 'dark'}" style="width:100%" data-up="${p.id}">${p.name} uchun so‘rov yuborish</button>`}</div></section>`).join('')}</div>
   <div class="card" style="margin-top:18px"><h3>AI kredit qanday sarflanadi</h3><p class="sub">Limit har oy yangilanadi. Xatolik bo‘lsa, kredit yechilmaydi.</p><div class="row"><div class="stat"><b>1</b><span>mentor savoli</span></div><div class="stat"><b>2 / 4</b><span>esse tahlili (oddiy / chuqur)</span></div><div class="stat"><b>6</b><span>strategiya yoki hisobot</span></div></div></div>
   <p class="hint" style="margin-top:14px">Qabul natijasi hech bir tarifda kafolatlanmaydi. Narxlar AQSh dollarida.</p>`;
-  $$('[data-up]', el).forEach(b => (b.onclick = async () => { b.disabled = true; try { await api('/api/plan/request', 'POST', { plan: b.dataset.up }); toast('So‘rov yuborildi. Administrator siz bilan bog‘lanadi.'); } catch (e) { toast(e.message, 'err'); } b.disabled = false; }));
+  $$('[data-up]', el).forEach(b => (b.onclick = async () => { b.disabled = true; try { const r = await api('/api/plan/request', 'POST', { plan: b.dataset.up }); S.account = r.account; toast('So‘rov yuborildi. To‘lov ko‘rsatmasi sahifada.'); pricing(el); return; } catch (e) { toast(e.message, 'err'); } b.disabled = false; }));
   $$('[data-down]', el).forEach(b => (b.onclick = async () => {
     if ((await modal({ title: 'Tarifni pasaytirasizmi?', body: '<p>Yuqori tarif imkoniyatlari darhol o‘chadi. Ma’lumotlaringiz saqlanadi, lekin arizalar limiti oshgan bo‘lsa yangilari qo‘shilmaydi.</p>', actions: [{ label: 'Bekor', value: 0 }, { label: 'Pasaytirish', value: 1, cls: 'danger' }] })) !== 1) return;
     try { const r = await api('/api/plan/downgrade', 'POST', { plan: b.dataset.down }); S.account = r.account; accountChanged(); toast('Tarif o‘zgartirildi.'); pricing(el); } catch (e) { toast(e.message, 'err'); }

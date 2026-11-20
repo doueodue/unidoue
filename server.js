@@ -136,6 +136,10 @@ async function issueCode(u) {
   await sendMail(u.email, 'UniDoue: tasdiqlash kodi',
     `<p>UniDoue tasdiqlash kodingiz:</p><p style="font-size:28px;letter-spacing:6px"><b>${code}</b></p><p>Kod 15 daqiqa amal qiladi. Bu soʻrovni siz yubormagan boʻlsangiz, xatni eʼtiborsiz qoldiring.</p>`);
 }
+// Qoʻlda toʻlov: karta rekvizitlari faqat serverda sozlansa (PAY_CARD, PAY_HOLDER) koʻrsatiladi. Toʻlov avtomatik tekshirilmaydi: Pro administrator tomonidan qoʻlda yoqiladi.
+const PAY_CARD = (process.env.PAY_CARD || '').replace(/\s/g, '');
+const PAY_INFO = /^\d{16}$/.test(PAY_CARD) ? { card: PAY_CARD.replace(/(\d{4})(?=\d)/g, '$1 '), holder: String(process.env.PAY_HOLDER || '').slice(0, 60) } : null;
+const payRef = u => 'UD-' + String(u.id).slice(0, 6).toUpperCase();
 const F_FREE = ['finder_basic', 'profile', 'compare_basic', 'predictor_basic', 'essay_basic', 'mentor_basic', 'finder_adv', 'scholarships', 'predictor', 'tracker'];
 const F_PRO = [...F_FREE, 'mentor_adv', 'strategy', 'essay_adv', 'reports', 'priority'];
 const PLANS = {
@@ -270,7 +274,8 @@ function accountInfo(u) {
     plan: pl.id, planUntil: pl.id === 'free' ? null : (u.planUntil || null),
     limits: { ai: pl.ai, apps: pl.apps, finder: pl.finder, compare: pl.compare }, features: pl.features,
     usage: { ai: us.ai, period: us.p }, consent: { mentorMemory: !!(u.consent && u.consent.mentorMemory) },
-    config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: false }
+    config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: false },
+    pay: { ref: payRef(u), info: PAY_INFO, requested: u.planReq || null }
   };
 }
 const meBody = u => ({ user: publicUser(u), account: accountInfo(u), rev: u.rev || 0, hasData: !!(u.data && Object.keys(u.data).length), data: u.data || {} });
@@ -482,7 +487,7 @@ async function api(req, res, pathname) {
     if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
     const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
     if (!tok || !crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok)))) return fail(res, 401, 'Ruxsat yoʻq.');
-    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
+    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
     return send(res, 200, { users });
   }
 
@@ -566,9 +571,10 @@ async function api(req, res, pathname) {
     if (limited('plr:' + u.id, 3, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp soʻrov. Keyinroq urinib koʻring.');
     const b = await readJson(req);
     if (b.plan !== 'pro') return fail(res, 400, 'Notoʻgʻri tarif.');
-    const r = { id: crypto.randomBytes(6).toString('hex'), ts: new Date().toISOString(), uid: u.id, email: u.email, name: u.name, contact: u.email, service: 'Tarif: ' + PLANS[b.plan].name, message: 'Tarifni yoqish soʻrovi (toʻlov tizimi hali ulanmagan).' };
+    const r = { id: crypto.randomBytes(6).toString('hex'), ts: new Date().toISOString(), uid: u.id, email: u.email, name: u.name, contact: u.email, service: 'Tarif: ' + PLANS[b.plan].name, message: 'Pro yoqish soʻrovi. Toʻlov kodi: ' + payRef(u) + '. Toʻlov chekini tekshirib, /admin orqali qoʻlda yoqing.' };
+    u.planReq = Date.now();
     db.requests.push(r); save(); notifyTelegram(r);
-    return send(res, 201, { ok: true });
+    return send(res, 201, { ok: true, account: accountInfo(u) });
   }
 
   if (pathname === '/api/consent' && method === 'POST') {
@@ -600,7 +606,7 @@ async function api(req, res, pathname) {
     if (!u) return fail(res, 404, 'Foydalanuvchi topilmadi.');
     if (!PLANS[b.plan]) return fail(res, 400, 'Notoʻgʻri tarif.');
     const days = Math.min(Math.max(+b.days || 30, 1), 3660);
-    u.plan = b.plan; u.planUntil = b.plan === 'free' ? null : Date.now() + days * 864e5; save();
+    u.plan = b.plan; u.planUntil = b.plan === 'free' ? null : Date.now() + days * 864e5; delete u.planReq; save();
     return send(res, 200, { ok: true, email: u.email, plan: u.plan, planUntil: u.planUntil });
   }
 

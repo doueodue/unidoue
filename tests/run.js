@@ -56,6 +56,8 @@ class Client {
     r = await a.call('POST', '/api/predict', { id: 'mit', profile: PROFILE }); ok(r.s === 200 && r.j.full === true && r.j.parts.length >= 3, 'Free predict: toʻliq');
     r = await a.call('POST', '/api/finder', { profile: {} }); ok(r.s === 400, 'boʻsh profil → 400');
     r = await a.call('POST', '/api/plan/request', { plan: 'pro' }); ok(r.s === 201, 'tarif soʻrovi');
+    ok(r.j.account.plan === 'free' && /^UD-[0-9A-F]{6}$/.test(r.j.account.pay.ref) && !!r.j.account.pay.requested && r.j.account.pay.info === null, 'soʻrov tarifni oʻzgartirmaydi, toʻlov kodi bor, karta sozlanmagan', r.j.account);
+    r = await new Client().call('GET', '/api/admin/requests', null, { Authorization: 'Bearer adm-secret' }); ok(r.j.requests.some(x => /UD-[0-9A-F]{6}/.test(x.message || '')), 'adminda soʻrovda toʻlov kodi koʻrinadi');
     r = await new Client().call('GET', '/api/admin/users'); ok(r.s === 401, 'admin: tokensiz foydalanuvchilar roʻyxati yopiq', r.s);
     r = await new Client().call('GET', '/api/admin/users', null, { Authorization: 'Bearer notogri' }); ok(r.s === 401, 'admin: notoʻgʻri token rad etiladi', r.s);
     r = await new Client().call('GET', '/api/admin/users', null, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200 && r.j.users.length > 0 && r.j.users.every(u => u.email && !('hash' in u) && !('data' in u)), 'admin: roʻyxat bor, parol xeshi va maʼlumotlar chiqmaydi', r.s);
