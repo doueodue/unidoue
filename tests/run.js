@@ -62,6 +62,8 @@ class Client {
     r = await new Client().call('GET', '/api/admin/users', null, { Authorization: 'Bearer notogri' }); ok(r.s === 401, 'admin: notoʻgʻri token rad etiladi', r.s);
     r = await new Client().call('GET', '/api/admin/users', null, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200 && r.j.users.length > 0 && r.j.users.every(u => u.email && !('hash' in u) && !('data' in u)), 'admin: roʻyxat bor, parol xeshi va maʼlumotlar chiqmaydi', r.s);
     r = await new Client().call('GET', '/api/admin/requests', null, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200 && Array.isArray(r.j.requests), 'admin: soʻrovlar roʻyxati', r.s);
+    r = await new Client().call('GET', '/api/admin/stats'); ok(r.s === 401, 'admin: tokensiz statistika yopiq', r.s);
+    r = await new Client().call('GET', '/api/admin/stats', null, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200 && r.j.total > 0 && r.j.activeToday >= 1 && r.j.rows.length === 14 && !JSON.stringify(r.j).includes('@'), 'admin: statistika (bugun faol, 14 kun, shaxsiy maʼlumotsiz)', r.j);
     r = await a.call('GET', '/api/scholarships'); ok(r.s === 200, 'Plus: stipendiya 200', r.s);
     r = await a.call('POST', '/api/finder', { profile: PROFILE, tier: 'target' }); ok(r.s === 200 && r.j.items[0].why && r.j.items.every(x => x.tier === 'target'), 'Plus finder: tushuntirish + filtr');
     r = await a.call('POST', '/api/predict', { id: 'mit', profile: PROFILE }); ok(r.j.full === true && r.j.parts.length >= 3, 'Plus predict: toʻliq');

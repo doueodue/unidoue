@@ -218,7 +218,16 @@ function sessionUser(req) {
   if (!t) return null;
   const s = db.sessions[sha256(t)];
   if (!s || s.exp < Date.now()) return null;
-  return db.users[s.uid] || null;
+  const u = db.users[s.uid] || null;
+  if (u) touch(u);
+  return u;
+}
+// Faollik: har foydalanuvchi uchun kuniga bir marta (Toshkent sanasi bilan) belgilanadi. Statistika faqat shu funksiya qoʻshilgandan keyingi kunlar uchun bor.
+function touch(u) {
+  const d = tashkentISO();
+  if (u.seenDay === d) return;
+  u.seenDay = d; u.act = (u.act || []).filter(x => x !== d).slice(-59).concat(d);
+  save();
 }
 function setSessionCookie(req, res, token, maxAge) {
   res.setHeader('Set-Cookie',
@@ -231,6 +240,7 @@ function createSession(req, res, uid) {
   const mine = Object.entries(db.sessions).filter(([, s]) => s.uid === uid).sort((a, b) => a[1].created - b[1].created);
   while (mine.length > 10) delete db.sessions[mine.shift()[0]];
   setSessionCookie(req, res, token, SESSION_DAYS * 86400);
+  if (db.users[uid]) touch(db.users[uid]);
   save();
 }
 
@@ -300,7 +310,7 @@ function profileFacts(u) {
   return out.join('; ');
 }
 // Modelning oʻz “bugun” tushunchasi eskirgan boʻladi — haqiqiy sanani har soʻrovda beramiz
-const tashkentISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const tashkentISO = (t = Date.now()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t));
 function todayCtx() {
   const iso = tashkentISO();
   const [y, m] = iso.split('-').map(Number);
@@ -487,7 +497,7 @@ async function api(req, res, pathname) {
     if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
     const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
     if (!tok || !crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok)))) return fail(res, 401, 'Ruxsat yoʻq.');
-    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
+    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null, seen: x.seenDay || null, verified: x.verified !== false, ai: x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0 })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
     return send(res, 200, { users });
   }
 
@@ -596,6 +606,26 @@ async function api(req, res, pathname) {
     const q = new URL(req.url, 'http://x').searchParams, text = (q.get('q') || '').toLowerCase().slice(0, 80), country = q.get('country') || '', funding = q.get('funding') || '';
     const items = (doc.items || []).filter(x => (!text || (x.name + ' ' + (x.provider || '')).toLowerCase().includes(text)) && (!country || (x.countries || []).includes(country)) && (!funding || x.funding === funding));
     return send(res, 200, { items, total: (doc.items || []).length, updated: doc.updated || null });
+  }
+
+  if (pathname === '/api/admin/stats' && method === 'GET') {
+    if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
+    const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (!tok || !crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok)))) return fail(res, 401, 'Ruxsat yoʻq.');
+    const us = Object.values(db.users), now = Date.now(), today = tashkentISO();
+    const days = Array.from({ length: 14 }, (_, i) => tashkentISO(now - (13 - i) * 864e5));
+    const rows = days.map(d => ({ d, active: us.filter(u => (u.act || []).includes(d)).length, signups: us.filter(u => u.created && tashkentISO(u.created) === d).length }));
+    const week = new Set(days.slice(-7)), all = us.flatMap(u => u.act || []).sort();
+    return send(res, 200, {
+      today, total: us.length, unverified: us.filter(u => u.verified === false).length,
+      pro: us.filter(u => effPlan(u).id === 'pro').length,
+      proExpiring: us.filter(u => effPlan(u).id === 'pro' && u.planUntil && u.planUntil - now < 7 * 864e5).length,
+      pending: us.filter(u => u.planReq && effPlan(u).id !== 'pro').length,
+      activeToday: rows[13].active, signupsToday: rows[13].signups,
+      active7: us.filter(u => (u.act || []).some(d => week.has(d))).length,
+      aiMonth: us.reduce((n, u) => n + (u.usage && u.usage.p === month() ? u.usage.ai || 0 : 0), 0),
+      since: all[0] || null, rows, mail: !!MAIL_PROVIDER, ai: !!AI_PROVIDER, verifyOn: VERIFY_ON, payCard: !!PAY_INFO
+    });
   }
 
   if (pathname === '/api/admin/plan' && method === 'POST') {
