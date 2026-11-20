@@ -1,0 +1,30 @@
+{
+ "name": "American University of Armenia",
+ "country": "Armenia",
+ "city": "Yerevan",
+ "official_url": "https://aua.am",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-04-30",
+  "intake": "Fall 2027 intake, regular admission (early admission 15 Jan 2027; rolling 1 Jun 2027 where capacity allows)",
+  "url": "https://admissions.aua.am/ugrad/",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 4250000,
+  "currency": "AMD",
+  "note": "International students, all programmes except Business/Economics (BA Business and BS Economics: 4,750,000 AMD); Fall 2026 cycle, before financial aid; plus 25,000 AMD student services fee",
+  "url": "https://admissions.aua.am/undergraduate-tuition-rates-2026-2027/",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Applicants must submit proof of high school graduation (or equivalent such as IB, A-levels, GED), and demonstrate English and math proficiency through accepted tests such as the SAT or the AUA entrance exams; English test scores must be under two years old.",
+  "url": "https://admissions.aua.am/ugrad/application-requirements/"
+ },
+ "bachelor_in_english": true
+}

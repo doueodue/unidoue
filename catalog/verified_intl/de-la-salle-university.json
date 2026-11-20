@@ -1,0 +1,30 @@
+{
+ "name": "De La Salle University",
+ "country": "Philippines",
+ "city": "Manila",
+ "official_url": "https://www.dlsu.edu.ph",
+ "language": "English / Filipino",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Eligible applicants include Grade 12 graduates from schools in the Philippines or abroad (AY 2025-2026 or earlier); applicants may also qualify with SAT, AP, IB or A Level results that meet DLSU criteria.",
+  "url": "https://www.dlsu.edu.ph/admission/admissions-undergraduate-first-year-college-application/"
+ },
+ "bachelor_in_english": true
+}

@@ -1,0 +1,30 @@
+{
+ "name": "Sophia University",
+ "country": "Japan",
+ "city": "Tokyo",
+ "official_url": "https://adm.sophia.ac.jp/eng/",
+ "language": "English / Japanese",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2026-12-04",
+  "intake": "2027 entry, SPSF first application period (first-year entry; 11 Nov - 4 Dec 2026); second period 10-31 Mar 2027",
+  "url": "https://adm.sophia.ac.jp/eng/admissions/ug_p/en_ug/spsf/w_h/",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": 1392000,
+  "currency": "JPY",
+  "note": "Two semesters at 696,000 JPY each (Faculty of Science and Technology DGTech, AY 2027); plus 200,000 JPY entrance fee once",
+  "url": "https://adm.sophia.ac.jp/eng/admissions/ug_p/en_ug/dgtech/fee_aid/",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "SPSF applicants submit one or more of SAT, ACT, IB Diploma or UK GCE/International A-level results, a high school transcript, certificate of graduation, two recommendation letters and an essay, plus TOEFL iBT or IELTS Academic.",
+  "url": "https://adm.sophia.ac.jp/eng/admissions/ug_p/en_ug/spsf/w_h/"
+ },
+ "bachelor_in_english": true
+}

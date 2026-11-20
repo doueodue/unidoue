@@ -2,7 +2,7 @@
 import json, glob, re, unicodedata
 ROOT = '/home/claude/unidoue/'
 UZ = {'Switzerland': 'Shveytsariya', 'Finland': 'Finlyandiya', 'Scotland': 'Shotlandiya', 'Wales': 'Uels', 'France': 'Fransiya', 'Italy': 'Italiya',
-      'Australia': 'Avstraliya', 'New Zealand': 'Yangi Zelandiya', 'Germany': 'Germaniya', 'Japan': 'Yaponiya', 'South Korea': 'Janubiy Koreya', 'China': 'Xitoy', 'England': 'Angliya', 'Canada': 'Kanada', 'Netherlands': 'Niderlandiya', 'Singapore': 'Singapur', 'Ireland': 'Irlandiya', 'Turkey': 'Turkiya', 'Hong Kong': 'Gonkong', 'Sweden': 'Shvetsiya', 'Denmark': 'Daniya', 'Norway': 'Norvegiya', 'Malaysia': 'Malayziya', 'Austria': 'Avstriya', 'Spain': 'Ispaniya', 'Belgium': 'Belgiya', 'Poland': 'Polsha', 'Czechia': 'Chexiya', 'Estonia': 'Estoniya', 'Hungary': 'Vengriya', 'Portugal': 'Portugaliya', 'United Arab Emirates': 'BAA', 'Czech Republic': 'Chexiya', 'Kazakhstan': 'Qozog‘iston', 'Lithuania': 'Litva', 'Latvia': 'Latviya', 'India': 'Hindiston', 'Thailand': 'Tailand', 'Russia': 'Rossiya'}
+      'Australia': 'Avstraliya', 'New Zealand': 'Yangi Zelandiya', 'Germany': 'Germaniya', 'Japan': 'Yaponiya', 'South Korea': 'Janubiy Koreya', 'China': 'Xitoy', 'England': 'Angliya', 'Canada': 'Kanada', 'Netherlands': 'Niderlandiya', 'Singapore': 'Singapur', 'Ireland': 'Irlandiya', 'Turkey': 'Turkiya', 'Hong Kong': 'Gonkong', 'Sweden': 'Shvetsiya', 'Denmark': 'Daniya', 'Norway': 'Norvegiya', 'Malaysia': 'Malayziya', 'Austria': 'Avstriya', 'Spain': 'Ispaniya', 'Belgium': 'Belgiya', 'Poland': 'Polsha', 'Czechia': 'Chexiya', 'Estonia': 'Estoniya', 'Hungary': 'Vengriya', 'Portugal': 'Portugaliya', 'United Arab Emirates': 'BAA', 'Czech Republic': 'Chexiya', 'Kazakhstan': 'Qozog‘iston', 'Lithuania': 'Litva', 'Latvia': 'Latviya', 'India': 'Hindiston', 'Thailand': 'Tailand', 'Russia': 'Rossiya', 'Armenia': 'Armaniston', 'Azerbaijan': 'Ozarbayjon', 'Georgia': 'Gruziya', 'Kyrgyzstan': 'Qirg‘iziston', 'Taiwan': 'Tayvan', 'Luxembourg': 'Lyuksemburg', 'Cyprus': 'Kipr', 'Israel': 'Isroil', 'Vietnam': 'Vetnam', 'Philippines': 'Filippin'}
 TODAY = '2026-11-09'
 def slug(n): return re.sub(r'[^a-z0-9]+', '-', unicodedata.normalize('NFKD', n).encode('ascii', 'ignore').decode().lower()).strip('-')
 TR = json.load(open(ROOT + 'catalog/intl_i18n.json', encoding='utf-8'))
@@ -21,7 +21,7 @@ for f in sorted(glob.glob(ROOT + 'catalog/verified_intl/*.json')):
     if ie.get('min_overall') is not None and not ieV: rej.append((n, 'ielts', ie))
     rdV = bool(dl.get('date')) and re.fullmatch(r'20\d\d-\d\d-\d\d', dl['date']) is not None and TODAY <= dl['date'] <= '2028-06-30' and url_ok(dl.get('url'))
     if dl.get('date') and not rdV: rej.append((n, 'deadline', dl.get('date')))
-    tuV = isinstance(tu.get('amount'), (int, float)) and 500 <= tu['amount'] <= 2000000 and bool(tu.get('currency')) and url_ok(tu.get('url')) and fresh(tu.get('year'))
+    tuV = isinstance(tu.get('amount'), (int, float)) and 500 <= tu['amount'] <= (200000000 if tu.get('currency') in ('AMD', 'KRW', 'JPY', 'UZS', 'IDR', 'VND', 'KZT') else 2000000) and bool(tu.get('currency')) and url_ok(tu.get('url')) and fresh(tu.get('year'))
     if tu.get('amount') is not None and not tuV: rej.append((n, 'tuition', tu))
     rqV = bool(rq.get('text')) and url_ok(rq.get('url')) and 'not verified' not in rq['text'].lower() and TR.get(fid, {}).get('req', 1) is not None
     o = dict(id=fid, n=n, country=UZ.get(d['country'], d['country']), city=d.get('city') or None, url=d.get('official_url') if url_ok(d.get('official_url')) else None,

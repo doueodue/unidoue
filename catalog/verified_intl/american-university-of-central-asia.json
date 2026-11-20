@@ -1,0 +1,30 @@
+{
+ "name": "American University of Central Asia",
+ "country": "Kyrgyzstan",
+ "city": "Bishkek",
+ "official_url": "https://auca.kg",
+ "language": "English / Russian",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Applicants submit one English test certificate (AUCA English test, TOEFL or IELTS) and one admission exam result (AUCA Admission Exam, SAT I or ACT), a high school diploma or vocational education certificate, transcripts, a statement of purpose and a passport copy; education from outside Kyrgyzstan must be equivalent to 11 years of school.",
+  "url": "https://auca.kg/en/apply_international/"
+ },
+ "bachelor_in_english": true
+}

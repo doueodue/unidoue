@@ -1,0 +1,30 @@
+{
+ "name": "Constructor University",
+ "country": "Germany",
+ "city": "Bremen",
+ "official_url": "https://constructor.university",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://constructor.university/admission-aid/application-information-undergraduate",
+  "year": 2026
+ },
+ "deadline": {
+  "date": "2027-07-31",
+  "intake": "Fall 2027 first-year admission (Early Action 1 Oct 2026 - 1 Feb 2027; rolling admission 2 Feb - 31 Jul 2027)",
+  "url": "https://constructor.university/admission-aid/application-information-undergraduate",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 23850,
+  "currency": "EUR",
+  "note": "Two semesters at EUR 11,925 each, 2027-2028 bachelor programmes (on campus); may be reduced by financing options",
+  "url": "https://constructor.university/sites/default/files/2026-10/2027_CU_Fact_Sheet_Bachelor_Cost_of_Attendance.pdf",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "SAT/ACT scores are not required for admission evaluation, but enrolment may need a standardized test if the high school diploma does not grant direct admission to a German university; applicants submit their high school diploma and final grades.",
+  "url": "https://constructor.university/admission-aid/application-information-undergraduate"
+ },
+ "bachelor_in_english": true
+}

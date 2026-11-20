@@ -1,0 +1,30 @@
+{
+ "name": "Technion - Israel Institute of Technology",
+ "country": "Israel",
+ "city": "Haifa",
+ "official_url": "https://www.technion.ac.il/en/",
+ "language": "English / Hebrew",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Applicants need an SAT, ACT or Israeli Psychometric Entrance Test score, and English can be shown with a minimum of 120 on the English section of the Psychometric/AMIRAM test or an equivalent SAT/ACT English score.",
+  "url": "https://int.technion.ac.il/programs/bsc-in-engineering-1st-year-in-english/admission-and-costs/"
+ },
+ "bachelor_in_english": true
+}

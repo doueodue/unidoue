@@ -1,0 +1,30 @@
+{
+ "name": "VinUniversity",
+ "country": "Vietnam",
+ "city": "Hanoi",
+ "official_url": "https://vinuni.edu.vn",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://policy.vinuni.edu.vn/wp-content/uploads/2026/01/GDL-REG-002-V4.0_English-Language-Requirements-For-Undergraduate-Admissions.pdf",
+  "year": 2026
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Applicants need a high school diploma or equivalent (A Level/IB) and IELTS 6.5 or higher with no skill below 6.0; a GPA of 8.0 or higher is recommended.",
+  "url": "https://admissions.vinuni.edu.vn/undergraduate/faqs/"
+ },
+ "bachelor_in_english": true
+}

@@ -1,0 +1,30 @@
+{
+ "name": "Kutaisi International University",
+ "country": "Georgia",
+ "city": "Kutaisi",
+ "official_url": "https://www.kiu.edu.ge",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 5500,
+  "currency": "EUR",
+  "note": "International students 2025-2026; stated as a reference amount in euros, charged in Georgian lari at the National Bank rate on the payment date",
+  "url": "https://www.kiu.edu.ge/index.php?m=179",
+  "year": 2025
+ },
+ "requirement": {
+  "text": "Foreign citizens who completed general education abroad can apply without the Georgian Unified National Examinations: they submit an application form, a cover letter of up to 500 words, transcripts and a passport copy, and pass an online interview in English.",
+  "url": "https://www.kiu.edu.ge/index.php?m=412"
+ },
+ "bachelor_in_english": true
+}

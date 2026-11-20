@@ -1,0 +1,30 @@
+{
+ "name": "University of Luxembourg",
+ "country": "Luxembourg",
+ "city": "Esch-sur-Alzette",
+ "official_url": "https://www.uni.lu",
+ "language": "English / French / German",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Applicants must hold at least a secondary school certificate and, for non-EU certificates, need recognition (equivalence) from the Luxembourg Ministry of Education, which takes at least six weeks.",
+  "url": "https://www.uni.lu/en/admissions/bachelor-master/ba-e"
+ },
+ "bachelor_in_english": true
+}

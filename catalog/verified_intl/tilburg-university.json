@@ -1,0 +1,30 @@
+{
+ "name": "Tilburg University",
+ "country": "Netherlands",
+ "city": "Tilburg",
+ "official_url": "https://www.tilburguniversity.edu",
+ "language": "English / Dutch",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 13400,
+  "currency": "EUR",
+  "note": "Bachelor's programme, non-EU/EEA students, 2026-2027; institutional fees can vary by programme",
+  "url": "https://www.tilburguniversity.edu/students/administration/tuition-fees",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Applicants submit a passport copy, a secondary or higher education diploma (or a statement of the educational institution if not yet graduated), official grade lists and a one-time EUR 100 application fee; English proficiency must be shown for English-taught programmes.",
+  "url": "https://www.tilburguniversity.edu/education/bachelors-programs/application-and-admission"
+ },
+ "bachelor_in_english": true
+}

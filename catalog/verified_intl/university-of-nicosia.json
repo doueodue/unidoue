@@ -1,0 +1,30 @@
+{
+ "name": "University of Nicosia",
+ "country": "Cyprus",
+ "city": "Nicosia",
+ "official_url": "https://www.unic.ac.cy",
+ "language": "English / Greek",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 10800,
+  "currency": "EUR",
+  "note": "Non-EU students 2026-2027, 60 ECTS per year, Computer Science and Nursing (Accounting 10,320; Law 11,700; Architecture 11,820)",
+  "url": "https://www.unic.ac.cy/wp-content/uploads/2026/08/UNIC-Nicosia-Tuition-Fees-Non-EU-EN-2026-2027.pdf",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "The minimum admission requirement is a recognised High School Leaving Certificate; applicants with a grade below 7.5/10 (or 15/20) receive extra academic guidance in the first year.",
+  "url": "https://www.unic.ac.cy/study-at-unic/admission-requirements/"
+ },
+ "bachelor_in_english": true
+}

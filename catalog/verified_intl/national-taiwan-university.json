@@ -1,0 +1,30 @@
+{
+ "name": "National Taiwan University",
+ "country": "Taiwan",
+ "city": "Taipei",
+ "official_url": "https://www.ntu.edu.tw",
+ "language": "English / Chinese",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-28",
+  "intake": "September 2027 entry, 2nd round for international degree students (1st round closes 19 Nov 2026)",
+  "url": "https://admissions.ntu.edu.tw/wp-content/uploads/116-1Admission-Guidelines-for-Intl-Degree-Students_ENG_V3.pdf",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 71400,
+  "currency": "TWD",
+  "note": "Two semesters at 35,700 TWD tuition each (Liberal Arts, Social Sciences, Law; other colleges 35,980 per semester); 2026/27 figures, for reference only",
+  "url": "https://admissions.ntu.edu.tw/wp-content/uploads/116-1Admission-Guidelines-for-Intl-Degree-Students_ENG_V3.pdf",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "Applicants with a high school diploma can apply for undergraduate programmes and must submit a graduation certificate and full transcript; for English-taught programmes proof of English proficiency equivalent to CEFR B2 is required.",
+  "url": "https://admissions.ntu.edu.tw/wp-content/uploads/116-1Admission-Guidelines-for-Intl-Degree-Students_ENG_V3.pdf"
+ },
+ "bachelor_in_english": true
+}

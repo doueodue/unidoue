@@ -1,0 +1,30 @@
+{
+ "name": "ADA University",
+ "country": "Azerbaijan",
+ "city": "Baku",
+ "official_url": "https://www.ada.edu.az",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.0,
+  "url": "https://www.ada.edu.az/admission/undergraduate",
+  "year": 2026
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "International applicants submit a high school diploma or school reference with an official transcript (with notarized English translations), a CV, passport, photo and a 300-500 word statement of purpose; shortlisted candidates take an online interview.",
+  "url": "https://www.ada.edu.az/admission/undergraduate"
+ },
+ "bachelor_in_english": true
+}
