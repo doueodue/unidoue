@@ -140,21 +140,6 @@ async function issueCode(u) {
 const PAY_CARD = (process.env.PAY_CARD || '').replace(/\s/g, '');
 const PAY_INFO = /^\d{16}$/.test(PAY_CARD) ? { card: PAY_CARD.replace(/(\d{4})(?=\d)/g, '$1 '), holder: String(process.env.PAY_HOLDER || '').slice(0, 60) } : null;
 const payRef = u => 'UD-' + String(u.id).slice(0, 6).toUpperCase();
-// Doʻstni taklif qilish: taklif qilingan odam emailini tasdiqlaganda (tasdiqlash oʻchiq boʻlsa, roʻyxatdan oʻtganda) taklif qiluvchiga 1 hisoblanadi.
-// Mukofot ixtiyoriy: REF_REWARD_DAYS (har doʻst uchun Pro kunlari, standart 0 = mukofot yoʻq), REF_REWARD_MAX (mukofot beriladigan doʻstlar soni, standart 5).
-const REF_DAYS = Math.min(Math.max(parseInt(process.env.REF_REWARD_DAYS, 10) || 0, 0), 90), REF_MAX = Math.min(Math.max(parseInt(process.env.REF_REWARD_MAX, 10) || 5, 1), 100);
-const refCode = u => String(u.id).slice(0, 8);
-const refOwner = code => /^[0-9a-f]{8}$/.test(code) ? Object.values(db.users).find(x => refCode(x) === code) : null;
-function creditRef(u) {
-  if (!u.refBy || u.refDone) return;
-  u.refDone = true;
-  const r = db.users[u.refBy]; if (!r) return;
-  r.refCount = (r.refCount || 0) + 1;
-  if (REF_DAYS && r.refCount <= REF_MAX && !(r.plan === 'pro' && !r.planUntil)) {
-    const now = Date.now(), base = r.plan === 'pro' && r.planUntil > now ? r.planUntil : now;
-    r.plan = 'pro'; r.planUntil = base + REF_DAYS * 864e5;
-  }
-}
 const F_FREE = ['finder_basic', 'profile', 'compare_basic', 'predictor_basic', 'essay_basic', 'mentor_basic', 'finder_adv', 'scholarships', 'predictor', 'tracker'];
 const F_PRO = [...F_FREE, 'mentor_adv', 'strategy', 'essay_adv', 'reports', 'priority'];
 const PLANS = {
@@ -290,8 +275,7 @@ function accountInfo(u) {
     limits: { ai: pl.ai, apps: pl.apps, finder: pl.finder, compare: pl.compare }, features: pl.features,
     usage: { ai: us.ai, period: us.p }, consent: { mentorMemory: !!(u.consent && u.consent.mentorMemory) },
     config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: false },
-    pay: { ref: payRef(u), info: PAY_INFO, requested: u.planReq || null },
-    invite: { code: refCode(u), count: u.refCount || 0, days: REF_DAYS, max: REF_MAX }
+    pay: { ref: payRef(u), info: PAY_INFO, requested: u.planReq || null }
   };
 }
 const meBody = u => ({ user: publicUser(u), account: accountInfo(u), rev: u.rev || 0, hasData: !!(u.data && Object.keys(u.data).length), data: u.data || {} });
@@ -384,7 +368,7 @@ async function api(req, res, pathname) {
     v.tries++;
     const a = Buffer.from(sha256(u.id + ':' + code)), c = Buffer.from(v.h);
     if (!/^\d{6}$/.test(code) || a.length !== c.length || !crypto.timingSafeEqual(a, c)) { save(); return fail(res, 400, 'Kod notoʻgʻri.'); }
-    u.verified = true; delete u.vcode; creditRef(u); save();
+    u.verified = true; delete u.vcode; save();
     return send(res, 200, meBody(u));
   }
 
@@ -419,9 +403,7 @@ async function api(req, res, pathname) {
       try { await issueCode(u); } catch (e) { console.error('Tasdiqlash xati:', e.message); return fail(res, 503, 'Tasdiqlash xatini yuborib boʻlmadi. Keyinroq urinib koʻring yoki Telegram orqali murojaat qiling.'); }
       if (emailIdx.has(email)) return fail(res, 409, 'Bu email bilan hisob allaqachon bor. “Kirish” ni bosing.');
     }
-    const ro = refOwner(clean(b.ref, 8).toLowerCase()); if (ro && ro.email !== email) u.refBy = ro.id;
     db.users[u.id] = u; emailIdx.set(email, u.id);
-    if (u.verified !== false) creditRef(u);
     createSession(req, res, u.id);
     return send(res, 201, meBody(u));
   }

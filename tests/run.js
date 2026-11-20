@@ -42,14 +42,6 @@ class Client {
     r = await new Client().call('PUT', '/api/data', { data: {} }); ok(r.s === 401, 'kirmagan foydalanuvchi PUT /api/data → 401');
     r = await a.call('PUT', '/api/data', { data: {} }, { Origin: 'https://evil.com' }); ok(r.s === 403, 'CSRF: begona Origin rad etiladi');
 
-    {
-      const inv = new Client(); let rr = await inv.call('POST', '/api/register', { email: 'inv@gmail.com', password: 'parol12345', name: 'Inv' });
-      const code = rr.j.account.invite.code; ok(/^[0-9a-f]{8}$/.test(code) && rr.j.account.invite.count === 0, 'taklif kodi bor, boshida 0');
-      rr = await new Client().call('POST', '/api/register', { email: 'friend@gmail.com', password: 'parol12345', name: 'Friend', ref: code });
-      rr = await inv.call('GET', '/api/me'); ok(rr.j.account.invite.count === 1, 'doʻst roʻyxatdan oʻtsa hisoblanadi', rr.j.account.invite);
-      await new Client().call('POST', '/api/register', { email: 'x1@gmail.com', password: 'parol12345', name: 'X1', ref: 'zzzzzzzz' });
-      rr = await inv.call('GET', '/api/me'); ok(rr.j.account.invite.count === 1 && rr.j.account.plan === 'free', 'notoʻgʻri kod hisoblanmaydi, mukofot standartda yoʻq');
-    }
     console.log('Tarif cheklovlari (serverda)');
     r = await a.call('GET', '/api/scholarships'); ok(r.s === 200, 'Free: stipendiya 200', r.s);
     r = await a.call('POST', '/api/compare', { ids: ['mit', 'yale-university', 'harvard-university'] }); ok(r.s === 200, 'Free: 3 ta solishtirish 200', r.s);
@@ -238,21 +230,13 @@ class Client {
       r = await c('POST', '/api/verify/resend', {}); ok(r.s === 429, 'qayta yuborish 1 daqiqa kutadi', r.s);
       r = await c('POST', '/api/verify', { code }); ok(r.s === 200 && r.j.user.verified === true, 'toʻgʻri kod tasdiqlaydi', r.s);
       r = await c('PUT', '/api/data', { data: {} }); ok(r.s === 200, 'tasdiqlangach API ochiladi', r.s);
-      {
-        const code0 = (await c('GET', '/api/me')).j.user.id.slice(0, 8);
-        const ck0 = ck; ck = ''; await c('POST', '/api/register', { email: 'rf@gmail.com', password: 'parol12345', name: 'Rf', ref: code0 });
-        const cf = (vm.at(-1).html.match(/<b>(\d{6})<\/b>/) || [])[1];
-        const ckF = ck; ck = ck0; let q = await c('GET', '/api/me'); ok(q.j.account.invite.count === 0, 'tasdiqlanmaguncha doʻst hisoblanmaydi', q.j.account.invite);
-        ck = ckF; await c('POST', '/api/verify', { code: cf });
-        ck = ck0; q = await c('GET', '/api/me'); ok(q.j.account.invite.count === 1, 'doʻst emailini tasdiqlagach hisoblanadi', q.j.account.invite);
-      }
       // 5 ta xato urinishdan keyin toʻgʻri kod ham ishlamaydi
       ck = ''; r = await c('POST', '/api/register', { email: 'w@gmail.com', password: 'parol12345', name: 'Wali' });
       const c2 = (vm.at(-1).html.match(/<b>(\d{6})<\/b>/) || [])[1], bad = c2 === '123456' ? '654321' : '123456';
       for (let i = 0; i < 5; i++) await c('POST', '/api/verify', { code: bad });
       r = await c('POST', '/api/verify', { code: c2 }); ok(r.s === 400, '5 xato urinishdan keyin kod bloklanadi', r.s);
     } catch (e) { failN++; console.log('XATO:', e); }
-    vs.kill(); mm.close(); await new Promise(r => setTimeout(r, 300)); fs.rmSync(vd, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+    vs.kill(); mm.close(); fs.rmSync(vd, { recursive: true, force: true });
   }
   console.log(`\n${pass} ta oʻtdi, ${failN} ta yiqildi`); process.exit(failN ? 1 : 0);
 })();
