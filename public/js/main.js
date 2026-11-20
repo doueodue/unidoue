@@ -17,6 +17,7 @@ const ROUTES = [
   { id: 'profile', t: 'Profil', i: 'user', v: () => import('./views1.js').then(m => m.profile) }
 ];
 const root = $('#root');
+try { const rf = new URLSearchParams(location.search).get('ref'); if (rf && /^[0-9a-f]{8}$/i.test(rf)) localStorage.setItem('unidoue:ref', rf.toLowerCase()); } catch (e) {}
 let token = 0;
 
 /* ---------- autentifikatsiya ekrani ---------- */
@@ -51,7 +52,7 @@ function authScreen(mode = 'login') {
     btn.disabled = true; const t0 = btn.textContent; btn.textContent = t('Kuting…'); m.textContent = '';
     try {
       if (fg) { await api('/api/password/forgot', 'POST', { email: em }); m.className = 'msg ok'; m.textContent = 'Agar bu email ro‘yxatda bo‘lsa, tiklash havolasi yuborildi. Pochtangizni tekshiring.'; }
-      else { const me = await api(reg ? '/api/register' : '/api/login', 'POST', reg ? { email: em, password: pw, name: nm } : { email: em, password: pw }); if (me.user.verified === false) { verifyScreen(me); return; } adopt(me); start(); return; }
+      else { const me = await api(reg ? '/api/register' : '/api/login', 'POST', reg ? { email: em, password: pw, name: nm, ref: (() => { try { return localStorage.getItem('unidoue:ref') || ''; } catch (e) { return ''; } })() } : { email: em, password: pw }); if (me.user.verified === false) { verifyScreen(me); return; } adopt(me); start(); return; }
     } catch (e) { m.textContent = e.message; }
     btn.disabled = false; btn.textContent = t0;
   };
