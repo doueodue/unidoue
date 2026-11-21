@@ -135,7 +135,7 @@ function payBox(a, cur) {
   if (!pay.requested) return '';
   const info = pay.info ? `Karta: <b>${esc(pay.info.card)}</b>${pay.info.holder ? ' (' + esc(pay.info.holder) + ')' : ''}. ` : 'To‘lov rekvizitlarini olish uchun ';
   return `<div class="card" style="margin-bottom:18px"><h3>Pro uchun to‘lov</h3><p class="sub">So‘rovingiz qabul qilindi. Pro to‘lov tekshirilgandan keyin qo‘lda yoqiladi, avtomatik emas.</p>
-    <ol style="margin:0 0 10px 18px;padding:0"><li>Narx: <b>$4.99 / oy</b>. ${info}${pay.info ? '' : '<a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing. '}</li>
+    <ol style="margin:0 0 10px 18px;padding:0"><li>Narx: <b>$3.90 / oy</b>. ${info}${pay.info ? '' : '<a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing. '}</li>
     <li>To‘lov izohiga yoki xabarga shu kodni yozing: <b>${esc(pay.ref)}</b></li>
     <li>Chekni (skrinshot) <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yuboring va hisob emailingizni ayting: <b>${esc(S.user.email)}</b></li></ol>
     <p class="hint">Odatda tekshirish va yoqish bir necha soat ichida bo‘ladi.</p></div>`;
@@ -145,7 +145,7 @@ export async function pricing(el) {
   el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b>${S.account.limits.ai - S.account.usage.ai} / ${S.account.limits.ai}</b> qoldi.</p></div></div>
   ${payBox(S.account, cur)}
   ${config.payments ? '' : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov qo‘lda qabul qilinadi.</b> So‘rov yuboring, to‘lov ko‘rsatmasini olasiz. Administrator to‘lovni tekshirib, Pro ni qo‘lda yoqadi. Tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
-  <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === 'pro' ? 'feat' : ''}">${p.id === 'pro' ? '<span class="badge pop">Mashhur</span>' : ''}<div><h3>${p.name}</h3></div><div class="price">$${p.price === 0 ? '0' : p.price}<small>${p.price ? ' / oy' : ''}</small></div>
+  <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === 'pro' ? 'feat' : ''}">${p.id === 'pro' ? '<span class="badge pop">Mashhur</span>' : ''}<div><h3>${p.name}</h3></div><div class="price">$${p.price === 0 ? '0' : p.price.toFixed(2)}<small>${p.price ? ' / oy' : ''}</small></div>
     <ul>${FEAT[p.id].map(f => `<li>${f}</li>`).join('')}</ul><div style="margin-top:auto">${
       p.id === cur ? '<button class="btn" disabled style="width:100%">Joriy tarif</button>'
       : ORDER[p.id] < ORDER[cur] ? `<button class="btn" style="width:100%" data-down="${p.id}">${p.name} ga o‘tish</button>`
