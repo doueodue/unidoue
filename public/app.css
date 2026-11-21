@@ -317,3 +317,22 @@ html[data-theme=dark] .lang-seg{background:rgba(255,255,255,.07);box-shadow:inse
   html.theme-anim .ts-knob svg{transition:opacity .25s,transform .4s!important}
   html.theme-anim .lang-pill{transition:transform .34s cubic-bezier(.3,1.25,.5,1)!important}
 }
+
+/* ===== Skrollbarlar: ingichka, yumaloq, fasl aksenti rangida (til tugmasi bilan bir uslub; tungi rejimda ham mos) ===== */
+:root{--sb-thumb:rgba(53,88,255,.42);--sb-thumb-h:rgba(53,88,255,.75)}
+@supports (background:color-mix(in srgb,red 50%,transparent)){
+  :root{--sb-thumb:color-mix(in srgb,var(--brand) 42%,transparent);--sb-thumb-h:color-mix(in srgb,var(--brand) 78%,transparent)}
+  html[data-theme=dark]{--sb-thumb:color-mix(in srgb,var(--brand) 62%,transparent);--sb-thumb-h:color-mix(in srgb,var(--brand) 92%,transparent)}
+}
+*::-webkit-scrollbar{width:12px;height:12px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-corner{background:transparent}
+*::-webkit-scrollbar-thumb{background-color:var(--sb-thumb);background-clip:padding-box;border:3px solid transparent;border-radius:99px;min-height:44px;min-width:44px}
+*::-webkit-scrollbar-thumb:hover,*::-webkit-scrollbar-thumb:active{background-color:var(--sb-thumb-h)}
+.side::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.22)}
+.side::-webkit-scrollbar-thumb:hover,.side::-webkit-scrollbar-thumb:active{background-color:rgba(255,255,255,.45)}
+/* Firefox (::-webkit-scrollbar yoʻq): standart xususiyatlar */
+@supports not selector(::-webkit-scrollbar){
+  *{scrollbar-width:thin;scrollbar-color:var(--sb-thumb) transparent}
+  .side{scrollbar-color:rgba(255,255,255,.3) transparent}
+}
