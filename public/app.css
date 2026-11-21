@@ -336,3 +336,25 @@ html[data-theme=dark] .lang-seg{background:rgba(255,255,255,.07);box-shadow:inse
   *{scrollbar-width:thin;scrollbar-color:var(--sb-thumb) transparent}
   .side{scrollbar-color:rgba(255,255,255,.3) transparent}
 }
+
+/* ===== AI javoblari (js/markdown.js): jadval, roʻyxat, sarlavha, kod ===== */
+.md{white-space:normal;word-wrap:break-word;line-height:1.6}
+.md>:first-child{margin-top:0}.md>:last-child{margin-bottom:0}
+.md .mdp{margin:0 0 .65em}
+.md h3,.md h4,.md h5{margin:1em 0 .4em;font-weight:650;letter-spacing:-.01em;line-height:1.3}
+.md h3{font-size:1.18em}.md h4{font-size:1.08em}.md h5{font-size:1em}
+.md ul,.md ol{margin:.3em 0 .7em;padding-left:1.35em}.md li{margin:.2em 0}.md li>ul,.md li>ol{margin:.2em 0 .3em}
+.md code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;padding:.1em .4em;border-radius:6px;background:rgba(13,22,55,.08)}
+.md pre{margin:.65em 0;padding:12px 14px;border-radius:12px;background:rgba(13,22,55,.06);overflow:auto}.md pre code{padding:0;background:none;white-space:pre}
+.md blockquote{margin:.65em 0;padding:.2em 0 .2em 12px;border-left:3px solid var(--brand);color:var(--ink-2)}
+.md hr{border:0;border-top:1px solid var(--line-2);margin:.9em 0}
+.md a{word-break:break-word}
+.md .tbl-wrap{margin:.65em 0}
+.md .tbl{font-size:13.5px}
+.md .tbl th,.md .tbl td{padding:8px 10px}
+.md .tbl th{font-size:12.5px;text-transform:none;letter-spacing:0;color:var(--ink);background:var(--brand-50)}
+.md .tbl td:first-child{font-weight:600}
+.md .tbl td ul,.md .tbl td ol{margin:.15em 0;padding-left:1.1em}
+.md .tbl tr:last-child td{border-bottom:0}
+html[data-theme=dark] .md code{background:rgba(255,255,255,.1)}
+html[data-theme=dark] .md pre{background:rgba(255,255,255,.07)}
