@@ -55,7 +55,7 @@ export async function dashboard(el) {
   <section class="card s7"><h3>Sizga mos universitetlar</h3><p class="sub">Profilingiz bo‘yicha taxminiy moslik. Bu qabul kafolati emas.</p><div id="d-match"><div class="sk" style="height:150px"></div></div></section>
   <section class="card s5"><h3>Obuna holati</h3>
     <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px"><span class="badge ${a.plan === 'pro' ? 'ok' : ''}" style="font-size:14px;padding:5px 14px">${a.plan.toUpperCase()}</span>${a.planUntil ? `<small style="color:var(--muted)">${fmtDate(new Date(a.planUntil).toISOString().slice(0, 10))} gacha</small>` : ''}</div>
-    <div class="stat"><span>AI kredit (shu oy)</span></div><div class="bar ${a.usage.ai / a.limits.ai > .85 ? 'warn' : ''}" style="margin:8px 0 6px"><i style="width:${Math.min(100, pct(a.usage.ai, a.limits.ai))}%"></i></div><p class="hint">${a.usage.ai} / ${a.limits.ai} ishlatildi</p>
+    <div class="stat"><span>AI kredit (shu oy)</span></div><div class="bar ${a.usage.ai / a.limits.ai > .85 ? 'warn' : ''}" style="margin:8px 0 6px"><i style="width:${Math.min(100, pct(a.usage.ai, a.limits.ai))}%"></i></div><p class="hint">${a.limits.ai - a.usage.ai} / ${a.limits.ai} kredit qoldi</p>
     <a class="btn ${a.plan === 'free' ? 'primary' : ''} sm" style="margin-top:14px" href="#/pricing">${a.plan === 'free' ? 'Tarifni yaxshilash' : 'Tarifni boshqarish'}</a></section>
 
   <section class="card s6"><h3>Yaqin muddatlar</h3><p class="sub">Arizalar kuzatuvchisidan.</p>${up.length ? `<div class="list">${up.slice(0, 5).map(x => { const d = daysLeft(x.d); return `<div class="li"><div class="grow"><b>${esc(x.n)}</b><small>${fmtDate(x.d)}</small></div><span class="badge ${d <= 14 ? 'bad' : d <= 45 ? 'warn' : 'mute'}">${d} kun</span></div>`; }).join('')}</div>` : '<div class="empty"><b>Muddat yo‘q</b>Arizalar bo‘limida universitet qo‘shing.<br><a class="btn sm" style="margin-top:12px" href="#/tracker">Ariza qo‘shish</a></div>'}</section>
@@ -128,7 +128,7 @@ function payBox(a, cur) {
 }
 export async function pricing(el) {
   const { plans, config } = await api('/api/plans'); await refreshAccount(); const cur = S.account.plan;
-  el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b>${S.account.usage.ai} / ${S.account.limits.ai}</b>.</p></div></div>
+  el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b>${S.account.limits.ai - S.account.usage.ai} / ${S.account.limits.ai}</b> qoldi.</p></div></div>
   ${payBox(S.account, cur)}
   ${config.payments ? '' : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov qo‘lda qabul qilinadi.</b> So‘rov yuboring, to‘lov ko‘rsatmasini olasiz. Administrator to‘lovni tekshirib, Pro ni qo‘lda yoqadi. Tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
   <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === 'pro' ? 'feat' : ''}">${p.id === 'pro' ? '<span class="badge pop">Mashhur</span>' : ''}<div><h3>${p.name}</h3></div><div class="price">$${p.price === 0 ? '0' : p.price}<small>${p.price ? ' / oy' : ''}</small></div>

@@ -71,7 +71,7 @@ export async function essay(el) {
 /* ================= AI MENTOR ================= */
 export async function mentor(el) {
   const cat = await catalog(), apps = ls.get('qabul:apps', []), acc = S.account; const hist = [];
-  el.innerHTML = `<div class="page-h"><div><h2>AI <em>mentor</em></h2><p>Universitet tanlash, ariza va esse bo‘yicha savollar. Javoblar umumiy maslahat, rasmiy talablarni universitet saytida tekshiring.</p></div><span class="badge">${left()} kredit qoldi</span></div>
+  el.innerHTML = `<div class="page-h"><div><h2>AI <em>mentor</em></h2><p>Universitet tanlash, ariza va esse bo‘yicha savollar. Javoblar umumiy maslahat, rasmiy talablarni universitet saytida tekshiring.</p></div><span class="badge">${left()} / ${S.account.limits.ai} kredit qoldi</span></div>
   ${acc.config.ai ? '' : aiOff()}
   <div class="grid g-dash" style="margin-top:16px"><section class="card s7"><div class="chat" id="m-c" aria-live="polite"><div class="bub a">Salom! Men UniDoue mentoriman. ${acc.consent.mentorMemory ? 'Profilingiz ma’lumotlaridan foydalanaman (profil sahifasida o‘chirishingiz mumkin).' : 'Profilingizni ko‘rishim uchun profil sahifasida ruxsat bering.'} Nimani bilmoqchisiz?</div></div>
     <form id="m-f" style="display:flex;gap:10px;margin-top:8px"><input id="m-i" type="text" maxlength="2000" placeholder="Savolingizni yozing…" autocomplete="off" style="flex:1"><button class="btn primary" id="m-s" type="submit">Yuborish</button></form></section>

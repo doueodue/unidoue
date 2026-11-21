@@ -140,6 +140,7 @@ async function issueCode(u) {
 const PAY_CARD = (process.env.PAY_CARD || '').replace(/\s/g, '');
 const PAY_INFO = /^\d{16}$/.test(PAY_CARD) ? { card: PAY_CARD.replace(/(\d{4})(?=\d)/g, '$1 '), holder: String(process.env.PAY_HOLDER || '').slice(0, 60) } : null;
 const payRef = u => 'UD-' + String(u.id).slice(0, 6).toUpperCase();
+const AI_GLOBAL_CAP = Math.max(parseInt(process.env.AI_GLOBAL_CAP, 10) || 0, 0);
 const F_FREE = ['finder_basic', 'profile', 'compare_basic', 'predictor_basic', 'essay_basic', 'mentor_basic', 'finder_adv', 'scholarships', 'predictor', 'tracker'];
 const F_PRO = [...F_FREE, 'mentor_adv', 'strategy', 'essay_adv', 'reports', 'priority'];
 const PLANS = {
@@ -681,8 +682,12 @@ async function api(req, res, pathname) {
     if (tool === 'essay' && deep && !can(u, 'essay_adv')) return needPlan(res, 'essay_adv');
     const cost = AI_COST[tool === 'essay' && deep ? 'essay_deep' : tool], pl = effPlan(u), us = usageOf(u);
     if (us.ai + cost > pl.ai) return send(res, 402, { error: `Bu oyki AI limiti tugadi (${us.ai}/${pl.ai}).`, code: 'AI_LIMIT', usage: { ai: us.ai }, limit: pl.ai });
+    // Umumiy oylik xavfsizlik chegarasi (ixtiyoriy): AI_GLOBAL_CAP kredit. Hamma foydalanuvchilarning sarfi yigʻindisi oshsa, AI vaqtincha toʻxtaydi.
+    if (AI_GLOBAL_CAP && Object.values(db.users).reduce((n, x) => n + (x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0), 0) + cost > AI_GLOBAL_CAP) return fail(res, 503, 'AI xizmati bu oy uchun vaqtincha band. Keyinroq urinib koʻring.');
     const built = buildAi(u, tool, b, deep);
     if (built.error) return fail(res, 400, built.error);
+    // Kredit javobdan OLDIN band qilinadi (bir vaqtdagi soʻrovlar limitdan oshib ketmasligi uchun); xato boʻlsa qaytariladi.
+    us.ai += cost;
     let reply;
     try {
       const maxTok = tool === 'mentor' && !can(u, 'mentor_adv') ? 700 : 1600;
@@ -692,11 +697,11 @@ async function api(req, res, pathname) {
         : await fetch(AI_URL, { method: 'POST', signal: AbortSignal.timeout(55000), headers: { Authorization: 'Bearer ' + AI_KEY, 'content-type': 'application/json' },
             body: JSON.stringify({ model: AI_MODEL, max_tokens: maxTok, temperature: 0.3, messages: [{ role: 'system', content: built.system }, ...built.messages] }) });
       const j = await r.json();
-      if (!r.ok) { console.error('AI xatosi', r.status, JSON.stringify(j && j.error).slice(0, 200)); return fail(res, 502, 'AI xizmati hozir javob bermadi. Keyinroq urinib koʻring.'); }
+      if (!r.ok) { console.error('AI xatosi', r.status, JSON.stringify(j && j.error).slice(0, 200)); us.ai -= cost; return fail(res, 502, 'AI xizmati hozir javob bermadi. Keyinroq urinib koʻring.'); }
       reply = (AI_PROVIDER === 'anthropic' ? (j.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n') : (((j.choices || [])[0] || {}).message || {}).content || '').trim();
-    } catch (e) { console.error('AI xatosi', e.message); return fail(res, 502, 'AI xizmati hozir javob bermadi. Keyinroq urinib koʻring.'); }
-    if (!reply) return fail(res, 502, 'AI boʻsh javob qaytardi.');
-    us.ai += cost; save();
+    } catch (e) { console.error('AI xatosi', e.message); us.ai -= cost; return fail(res, 502, 'AI xizmati hozir javob bermadi. Keyinroq urinib koʻring.'); }
+    if (!reply) { us.ai -= cost; return fail(res, 502, 'AI boʻsh javob qaytardi.'); }
+    save();
     return send(res, 200, { reply, usage: { ai: us.ai }, limit: pl.ai });
   }
 

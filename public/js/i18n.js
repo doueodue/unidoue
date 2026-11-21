@@ -1,5 +1,6 @@
 /* Til tizimi. Asosiy til — oʻzbekcha: kalit sifatida oʻzbekcha matn ishlatiladi. Tarjima boʻlmasa oʻzbekcha chiqadi. */
 export const LANGS = [['uz', 'UZ', 'Oʻzbekcha'], ['ru', 'RU', 'Русский'], ['en', 'EN', 'English']];
+import { XRU, XEN, RULES } from './i18n_extra.js';
 let cur = 'uz';
 try { const v = localStorage.getItem('qabul:lang'); if (LANGS.some(l => l[0] === v)) cur = v; } catch (e) {}
 export const lang = () => cur;
@@ -46,6 +47,22 @@ const D = {
     'Xalqaro universitetlar ro‘yxatini yuklab bo‘lmadi.': 'Could not load the international universities list.', 'Til': 'Language'
   }
 };
+Object.assign(D.ru, XRU); Object.assign(D.en, XEN);
+const viaRules = (k, i) => { for (const r of RULES) { const m = r[0].exec(k); if (m) { const o = r[i](m); if (o) return o; } } return null; };
+const look = (d, k) => (Object.hasOwn(d, k) && d[k] !== k ? d[k] : viaRules(k, cur === 'ru' ? 1 : 2));
+/** Sahifadagi matnlarni lugʻat boʻyicha avtomatik tarjima qiladi (aynan mos kelgan matn va placeholder/title/aria-label). Dinamik matnlar t() bilan beriladi. */
+const ATTRS = ['placeholder', 'title', 'aria-label', 'alt'];
+function trNode(n) {
+  const d = D[cur]; if (!d || cur === 'uz') return;
+  if (n.nodeType === 3) { const v = n.nodeValue, k = v.trim(); const o = k && look(d, k); if (o) n.nodeValue = v.replace(k, o); return; }
+  if (n.nodeType !== 1 || /^(SCRIPT|STYLE)$/.test(n.tagName)) return;
+  for (const a of ATTRS) { const v = n.getAttribute(a); const k = v && v.trim(), o = k && look(d, k); if (o) n.setAttribute(a, o); }
+  if (n.tagName !== 'TEXTAREA') for (const c of n.childNodes) trNode(c);
+}
+if (typeof document !== 'undefined') {
+  const go = () => { trNode(document.body); new MutationObserver(ms => { for (const m of ms) { if (m.type === 'characterData') trNode(m.target); else m.addedNodes.forEach(trNode); } }).observe(document.body, { childList: true, subtree: true, characterData: true }); };
+  if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
+}
 export const t = s => (cur !== 'uz' && D[cur] && D[cur][s]) || s;
 /** {uz,ru,en} obyektidan joriy tilni tanlaydi; boʻlmasa inglizcha (manba), keyin qolgani */
 export const pick = o => (o ? o[cur] || o.en || o.uz || o.ru || '' : '');
