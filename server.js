@@ -337,7 +337,12 @@ function todayCtx() {
 function buildAi(u, tool, b, deep) {
   const cl = (v, n) => String(v == null ? '' : v).replace(/<\/?student_text>/gi, '').slice(0, n);
   const mem = u.consent && u.consent.mentorMemory ? profileFacts(u) : '';
-  const ctx = todayCtx() + (mem ? `\nStudent profile (shared with permission): ${mem}.` : '');
+  // Interfeys tili: mentor oʻquvchi yozgan tilda javob beradi (yozmagan boʻlsa — interfeys tilida); esse/strategiya/hisobot toʻliq interfeys tilida
+  const UL = { uz: 'Uzbek (Latin script)', ru: 'Russian', en: 'English' }[b.lang] || 'Uzbek (Latin script)';
+  const langRule = tool === 'mentor'
+    ? `\nInterface language: ${UL}. Reply in ${UL} unless the student's latest message is clearly written in another language.`
+    : `\nWrite your entire answer in ${UL} (keep proper names, SAT, GPA, IELTS, Common App as they are).`;
+  const ctx = todayCtx() + langRule + (mem ? `\nStudent profile (shared with permission): ${mem}.` : '');
   if (tool === 'mentor') {
     const h = (Array.isArray(b.messages) ? b.messages : []).slice(can(u, 'mentor_adv') ? -8 : -4).filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string');
     if (!h.length || h[h.length - 1].role !== 'user') return { error: 'Savol yozing.' };

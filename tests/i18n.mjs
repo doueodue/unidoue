@@ -1,0 +1,43 @@
+// RU/EN tarjima toʻliqligi: dinamik (raqamli) matnlar va asosiy kalitlar. Ishga tushirish: node --no-warnings tests/i18n.mjs
+globalThis.document = { documentElement: {}, addEventListener() {}, body: null };
+const store = {}; globalThis.localStorage = { getItem: k => store[k] ?? null, setItem: (k, v) => (store[k] = v) };
+const I = await import('../public/js/i18n.js');
+const SAMPLES = [
+  'SAT 1400 oraliq (1360–1470) ichida (tekshirilgan: 2025-26)',
+  'SAT 1400 oraliq (1300–1490) ichida (taxminiy, tekshirilmagan)',
+  'SAT 1400 oraliq (1430–1500) ning quyi chegarasidan 30 ball past (tekshirilgan: Class of 2029 (fall 2025 entry))',
+  'SAT 1500 universitet o‘rta 50% oralig‘i (1300–1450) ning yuqori chegarasidan yuqori (taxminiy, tekshirilmagan)',
+  'GPA 3.68/4; universitet ko‘rsatkichi ~3.9 (tekshirilgan)',
+  'Esse qisqa (120 so‘z). Common App uchun odatda 250–650 so‘z kerak.',
+  'Esse uzun (700 so‘z). Common App chegarasi 650 so‘z.',
+  'Hajmi mos (400 so‘z).',
+  'Gaplar uzun (o‘rtacha 31 so‘z). Qisqaroq gaplar o‘qishni osonlashtiradi.',
+  '3 ta gap 35 so‘zdan uzun, ularni bo‘ling.',
+  'Ko‘p takrorlangan so‘zlar: robot (5), learn (4).',
+  'Bitiruv sanasi: 20-iyun, 2027. Keyingi qadam — arizalar va muddatlar.',
+  '21-dekabr, 2026 gacha', 'REA: 1-noyabr, 2026', '3 hafta', '≈ 2 oy',
+  'Free tarifda 1 tagacha ariza saqlanadi.', 'Joriy tarifda 3 tagacha ariza saqlanadi.',
+  'Pro tarifida eng koʻpi bilan 1000 ta ariza saqlanadi.', 'Free tarifida bir vaqtda 3 ta universitet solishtiriladi.',
+  'Bir vaqtda 4 tagacha universitet (PRO tarifi).', 'Rice University allaqachon ro‘yxatda.', 'Rice University allaqachon arizalar ro‘yxatida.',
+  'Rice University arizasi ro‘yxatdan olib tashlanadi.', 'Rice University arizalarga qo‘shildi.',
+  'Universitet hisoboti (6)', 'Qabul strategiyasi (6)',
+  'SAT ni kamida 1300 ga ko‘tarish moslikni sezilarli oshiradi.', 'IELTS ni 6.5 ga yetkazing.', '5/10 · ulushi 35%', 'Tiklandi: 4 ta yozuv.',
+  'MIT: nima noto‘g‘ri? Iloji bo‘lsa, to‘g‘ri qiymat va rasmiy sahifa havolasini yozing.',
+  'Bekor', 'Arizani o‘chirasizmi?', 'Tarifni pasaytirasizmi?', 'Hisobni o‘chirasizmi?', 'Hisob ochish bilan', 'maxfiylik siyosati', 'Graduategacha', 'kun qoldi',
+  'Raqobatbardosh', 'Kuchli moslik', 'Qiyin', 'Juda qiyin', 'Mosligingizni', 'Erta muddatlar', 'Olib tashlash', 'muddat o‘tgan', 'Sanani o‘zgartirish',
+  'Hali vaqt bor: testlarga tayyorlaning va universitetlar ro‘yxatini shakllantiring.', 'Profilni kuchaytirish kerak', 'Nimani yaxshilash kerak',
+  'Serverga ulanib bo‘lmadi. Internetni tekshiring.', 'Yuklab bo‘lmadi', 'Tariflarni ko‘rish', 'Payme orqali to‘lash', 'Click orqali to‘lash'
+];
+let bad = 0;
+for (const lg of ['ru', 'en']) {
+  I.setLang(lg);
+  for (const s of SAMPLES) {
+    const o = I.trText(s);
+    const okTr = o && o !== s && (lg === 'ru' ? /[А-Яа-я]/.test(o) : !/[ʻ‘][a-z]|\b(ning|uchun|bilan|tarif[a-z]*|ariza[a-z]*)\b/i.test(o));
+    if (!okTr) { bad++; console.log(`  FAIL [${lg}]`, s, '→', o); }
+  }
+}
+I.setLang('ru'); const d = I.trText('21-dekabr, 2026 gacha'); if (d !== 'до 21 декабря 2026') { bad++; console.log('  FAIL sana RU:', d); }
+I.setLang('en'); const e = I.trText('21-dekabr, 2026 gacha'); if (e !== 'until Dec 21, 2026') { bad++; console.log('  FAIL sana EN:', e); }
+console.log(bad ? `${bad} ta tarjima yetishmaydi` : `tarjima: ${SAMPLES.length * 2 + 2} ta tekshiruv oʻtdi`);
+process.exit(bad ? 1 : 0);

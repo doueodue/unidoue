@@ -1,5 +1,6 @@
 import { $, $$, S, api, ls, esc, toast, svg, catalog, upsell } from './core.js';
 import { md } from './markdown.js';
+import { t as tr, lang } from './i18n.js';
 
 const costOf = { mentor: 1, essay: 2, essay_deep: 4, strategy: 6, report: 6 };
 const aiOff = () => `<div class="notice">${svg('info')}<div><b>AI hozircha ulanmagan.</b> Sayt egasi serverda AI kalitini sozlashi kerak. Kalit faqat serverda saqlanadi va brauzerga chiqmaydi.</div></div>`;
@@ -9,12 +10,12 @@ const left = () => S.account.limits.ai - S.account.usage.ai;
 /** Oqimli chaqiruv: matn kelib turganda onText(toʻliq matn) chaqiriladi. */
 async function streamAI(body, onText) {
   let r;
-  try { r = await fetch('/api/ai', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, stream: true }) }); }
+  try { r = await fetch('/api/ai', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, stream: true, lang: lang() }) }); }
   catch (e) { throw Object.assign(new Error('Serverga ulanib bo‘lmadi. Internetni tekshiring.'), { status: 0 }); }
   if (!r.ok) {
     let j = {}; try { j = await r.json(); } catch (e) {}
     const err = Object.assign(new Error(j.error || 'Xatolik yuz berdi.'), { status: r.status, code: j.code, data: j });
-    if (err.code === 'AI_LIMIT') upsell('essay_adv', err.message + ' Limitni oshirish uchun tarifni yaxshilang.');
+    if (err.code === 'AI_LIMIT') upsell('essay_adv', tr(err.message) + ' ' + tr('Limitni oshirish uchun tarifni yaxshilang.'));
     else if (err.code === 'PLAN_REQUIRED') upsell(err.data.feature);
     throw err;
   }
@@ -39,11 +40,11 @@ async function streamAI(body, onText) {
 
 async function callAI(body) {
   try {
-    const r = await api('/api/ai', 'POST', body);
+    const r = await api('/api/ai', 'POST', { ...body, lang: lang() });
     S.account.usage.ai = r.usage.ai; document.dispatchEvent(new CustomEvent('unidoue:account'));
     return r;
   } catch (e) {
-    if (e.code === 'AI_LIMIT') upsell('essay_adv', e.message + ' Limitni oshirish uchun tarifni yaxshilang.');
+    if (e.code === 'AI_LIMIT') upsell('essay_adv', tr(e.message) + ' ' + tr('Limitni oshirish uchun tarifni yaxshilang.'));
     else if (e.code === 'PLAN_REQUIRED') upsell(e.data.feature);
     throw e;
   }

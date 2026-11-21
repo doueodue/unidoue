@@ -1,6 +1,7 @@
 /* Til tizimi. Asosiy til — oʻzbekcha: kalit sifatida oʻzbekcha matn ishlatiladi. Tarjima boʻlmasa oʻzbekcha chiqadi. */
 export const LANGS = [['uz', 'UZ', 'Oʻzbekcha'], ['ru', 'RU', 'Русский'], ['en', 'EN', 'English']];
 import { XRU, XEN, RULES } from './i18n_extra.js';
+import { MRU, MEN, MRULES } from './i18n_more.js';
 let cur = 'uz';
 try { const v = localStorage.getItem('qabul:lang'); if (LANGS.some(l => l[0] === v)) cur = v; } catch (e) {}
 export const lang = () => cur;
@@ -47,7 +48,8 @@ const D = {
     'Xalqaro universitetlar ro‘yxatini yuklab bo‘lmadi.': 'Could not load the international universities list.', 'Til': 'Language', 'Tungi rejim': 'Dark mode'
   }
 };
-Object.assign(D.ru, XRU); Object.assign(D.en, XEN);
+Object.assign(D.ru, XRU, MRU); Object.assign(D.en, XEN, MEN);
+RULES.push(...MRULES);
 const viaRules = (k, i) => { for (const r of RULES) { const m = r[0].exec(k); if (m) { const o = r[i](m); if (o) return o; } } return null; };
 const look = (d, k) => (Object.hasOwn(d, k) && d[k] !== k ? d[k] : viaRules(k, cur === 'ru' ? 1 : 2));
 /** Sahifadagi matnlarni lugʻat boʻyicha avtomatik tarjima qiladi (aynan mos kelgan matn va placeholder/title/aria-label). Dinamik matnlar t() bilan beriladi. */
@@ -63,7 +65,9 @@ if (typeof document !== 'undefined') {
   const go = () => { trNode(document.body); new MutationObserver(ms => { for (const m of ms) { if (m.type === 'characterData') trNode(m.target); else m.addedNodes.forEach(trNode); } }).observe(document.body, { childList: true, subtree: true, characterData: true }); };
   if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
 }
-export const t = s => (cur !== 'uz' && D[cur] && D[cur][s]) || s;
+export const t = s => (cur !== 'uz' && D[cur] ? look(D[cur], String(s).trim()) || s : s);
+/** Matnning joriy tildagi tarjimasi (lugʻat yoki qoida boʻyicha) yoki null. Testlar va skanerlar uchun. */
+export const trText = s => (cur !== 'uz' && D[cur] ? look(D[cur], String(s).trim()) || null : null);
 /** {uz,ru,en} obyektidan joriy tilni tanlaydi; boʻlmasa inglizcha (manba), keyin qolgani */
 export const pick = o => (o ? o[cur] || o.en || o.uz || o.ru || '' : '');
 const MON = { ru: ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'], en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] };

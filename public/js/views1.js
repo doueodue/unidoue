@@ -1,4 +1,5 @@
 import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, refreshAccount, upsell, push, wipeLocal, errorBox } from './core.js';
+import { t, dateL } from './i18n.js';
 
 export const ST = ['Rejalashtirilgan', 'Hujjat tayyorlanmoqda', 'Topshirildi', 'Natija kutilmoqda', 'Qabul qilindi', 'Rad etildi'];
 export const DOCS = ['Attestat/transkript tarjimasi', 'SAT/IELTS natijalari yuborildi', 'Tavsiyanomalar', 'Esse', 'Moliyaviy hujjatlar'];
@@ -88,8 +89,8 @@ function icsEsc(t) { return String(t).replace(/\\/g, '\\\\').replace(/[,;]/g, m 
 function downloadIcs(list, name) {
   const z = n => String(n).padStart(2, '0'), ymd = d => d.replace(/-/g, ''), now = new Date(), st = now.getUTCFullYear() + z(now.getUTCMonth() + 1) + z(now.getUTCDate()) + 'T' + z(now.getUTCHours()) + z(now.getUTCMinutes()) + z(now.getUTCSeconds()) + 'Z';
   const ev = list.filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x.d)).map((x, i) => { const e = new Date(x.d + 'T12:00:00'); e.setDate(e.getDate() + 1); const end = e.getFullYear() + z(e.getMonth() + 1) + z(e.getDate());
-    return ['BEGIN:VEVENT', 'UID:' + ymd(x.d) + '-' + i + '-' + encodeURIComponent(x.n).replace(/%/g, '') + '@unidoue.uz', 'DTSTAMP:' + st, 'DTSTART;VALUE=DATE:' + ymd(x.d), 'DTEND;VALUE=DATE:' + end, 'SUMMARY:' + icsEsc('UniDoue: ' + x.n + ' ariza muddati'), 'DESCRIPTION:' + icsEsc('Muddatni universitetning rasmiy saytidan tasdiqlang. unidoue.uz'),
-      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(x.n + ': muddatga 14 kun qoldi'), 'TRIGGER:-P14D', 'END:VALARM', 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(x.n + ': muddatga 3 kun qoldi'), 'TRIGGER:-P3D', 'END:VALARM', 'END:VEVENT'].join('\r\n'); });
+    return ['BEGIN:VEVENT', 'UID:' + ymd(x.d) + '-' + i + '-' + encodeURIComponent(x.n).replace(/%/g, '') + '@unidoue.uz', 'DTSTAMP:' + st, 'DTSTART;VALUE=DATE:' + ymd(x.d), 'DTEND;VALUE=DATE:' + end, 'SUMMARY:' + icsEsc('UniDoue: ' + x.n + ' ' + t('ariza muddati')), 'DESCRIPTION:' + icsEsc(t('Muddatni universitetning rasmiy saytidan tasdiqlang. unidoue.uz')),
+      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(x.n + ': ' + t('muddatga 14 kun qoldi')), 'TRIGGER:-P14D', 'END:VALARM', 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(x.n + ': ' + t('muddatga 3 kun qoldi')), 'TRIGGER:-P3D', 'END:VALARM', 'END:VEVENT'].join('\r\n'); });
   if (!ev.length) { toast('Kalendarga qo‘shish uchun muddat kerak.'); return; }
   const txt = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//UniDoue//uz', 'CALSCALE:GREGORIAN', ...ev, 'END:VCALENDAR'].join('\r\n') + '\r\n';
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/calendar;charset=utf-8' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
@@ -133,11 +134,11 @@ const ORDER = { free: 0, plus: 1, pro: 2 };
 function payBox(a, cur, online) {
   const pay = a.pay || {};
   if (cur !== 'free' && online) return a.planUntil ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>${cur === 'pro' ? 'Pro' : 'Plus'} faol.</b> Amal qilish muddati: <b>${new Date(a.planUntil).toLocaleDateString('uz-UZ')}</b> gacha. Uzaytirish uchun pastdagi tugmalardan foydalaning.</div></div>` : '';
-  if (cur !== 'free') return a.planUntil ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>${cur === 'pro' ? 'Pro' : 'Plus'} faol.</b> Amal qilish muddati: <b>${new Date(a.planUntil).toLocaleDateString('uz-UZ')}</b> gacha. Uzaytirish uchun to‘lovdan keyin <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing.</div></div>` : '';
+  if (cur !== 'free') return a.planUntil ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>${cur === 'pro' ? 'Pro' : 'Plus'} faol.</b> Amal qilish muddati: <b>${new Date(a.planUntil).toLocaleDateString('uz-UZ')}</b> gacha. Uzaytirish uchun to‘lovdan keyin yozing: <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a>.</div></div>` : '';
   if (!pay.requested) return '';
-  const info = pay.info ? `Karta: <b>${esc(pay.info.card)}</b>${pay.info.holder ? ' (' + esc(pay.info.holder) + ')' : ''}. ` : 'To‘lov rekvizitlarini olish uchun ';
+  const info = pay.info ? `Karta: <b>${esc(pay.info.card)}</b>${pay.info.holder ? ' (' + esc(pay.info.holder) + ')' : ''}. ` : '';
   return `<div class="card" style="margin-bottom:18px"><h3>${pay.plan === 'plus' ? 'Plus' : 'Pro'} uchun to‘lov</h3><p class="sub">So‘rovingiz qabul qilindi. ${pay.plan === 'plus' ? 'Plus' : 'Pro'} to‘lov tekshirilgandan keyin qo‘lda yoqiladi, avtomatik emas.</p>
-    <ol style="margin:0 0 10px 18px;padding:0"><li>Narx: <b>$${Number(pay.price || 4.99).toFixed(2)} / oy</b>. ${info}${pay.info ? '' : '<a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing. '}</li>
+    <ol style="margin:0 0 10px 18px;padding:0"><li>Narx: <b>$${Number(pay.price || 4.99).toFixed(2)} / oy</b>. ${info}${pay.info ? '' : 'To‘lov rekvizitlarini olish uchun yozing: <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a>.'}</li>
     <li>To‘lov izohiga yoki xabarga shu kodni yozing: <b>${esc(pay.ref)}</b></li>
     <li>Chekni (skrinshot) <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yuboring va hisob emailingizni ayting: <b>${esc(S.user.email)}</b></li></ol>
     <p class="hint">Odatda tekshirish va yoqish bir necha soat ichida bo‘ladi.</p></div>`;
@@ -291,7 +292,7 @@ export async function roadmap(el) {
     <button class="btn sm" id="r-cp" style="margin-top:14px">Rejani nusxalash</button><span class="hint" id="r-cm"></span></div>`;
     const upd = () => { $('#r-p', out).textContent = `${done()} / ${steps.length} qadam bajarildi`; $('#r-b', out).style.width = pct(done(), steps.length) + '%'; }; upd();
     $$('[data-k]', out).forEach(i => (i.onchange = () => { saved[i.dataset.k] = i.checked; ls.set(key, saved); draw(); }));
-    $('#r-cp', out).onclick = () => { const t = `${a.n} — yo‘l xaritasi\n` + steps.map((s, k) => ({ s, k })).sort((x, y) => y.s.o - x.s.o).map(({ s, k }) => `${saved[k] ? '[x]' : '[ ]'} ${fmtDate(new Date(dd - s.o * 864e5).toISOString().slice(0, 10))} — ${s.t}`).join('\n'); navigator.clipboard.writeText(t).then(() => ($('#r-cm', out).textContent = ' Nusxalandi'), () => ($('#r-cm', out).textContent = ' Nusxalab bo‘lmadi')); };
+    $('#r-cp', out).onclick = () => { const txt = `${a.n} — ${t('yo‘l xaritasi')}\n` + steps.map((s, k) => ({ s, k })).sort((x, y) => y.s.o - x.s.o).map(({ s, k }) => `${saved[k] ? '[x]' : '[ ]'} ${dateL(new Date(dd - s.o * 864e5).toISOString().slice(0, 10), fmtDate)} — ${t(s.t)}`).join('\n'); navigator.clipboard.writeText(txt).then(() => ($('#r-cm', out).textContent = ' Nusxalandi'), () => ($('#r-cm', out).textContent = ' Nusxalab bo‘lmadi')); };
   };
   $('#r-u', el).onchange = draw; draw();
 }
