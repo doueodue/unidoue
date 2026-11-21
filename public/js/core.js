@@ -73,7 +73,38 @@ export function adopt(me) {
 }
 addEventListener('pagehide', () => { if (S.user && meta().dirty) fetch('/api/data', { method: 'PUT', keepalive: true, credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: dump(), baseRev: S.rev }) }).catch(() => {}); });
 
-export async function refreshAccount() { const me = await api('/api/me'); if (me.user) { S.account = me.account; S.user = me.user; } return S.account; }
+export async function refreshAccount() { const me = await api('/api/me'); if (me.user) { S.account = me.account; S.user = me.user; paintCredits(); } return S.account; }
+
+/* ---------- AI kreditlar: YAGONA manba ----------
+   Hisobni faqat server yuritadi (account.credits). Brauzer undan oʻqiydi va hamma joyda (bosh panel, mentor, esse, tariflar)
+   bir xil koʻrsatadi. Koʻrsatiladigan joylar data-cr atributi bilan belgilanadi va qiymat oʻzgarganda avtomatik yangilanadi. */
+export function credits() {
+  const a = S.account || {}, c = a.credits || {}, limit = c.limit ?? (a.limits && a.limits.ai) ?? 0, used = c.used ?? (a.usage && a.usage.ai) ?? 0;
+  return { used, limit, left: Math.max(0, limit - used), pct: limit ? Math.min(100, Math.round((100 * used) / limit)) : 0 };
+}
+export function paintCredits() {
+  const c = credits();
+  $$('[data-cr]').forEach(el => {
+    const k = el.dataset.cr;
+    if (k === 'badge') el.textContent = `${c.left} / ${c.limit} kredit qoldi`;
+    else if (k === 'frac') el.textContent = `${c.left} / ${c.limit}`;
+    else if (k === 'bar') { el.style.width = c.pct + '%'; if (el.parentElement) el.parentElement.classList.toggle('warn', c.pct > 85); }
+  });
+}
+/** Serverdan kelgan kredit holatini qoʻllaydi (AI javobi, /api/credits). */
+export function applyCredits(c) {
+  if (!c || !S.account || !Number.isFinite(c.limit)) return;
+  S.account.credits = { ...(S.account.credits || {}), ...c };
+  S.account.usage = { ...(S.account.usage || {}), ai: c.used, period: c.period || (S.account.usage || {}).period };
+  S.account.limits = { ...(S.account.limits || {}), ai: c.limit };
+  paintCredits(); document.dispatchEvent(new CustomEvent('unidoue:account'));
+}
+let crBusy = 0;
+export async function refreshCredits() {
+  if (!S.user || crBusy) return; crBusy = 1;
+  try { const r = await api('/api/credits'); applyCredits(r.credits); } catch (e) {} crBusy = 0;
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshCredits(); });
 
 /* ---------- UI yordamchilari ---------- */
 export function toast(text, kind = '') {

@@ -1,10 +1,9 @@
-import { $, $$, S, api, ls, esc, toast, svg, catalog, upsell } from './core.js';
+import { $, $$, S, api, ls, esc, toast, svg, catalog, upsell, credits, applyCredits, refreshCredits } from './core.js';
 import { md } from './markdown.js';
 import { t as tr, lang } from './i18n.js';
 
 const costOf = { mentor: 1, essay: 2, essay_deep: 4, strategy: 6, report: 6 };
 const aiOff = () => `<div class="notice">${svg('info')}<div><b>AI hozircha ulanmagan.</b> Sayt egasi serverda AI kalitini sozlashi kerak. Kalit faqat serverda saqlanadi va brauzerga chiqmaydi.</div></div>`;
-const left = () => S.account.limits.ai - S.account.usage.ai;
 
 
 /** Oqimli chaqiruv: matn kelib turganda onText(toʻliq matn) chaqiriladi. */
@@ -14,6 +13,7 @@ async function streamAI(body, onText) {
   catch (e) { throw Object.assign(new Error('Serverga ulanib bo‘lmadi. Internetni tekshiring.'), { status: 0 }); }
   if (!r.ok) {
     let j = {}; try { j = await r.json(); } catch (e) {}
+    if (j.credits) applyCredits(j.credits);
     const err = Object.assign(new Error(j.error || 'Xatolik yuz berdi.'), { status: r.status, code: j.code, data: j });
     if (err.code === 'AI_LIMIT') upsell('essay_adv', tr(err.message) + ' ' + tr('Limitni oshirish uchun tarifni yaxshilang.'));
     else if (err.code === 'PLAN_REQUIRED') upsell(err.data.feature);
@@ -29,25 +29,13 @@ async function streamAI(body, onText) {
       if (!blk.startsWith('data:')) continue;
       let o; try { o = JSON.parse(blk.slice(5)); } catch (e) { continue; }
       if (o.t) { text += o.t; onText(text); }
-      if (o.error) throw new Error(o.error);
+      if (o.error) { if (o.credits) applyCredits(o.credits); throw new Error(o.error); }
       if (o.done) fin = o;
     }
   }
-  if (!fin) { if (!text) throw new Error('AI javobi uzilib qoldi.'); fin = { usage: { ai: S.account.usage.ai + 0 } }; }
-  S.account.usage.ai = fin.usage.ai; document.dispatchEvent(new CustomEvent('unidoue:account'));
+  if (!fin) { if (!text) throw new Error('AI javobi uzilib qoldi.'); refreshCredits(); } // oqim uzilgan: serverdagi haqiqiy holatni olamiz
+  else applyCredits(fin.credits || { used: fin.usage.ai, limit: fin.limit });
   return { reply: text };
-}
-
-async function callAI(body) {
-  try {
-    const r = await api('/api/ai', 'POST', { ...body, lang: lang() });
-    S.account.usage.ai = r.usage.ai; document.dispatchEvent(new CustomEvent('unidoue:account'));
-    return r;
-  } catch (e) {
-    if (e.code === 'AI_LIMIT') upsell('essay_adv', tr(e.message) + ' ' + tr('Limitni oshirish uchun tarifni yaxshilang.'));
-    else if (e.code === 'PLAN_REQUIRED') upsell(e.data.feature);
-    throw e;
-  }
 }
 
 /* ================= ESSE YORDAMCHISI ================= */
@@ -79,7 +67,8 @@ export async function essay(el) {
   <div class="grid g-dash"><section class="card s7"><label class="f" for="e-t">Esse matni</label><textarea id="e-t" rows="16" maxlength="6000" placeholder="Esseni shu yerga joylang (kamida 200 belgi)">${esc(draft)}</textarea><div class="hint" id="e-c"></div>
     <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button class="btn" id="e-b">Tezkor tahlil (bepul)</button><button class="btn primary" id="e-ai">AI tahlil (${costOf.essay} kredit)</button><button class="btn dark" id="e-deep">Chuqur tahlil (${costOf.essay_deep} kredit, Pro)</button></div><div class="msg" id="e-m"></div></section>
   <section class="card s5"><h3>Natija</h3><div id="e-o"><p class="sub">Tezkor tahlil brauzeringizda ishlaydi va hech qayerga yuborilmaydi. AI tahlil matnni serverga yuboradi.</p></div></section></div>`;
-  const ta = $('#e-t', el), out = $('#e-o', el), m = $('#e-m', el), cnt = () => ($('#e-c', el).textContent = `${(ta.value.match(/[\p{L}’'ʻ-]+/gu) || []).length} so‘z · ${ta.value.length}/6000 belgi · kredit: ${left()} qoldi`); cnt();
+  const ta = $('#e-t', el), out = $('#e-o', el), m = $('#e-m', el), cnt = () => { const c = credits(); $('#e-c', el).textContent = `${(ta.value.match(/[\p{L}’'ʻ-]+/gu) || []).length} so‘z · ${ta.value.length}/6000 belgi · kredit: ${c.left} / ${c.limit} qoldi`; }; cnt();
+  const onAcc = () => { if (el.isConnected) cnt(); else document.removeEventListener('unidoue:account', onAcc); }; document.addEventListener('unidoue:account', onAcc);
   let t = 0; ta.oninput = () => { cnt(); clearTimeout(t); t = setTimeout(() => ls.set('qabul:essay', ta.value), 1200); };
   $('#e-b', el).onclick = () => {
     if (ta.value.trim().length < 200) { m.className = 'msg err'; m.textContent = 'Esse kamida 200 belgidan iborat bo‘lsin.'; return; } m.textContent = '';
@@ -92,7 +81,7 @@ export async function essay(el) {
     if (!S.account.config.ai) { out.innerHTML = aiOff(); return; }
     if (deep && !S.account.features.includes('essay_adv')) return upsell('essay_adv', 'Chuqur esse tahlili Pro tarifida.');
     const btns = $$('#e-ai,#e-deep,#e-b', el); btns.forEach(b => (b.disabled = true)); out.innerHTML = '<div class="sk" style="height:140px"></div>';
-    try { const r = await callAI({ tool: 'essay', text: ta.value, deep }); out.innerHTML = `<div class="pre">${md(r.reply)}</div><p class="hint">AI xato qilishi mumkin; maslahatlarni o‘z ovozingizga moslang. Esse sizniki bo‘lib qolsin.</p>`; cnt(); }
+    try { const r = await streamAI({ tool: 'essay', text: ta.value, deep }, txt => { out.innerHTML = `<div class="pre">${md(txt)}</div>`; }); out.innerHTML = `<div class="pre">${md(r.reply)}</div><p class="hint">AI xato qilishi mumkin; maslahatlarni o‘z ovozingizga moslang. Esse sizniki bo‘lib qolsin.</p>`; }
     catch (e) { out.innerHTML = e.code === 'AI_NOT_CONFIGURED' ? aiOff() : `<p class="msg err">${esc(e.message)}</p>`; }
     btns.forEach(b => (b.disabled = false));
   };
@@ -102,7 +91,7 @@ export async function essay(el) {
 /* ================= AI MENTOR ================= */
 export async function mentor(el) {
   const cat = await catalog(), apps = ls.get('qabul:apps', []), acc = S.account; const hist = [];
-  el.innerHTML = `<div class="page-h"><div><h2>AI <em>mentor</em></h2><p>Universitet tanlash, ariza va esse bo‘yicha savollar. Javoblar umumiy maslahat, rasmiy talablarni universitet saytida tekshiring.</p></div><span class="badge">${left()} / ${S.account.limits.ai} kredit qoldi</span></div>
+  el.innerHTML = `<div class="page-h"><div><h2>AI <em>mentor</em></h2><p>Universitet tanlash, ariza va esse bo‘yicha savollar. Javoblar umumiy maslahat, rasmiy talablarni universitet saytida tekshiring.</p></div><span class="badge" data-cr="badge">${credits().left} / ${credits().limit} kredit qoldi</span></div>
   ${acc.config.ai ? '' : aiOff()}
   <div class="grid g-dash" style="margin-top:16px"><section class="card s7"><div class="chat" id="m-c" aria-live="polite"><div class="bub a">Salom! Men UniDoue mentoriman. ${acc.consent.mentorMemory ? 'Profilingiz ma’lumotlaridan foydalanaman (profil sahifasida o‘chirishingiz mumkin).' : 'Profilingizni ko‘rishim uchun profil sahifasida ruxsat bering.'} Nimani bilmoqchisiz?</div></div>
     <form id="m-f" style="display:flex;gap:10px;margin-top:8px"><input id="m-i" type="text" maxlength="2000" placeholder="Savolingizni yozing…" autocomplete="off" style="flex:1"><button class="btn primary" id="m-s" type="submit">Yuborish</button></form></section>
@@ -115,7 +104,7 @@ export async function mentor(el) {
     ev.preventDefault(); const inp = $('#m-i', el), q = inp.value.trim(); if (!q) return;
     if (!acc.config.ai) { toast('AI hozircha ulanmagan.', 'err'); return; }
     inp.value = ''; hist.push({ role: 'user', content: q }); add('u', q); const wait = add('a', '…'); $('#m-s', el).disabled = true;
-    try { const r = await streamAI({ tool: 'mentor', messages: hist }, t => { wait.innerHTML = md(t); wait.scrollIntoView({ block: 'nearest' }); }); hist.push({ role: 'assistant', content: r.reply }); wait.innerHTML = md(r.reply); $('.badge', el).textContent = left() + ' kredit qoldi'; }
+    try { const r = await streamAI({ tool: 'mentor', messages: hist }, t => { wait.innerHTML = md(t); wait.scrollIntoView({ block: 'nearest' }); }); hist.push({ role: 'assistant', content: r.reply }); wait.innerHTML = md(r.reply); }
     catch (e) { hist.pop(); wait.textContent = e.message; wait.style.color = 'var(--bad)'; }
     $('#m-s', el).disabled = false; inp.focus();
   };
@@ -125,7 +114,8 @@ export async function mentor(el) {
     if (!acc.features.includes(need)) return upsell(need, 'Bu vosita Pro tarifida.');
     if (!sel.length) { m.textContent = 'Kamida bitta universitet tanlang.'; return; }
     o.hidden = false; o.innerHTML = '<div class="sk" style="height:140px"></div>';
-    try { const r = await callAI({ tool: name, universities: sel }); o.innerHTML = `<h3>${name === 'strategy' ? 'Qabul strategiyasi' : 'Universitet hisoboti'}</h3><div class="pre">${md(r.reply)}</div><p class="hint">Raqam va muddatlarni universitetning rasmiy saytida tekshiring.</p>`; $('.badge', el).textContent = left() + ' kredit qoldi'; }
+    const head = `<h3>${name === 'strategy' ? 'Qabul strategiyasi' : 'Universitet hisoboti'}</h3>`;
+    try { const r = await streamAI({ tool: name, universities: sel }, txt => { o.innerHTML = `${head}<div class="pre">${md(txt)}</div>`; }); o.innerHTML = `${head}<div class="pre">${md(r.reply)}</div><p class="hint">Raqam va muddatlarni universitetning rasmiy saytida tekshiring.</p>`; }
     catch (e) { o.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; }
   };
   $('#rq-b', el).onclick = async () => { const m = $('#rq-m', el), g = id => $('#' + id, el).value.trim(); m.className = 'msg err'; if (g('rq-n').length < 2 || g('rq-c').length < 5) { m.textContent = 'Ism va aloqa ma’lumotini kiriting.'; return; } try { await api('/api/request', 'POST', { name: g('rq-n'), contact: g('rq-c'), service: g('rq-s'), message: g('rq-t') }); m.className = 'msg ok'; m.textContent = 'So‘rov yuborildi. Siz bilan bog‘lanamiz.'; } catch (e) { m.textContent = e.message; } };

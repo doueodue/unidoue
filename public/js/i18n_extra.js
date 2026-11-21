@@ -387,7 +387,7 @@ export const RULES = [
   [/^Muddat: (\d+)-(\w+), (\d{4})( \(taxminiy\))?$/, (m) => MON[m[2]] ? `Срок: ${m[1]} ${RUM[MON[m[2]] - 1]} ${m[3]}${m[4] ? ' (примерно)' : ''}` : null, (m) => MON[m[2]] ? `Deadline: ${ENM[MON[m[2]] - 1]} ${m[1]}, ${m[3]}${m[4] ? ' (approx.)' : ''}` : null],
   [/^(\d+) \/ (\d+) kredit qoldi$/, m => `Осталось кредитов: ${m[1]} / ${m[2]}`, m => `${m[1]} / ${m[2]} credits left`],
   [/^Hujjatlar: (\d+)\/(\d+)$/, m => `Документы: ${m[1]}/${m[2]}`, m => `Documents: ${m[1]}/${m[2]}`],
-  [/^(\d+) so‘z · (\d+)\/(\d+) belgi · kredit: (\d+) qoldi$/, m => `${m[1]} слов · ${m[2]}/${m[3]} символов · кредитов: ${m[4]}`, m => `${m[1]} words · ${m[2]}/${m[3]} characters · credits left: ${m[4]}`],
+  [/^(\d+) so‘z · (\d+)\/(\d+) belgi · kredit: (\d+) \/ (\d+) qoldi$/, m => `${m[1]} слов · ${m[2]}/${m[3]} символов · кредитов: ${m[4]} / ${m[5]}`, m => `${m[1]} words · ${m[2]}/${m[3]} characters · credits left: ${m[4]} / ${m[5]}`],
   [/^(\d+) \/ (\S+) ariza$/, m => `${m[1]} / ${m[2]} заявок`, m => `${m[1]} / ${m[2]} applications`],
   [/^(\d+) AI kredit \/ oy$/, m => `${m[1]} AI-кредитов / мес.`, m => `${m[1]} AI credits / month`],
   [/^(\d+) ta universitetni solishtirish$/, m => `Сравнение ${m[1]} университетов`, m => `Compare ${m[1]} universities`],

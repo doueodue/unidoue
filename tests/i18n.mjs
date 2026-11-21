@@ -26,6 +26,7 @@ const SAMPLES = [
   'Bekor', 'Arizani o‘chirasizmi?', 'Tarifni pasaytirasizmi?', 'Hisobni o‘chirasizmi?', 'Hisob ochish bilan', 'maxfiylik siyosati', 'Graduategacha', 'kun qoldi',
   'Raqobatbardosh', 'Kuchli moslik', 'Qiyin', 'Juda qiyin', 'Mosligingizni', 'Erta muddatlar', 'Olib tashlash', 'muddat o‘tgan', 'Sanani o‘zgartirish',
   'Hali vaqt bor: testlarga tayyorlaning va universitetlar ro‘yxatini shakllantiring.', 'Profilni kuchaytirish kerak', 'Nimani yaxshilash kerak',
+  '120 so‘z · 640/6000 belgi · kredit: 6 / 15 qoldi', '6 / 15 kredit qoldi', 'SAT yoki IELTS', 'Yetishmaydi: Ism, GPA, SAT yoki IELTS', 'Bu oy uchun AI sarfi chegarasiga yetdingiz. Keyingi oyda yangilanadi.', 'Xato topdingizmi?',
   'Serverga ulanib bo‘lmadi. Internetni tekshiring.', 'Yuklab bo‘lmadi', 'Tariflarni ko‘rish', 'Payme orqali to‘lash', 'Click orqali to‘lash'
 ];
 let bad = 0;

@@ -21,6 +21,11 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 | `DATABASE_URL` | Neon (bepul Postgres) ulanish manzili. **Bepul Render'da hisoblar o'chib ketmasligi uchun kerak.** Kalitsiz ma'lumotlar faqat serverdagi faylda turadi |
 | `ANTHROPIC_API_KEY` | AI mentor, esse tahlili, strategiya, hisobot. **Kalitsiz AI "ulanmagan" holatida turadi** |
 | `AI_MODEL` | AI modeli (standart: `claude-sonnet-5-5`) |
+| `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL` | Anthropic oʻrniga OpenAI-mos provayder. Arzon variant: `AI_BASE_URL=https://api.openai.com/v1`, `AI_MODEL=gpt-6-luna` (≈ $0.10 / $0.50 per 1M token). gpt-5/gpt-6/o-seriya modellari uchun server `max_completion_tokens` va `reasoning_effort` yuboradi, `temperature` yuborilmaydi |
+| `AI_REASONING_EFFORT` | Faqat reasoning modellar: `low` (standart), `none`, `medium`, `high`, `omit` (parametr yuborilmaydi). Past qiymat arzonroq va tezroq |
+| `AI_REASONING=1/0` | Model nomi avtomatik taniy olmasa (masalan OpenRouter orqali), reasoning rejimini qoʻlda yoqish/oʻchirish |
+| `AI_TOKENS_PER_CREDIT` | Xavfsizlik chegarasi: oylik token sarfi `tarif krediti × shu son` dan oshsa AI toʻxtaydi (standart 20000). Real xarajatni kredit hisobidan qatʼiy nazar cheklaydi |
+| `AI_GLOBAL_CAP` | (tavsiya etiladi) Hamma foydalanuvchilarning oylik umumiy AI krediti. Oshsa AI vaqtincha toʻxtaydi. Qoʻyilmasa umumiy chegara yoʻq |
 | `RESEND_API_KEY`, `MAIL_FROM`, `APP_URL` | Parolni tiklash xati. Kalitsiz "ulanmagan" xabari chiqadi |
 | `TG_BOT_TOKEN`, `TG_CHAT_ID` | Mentor va tarif soʻrovlari Telegramga kelishi uchun |
 | `USD_UZS_RATE` | Onlayn toʻlov uchun kurs: 1 USD = necha soʻm (masalan `12700`). Soʻm narxi = dollar narxi × kurs, 1000 soʻmgacha yaxlitlanadi. Kurs boʻlmasa toʻlov **yoqilmaydi** |

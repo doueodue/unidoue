@@ -1,4 +1,4 @@
-import { $, $$, S, api, adopt, wipeLocal, esc, svg, skeleton, errorBox, toast, push } from './core.js';
+import { $, $$, S, api, adopt, wipeLocal, esc, svg, skeleton, errorBox, toast, push, refreshCredits } from './core.js';
 import { t, langSelect, bindLang } from './i18n.js';
 import { themeSwitch } from './theme-ui.js';
 
@@ -115,6 +115,7 @@ async function route() {
   const id = (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'dashboard', r = ROUTES.find(x => x.id === id) || ROUTES[0], my = ++token;
   $$('.nav a').forEach(a => (a.getAttribute('data-r') === r.id ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
   $('#ttl').textContent = t(r.t); document.title = t(r.t) + ' · UniDoue'; document.body.classList.remove('nav-open');
+  refreshCredits(); // har sahifaga oʻtganda kreditlarni serverdan yangilaymiz (boshqa qurilma/oyna, oy almashishi)
   const el = $('#view'); el.innerHTML = skeleton(3); el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
   try { const fn = await r.v(); if (my !== token) return; el.innerHTML = ''; await fn(el); }
   catch (e) { if (my !== token) return; el.innerHTML = errorBox(e.message, true); const b = $('[data-retry]', el); if (b) b.onclick = route; }

@@ -114,6 +114,10 @@ class Client {
     r = await fr.call('POST', '/api/ai', { tool: 'strategy', universities: ['MIT'] }); ok(r.s === 403 || r.s === 402, 'Free: Pro vositasi yopiq', r.s);
     for (let i = 0; i < 7; i++) await fr.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'q' }] });
     r = await fr.call('GET', '/api/me'); ok(r.j.account.limits.ai === 15 && r.j.account.usage.ai === 7, 'Free: 15 kredit limiti, 7 ta sarflangan', r.j.account.usage);
+    r = await fr.call('GET', '/api/credits'); const me7 = await fr.call('GET', '/api/me');
+    ok(r.s === 200 && r.j.credits.used === 7 && r.j.credits.left === 8 && r.j.credits.limit === 15 && JSON.stringify(r.j.credits) === JSON.stringify(me7.j.account.credits), 'kreditlar yagona manba: /api/credits = /api/me', r.j);
+    r = await new Client().call('GET', '/api/credits'); ok(r.s === 401, 'kreditlar: kirmagan foydalanuvchiga 401');
+    r = await pro.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'q' }] }); ok(r.s === 200 && r.j.credits.used === 7 && r.j.credits.left === 293 && r.j.usage.ai === 7, 'AI javobida kreditlar (6 + 1 = 7, qoldi 293)', r.j.credits);
     const rl = new Client(); await rl.call('POST', '/api/register', { email: 'rl@gmail.com', password: 'parol12345', name: 'RL' });
     await rl.call('POST', '/api/admin/plan', { email: 'rl@gmail.com', plan: 'pro' }, { Authorization: 'Bearer adm-secret' });
     let last; for (let i = 0; i < 10; i++) last = await rl.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'q' }] }); ok(last.s === 429, 'AI tezlik limiti 429', last.s);
@@ -168,6 +172,24 @@ class Client {
     } catch (e) { failN++; console.log('XATO:', e); }
     s2.kill(); oa.close(); fs.rmSync(dir2, { recursive: true, force: true });
   }
+  // OpenAI reasoning modellari (gpt-6-luna...): max_completion_tokens, temperature yoʻq, reasoning_effort
+  {
+    let last = null; const oa = await mock((q, b, r) => { last = JSON.parse(b); r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ choices: [{ message: { content: 'Luna javobi' } }], usage: { prompt_tokens: 120, completion_tokens: 80 } })); });
+    const dir4 = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), P4 = PORT + 9;
+    const s4 = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: P4, DATA_DIR: dir4, ANTHROPIC_API_KEY: '', AI_API_KEY: 'k3', AI_BASE_URL: `http://localhost:${oa.address().port}/v1`, AI_MODEL: 'gpt-6-luna', AI_REASONING: '1', ADMIN_TOKEN: 'adm' }, stdio: 'ignore' });
+    for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${P4}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
+    console.log('AI modeli: reasoning (gpt-6-luna)');
+    try {
+      const c = new Client(), call = async (m, u, b, h = {}) => { const r = await fetch(`http://localhost:${P4}${u}`, { method: m, headers: { 'Content-Type': 'application/json', ...(c.cookie ? { Cookie: c.cookie } : {}), ...h }, body: b ? JSON.stringify(b) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) c.cookie = sc.split(';')[0]; return { s: r.status, j: await r.json().catch(() => null) }; };
+      await call('POST', '/api/register', { email: 'luna@gmail.com', password: 'parol12345', name: 'Luna' });
+      const r = await call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'Salom' }] });
+      ok(r.s === 200 && r.j.reply === 'Luna javobi' && r.j.credits.used === 1, 'reasoning model: javob va 1 kredit', r.j);
+      ok(last && last.model === 'gpt-6-luna' && last.max_completion_tokens > 700 && last.max_tokens === undefined && last.temperature === undefined && last.reasoning_effort === 'low', 'reasoning model: max_completion_tokens, temperaturasiz, reasoning_effort=low', last);
+      const st = await call('GET', '/api/admin/stats', null, { Authorization: 'Bearer adm' });
+      ok(st.s === 200 && st.j.aiTokensMonth === 200, 'provayder bergan token sarfi (120 + 80) yoziladi', st.j && st.j.aiTokensMonth);
+    } catch (e) { failN++; console.log('XATO:', e); }
+    s4.kill(); oa.close(); await new Promise(r => setTimeout(r, 200)); fs.rmSync(dir4, { recursive: true, force: true });
+  }
   // Brevo orqali xat (domensiz variant)
   {
     let got = null; const bm = await mock((q, b, r) => { got = { key: q.headers['api-key'], body: JSON.parse(b) }; r.statusCode = 201; r.setHeader('content-type', 'application/json'); r.end('{"messageId":"x"}'); });
@@ -186,7 +208,7 @@ class Client {
   }
   // Eski onrender.com manzilidan APP_URL ga yoʻnaltirish
   {
-    const dir4 = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), P4 = PORT + 7;
+    const dir4 = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), P4 = PORT + 9;
     const s4 = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: P4, DATA_DIR: dir4, APP_URL: 'https://unidoue.uz' }, stdio: 'ignore' });
     for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${P4}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
     console.log('Domen yoʻnaltirish');

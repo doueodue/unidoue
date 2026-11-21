@@ -13,6 +13,7 @@
  *  DATABASE_URL                    — (ixtiyoriy) Neon Postgres ulanish manzili: hisoblar server qayta ishga tushsa ham saqlanadi
  *  COOKIE_SECURE=1                 — cookie faqat HTTPS (productionda yoqing)
  *  TRUST_PROXY=1                   — Render/Railway/nginx ortida: haqiqiy IP uchun X-Forwarded-For
+ *  AI_API_KEY, AI_BASE_URL, AI_MODEL — OpenAI-mos AI (masalan gpt-6-luna). AI_REASONING_EFFORT, AI_TOKENS_PER_CREDIT, AI_GLOBAL_CAP: README'ga qarang
  *  TG_BOT_TOKEN, TG_CHAT_ID        — mentor so'rovlari Telegramga tushishi uchun
  *  ADMIN_TOKEN                     — GET /api/admin/requests uchun (Authorization: Bearer ...)
  *  USD_UZS_RATE, PAYME_*, CLICK_*     — (ixtiyoriy) onlayn toʻlov: Payme va Click. Batafsil: payments.js boshi va README
@@ -110,6 +111,13 @@ const Scoring = require('./public/js/scoring.js');
 const AI_PROVIDER = process.env.ANTHROPIC_API_KEY ? 'anthropic' : (process.env.AI_API_KEY && process.env.AI_BASE_URL ? 'openai' : '');
 const AI_KEY = process.env.ANTHROPIC_API_KEY || process.env.AI_API_KEY || '';
 const AI_MODEL = process.env.AI_MODEL || (AI_PROVIDER === 'openai' ? '' : 'claude-sonnet-5-5');
+// OpenAI-ning yangi (reasoning) modellari (gpt-5/gpt-6/o-seriya): max_tokens oʻrniga max_completion_tokens, temperature qoʻllanmaydi, reasoning_effort beriladi.
+// Boshqa OpenAI-mos provayderlar (Groq, OpenRouter...) uchun oddiy max_tokens + temperature. Qoʻlda: AI_REASONING=1|0, AI_REASONING_EFFORT (none|low|medium|high).
+const AI_OPENAI_NATIVE = AI_PROVIDER === 'openai' && /^https:\/\/api\.openai\.com\//.test(String(process.env.AI_BASE_URL || ''));
+const AI_REASONING = process.env.AI_REASONING ? process.env.AI_REASONING === '1' : (AI_OPENAI_NATIVE && /^(o\d|gpt-[56])/i.test(AI_MODEL));
+const AI_EFFORT = process.env.AI_REASONING_EFFORT || 'low';
+// Xavfsizlik chegarasi: bir kredit uchun ruxsat etilgan eng koʻp token (kirish + chiqish). Oylik token sarfi plan_krediti × shu son dan oshsa, AI toʻxtaydi.
+const AI_TOKENS_PER_CREDIT = Math.max(parseInt(process.env.AI_TOKENS_PER_CREDIT, 10) || 20000, 2000);
 const TG_TOKEN = process.env.TG_BOT_TOKEN || '';
 const TG_SECRET = TG_TOKEN ? crypto.createHash('sha256').update('tg-wh:' + TG_TOKEN).digest('hex').slice(0, 48) : '';
 let TG_USER = '';
@@ -161,10 +169,33 @@ function effPlan(u) {
   return PLANS.free;
 }
 function usageOf(u) {
-  if (!u.usage || u.usage.p !== month()) u.usage = { p: month(), ai: 0 };
+  if (!u.usage || u.usage.p !== month()) u.usage = { p: month(), ai: 0, tin: 0, tout: 0 };
   return u.usage;
 }
 const can = (u, f) => effPlan(u).features.includes(f);
+/** Kreditlar uchun YAGONA hisob: server shu obyektni beradi, brauzer faqat koʻrsatadi (qayta hisoblamaydi). */
+function creditsOf(u) {
+  const pl = effPlan(u), us = usageOf(u), used = Math.max(0, us.ai | 0), limit = pl.ai;
+  return { used, limit, left: Math.max(0, limit - used), period: us.p };
+}
+const tokensUsed = us => (us.tin | 0) + (us.tout | 0);
+/** AI soʻrovi tanasi (provayderga qarab). */
+function aiBody(built, maxTok, stream) {
+  if (AI_PROVIDER === 'anthropic') return { model: AI_MODEL, max_tokens: maxTok, ...(stream ? { stream: true } : {}), system: built.system, messages: built.messages };
+  const b = { model: AI_MODEL, messages: [{ role: 'system', content: built.system }, ...built.messages] };
+  if (AI_REASONING) { b.max_completion_tokens = maxTok + 1500; if (AI_EFFORT !== 'omit') b.reasoning_effort = AI_EFFORT; } // 1500: yashirin "oʻylash" tokenlari uchun zaxira
+  else { b.max_tokens = maxTok; b.temperature = 0.3; }
+  if (stream) { b.stream = true; if (AI_OPENAI_NATIVE || AI_REASONING) b.stream_options = { include_usage: true }; } // boshqa provayderlar notanish maydonni rad etishi mumkin
+  return b;
+}
+const aiHeaders = () => (AI_PROVIDER === 'anthropic' ? { 'x-api-key': AI_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' } : { Authorization: 'Bearer ' + AI_KEY, 'content-type': 'application/json' });
+/** Provayder javobidagi token sarfini oʻqiydi (oqim boʻlaklari ham, oddiy javob ham). */
+function readUsage(j, acc) {
+  if (!j || typeof j !== 'object') return;
+  const u = j.usage || (j.message && j.message.usage); if (!u) return;
+  const i = u.input_tokens ?? u.prompt_tokens, o = u.output_tokens ?? u.completion_tokens;
+  if (Number.isFinite(i) && i > 0) acc.i = i; if (Number.isFinite(o) && o > 0) acc.o = o;
+}
 const needPlan = (res, feature) => send(res, 402, { error: 'Bu imkoniyat yuqoriroq tarifda mavjud.', code: 'PLAN_REQUIRED', feature });
 
 /* ---------------- yordamchilar ---------------- */
@@ -291,7 +322,7 @@ function accountInfo(u) {
   return {
     plan: pl.id, planUntil: pl.id === 'free' ? null : (u.planUntil || null),
     limits: { ai: pl.ai, apps: pl.apps, finder: pl.finder, compare: pl.compare }, features: pl.features,
-    usage: { ai: us.ai, period: us.p }, consent: { mentorMemory: !!(u.consent && u.consent.mentorMemory) },
+    usage: { ai: us.ai, period: us.p }, credits: creditsOf(u), consent: { mentorMemory: !!(u.consent && u.consent.mentorMemory) },
     config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: PAY.enabled, online: PAY.info() },
     tg: { on: !!(TG_TOKEN && TG_USER), linked: !!u.tgChat, bot: TG_USER },
     pay: { ref: payRef(u), info: PAY_INFO, requested: u.planReq || null, plan: u.planReqPlan || 'pro', price: (PLANS[u.planReqPlan] || PLANS.pro).price }
@@ -417,6 +448,12 @@ async function api(req, res, pathname) {
     if (limited('vr:' + u.id, 5, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Keyinroq urinib koʻring.');
     try { await issueCode(u); save(); } catch (e) { console.error('Tasdiqlash xati:', e.message); return fail(res, 503, 'Xatni yuborib boʻlmadi. Keyinroq urinib koʻring.'); }
     return send(res, 200, { ok: true });
+  }
+
+  if (pathname === '/api/credits' && method === 'GET') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    return send(res, 200, { credits: creditsOf(u), plan: effPlan(u).id });
   }
 
   if (pathname === '/api/me' && method === 'GET') {
@@ -698,6 +735,7 @@ async function api(req, res, pathname) {
       activeToday: rows[13].active, signupsToday: rows[13].signups,
       active7: us.filter(u => (u.act || []).some(d => week.has(d))).length,
       aiMonth: us.reduce((n, u) => n + (u.usage && u.usage.p === month() ? u.usage.ai || 0 : 0), 0),
+      aiTokensMonth: us.reduce((n, u) => n + (u.usage && u.usage.p === month() ? tokensUsed(u.usage) : 0), 0),
       since: all[0] || null, rows, mail: !!MAIL_PROVIDER, ai: !!AI_PROVIDER, verifyOn: VERIFY_ON, payCard: !!PAY_INFO
     });
   }
@@ -760,25 +798,28 @@ async function api(req, res, pathname) {
     if (tool === 'report' && !can(u, 'reports')) return needPlan(res, 'reports');
     if (tool === 'essay' && deep && !can(u, 'essay_adv')) return needPlan(res, 'essay_adv');
     const cost = AI_COST[tool === 'essay' && deep ? 'essay_deep' : tool], pl = effPlan(u), us = usageOf(u);
-    if (us.ai + cost > pl.ai) return send(res, 402, { error: `Bu oyki AI limiti tugadi (${us.ai}/${pl.ai}).`, code: 'AI_LIMIT', usage: { ai: us.ai }, limit: pl.ai });
+    const limitBody = (error, extra = {}) => ({ error, code: 'AI_LIMIT', usage: { ai: us.ai }, limit: pl.ai, credits: creditsOf(u), ...extra });
+    if (us.ai + cost > pl.ai) return send(res, 402, limitBody(`Bu oyki AI limiti tugadi (${us.ai}/${pl.ai}).`));
+    // Haqiqiy xarajatdan himoya: kredit sanogʻidan qatʼiy nazar, oylik token sarfi chegaradan oshmasin (bitta foydalanuvchi API hisobini tugata olmasin).
+    if (tokensUsed(us) >= pl.ai * AI_TOKENS_PER_CREDIT) return send(res, 402, limitBody('Bu oy uchun AI sarfi chegarasiga yetdingiz. Keyingi oyda yangilanadi.'));
     // Umumiy oylik xavfsizlik chegarasi (ixtiyoriy): AI_GLOBAL_CAP kredit. Hamma foydalanuvchilarning sarfi yigʻindisi oshsa, AI vaqtincha toʻxtaydi.
     if (AI_GLOBAL_CAP && Object.values(db.users).reduce((n, x) => n + (x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0), 0) + cost > AI_GLOBAL_CAP) return fail(res, 503, 'AI xizmati bu oy uchun vaqtincha band. Keyinroq urinib koʻring.');
     const built = buildAi(u, tool, b, deep);
     if (built.error) return fail(res, 400, built.error);
     // Kredit javobdan OLDIN band qilinadi (bir vaqtdagi soʻrovlar limitdan oshib ketmasligi uchun); xato boʻlsa qaytariladi.
     us.ai += cost;
+    const maxTok = tool === 'mentor' && !can(u, 'mentor_adv') ? 700 : 1600, tk = { i: 0, o: 0 };
+    const estTok = x => Math.ceil(String(x).length / 3);
+    // Token sarfini yozib borish (provayder bermasa, taxminiy hisob): oylik token chegarasi va admin statistikasi uchun
+    const addTokens = reply => { us.tin = (us.tin | 0) + (tk.i || estTok(built.system + JSON.stringify(built.messages))); us.tout = (us.tout | 0) + (tk.o || estTok(reply)); };
     if (b.stream === true) {
       // Oqimli javob (SSE): matn yozilib borishi bilan brauzerga yuboriladi.
       let got = '', started = false;
-      const maxS = tool === 'mentor' && !can(u, 'mentor_adv') ? 700 : 1600, ac = new AbortController(), tm = setTimeout(() => ac.abort(), 90000);
+      const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 90000);
       req.on('close', () => { if (!res.writableEnded) ac.abort(); });
       const ev = o => res.write('data: ' + JSON.stringify(o) + '\n\n');
       try {
-        const r = AI_PROVIDER === 'anthropic'
-          ? await fetch(AI_URL, { method: 'POST', signal: ac.signal, headers: { 'x-api-key': AI_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-              body: JSON.stringify({ model: AI_MODEL, max_tokens: maxS, stream: true, system: built.system, messages: built.messages }) })
-          : await fetch(AI_URL, { method: 'POST', signal: ac.signal, headers: { Authorization: 'Bearer ' + AI_KEY, 'content-type': 'application/json' },
-              body: JSON.stringify({ model: AI_MODEL, max_tokens: maxS, temperature: 0.3, stream: true, messages: [{ role: 'system', content: built.system }, ...built.messages] }) });
+        const r = await fetch(AI_URL, { method: 'POST', signal: ac.signal, headers: aiHeaders(), body: JSON.stringify(aiBody(built, maxTok, true)) });
         if (!r.ok || !r.body) { console.error('AI xatosi', r.status); throw new Error('upstream'); }
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/event-stream; charset=utf-8'); res.setHeader('Cache-Control', 'no-store, no-transform'); res.setHeader('X-Accel-Buffering', 'no');
@@ -794,6 +835,7 @@ async function api(req, res, pathname) {
             const d = line.slice(5).trim();
             if (!d || d === '[DONE]') continue;
             let j; try { j = JSON.parse(d); } catch (e) { continue; }
+            readUsage(j, tk);
             const t = AI_PROVIDER === 'anthropic' ? (j.type === 'content_block_delta' && j.delta && j.delta.type === 'text_delta' ? j.delta.text : '') : (((j.choices || [])[0] || {}).delta || {}).content || '';
             if (t) { got += t; ev({ t }); }
           }
@@ -803,27 +845,23 @@ async function api(req, res, pathname) {
       if (!got.trim()) {
         us.ai -= cost;
         if (!started) return fail(res, 502, 'AI xizmati hozir javob bermadi. Keyinroq urinib koʻring.');
-        ev({ error: 'AI boʻsh javob qaytardi.' }); return res.end();
+        ev({ error: 'AI boʻsh javob qaytardi.', credits: creditsOf(u) }); return res.end();
       }
-      save();
-      ev({ done: true, usage: { ai: us.ai }, limit: pl.ai });
+      addTokens(got); save();
+      ev({ done: true, usage: { ai: us.ai }, limit: pl.ai, credits: creditsOf(u) });
       return res.end();
     }
     let reply;
     try {
-      const maxTok = tool === 'mentor' && !can(u, 'mentor_adv') ? 700 : 1600;
-      const r = AI_PROVIDER === 'anthropic'
-        ? await fetch(AI_URL, { method: 'POST', signal: AbortSignal.timeout(55000), headers: { 'x-api-key': AI_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-            body: JSON.stringify({ model: AI_MODEL, max_tokens: maxTok, system: built.system, messages: built.messages }) })
-        : await fetch(AI_URL, { method: 'POST', signal: AbortSignal.timeout(55000), headers: { Authorization: 'Bearer ' + AI_KEY, 'content-type': 'application/json' },
-            body: JSON.stringify({ model: AI_MODEL, max_tokens: maxTok, temperature: 0.3, messages: [{ role: 'system', content: built.system }, ...built.messages] }) });
+      const r = await fetch(AI_URL, { method: 'POST', signal: AbortSignal.timeout(55000), headers: aiHeaders(), body: JSON.stringify(aiBody(built, maxTok, false)) });
       const j = await r.json();
       if (!r.ok) { console.error('AI xatosi', r.status, JSON.stringify(j && j.error).slice(0, 200)); us.ai -= cost; return fail(res, 502, 'AI xizmati hozir javob bermadi. Keyinroq urinib koʻring.'); }
+      readUsage(j, tk);
       reply = (AI_PROVIDER === 'anthropic' ? (j.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n') : (((j.choices || [])[0] || {}).message || {}).content || '').trim();
     } catch (e) { console.error('AI xatosi', e.message); us.ai -= cost; return fail(res, 502, 'AI xizmati hozir javob bermadi. Keyinroq urinib koʻring.'); }
     if (!reply) { us.ai -= cost; return fail(res, 502, 'AI boʻsh javob qaytardi.'); }
-    save();
-    return send(res, 200, { reply, usage: { ai: us.ai }, limit: pl.ai });
+    addTokens(reply); save();
+    return send(res, 200, { reply, usage: { ai: us.ai }, limit: pl.ai, credits: creditsOf(u) });
   }
 
   return fail(res, 404, 'Topilmadi.');

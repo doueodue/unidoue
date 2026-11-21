@@ -1,4 +1,4 @@
-import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, refreshAccount, upsell, push, wipeLocal, errorBox } from './core.js';
+import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, refreshAccount, upsell, push, wipeLocal, errorBox, credits } from './core.js';
 import { t, dateL } from './i18n.js';
 
 export const ST = ['Rejalashtirilgan', 'Hujjat tayyorlanmoqda', 'Topshirildi', 'Natija kutilmoqda', 'Qabul qilindi', 'Rad etildi'];
@@ -8,11 +8,19 @@ const TIER = { safety: 'Safety', target: 'Target', reach: 'Reach' };
 const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
 const accountChanged = () => document.dispatchEvent(new CustomEvent('unidoue:account'));
 
+/** Profil to‘liqligi. Qoidalar profil formasi bilan bir xil: SAT va IELTS dan kamida bittasi yetarli (ikkalasi shart emas),
+ *  ism hisob nomidan olinadi, maydon faqat to‘g‘ri qiymat bo‘lsa to‘lgan hisoblanadi. */
+const has = v => v != null && String(v).trim() !== '';
 function completion() {
-  const { P, Q } = getProfile();
-  const items = [['Ism', P.pn], ['Shahar', P.pc], ['Sinf', P.pg], ['Maqsad yili', P.py], ['Bitiruv sanasi', P.pgd], ['Yo‘nalish', P.pm], ['GPA', Q.gpa], ['SAT', Q.sat], ['IELTS', Q.ielts]];
-  const done = items.filter(i => i[1] != null && String(i[1]).trim() !== '').length;
-  return { pct: pct(done, items.length), missing: items.filter(i => i[1] == null || String(i[1]).trim() === '').map(i => i[0]) };
+  const { P, Q } = getProfile(), sc = +Q.sc || 5;
+  const okNum = (v, lo, hi) => has(v) && Number.isFinite(+v) && +v >= lo && +v <= hi;
+  const items = [
+    ['Ism', has(P.pn) || has(S.user && S.user.name)], ['Shahar', has(P.pc)], ['Yo‘nalish', has(P.pm)],
+    ['Sinf', has(P.pg)], ['Maqsad yili', has(P.py)], ['Bitiruv sanasi', has(P.pgd) && gradOk(P.pgd)],
+    ['GPA', okNum(Q.gpa, 0.01, sc)], ['SAT yoki IELTS', okNum(Q.sat, 400, 1600) || okNum(Q.ielts, 1, 9)]
+  ];
+  const done = items.filter(i => i[1]).length;
+  return { pct: pct(done, items.length), missing: items.filter(i => !i[1]).map(i => i[0]) };
 }
 
 /* ===== Graduategacha hisoblagich ===== */
@@ -39,7 +47,7 @@ function gradCard(P) {
 
 /* ================= BOSH PANEL ================= */
 export async function dashboard(el) {
-  const { P, Q } = getProfile(), apps = ls.get('qabul:apps', []), a = S.account, c = completion();
+  const { P, Q } = getProfile(), apps = ls.get('qabul:apps', []), a = S.account, c = completion(), cr = credits();
   const up = apps.filter(x => daysLeft(x.d) >= 0).sort((x, y) => x.d.localeCompare(y.d));
   const docsDone = apps.reduce((s, x) => s + x.docs.filter(Boolean).length, 0), docsAll = apps.length * DOCS.length;
   const name = (P.pn || S.user.name || '').split(' ')[0];
@@ -56,7 +64,7 @@ export async function dashboard(el) {
   <section class="card s7"><h3>Sizga mos universitetlar</h3><p class="sub">Profilingiz bo‘yicha taxminiy moslik. Bu qabul kafolati emas.</p><div id="d-match"><div class="sk" style="height:150px"></div></div></section>
   <section class="card s5"><h3>Obuna holati</h3>
     <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px"><span class="badge ${a.plan !== 'free' ? 'ok' : ''}" style="font-size:14px;padding:5px 14px">${a.plan.toUpperCase()}</span>${a.planUntil ? `<small style="color:var(--muted)">${fmtDate(new Date(a.planUntil).toISOString().slice(0, 10))} gacha</small>` : ''}</div>
-    <div class="stat"><span>AI kredit (shu oy)</span></div><div class="bar ${a.usage.ai / a.limits.ai > .85 ? 'warn' : ''}" style="margin:8px 0 6px"><i style="width:${Math.min(100, pct(a.usage.ai, a.limits.ai))}%"></i></div><p class="hint">${a.limits.ai - a.usage.ai} / ${a.limits.ai} kredit qoldi</p>
+    <div class="stat"><span>AI kredit (shu oy)</span></div><div class="bar ${cr.pct > 85 ? 'warn' : ''}" style="margin:8px 0 6px"><i data-cr="bar" style="width:${cr.pct}%"></i></div><p class="hint" data-cr="badge">${cr.left} / ${cr.limit} kredit qoldi</p>
     <a class="btn ${a.plan === 'free' ? 'primary' : ''} sm" style="margin-top:14px" href="#/pricing">${a.plan === 'free' ? 'Tarifni yaxshilash' : 'Tarifni boshqarish'}</a></section>
 
   <section class="card s6"><h3>Yaqin muddatlar</h3><p class="sub">Arizalar kuzatuvchisidan.</p>${up.length ? `<div class="list">${up.slice(0, 5).map(x => { const d = daysLeft(x.d); return `<div class="li"><div class="grow"><b>${esc(x.n)}</b><small>${fmtDate(x.d)}</small></div><span class="badge ${d <= 14 ? 'bad' : d <= 45 ? 'warn' : 'mute'}">${d} kun</span></div>`; }).join('')}</div>` : '<div class="empty"><b>Muddat yo‘q</b>Arizalar bo‘limida universitet qo‘shing.<br><a class="btn sm" style="margin-top:12px" href="#/tracker">Ariza qo‘shish</a></div>'}</section>
@@ -166,7 +174,7 @@ export async function pricing(el) {
   const online = config.payments && config.online ? config.online : null;
   const payButtons = (p, renew) => `<div class="paybtns"><div class="hint">${renew ? 'Muddatni 30 kunga uzaytirish' : '30 kunlik tarif'}</div>
     ${online.payme ? `<button class="btn ${p.id === 'pro' ? 'primary' : 'dark'}" style="width:100%" data-pay="${p.id}" data-prov="payme">Payme orqali to‘lash</button>` : ''}${online.click ? `<button class="btn" style="width:100%" data-pay="${p.id}" data-prov="click">Click orqali to‘lash</button>` : ''}</div>`;
-  el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b>${S.account.limits.ai - S.account.usage.ai} / ${S.account.limits.ai}</b> qoldi.</p></div></div>
+  el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b data-cr="frac">${credits().left} / ${credits().limit}</b> qoldi.</p></div></div>
   ${payBox(S.account, cur, !!online)}
   ${config.payments ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>Karta bilan to‘lash.</b> To‘lov Payme yoki Click sahifasida amalga oshadi, karta ma’lumotlari UniDoue’ga berilmaydi. Tarif to‘lovdan keyin darhol yoqiladi va 30 kun amal qiladi, avtomatik yechilmaydi. Yuqoriroq tarifga o‘tsangiz, yangi 30 kun to‘lovdan boshlab hisoblanadi.</div></div>` : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov qo‘lda qabul qilinadi.</b> So‘rov yuboring, to‘lov ko‘rsatmasini olasiz. Administrator to‘lovni tekshirib, tarifni qo‘lda yoqadi. Tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
   <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === 'pro' ? 'feat' : ''}">${p.id === 'pro' ? '<span class="badge pop">Mashhur</span>' : ''}<div><h3>${p.name}</h3></div><div class="price">$${p.price === 0 ? '0' : p.price.toFixed(2)}<small>${p.price ? ' / oy' : ''}</small></div>${online && p.uzs ? `<div class="uzs"><b>${p.uzs.toLocaleString('en-US').replace(/,/g, ' ')}</b> <span>so‘m / oy</span></div>` : ''}

@@ -71,6 +71,8 @@ const P = [
 
   /* ---- universitetlar roʻyxati / stipendiyalar ---- */
   ['Avval natijalaringizni kiriting', 'Сначала введите свои результаты', 'Enter your results first'],
+  ['SAT yoki IELTS', 'SAT или IELTS', 'SAT or IELTS'],
+  ['Bu oy uchun AI sarfi chegarasiga yetdingiz. Keyingi oyda yangilanadi.', 'В этом месяце вы достигли предела расхода AI. Лимит обновится в следующем месяце.', 'You have reached this month’s AI usage limit. It resets next month.'],
   ['GPA, SAT yoki IELTS ni profilda to‘ldiring.', 'Заполните GPA, SAT или IELTS в профиле.', 'Fill in your GPA, SAT or IELTS in your profile.'],
   ['ma’lumot yo‘q', 'нет данных', 'no data'],
   ['Filtrni o‘zgartirib ko‘ring.', 'Попробуйте изменить фильтр.', 'Try changing the filter.'],
