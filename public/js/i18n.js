@@ -25,7 +25,7 @@ const D = {
     'sizning IELTS yetarli': 'ваш IELTS достаточен', 'ball yetishmaydi': 'баллов не хватает', 'sizga': 'вам',
     'Hech narsa topilmadi': 'Ничего не найдено', 'Boshqa so‘z yoki davlatni sinab ko‘ring.': 'Попробуйте другое слово или страну.',
     'Bu universitetlar uchun qabul ehtimoli (Safety/Target/Reach) hisoblanmaydi: ularning qabul statistikasi AQSh universitetlaridagidek ochiq emas. Faqat talablar va muddatlar ko‘rsatiladi.': 'Для этих университетов вероятность поступления (Safety/Target/Reach) не рассчитывается: их статистика приёма не так открыта, как у университетов США. Показаны только требования и сроки.',
-    'Xalqaro universitetlar ro‘yxatini yuklab bo‘lmadi.': 'Не удалось загрузить список международных университетов.', 'Til': 'Язык'
+    'Xalqaro universitetlar ro‘yxatini yuklab bo‘lmadi.': 'Не удалось загрузить список международных университетов.', 'Til': 'Язык', 'Tungi rejim': 'Тёмная тема'
   },
   en: {
     'Armaniston': 'Armenia', 'Ozarbayjon': 'Azerbaijan', 'Gruziya': 'Georgia', 'Qirg‘iziston': 'Kyrgyzstan', 'Tayvan': 'Taiwan', 'Lyuksemburg': 'Luxembourg', 'Kipr': 'Cyprus', 'Vetnam': 'Vietnam', 'Filippin': 'Philippines', 'Shveytsariya': 'Switzerland', 'Daniya': 'Denmark', 'Norvegiya': 'Norway', 'Malayziya': 'Malaysia', 'Avstriya': 'Austria', 'Ispaniya': 'Spain', 'Belgiya': 'Belgium', 'Polsha': 'Poland', 'Chexiya': 'Czechia', 'Estoniya': 'Estonia', 'Vengriya': 'Hungary', 'Portugaliya': 'Portugal', 'BAA': 'UAE', 'Qozog‘iston': 'Kazakhstan', 'Litva': 'Lithuania', 'Latviya': 'Latvia', 'Hindiston': 'India', 'Tailand': 'Thailand', 'Rossiya': 'Russia', 'Finlyandiya': 'Finland', 'Shotlandiya': 'Scotland', 'Uels': 'Wales', 'Fransiya': 'France', 'Italiya': 'Italy', 'Avstraliya': 'Australia', 'Yangi Zelandiya': 'New Zealand', 'Germaniya': 'Germany', 'Yaponiya': 'Japan', 'Janubiy Koreya': 'South Korea', 'Xitoy': 'China', 'Turkiya': 'Turkey', 'Gonkong': 'Hong Kong', 'Shvetsiya': 'Sweden', 'Niderlandiya': 'Netherlands', 'Singapur': 'Singapore', 'Irlandiya': 'Ireland', 'AQSh': 'USA', 'Angliya': 'England', 'Kanada': 'Canada',
@@ -44,7 +44,7 @@ const D = {
     'sizning IELTS yetarli': 'your IELTS is enough', 'ball yetishmaydi': 'points short', 'sizga': 'you need',
     'Hech narsa topilmadi': 'Nothing found', 'Boshqa so‘z yoki davlatni sinab ko‘ring.': 'Try another word or country.',
     'Bu universitetlar uchun qabul ehtimoli (Safety/Target/Reach) hisoblanmaydi: ularning qabul statistikasi AQSh universitetlaridagidek ochiq emas. Faqat talablar va muddatlar ko‘rsatiladi.': 'Admission chances (Safety/Target/Reach) are not calculated for these universities: their admissions statistics are not as open as those of US universities. Only requirements and deadlines are shown.',
-    'Xalqaro universitetlar ro‘yxatini yuklab bo‘lmadi.': 'Could not load the international universities list.', 'Til': 'Language'
+    'Xalqaro universitetlar ro‘yxatini yuklab bo‘lmadi.': 'Could not load the international universities list.', 'Til': 'Language', 'Tungi rejim': 'Dark mode'
   }
 };
 Object.assign(D.ru, XRU); Object.assign(D.en, XEN);
@@ -71,6 +71,15 @@ export function dateL(iso, fallback) {
   const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(iso || ''); if (!m || cur === 'uz') return fallback(iso);
   const d = +m[3], mo = MON[cur][+m[2] - 1]; return cur === 'ru' ? `${d} ${mo} ${m[1]}` : `${mo} ${d}, ${m[1]}`;
 }
+let shown = -1; // oldingi ekrandagi til joyi: tugma qayta chizilganda “siljish” animatsiyasi uchun
+/** Til tugmasi: UZ | RU | EN segmentlari, faol til ustida siljuvchi “tabletka”. bindLang() bilan ulanadi. */
 export function langSelect(id = 'lang') {
-  return `<select id="${id}" class="lang-sel" aria-label="${t('Til')}">${LANGS.map(l => `<option value="${l[0]}"${l[0] === cur ? ' selected' : ''}>${l[1]} · ${l[2]}</option>`).join('')}</select>`;
+  const to = Math.max(0, LANGS.findIndex(l => l[0] === cur)), from = shown < 0 ? to : shown; shown = to;
+  return `<div id="${id}" class="lang-seg" role="group" aria-label="${t('Til')}" style="--i:${from}" data-to="${to}"><span class="lang-pill" aria-hidden="true"></span>${LANGS.map(l => `<button type="button" class="lang-opt" data-l="${l[0]}" lang="${l[0]}" title="${l[2]}" aria-pressed="${l[0] === cur}">${l[1]}</button>`).join('')}</div>`;
+}
+/** langSelect() natijasiga bosishni ulaydi; til almashsa setLang() chaqirilib, so‘ng onChange(yangiTil) ishga tushadi */
+export function bindLang(id, onChange) {
+  const box = document.getElementById(id); if (!box) return;
+  const to = box.dataset.to; if (box.style.getPropertyValue('--i') !== to) requestAnimationFrame(() => requestAnimationFrame(() => box.style.setProperty('--i', to)));
+  box.addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (!b || b.dataset.l === cur) return; setLang(b.dataset.l); onChange(b.dataset.l); });
 }

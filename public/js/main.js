@@ -1,5 +1,6 @@
 import { $, $$, S, api, adopt, wipeLocal, esc, svg, skeleton, errorBox, toast, push } from './core.js';
-import { t, setLang, langSelect } from './i18n.js';
+import { t, langSelect, bindLang } from './i18n.js';
+import { themeSwitch } from './theme-ui.js';
 
 const ROUTES = [
   { id: 'dashboard', t: 'Bosh panel', i: 'home', sec: 'Asosiy', v: () => import('./views1.js').then(m => m.dashboard) },
@@ -25,7 +26,7 @@ function authScreen(mode = 'login') {
   root.innerHTML = `<div class="auth"><aside class="auth-art"><div class="brand" style="padding:0"><i>U</i>UniDoue</div>
   <div><h2>${t('Xorijda o‘qishga yo‘l, <em>aniq reja</em> bilan.')}</h2><p>${t('Universitetlarni profilingizga solishtiring, muddatlarni kuzating va qabul rejangizni bir joyda yuriting.')}</p></div>
   <ul><li>${t('Safety, Target va Reach bo‘yicha universitetlar')}</li><li>${t('Har bir universitet uchun tushuntirish')}</li><li>${t('Arizalar va muddatlar kuzatuvi')}</li></ul></aside>
-  <main class="auth-form"><div style="position:absolute;top:16px;right:16px">${langSelect('lang')}</div><form class="auth-box" id="af" novalidate>
+  <main class="auth-form"><div class="auth-tools">${themeSwitch()}${langSelect('lang')}</div><form class="auth-box" id="af" novalidate>
   <h1>${t(fg ? 'Parolni tiklash' : reg ? 'Hisob ochish' : 'Xush kelibsiz')}</h1>
   <p class="sub">${t(fg ? 'Emailingizni kiriting, tiklash havolasini yuboramiz.' : reg ? 'Bir daqiqada hisob oching, bepul boshlaysiz.' : 'Hisobingizga kiring.')}</p>
   ${reg ? `<div class="field"><label class="f" for="an">${t('Ismingiz')}</label><input id="an" type="text" maxlength="40" autocomplete="name"></div>` : ''}
@@ -39,7 +40,7 @@ function authScreen(mode = 'login') {
   ${reg ? '<p class="hint" style="margin-top:10px;text-align:center">Hisob ochish bilan <a href="/privacy" target="_blank" rel="noopener">maxfiylik siyosati</a>ga rozilik bildirasiz.</p>' : ''}
   </form></main></div>`;
   $$('[data-m]').forEach(b => (b.onclick = () => authScreen(b.dataset.m)));
-  $('#lang').onchange = e => { setLang(e.target.value); authScreen(mode); };
+  bindLang('lang', () => authScreen(mode));
   const ash = $('#ash'); if (ash) ash.onchange = () => ($('#ap').type = ash.checked ? 'text' : 'password');
   $('#af').onsubmit = async ev => {
     ev.preventDefault();
@@ -94,9 +95,9 @@ function shell() {
   <a class="nav-tg" href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">💬 ${t('Yordam')}</a>
   <div class="side-foot"><b id="sf-u"></b><small id="sf-p"></small><button class="btn sm" id="lo" type="button">${t('Chiqish')}</button></div></aside>
   <div class="scrim" id="scrim"></div>
-  <div class="main"><header class="top"><button class="burger" id="bg" aria-label="Menyu" type="button">${svg('menu')}</button><h1 id="ttl"></h1><span style="margin-left:auto">${langSelect('lang')}</span><span class="badge" id="pb"></span></header>
+  <div class="main"><header class="top"><button class="burger" id="bg" aria-label="Menyu" type="button">${svg('menu')}</button><h1 id="ttl"></h1><span class="top-tools">${themeSwitch()}${langSelect('lang')}</span><span class="badge" id="pb"></span></header>
   <main class="content" id="view" tabindex="-1"></main></div></div>`;
-  $('#lang').onchange = e => { setLang(e.target.value); shell(); route(); };
+  bindLang('lang', () => { shell(); route(); });
   $('#bg').onclick = () => document.body.classList.toggle('nav-open');
   $('#scrim').onclick = () => document.body.classList.remove('nav-open');
   $('#lo').onclick = async () => { try { if (localStorage.getItem('qabul:sync')) await push(); await api('/api/logout', 'POST', {}); } catch (e) {} wipeLocal(); location.hash = ''; location.reload(); };
