@@ -82,11 +82,24 @@ export async function dashboard(el) {
   else api('/api/scholarships').then(r => { sc.innerHTML = `<h3>Stipendiyalar</h3>` + (r.items.length ? `<div class="list" style="margin-top:8px">${r.items.slice(0, 3).map(x => `<div class="li"><div class="grow"><b>${esc(x.name)}</b><small>${esc(x.provider || '')}</small></div></div>`).join('')}</div><a class="btn sm" style="margin-top:10px" href="#/scholarships">Hammasi</a>` : '<p class="sub">Tasdiqlangan stipendiyalar bazasi hozircha to‘ldirilmoqda.</p>'); }).catch(() => (sc.innerHTML = '<h3>Stipendiyalar</h3><p class="sub">Yuklab bo‘lmadi.</p>'));
 }
 
+
+/* Muddatlarni kalendarga (.ics) yuklab olish */
+function icsEsc(t) { return String(t).replace(/\\/g, '\\\\').replace(/[,;]/g, m => '\\' + m).replace(/\r?\n/g, '\\n'); }
+function downloadIcs(list, name) {
+  const z = n => String(n).padStart(2, '0'), ymd = d => d.replace(/-/g, ''), now = new Date(), st = now.getUTCFullYear() + z(now.getUTCMonth() + 1) + z(now.getUTCDate()) + 'T' + z(now.getUTCHours()) + z(now.getUTCMinutes()) + z(now.getUTCSeconds()) + 'Z';
+  const ev = list.filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x.d)).map((x, i) => { const e = new Date(x.d + 'T12:00:00'); e.setDate(e.getDate() + 1); const end = e.getFullYear() + z(e.getMonth() + 1) + z(e.getDate());
+    return ['BEGIN:VEVENT', 'UID:' + ymd(x.d) + '-' + i + '-' + encodeURIComponent(x.n).replace(/%/g, '') + '@unidoue.uz', 'DTSTAMP:' + st, 'DTSTART;VALUE=DATE:' + ymd(x.d), 'DTEND;VALUE=DATE:' + end, 'SUMMARY:' + icsEsc('UniDoue: ' + x.n + ' ariza muddati'), 'DESCRIPTION:' + icsEsc('Muddatni universitetning rasmiy saytidan tasdiqlang. unidoue.uz'),
+      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(x.n + ': muddatga 14 kun qoldi'), 'TRIGGER:-P14D', 'END:VALARM', 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(x.n + ': muddatga 3 kun qoldi'), 'TRIGGER:-P3D', 'END:VALARM', 'END:VEVENT'].join('\r\n'); });
+  if (!ev.length) { toast('Kalendarga qo‘shish uchun muddat kerak.'); return; }
+  const txt = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//UniDoue//uz', 'CALSCALE:GREGORIAN', ...ev, 'END:VCALENDAR'].join('\r\n') + '\r\n';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/calendar;charset=utf-8' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
 /* ================= ARIZALAR ================= */
 export async function tracker(el) {
   const cat = await catalog(); let apps = ls.get('qabul:apps', []); const lim = S.account.limits.apps;
   const draw = () => {
-    el.innerHTML = `<div class="page-h"><div><h2>Arizalarim</h2><p>Muddatlar, hujjatlar va holatni bir joyda kuzating.</p></div><span class="badge ${apps.length >= lim ? 'warn' : ''}">${apps.length} / ${lim >= 1000 ? '∞' : lim} ariza</span></div>
+    el.innerHTML = `<div class="page-h"><div><h2>Arizalarim</h2><p>Muddatlar, hujjatlar va holatni bir joyda kuzating.</p></div><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="badge ${apps.length >= lim ? 'warn' : ''}">${apps.length} / ${lim >= 1000 ? '∞' : lim} ariza</span>${apps.length ? '<button class="btn sm" id="t-ics" type="button">📅 Kalendarga qo‘shish</button>' : ''}</span></div>
     <div class="card" style="margin-bottom:18px"><div class="row" style="align-items:end"><div><label class="f" for="t-u">Universitet</label><select id="t-u">${cat.map(c => `<option value="${esc(c.id)}">${esc(c.n)}</option>`).join('')}</select></div><div><label class="f" for="t-d">Muddat</label><input id="t-d" type="date"></div><div><button class="btn primary" id="t-add" style="width:100%">Qo‘shish</button></div></div><div class="field" style="margin:12px 0 0"><label class="f" for="t-cn">Ro‘yxatda yo‘q universitet? Nomini o‘zingiz yozing (ixtiyoriy)</label><input id="t-cn" type="text" maxlength="80" placeholder="Masalan: University of Toronto"></div><div class="msg" id="t-m"></div></div>
     <div class="grid g2">${apps.length ? apps.map((x, i) => { const d = daysLeft(x.d), done = x.docs.filter(Boolean).length; return `<div class="card"><div style="display:flex;justify-content:space-between;gap:10px"><h3>${esc(x.n)}</h3><span class="badge ${d < 0 ? 'mute' : d <= 14 ? 'bad' : d <= 45 ? 'warn' : ''}">${d < 0 ? 'muddat o‘tgan' : d + ' kun'}</span></div>
       <div class="row" style="margin:12px 0"><div><label class="f">Muddat</label><input type="date" data-i="${i}" data-date value="${esc(x.d)}"></div><div><label class="f">Holat</label><select data-i="${i}" data-st>${ST.map((s, j) => `<option value="${j}" ${+x.s === j ? 'selected' : ''}>${s}</option>`).join('')}</select></div></div>
@@ -101,6 +114,7 @@ export async function tracker(el) {
       apps.push({ n: c.n, d: dt.value, s: 0, docs: DOCS.map(() => false), ...(c.custom ? { custom: true } : {}) }); ls.set('qabul:apps', apps); draw();
       if (!c.rdV) toast('Muddat tekshirilmagan: rasmiy saytdan albatta tasdiqlang.');
     };
+    const ib = $('#t-ics', el); if (ib) ib.onclick = () => downloadIcs(apps, 'unidoue-muddatlar.ics');
     $$('[data-date]', el).forEach(n => (n.onchange = () => { if (n.value) { apps[+n.dataset.i].d = n.value; ls.set('qabul:apps', apps); draw(); } }));
     $$('[data-st]', el).forEach(n => (n.onchange = () => { apps[+n.dataset.i].s = +n.value; ls.set('qabul:apps', apps); }));
     $$('[data-doc]', el).forEach(n => (n.onchange = () => { apps[+n.dataset.i].docs[+n.dataset.doc] = n.checked; ls.set('qabul:apps', apps); draw(); }));
