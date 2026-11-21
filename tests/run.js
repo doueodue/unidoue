@@ -46,6 +46,16 @@ class Client {
     r = await a.call('POST', '/api/report', { uni: 'MIT', text: 'x' }); ok(r.s === 400, 'xato xabari: juda qisqa matn rad etiladi', r.s);
     r = await a.call('POST', '/api/report', { uni: 'MIT', text: 'Ariza muddati 1-fevral, 15-yanvar emas' }); ok(r.s === 201, 'xato xabari yuboriladi', r.s);
     r = await new Client().call('GET', '/api/admin/requests', null, { Authorization: 'Bearer adm-secret' }); ok(r.j.requests.some(x => x.service === 'Maʼlumot xatosi' && x.message.startsWith('MIT:')), 'adminda xato xabari koʻrinadi');
+    {
+      const pc = new Client(); let q = await pc.call('POST', '/api/register', { email: 'plus1@gmail.com', password: 'parol12345', name: 'Plus1' });
+      q = await pc.call('POST', '/api/plan/request', { plan: 'plus' }); ok(q.s === 201 && q.j.account.pay.plan === 'plus' && q.j.account.pay.price === 2.99 && q.j.account.plan === 'free', 'Plus soʻrovi: $2.99, tarif oʻzgarmaydi', q.j);
+      q = await pc.call('POST', '/api/admin/plan', { email: 'plus1@gmail.com', plan: 'plus', days: 30 }, { Authorization: 'Bearer adm-secret' }); ok(q.s === 200, 'admin Plus beradi (plus)');
+      q = await pc.call('GET', '/api/me'); const ac = q.j.account;
+      ok(ac.plan === 'plus' && ac.limits.ai === 175 && ac.features.includes('mentor_adv') && !ac.features.includes('strategy') && !ac.pay.requested, 'Plus: 175 kredit, ilgʻor mentor, strategiya yoʻq', ac);
+      q = await pc.call('POST', '/api/ai', { tool: 'strategy', universities: ['MIT'] }); ok(q.s === 402, 'Plus: strategiya hali Pro', q.s);
+      q = await pc.call('POST', '/api/plan/request', { plan: 'plus' }); ok(q.s === 400, 'Plus egasi Plus soʻray olmaydi', q.s);
+      q = await pc.call('GET', '/api/plans'); ok(q.j.plans.map(x => x.id + ':' + x.price).join() === 'free:0,plus:2.99,pro:4.99', 'tariflar: free, plus 2.99, pro 4.99', q.j.plans.map(x => x.id + ':' + x.price));
+    }
     console.log('Tarif cheklovlari (serverda)');
     r = await a.call('GET', '/api/scholarships'); ok(r.s === 200, 'Free: stipendiya 200', r.s);
     r = await a.call('POST', '/api/compare', { ids: ['mit', 'yale-university', 'harvard-university'] }); ok(r.s === 200, 'Free: 3 ta solishtirish 200', r.s);

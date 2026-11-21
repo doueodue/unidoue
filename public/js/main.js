@@ -105,7 +105,7 @@ function shell() {
 export function updatePlanUI() {
   if (!$('#sf-u') || !S.user) return;
   const a = S.account || {}; $('#sf-u').textContent = S.user.name || S.user.email; $('#sf-p').textContent = S.user.email;
-  const pb = $('#pb'); pb.textContent = ({ free: 'Free', pro: 'Pro' })[a.plan] || 'Free'; pb.className = 'badge' + (a.plan === 'pro' ? ' ok' : '');
+  const pb = $('#pb'); pb.textContent = ({ free: 'Free', plus: 'Plus', pro: 'Pro' })[a.plan] || 'Free'; pb.className = 'badge' + (a.plan !== 'free' ? ' ok' : '');
 }
 document.addEventListener('unidoue:account', updatePlanUI);
 

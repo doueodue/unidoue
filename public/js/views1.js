@@ -54,7 +54,7 @@ export async function dashboard(el) {
 
   <section class="card s7"><h3>Sizga mos universitetlar</h3><p class="sub">Profilingiz bo‘yicha taxminiy moslik. Bu qabul kafolati emas.</p><div id="d-match"><div class="sk" style="height:150px"></div></div></section>
   <section class="card s5"><h3>Obuna holati</h3>
-    <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px"><span class="badge ${a.plan === 'pro' ? 'ok' : ''}" style="font-size:14px;padding:5px 14px">${a.plan.toUpperCase()}</span>${a.planUntil ? `<small style="color:var(--muted)">${fmtDate(new Date(a.planUntil).toISOString().slice(0, 10))} gacha</small>` : ''}</div>
+    <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px"><span class="badge ${a.plan !== 'free' ? 'ok' : ''}" style="font-size:14px;padding:5px 14px">${a.plan.toUpperCase()}</span>${a.planUntil ? `<small style="color:var(--muted)">${fmtDate(new Date(a.planUntil).toISOString().slice(0, 10))} gacha</small>` : ''}</div>
     <div class="stat"><span>AI kredit (shu oy)</span></div><div class="bar ${a.usage.ai / a.limits.ai > .85 ? 'warn' : ''}" style="margin:8px 0 6px"><i style="width:${Math.min(100, pct(a.usage.ai, a.limits.ai))}%"></i></div><p class="hint">${a.limits.ai - a.usage.ai} / ${a.limits.ai} kredit qoldi</p>
     <a class="btn ${a.plan === 'free' ? 'primary' : ''} sm" style="margin-top:14px" href="#/pricing">${a.plan === 'free' ? 'Tarifni yaxshilash' : 'Tarifni boshqarish'}</a></section>
 
@@ -125,17 +125,18 @@ export async function tracker(el) {
 
 /* ================= TARIFLAR ================= */
 const FEAT = {
+  plus: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', '4 ta universitetni solishtirish', '175 AI kredit / oy'],
   free: ['Barcha universitetlar + nima uchun mos ekanligi', 'Universitet haqida ma’lumot (manbalar bilan)', 'Stipendiya qidiruvi', 'To‘liq moslik tahlili va maslahatlar', 'Cheksiz arizalar kuzatuvi', '3 ta universitetni solishtirish', '15 AI kredit / oy'],
   pro: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Shaxsiy qabul strategiyasi', 'Chuqur esse tahlili', 'Universitet hisobotlari', '4 ta universitetni solishtirish', '300 AI kredit / oy', 'Ustuvor yordam']
 };
-const ORDER = { free: 0, pro: 1 };
+const ORDER = { free: 0, plus: 1, pro: 2 };
 function payBox(a, cur) {
   const pay = a.pay || {};
-  if (cur === 'pro') return a.planUntil ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>Pro faol.</b> Amal qilish muddati: <b>${new Date(a.planUntil).toLocaleDateString('uz-UZ')}</b> gacha. Uzaytirish uchun to‘lovdan keyin <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing.</div></div>` : '';
+  if (cur !== 'free') return a.planUntil ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>${cur === 'pro' ? 'Pro' : 'Plus'} faol.</b> Amal qilish muddati: <b>${new Date(a.planUntil).toLocaleDateString('uz-UZ')}</b> gacha. Uzaytirish uchun to‘lovdan keyin <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing.</div></div>` : '';
   if (!pay.requested) return '';
   const info = pay.info ? `Karta: <b>${esc(pay.info.card)}</b>${pay.info.holder ? ' (' + esc(pay.info.holder) + ')' : ''}. ` : 'To‘lov rekvizitlarini olish uchun ';
-  return `<div class="card" style="margin-bottom:18px"><h3>Pro uchun to‘lov</h3><p class="sub">So‘rovingiz qabul qilindi. Pro to‘lov tekshirilgandan keyin qo‘lda yoqiladi, avtomatik emas.</p>
-    <ol style="margin:0 0 10px 18px;padding:0"><li>Narx: <b>$3.90 / oy</b>. ${info}${pay.info ? '' : '<a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing. '}</li>
+  return `<div class="card" style="margin-bottom:18px"><h3>${pay.plan === 'plus' ? 'Plus' : 'Pro'} uchun to‘lov</h3><p class="sub">So‘rovingiz qabul qilindi. ${pay.plan === 'plus' ? 'Plus' : 'Pro'} to‘lov tekshirilgandan keyin qo‘lda yoqiladi, avtomatik emas.</p>
+    <ol style="margin:0 0 10px 18px;padding:0"><li>Narx: <b>$${Number(pay.price || 4.99).toFixed(2)} / oy</b>. ${info}${pay.info ? '' : '<a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing. '}</li>
     <li>To‘lov izohiga yoki xabarga shu kodni yozing: <b>${esc(pay.ref)}</b></li>
     <li>Chekni (skrinshot) <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yuboring va hisob emailingizni ayting: <b>${esc(S.user.email)}</b></li></ol>
     <p class="hint">Odatda tekshirish va yoqish bir necha soat ichida bo‘ladi.</p></div>`;
@@ -144,7 +145,7 @@ export async function pricing(el) {
   const { plans, config } = await api('/api/plans'); await refreshAccount(); const cur = S.account.plan;
   el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b>${S.account.limits.ai - S.account.usage.ai} / ${S.account.limits.ai}</b> qoldi.</p></div></div>
   ${payBox(S.account, cur)}
-  ${config.payments ? '' : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov qo‘lda qabul qilinadi.</b> So‘rov yuboring, to‘lov ko‘rsatmasini olasiz. Administrator to‘lovni tekshirib, Pro ni qo‘lda yoqadi. Tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
+  ${config.payments ? '' : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov qo‘lda qabul qilinadi.</b> So‘rov yuboring, to‘lov ko‘rsatmasini olasiz. Administrator to‘lovni tekshirib, tarifni qo‘lda yoqadi. Tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
   <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === 'pro' ? 'feat' : ''}">${p.id === 'pro' ? '<span class="badge pop">Mashhur</span>' : ''}<div><h3>${p.name}</h3></div><div class="price">$${p.price === 0 ? '0' : p.price.toFixed(2)}<small>${p.price ? ' / oy' : ''}</small></div>
     <ul>${FEAT[p.id].map(f => `<li>${f}</li>`).join('')}</ul><div style="margin-top:auto">${
       p.id === cur ? '<button class="btn" disabled style="width:100%">Joriy tarif</button>'

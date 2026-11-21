@@ -142,10 +142,13 @@ const PAY_INFO = /^\d{16}$/.test(PAY_CARD) ? { card: PAY_CARD.replace(/(\d{4})(?
 const payRef = u => 'UD-' + String(u.id).slice(0, 6).toUpperCase();
 const AI_GLOBAL_CAP = Math.max(parseInt(process.env.AI_GLOBAL_CAP, 10) || 0, 0);
 const F_FREE = ['finder_basic', 'profile', 'compare_basic', 'predictor_basic', 'essay_basic', 'mentor_basic', 'finder_adv', 'scholarships', 'predictor', 'tracker'];
-const F_PRO = [...F_FREE, 'mentor_adv', 'strategy', 'essay_adv', 'reports', 'priority'];
+const F_PLUS = [...F_FREE, 'mentor_adv'];
+const F_PRO = [...F_PLUS, 'strategy', 'essay_adv', 'reports', 'priority'];
+const PLAN_ORDER = { free: 0, plus: 1, pro: 2 };
 const PLANS = {
   free: { id: 'free', name: 'Free', price: 0, ai: 15, apps: 1000, finder: 101, compare: 3, features: F_FREE },
-  pro:  { id: 'pro',  name: 'Pro',  price: 3.9, ai: 300, apps: 1000, finder: 101, compare: 4, features: F_PRO }
+  plus: { id: 'plus', name: 'Plus', price: 2.99, ai: 175, apps: 1000, finder: 101, compare: 4, features: F_PLUS },
+  pro:  { id: 'pro',  name: 'Pro',  price: 4.99, ai: 300, apps: 1000, finder: 101, compare: 4, features: F_PRO }
 };
 const AI_COST = { mentor: 1, essay: 2, essay_deep: 4, strategy: 6, report: 6 };
 const month = () => new Date().toISOString().slice(0, 7);
@@ -286,7 +289,7 @@ function accountInfo(u) {
     limits: { ai: pl.ai, apps: pl.apps, finder: pl.finder, compare: pl.compare }, features: pl.features,
     usage: { ai: us.ai, period: us.p }, consent: { mentorMemory: !!(u.consent && u.consent.mentorMemory) },
     config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: false },
-    pay: { ref: payRef(u), info: PAY_INFO, requested: u.planReq || null }
+    pay: { ref: payRef(u), info: PAY_INFO, requested: u.planReq || null, plan: u.planReqPlan || 'pro', price: (PLANS[u.planReqPlan] || PLANS.pro).price }
   };
 }
 const meBody = u => ({ user: publicUser(u), account: accountInfo(u), rev: u.rev || 0, hasData: !!(u.data && Object.keys(u.data).length), data: u.data || {} });
@@ -570,7 +573,7 @@ async function api(req, res, pathname) {
   if (pathname === '/api/plan/downgrade' && method === 'POST') {
     const u = sessionUser(req);
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
-    const b = await readJson(req), order = { free: 0, pro: 1 }, target = b.plan || 'free';
+    const b = await readJson(req), order = PLAN_ORDER, target = b.plan || 'free';
     if (!PLANS[target] || order[target] >= order[effPlan(u).id]) return fail(res, 400, 'Bu pastroq tarif emas.');
     u.plan = target; if (target === 'free') u.planUntil = null; save();
     return send(res, 200, { account: accountInfo(u) });
@@ -592,9 +595,10 @@ async function api(req, res, pathname) {
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
     if (limited('plr:' + u.id, 3, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp soʻrov. Keyinroq urinib koʻring.');
     const b = await readJson(req);
-    if (b.plan !== 'pro') return fail(res, 400, 'Notoʻgʻri tarif.');
-    const r = { id: crypto.randomBytes(6).toString('hex'), ts: new Date().toISOString(), uid: u.id, email: u.email, name: u.name, contact: u.email, service: 'Tarif: ' + PLANS[b.plan].name, message: 'Pro yoqish soʻrovi. Toʻlov kodi: ' + payRef(u) + '. Toʻlov chekini tekshirib, /admin orqali qoʻlda yoqing.' };
-    u.planReq = Date.now();
+    if (b.plan !== 'pro' && b.plan !== 'plus') return fail(res, 400, 'Notoʻgʻri tarif.');
+    if (PLAN_ORDER[b.plan] <= PLAN_ORDER[effPlan(u).id]) return fail(res, 400, 'Siz allaqachon shu yoki yuqoriroq tarifdasiz.');
+    const r = { id: crypto.randomBytes(6).toString('hex'), ts: new Date().toISOString(), uid: u.id, email: u.email, name: u.name, contact: u.email, service: 'Tarif: ' + PLANS[b.plan].name, message: PLANS[b.plan].name + ' ($' + PLANS[b.plan].price + ') yoqish soʻrovi. Toʻlov kodi: ' + payRef(u) + '. Toʻlov chekini tekshirib, /admin orqali qoʻlda yoqing.' };
+    u.planReq = Date.now(); u.planReqPlan = b.plan;
     db.requests.push(r); save(); notifyTelegram(r);
     return send(res, 201, { ok: true, account: accountInfo(u) });
   }
@@ -630,9 +634,9 @@ async function api(req, res, pathname) {
     const week = new Set(days.slice(-7)), all = us.flatMap(u => u.act || []).sort();
     return send(res, 200, {
       today, total: us.length, unverified: us.filter(u => u.verified === false).length,
-      pro: us.filter(u => effPlan(u).id === 'pro').length,
-      proExpiring: us.filter(u => effPlan(u).id === 'pro' && u.planUntil && u.planUntil - now < 7 * 864e5).length,
-      pending: us.filter(u => u.planReq && effPlan(u).id !== 'pro').length,
+      pro: us.filter(u => effPlan(u).id === 'pro').length, plus: us.filter(u => effPlan(u).id === 'plus').length,
+      proExpiring: us.filter(u => effPlan(u).id !== 'free' && u.planUntil && u.planUntil - now < 7 * 864e5).length,
+      pending: us.filter(u => u.planReq && PLAN_ORDER[effPlan(u).id] < PLAN_ORDER[u.planReqPlan || 'pro']).length,
       activeToday: rows[13].active, signupsToday: rows[13].signups,
       active7: us.filter(u => (u.act || []).some(d => week.has(d))).length,
       aiMonth: us.reduce((n, u) => n + (u.usage && u.usage.p === month() ? u.usage.ai || 0 : 0), 0),
@@ -648,7 +652,7 @@ async function api(req, res, pathname) {
     if (!u) return fail(res, 404, 'Foydalanuvchi topilmadi.');
     if (!PLANS[b.plan]) return fail(res, 400, 'Notoʻgʻri tarif.');
     const days = Math.min(Math.max(+b.days || 30, 1), 3660);
-    u.plan = b.plan; u.planUntil = b.plan === 'free' ? null : Date.now() + days * 864e5; delete u.planReq; save();
+    u.plan = b.plan; u.planUntil = b.plan === 'free' ? null : Date.now() + days * 864e5; delete u.planReq; delete u.planReqPlan; save();
     return send(res, 200, { ok: true, email: u.email, plan: u.plan, planUntil: u.planUntil });
   }
 

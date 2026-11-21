@@ -193,3 +193,24 @@ html[data-season=kuz] .grad-card{background:linear-gradient(120deg,#fff 0%,#fff3
 .nav-tg:hover{background:rgba(255,255,255,.16)}
 
 .guide summary{cursor:pointer;list-style:none}.guide summary::-webkit-details-marker{display:none}.guide summary:after{content:'+';float:right;color:var(--muted)}.guide[open] summary:after{content:'–'}
+
+/* ===== Glass (shisha) effekti: ranglar va joylashuv oʻzgarmaydi, faqat yarim shaffof sirt + xira fon ===== */
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) and (background:color-mix(in srgb,red 50%,transparent)){
+  body{background:
+    radial-gradient(640px 420px at 88% -4%,color-mix(in srgb,var(--brand) 13%,transparent),transparent 70%),
+    radial-gradient(560px 420px at 6% 62%,color-mix(in srgb,var(--brand) 9%,transparent),transparent 70%),
+    radial-gradient(520px 360px at 70% 108%,color-mix(in srgb,var(--brand) 8%,transparent),transparent 70%),
+    var(--bg);background-attachment:fixed}
+  .card,.modal{background:color-mix(in srgb,var(--surface) 72%,transparent);-webkit-backdrop-filter:blur(16px) saturate(1.35);backdrop-filter:blur(16px) saturate(1.35);border-color:color-mix(in srgb,var(--surface) 70%,var(--line));box-shadow:var(--sh-1),inset 0 1px 0 rgba(255,255,255,.75)}
+  .card.hero-card{background:linear-gradient(135deg,var(--navy-800),var(--navy-950) 70%);border:0;box-shadow:var(--sh-1);-webkit-backdrop-filter:none;backdrop-filter:none}
+  .card.grad-card{background:linear-gradient(120deg,rgba(255,255,255,.85) 0%,rgba(238,241,255,.8) 55%,rgba(227,232,255,.8) 100%);border-color:#d9deff}
+  html[data-season=kuz] .card.grad-card{background:linear-gradient(120deg,rgba(255,255,255,.85) 0%,rgba(255,243,228,.8) 55%,rgba(253,229,200,.8) 100%);border-color:#f3d8b8}
+  .card.hover:hover{box-shadow:var(--sh-2),inset 0 1px 0 rgba(255,255,255,.75)}
+  .modal{background:color-mix(in srgb,var(--surface) 84%,transparent);box-shadow:var(--sh-3),inset 0 1px 0 rgba(255,255,255,.8)}
+  .modal-bg{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .top{background:color-mix(in srgb,var(--bg) 70%,transparent);-webkit-backdrop-filter:saturate(1.5) blur(16px);backdrop-filter:saturate(1.5) blur(16px)}
+  .notice{-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  .toast{background:color-mix(in srgb,var(--navy-900) 88%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+  .toast.err{background:color-mix(in srgb,var(--bad) 90%,transparent)}
+  .side{background:linear-gradient(180deg,color-mix(in srgb,var(--navy-900) 94%,transparent),color-mix(in srgb,var(--navy-950) 96%,transparent));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+}
