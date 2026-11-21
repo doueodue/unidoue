@@ -576,6 +576,17 @@ async function api(req, res, pathname) {
     return send(res, 200, { account: accountInfo(u) });
   }
 
+  if (pathname === '/api/report' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (limited('rep:' + u.id, 8, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp xabar. Keyinroq urinib koʻring.');
+    const b = await readJson(req), uni = clean(b.uni, 120), text = String(b.text || '').trim().slice(0, 500);
+    if (!uni || text.length < 5) return fail(res, 400, 'Universitet va xato tavsifini yozing.');
+    const r = { id: crypto.randomBytes(6).toString('hex'), ts: new Date().toISOString(), uid: u.id, email: u.email, name: u.name, contact: u.email, service: 'Maʼlumot xatosi', message: uni + ': ' + text };
+    db.requests.push(r); if (db.requests.length > 5000) db.requests.shift(); save(); notifyTelegram(r);
+    return send(res, 201, { ok: true });
+  }
+
   if (pathname === '/api/plan/request' && method === 'POST') {
     const u = sessionUser(req);
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');

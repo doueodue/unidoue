@@ -1,4 +1,4 @@
-import { $, esc, svg, fmtDate, errorBox } from './core.js';
+import { $, esc, svg, fmtDate, errorBox, reportError } from './core.js';
 import { getProfile } from './views1.js';
 import { t, pick, dateL } from './i18n.js';
 
@@ -32,7 +32,8 @@ export async function intl(el) {
       return `<article class="card hover"><h3>${esc(u.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0"><span class="badge mute">${esc(t(u.country))}${u.city ? ', ' + esc(u.city) : ''}</span>${u.eng === true ? `<span class="badge ok">${t('inglizcha bakalavr bor')}</span>` : u.eng === false ? `<span class="badge warn">${t('asosan inglizcha emas')}</span>` : ''}</div>
       <table class="tbl" style="font-size:14px"><tbody><tr><th>${t('IELTS (min)')}</th><td>${ie}</td></tr><tr><th>${t('Ariza muddati')}</th><td>${rd}</td></tr><tr><th>${t('O‘qish narxi')}</th><td>${tu}</td></tr></tbody></table>
       ${u.req ? `<p style="margin:10px 0 0;font-size:14px"><b>${t('Talab')}:</b> ${esc(pick(u.req))} ${src(u.reqUrl)}</p>` : ''}
-      ${u.url ? `<p style="margin:10px 0 0">${link(u.url, t('Rasmiy sayt →'))}</p>` : ''}</article>`; }).join('')}</div>` : `<div class="card empty"><b>${t('Hech narsa topilmadi')}</b>${t('Boshqa so‘z yoki davlatni sinab ko‘ring.')}</div>`;
+      ${u.url ? `<p style="margin:10px 0 0">${link(u.url, t('Rasmiy sayt →'))}</p>` : ''}<p style="margin:8px 0 0"><button class="link-btn" type="button" data-rep="${esc(u.n)}">${t('Xato topdingizmi?')}</button></p></article>`; }).join('')}</div>` : `<div class="card empty"><b>${t('Hech narsa topilmadi')}</b>${t('Boshqa so‘z yoki davlatni sinab ko‘ring.')}</div>`;
   };
+  out.onclick = e => { const b = e.target.closest('[data-rep]'); if (b) reportError(b.dataset.rep); };
   let tm = 0; $('#i-q', el).oninput = () => { clearTimeout(tm); tm = setTimeout(draw, 200); }; $('#i-c', el).onchange = draw; draw();
 }

@@ -90,6 +90,14 @@ export function modal({ title, body, actions = [], collect }) {
     document.body.appendChild(bg); const f = $('button:last-child', acts); f && f.focus();
   });
 }
+/** Universitet ma’lumotidagi xatoni adminga yuborish */
+export async function reportError(uni) {
+  const v = await modal({ title: 'Xato topdingizmi?', body: `<p class="hint" style="margin-top:0">${esc(uni)}: nima noto‘g‘ri? Iloji bo‘lsa, to‘g‘ri qiymat va rasmiy sahifa havolasini yozing.</p><textarea id="rep-t" maxlength="500" rows="4" placeholder="Masalan: ariza muddati 1-fevral, 15-yanvar emas"></textarea>`, actions: [{ label: 'Bekor qilish', value: 0 }, { label: 'Yuborish', value: 1, cls: 'primary' }], collect: bg => bg.querySelector('#rep-t').value });
+  if (v !== 1) return;
+  const text = String(modal.data || '').trim();
+  if (text.length < 5) { toast('Nima noto‘g‘riligini yozing.'); return; }
+  try { await api('/api/report', 'POST', { uni, text }); toast('Rahmat! Xabaringiz adminga yuborildi.'); } catch (e) { toast(e.message); }
+}
 export const skeleton = (n = 3) => `<div class="grid">${Array.from({ length: n }, () => '<div class="card"><div class="sk" style="width:40%;height:18px"></div><div class="sk" style="margin-top:14px;height:12px"></div><div class="sk" style="margin-top:8px;width:75%;height:12px"></div></div>').join('')}</div>`;
 export const errorBox = (msg, retry) => `<div class="card err-box"><b>Yuklab bo‘lmadi</b>${esc(msg)}${retry ? `<div style="margin-top:14px"><button class="btn" data-retry>Qayta urinish</button></div>` : ''}</div>`;
 

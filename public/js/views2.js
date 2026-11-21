@@ -1,4 +1,4 @@
-import { $, $$, S, api, ls, esc, toast, svg, fmtDate, daysLeft, catalog, upsell, errorBox, modal } from './core.js';
+import { $, $$, S, api, ls, esc, toast, svg, fmtDate, daysLeft, catalog, upsell, errorBox, modal, reportError } from './core.js';
 import { getProfile, DOCS } from './views1.js';
 import { t } from './i18n.js';
 const ctry = c => (c ? `<div class="ctry">${esc(t(c))}</div>` : '');
@@ -28,8 +28,9 @@ export async function aboutUni(id) {
   (c.early || []).forEach(e => rows.push(row('Erta muddat (' + esc(e.plan) + ')', fmtDate(e.date))));
   const majors = Array.isArray(c.majors) && c.majors.length ? `<h4 style="margin:14px 0 6px">Yo‘nalishlar</h4><div style="display:flex;gap:6px;flex-wrap:wrap">${c.majors.map(m => `<span class="badge mute">${esc(m)}</span>`).join('')}</div>${lnk(c.majorsUrl, 'to‘liq ro‘yxat (rasmiy sayt)')}` : '';
   const body = `<div style="max-height:62vh;overflow:auto">${rows.join('')}${majors}<p class="hint" style="margin-top:12px">“taxminiy” belgisi qiymat hali rasmiy manba bilan tasdiqlanmaganini bildiradi. Ariza topshirishdan oldin muddat va talablarni universitetning rasmiy sahifasida tekshiring.</p></div>`;
-  const v = await modal({ title: c.n, body, actions: [{ label: 'Yopish', value: 0 }, { label: 'Arizaga qo‘shish', value: 1, cls: 'primary' }] });
+  const v = await modal({ title: c.n, body, actions: [{ label: 'Yopish', value: 0 }, { label: 'Xato topdingizmi?', value: 2 }, { label: 'Arizaga qo‘shish', value: 1, cls: 'primary' }] });
   if (v === 1) addApp(c);
+  if (v === 2) reportError(c.n);
 }
 
 /* ================= UNIVERSITET QIDIRUVI ================= */

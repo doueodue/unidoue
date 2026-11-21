@@ -42,6 +42,10 @@ class Client {
     r = await new Client().call('PUT', '/api/data', { data: {} }); ok(r.s === 401, 'kirmagan foydalanuvchi PUT /api/data → 401');
     r = await a.call('PUT', '/api/data', { data: {} }, { Origin: 'https://evil.com' }); ok(r.s === 403, 'CSRF: begona Origin rad etiladi');
 
+    r = await new Client().call('POST', '/api/report', { uni: 'MIT', text: 'Muddat notoʻgʻri' }); ok(r.s === 401, 'xato xabari: kirmagan foydalanuvchi yubora olmaydi', r.s);
+    r = await a.call('POST', '/api/report', { uni: 'MIT', text: 'x' }); ok(r.s === 400, 'xato xabari: juda qisqa matn rad etiladi', r.s);
+    r = await a.call('POST', '/api/report', { uni: 'MIT', text: 'Ariza muddati 1-fevral, 15-yanvar emas' }); ok(r.s === 201, 'xato xabari yuboriladi', r.s);
+    r = await new Client().call('GET', '/api/admin/requests', null, { Authorization: 'Bearer adm-secret' }); ok(r.j.requests.some(x => x.service === 'Maʼlumot xatosi' && x.message.startsWith('MIT:')), 'adminda xato xabari koʻrinadi');
     console.log('Tarif cheklovlari (serverda)');
     r = await a.call('GET', '/api/scholarships'); ok(r.s === 200, 'Free: stipendiya 200', r.s);
     r = await a.call('POST', '/api/compare', { ids: ['mit', 'yale-university', 'harvard-university'] }); ok(r.s === 200, 'Free: 3 ta solishtirish 200', r.s);
