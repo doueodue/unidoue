@@ -1,0 +1,30 @@
+{
+ "name": "Universitat Pompeu Fabra",
+ "country": "Spain",
+ "city": "Barcelona",
+ "official_url": "https://www.upf.edu",
+ "language": "Catalan / Spanish / English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 6800.32,
+  "currency": "EUR",
+  "note": "Approximate first-year ordinary registration price for non-EU citizens, academic year 2025-2026, most programmes; Business Sciences 6,911.31, Audiovisual Communication 7,022.30",
+  "url": "https://www.upf.edu/web/graus/preus",
+  "year": 2025
+ },
+ "requirement": {
+  "text": "",
+  "url": ""
+ },
+ "bachelor_in_english": null
+}

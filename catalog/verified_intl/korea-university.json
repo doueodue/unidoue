@@ -1,0 +1,30 @@
+{
+ "name": "Korea University",
+ "country": "South Korea",
+ "city": "Seoul",
+ "official_url": "https://www.korea.edu",
+ "language": "Korean",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 11600000,
+  "currency": "KRW",
+  "note": "Computed: 2 x approx. KRW 5,800,000 per semester (Humanities & Social Sciences, lowest band; Engineering approx. 7,700,000 per semester); 2026 academic year, approximate",
+  "url": "https://oia.korea.ac.kr/oia2026/Tuition.do",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "",
+  "url": ""
+ },
+ "bachelor_in_english": null
+}

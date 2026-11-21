@@ -944,5 +944,127 @@
    "Xalqaro ariza beruvchilar barcha o‘qish yillarini ko‘rsatuvchi rasmiy maktab transkriptini, pasport nusxasini, maqsad bayonini (ikki betgacha) va mavjud bo‘lsa diplomni topshiradi; IELTS, Duolingo va TOEFL Home Edition testlari qabul qilinmaydi.",
    "Иностранные абитуриенты предоставляют официальный школьный транскрипт за все годы обучения, копию паспорта, мотивационное письмо (до двух страниц) и аттестат, если есть; тесты IELTS, Duolingo и TOEFL Home Edition не принимаются."
   ]
+ },
+ "university-of-waterloo": {
+  "intake": [
+   "2027-yil sentyabr qabuli, Muhandislikdan tashqari yo‘nalishlar (Muhandislik: 2027-yil 15-yanvar)",
+   "Набор сентября 2027, программы кроме инженерных (инженерия: 15 января 2027)"
+  ],
+  "note": [
+   "Birinchi kurs uchun taxminiy o‘qish va qo‘shimcha to‘lovlar, ikki semestr (8 oy), eng past toifa (Atrof-muhit fakulteti); yo‘nalishga qarab 51 000–75 000 CAD",
+   "Ориентировочная плата за обучение и сборы за первый курс, два семестра (8 месяцев), нижняя категория (факультет окружающей среды); зависит от программы, 51 000–75 000 CAD"
+  ]
+ },
+ "leiden-university": {
+  "note": [
+   "2027–2028 o‘quv yili, EIIH davlatlari fuqarosi bo‘lmagan talabalar uchun institutsional to‘lov (Gumanitar, Huquq, Ijtimoiy fanlar va b. — eng past toifa); Tabiiy fanlar 19 200, Tibbiyot 31 400",
+   "Учебный год 2027–2028, институциональная плата для студентов не из ЕЭЗ (гуманитарные науки, право, социальные науки и др. — нижняя категория); естественные науки 19 200, медицина 31 400"
+  ],
+  "req": [
+   "Xalqaro ariza beruvchilar Gollandiya universitetga tayyorlov diplomi (VWO) darajasidan past bo‘lmagan diplomga ega bo‘lishi kerak; inglizcha bakalavr dasturlari uchun ingliz tili bilimi talab qilinadi, test natijalari ikki yildan eski bo‘lmasligi kerak.",
+   "Иностранные абитуриенты должны иметь диплом не ниже нидерландского предуниверситетского (VWO); для англоязычных бакалаврских программ требуется знание английского, результаты теста не старше двух лет."
+  ]
+ },
+ "university-of-groningen": {
+  "intake": [
+   "2027–2028 o‘quv yili, oddiy bakalavr dasturlari, EIIHdan tashqari ariza beruvchilar (numerus fixus: 2027-yil 15-yanvar)",
+   "Учебный год 2027–2028, обычные бакалаврские программы, абитуриенты не из ЕС (numerus fixus: 15 января 2027)"
+  ],
+  "note": [
+   "2027–2028 o‘quv yili, kunduzgi, eng past toifa (iqtisodiyot va biznes, gumanitar fanlar, huquq); Tibbiyot va Stomatologiya uchun 32 000 gacha",
+   "Учебный год 2027–2028, очная форма, нижняя категория (экономика и бизнес, гуманитарные науки, право); до 32 000 для медицины и стоматологии"
+  ],
+  "req": [
+   "Gollandiyadan tashqari malakaga ega ariza beruvchilarning umumiy darajasi Gollandiya universitetga tayyorlov ta’limiga (VWO) teng bo‘lishi kerak; diplomni Qabul kengashi baholaydi, ayrim fakultetlarda fan bo‘yicha qo‘shimcha talablar bor.",
+   "Абитуриенты с неголландской квалификацией должны иметь общий уровень, эквивалентный нидерландскому предуниверситетскому образованию (VWO); диплом оценивает приёмная комиссия, на некоторых факультетах есть требования по предметам."
+  ]
+ },
+ "bocconi-university": {
+  "intake": [
+   "2027/28 o‘quv yili, qishki sessiya (2026-yil 25-noyabr – 2027-yil 26-yanvar); erta sessiya 29-sentyabrda yopilgan",
+   "Учебный год 2027/28, зимняя сессия (25 ноября 2026 – 26 января 2027); ранняя сессия закрылась 29 сентября"
+  ],
+  "note": [
+   "Bakalavr (BSc) uchun standart yillik o‘qish to‘lovi, 2026–27 o‘quv yili, chegirmalarsiz (chegirmalar bilan 3 400–13 600)",
+   "Стандартная годовая плата за бакалавриат (BSc), 2026–27 учебный год, без скидок (со скидками 3 400–13 600)"
+  ]
+ },
+ "singapore-management-university": {
+  "intake": [
+   "2027–28 o‘quv yili (darslar 2027-yil 16-avgustda boshlanadi), xalqaro va boshqa malakalar; ariza 2026-yil 16-noyabrdan ochiladi",
+   "Учебный год 2027–28 (занятия с 16 августа 2027), международные и иные квалификации; приём заявок с 16 ноября 2026"
+  ],
+  "note": [
+   "2026/27 o‘quv yilida kiruvchi birinchi kurslar uchun, boshqa (ASEANdan tashqari) xalqaro talabalar, subsidiyasiz, GST bilan, ko‘p yo‘nalishlar; Huquq bakalavriati 56 150; ASEAN subsidiyali narxi past",
+   "Для первокурсников 2026/27, прочие (не из АСЕАН) иностранные студенты, без субсидии, с GST, большинство программ; бакалавр права 56 150; субсидированная ставка АСЕАН ниже"
+  ]
+ },
+ "nyu-abu-dhabi": {
+  "req": [
+   "Ona tili ingliz tili bo‘lmagan ariza beruvchilar odatda so‘nggi ikki yil ichida topshirilgan ingliz tili bilimi imtihoni natijalarini taqdim etishi kerak; SAT/ACT kabi standart testlar 2027–2028 qabul davrigacha ixtiyoriy.",
+   "Абитуриенты, для которых английский не родной, как правило, должны предоставить результаты экзамена по английскому, сданного не более двух лет назад; стандартизированные тесты (SAT/ACT) остаются необязательными до цикла приёма 2027–2028."
+  ]
+ },
+ "korea-university": {
+  "note": [
+   "Hisoblangan: 2 x taxminan 5 800 000 KRW (semestr uchun, Gumanitar va ijtimoiy fanlar — eng past toifa; Muhandislik semestriga taxminan 7 700 000); 2026 o‘quv yili, taxminiy",
+   "Рассчитано: 2 x примерно 5 800 000 KRW за семестр (гуманитарные и социальные науки — нижняя категория; инженерия около 7 700 000 за семестр); 2026 учебный год, ориентировочно"
+  ]
+ },
+ "chinese-university-of-hong-kong": {
+  "intake": [
+   "2027/28 qabuli, xorijiy va boshqa malakalar (mahalliy bo‘lmagan), oddiy raund; erta taklif raundi muddati 2026-yil 12-noyabr",
+   "Набор 2027/28, зарубежные и иные квалификации (не местные), обычный раунд; ранний раунд до 12 ноября 2026"
+  ],
+  "note": [
+   "Mahalliy bo‘lmagan bakalavr talabalari uchun yillik o‘qish to‘lovi, 2027–2028 o‘quv yili; qo‘sh diplomli dasturlarda farq qilishi mumkin",
+   "Годовая плата за обучение для нерезидентов (бакалавриат), 2027–2028 учебный год; для программ двойного диплома может отличаться"
+  ]
+ },
+ "university-of-st-gallen": {
+  "note": [
+   "Hisoblangan: xorijiy fuqarolar uchun bakalavriatda semestr uchun 2 x 3 343,50 CHF, 2026-yil kuz semestridan",
+   "Рассчитано: 2 x 3 343,50 CHF за семестр для иностранных граждан, бакалавриат, с осеннего семестра 2026"
+  ],
+  "req": [
+   "Chet eldagi o‘rta ta’lim attestati Shveytsariya Maturitätga mohiyatan teng bo‘lishi kerak; xorijiy abituriyentlar uchun o‘rinlar cheklangan, shuning uchun ko‘pchilik HSG tanlov jarayonidan (onlayn qobiliyat testi va video suhbat) o‘tadi. Iqtisodiyot bo‘yicha Assessment Year to‘liq inglizcha o‘qilishi mumkin.",
+   "Зарубежный аттестат о среднем образовании должен быть по сути равнозначен швейцарскому Maturität; места для иностранцев ограничены, поэтому большинство проходит отбор HSG (онлайн-тест способностей и видеоинтервью). Assessment Year по экономике можно пройти полностью на английском."
+  ]
+ },
+ "uppsala-university": {
+  "intake": [
+   "Keyingi bakalavr qabul raundi (2026-yil 16-oktyabrda ochiladi, 2027-yil 15-yanvarda yopiladi)",
+   "Ближайший раунд приёма в бакалавриат (открывается 16 октября 2026, закрывается 15 января 2027)"
+  ],
+  "req": [
+   "Bakalavr dasturlariga qabul uchun asosiy talab — o‘rta maktab (o‘rta ta’lim)ni tugatganlik.",
+   "Базовое требование для поступления в бакалавриат — оконченное среднее образование."
+  ]
+ },
+ "universitat-pompeu-fabra": {
+  "note": [
+   "EIIHdan tashqari fuqarolar uchun birinchi kurs bo‘yicha taxminiy oddiy ro‘yxatdan o‘tish narxi, 2025–2026 o‘quv yili, ko‘p dasturlar; Biznes fanlari 6 911,31, Audiovizual kommunikatsiya 7 022,30",
+   "Ориентировочная стоимость первого курса для граждан не из ЕС, 2025–2026 учебный год, большинство программ; Бизнес-науки 6 911,31, Аудиовизуальные коммуникации 7 022,30"
+  ]
+ },
+ "london-school-of-economics": {
+  "intake": [
+   "2027-yil sentyabr qabuli, bakalavriatga UCAS orqali (2027-yil 13-yanvar, 18:00 GMT)",
+   "Набор на сентябрь 2027, бакалавриат через UCAS (13 января 2027, 18:00 GMT)"
+  ],
+  "note": [
+   "2027/28 uchun xorijiy talabalar to‘lovi, eng past toifa (masalan, BA History); yo‘nalishga qarab 41 900 gacha",
+   "Плата для иностранных студентов на 2027/28, самая низкая категория (например, BA History); в зависимости от программы до 41 900"
+  ],
+  "req": [
+   "Ariza UCAS orqali topshirilishi kerak; LSE to‘g‘ridan-to‘g‘ri arizalarni qabul qilmaydi va abituriyentlar bilan suhbat o‘tkazmaydi.",
+   "Заявку необходимо подать через UCAS; LSE не принимает заявки напрямую и не проводит собеседования."
+  ]
+ },
+ "university-of-warwick": {
+  "note": [
+   "2027-28 uchun xorijiy talabalar to‘lovi, 1-toifa (auditoriya asosidagi kurslar); boshqa toifalar qimmatroq",
+   "Плата для иностранных студентов на 2027-28, категория 1 (аудиторные курсы); другие категории дороже"
+  ]
  }
 }

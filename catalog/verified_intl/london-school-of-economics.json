@@ -1,0 +1,30 @@
+{
+ "name": "London School of Economics and Political Science (LSE)",
+ "country": "England",
+ "city": "London",
+ "official_url": "https://www.lse.ac.uk",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-13",
+  "intake": "September 2027 entry, undergraduate via UCAS (13 Jan 2027, 18:00 GMT)",
+  "url": "https://www.lse.ac.uk/study-at-lse/undergraduate/prospective-students/how-to-apply",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 30400,
+  "currency": "GBP",
+  "note": "2027/28 overseas fee, lowest band (e.g. BA History); ranges up to 41,900 depending on programme",
+  "url": "https://info.lse.ac.uk/staff/divisions/Planning-Division/Assets/Documents/Table-of-Fees-27-28-final-and-PGR-Structure-Oct-26.pdf",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Applications must be submitted through UCAS; LSE does not consider direct applications and does not interview applicants.",
+  "url": "https://www.lse.ac.uk/study-at-lse/undergraduate/prospective-students/how-to-apply"
+ },
+ "bachelor_in_english": true
+}

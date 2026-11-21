@@ -1,0 +1,30 @@
+{
+ "name": "University of Waterloo",
+ "country": "Canada",
+ "city": "Waterloo",
+ "official_url": "https://uwaterloo.ca",
+ "language": "English",
+ "ielts": {
+  "min_overall": 6.5,
+  "url": "https://uwaterloo.ca/future-students/admissions/english-language-requirements",
+  "year": 2025
+ },
+ "deadline": {
+  "date": "2027-02-01",
+  "intake": "Fall 2027 (September) entry; non-Engineering programs (Engineering: 15 Jan 2027)",
+  "url": "https://uwaterloo.ca/future-students/admissions/application-deadlines",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 51000,
+  "currency": "CAD",
+  "note": "Estimated first-year tuition and incidental fees for two terms (8 months), lowest band (Faculty of Environment); varies by programme (CAD 51,000-75,000)",
+  "url": "https://uwaterloo.ca/find-out-more/financing/tuition-and-other-fees",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "",
+  "url": ""
+ },
+ "bachelor_in_english": true
+}

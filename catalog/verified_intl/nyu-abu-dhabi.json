@@ -1,0 +1,30 @@
+{
+ "name": "NYU Abu Dhabi",
+ "country": "United Arab Emirates",
+ "city": "Abu Dhabi",
+ "official_url": "https://nyuad.nyu.edu",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "Applicants whose first language is not English are generally required to submit results of an English proficiency exam taken within the last two years; standardized tests (SAT/ACT) remain optional through the 2027-2028 application cycle.",
+  "url": "https://nyuad.nyu.edu/en/admissions/undergraduate/apply/entry-requirements.html"
+ },
+ "bachelor_in_english": true
+}

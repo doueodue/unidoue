@@ -1,0 +1,30 @@
+{
+ "name": "Singapore Management University",
+ "country": "Singapore",
+ "city": "Singapore",
+ "official_url": "https://www.smu.edu.sg",
+ "language": "English",
+ "ielts": {
+  "min_overall": 7.0,
+  "url": "https://admissions.smu.edu.sg/international-students/how-to-apply/step-1",
+  "year": 2027
+ },
+ "deadline": {
+  "date": "2027-03-19",
+  "intake": "Academic Year 2027-28 (classes start 16 Aug 2027), international and other qualifications; applications open 16 Nov 2026",
+  "url": "https://admissions.smu.edu.sg/international-students/how-to-apply/step-1",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 47700,
+  "currency": "SGD",
+  "note": "AY2026/27 entering freshmen, other (non-ASEAN) international students, non-subsidised, GST-inclusive, most programmes; Bachelor of Laws 56,150; ASEAN subsidised rate is lower",
+  "url": "https://admissions.smu.edu.sg/financial-matters/tuition-fees-grant",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "",
+  "url": ""
+ },
+ "bachelor_in_english": true
+}

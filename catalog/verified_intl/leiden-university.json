@@ -1,0 +1,30 @@
+{
+ "name": "Leiden University",
+ "country": "Netherlands",
+ "city": "Leiden",
+ "official_url": "https://www.universiteitleiden.nl",
+ "language": "English / Dutch",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 14700,
+  "currency": "EUR",
+  "note": "Academic year 2027-2028, institutional fee for non-EEA students in Humanities, Law, Social Sciences etc. (lowest band); Science 19,200, Medicine 31,400",
+  "url": "https://www.universiteitleiden.nl/en/education/admission-and-application/bachelors/tuition-fee",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "International applicants need a diploma at least equal to the Dutch pre-university diploma (VWO); English proficiency is required for English-taught bachelor programmes, with test results not older than two years.",
+  "url": "https://www.universiteitleiden.nl/en/education/admission-and-application/bachelors/admission-requirements"
+ },
+ "bachelor_in_english": true
+}

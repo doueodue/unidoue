@@ -1,0 +1,30 @@
+{
+ "name": "Bocconi University",
+ "country": "Italy",
+ "city": "Milan",
+ "official_url": "https://www.unibocconi.it",
+ "language": "English / Italian",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-26",
+  "intake": "Academic year 2027/28, Winter Session (25 Nov 2026 - 26 Jan 2027); Early Session closed 29 Sep 2026",
+  "url": "https://www.unibocconi.it/en/programs/bachelor-science/application-and-admission/timeline-and-selection",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 17000,
+  "currency": "EUR",
+  "note": "Standard annual tuition and fees for Bachelor of Science, academic year 2026-27, before waivers (waivers reduce it to 3,400-13,600)",
+  "url": "https://www.unibocconi.it/en/current-students/fees",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "",
+  "url": ""
+ },
+ "bachelor_in_english": true
+}

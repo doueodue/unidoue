@@ -1,0 +1,30 @@
+{
+ "name": "King's College London",
+ "country": "England",
+ "city": "London",
+ "official_url": "https://www.kcl.ac.uk",
+ "language": "English",
+ "ielts": {
+  "min_overall": 7.0,
+  "url": "https://www.kcl.ac.uk/ug-elr",
+  "year": 2027
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "",
+  "url": ""
+ },
+ "bachelor_in_english": true
+}

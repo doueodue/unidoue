@@ -1,0 +1,30 @@
+{
+ "name": "University of Groningen",
+ "country": "Netherlands",
+ "city": "Groningen",
+ "official_url": "https://www.rug.nl",
+ "language": "English / Dutch",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-05-01",
+  "intake": "Study year 2027-2028, regular bachelor programmes, non-EU applicants (numerus fixus: 15 Jan 2027)",
+  "url": "https://www.rug.nl/education/application-enrolment-tuition-fees/admission/procedures/non-dutch-qualification/bachelor-non-dutch-qualification?lang=en",
+  "year": 2027
+ },
+ "tuition": {
+  "amount": 14400,
+  "currency": "EUR",
+  "note": "Academic year 2027-2028, full-time, lowest band (Economics and Business, Humanities, Law); up to 32,000 for Medicine and Dentistry",
+  "url": "https://www.rug.nl/education/application-enrolment-tuition-fees/tuition-fee/bachelor",
+  "year": 2027
+ },
+ "requirement": {
+  "text": "Applicants with a non-Dutch qualification need a general level equivalent to Dutch pre-university education (VWO); the Admissions Board assesses the diploma and some faculties have subject-specific requirements.",
+  "url": "https://www.rug.nl/education/application-enrolment-tuition-fees/admission/procedures/non-dutch-qualification/bachelor-non-dutch-qualification?lang=en"
+ },
+ "bachelor_in_english": true
+}

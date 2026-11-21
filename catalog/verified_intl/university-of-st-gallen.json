@@ -1,0 +1,30 @@
+{
+ "name": "University of St. Gallen",
+ "country": "Switzerland",
+ "city": "St. Gallen",
+ "official_url": "https://www.unisg.ch",
+ "language": "German / English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": 6687,
+  "currency": "CHF",
+  "note": "Computed: 2 x CHF 3,343.50 per semester for foreign nationals, bachelor, from autumn semester 2026",
+  "url": "https://www.unisg.ch/en/studying/studying-at-hsg/costs-of-an-hsg-degree/",
+  "year": 2026
+ },
+ "requirement": {
+  "text": "A foreign upper secondary certificate must be essentially equivalent to the Swiss Maturite; places for foreign applicants are limited, so most must pass the HSG selection procedure (online aptitude test and video interview). The Economics Assessment Year can be taken entirely in English.",
+  "url": "https://www.unisg.ch/en/studying/admission/admission-bachelor/admission-to-a-bachelors-degree-programme"
+ },
+ "bachelor_in_english": true
+}
