@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-13",
+ "updated": "2026-11-22",
  "items": {
   "stanford-university": {
    "city": "Stanford",
@@ -1070,6 +1070,46 @@
    "city": "Tempe",
    "state": "AZ",
    "site": "https://www.asu.edu/"
+  },
+  "williams-college": {
+   "city": "Williamstown",
+   "state": "MA",
+   "site": "https://www.williams.edu/"
+  },
+  "amherst-college": {
+   "city": "Amherst",
+   "state": "MA",
+   "site": "https://www.amherst.edu/"
+  },
+  "haverford-college": {
+   "city": "Haverford",
+   "state": "PA",
+   "site": "https://www.haverford.edu/"
+  },
+  "claremont-mckenna-college": {
+   "city": "Claremont",
+   "state": "CA",
+   "site": "https://www.cmc.edu/"
+  },
+  "harvey-mudd-college": {
+   "city": "Claremont",
+   "state": "CA",
+   "site": "https://www.hmc.edu/"
+  },
+  "university-of-florida": {
+   "city": "Gainesville",
+   "state": "FL",
+   "site": "https://www.ufl.edu/"
+  },
+  "university-of-maryland": {
+   "city": "College Park",
+   "state": "MD",
+   "site": "https://www.umd.edu/"
+  },
+  "virginia-tech": {
+   "city": "Blacksburg",
+   "state": "VA",
+   "site": "https://www.vt.edu/"
   }
  }
 }

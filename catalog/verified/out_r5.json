@@ -1,0 +1,203 @@
+{
+ "Williams College": {
+  "domain": "williams.edu",
+  "sat": null,
+  "accept": {
+   "value": 0.086,
+   "year": "Class of 2029 (entered Fall 2025), stated 8.6%: 1,336 admitted of 15,520 applicants",
+   "url": "https://www.williams.edu/about/fast-facts/"
+  },
+  "gpa": null,
+  "ielts": {
+   "value": 7.5,
+   "kind": "recommended",
+   "url": "https://admission.williams.edu/apply/international-applicants/"
+  },
+  "deadline": null,
+  "status": "partial",
+  "notes": "IELTS 7.5-9 is the typical competitive range on the international page (scores encouraged, not required). SAT only in CDS 2025-26 as section ranges here; RD deadline page (Jan 4) shows no year and the catalog PDF says Jan 5, so left unverified."
+ },
+ "Amherst College": {
+  "domain": "amherst.edu",
+  "sat": {
+   "p25": 1470,
+   "p75": 1540,
+   "year": "Fall 2025 enrolled first-years who submitted SAT (CDS 2025-26)",
+   "url": "https://www.amherst.edu/system/files/C.%20First-Time%20First-Year%20Admission%202025-26_0.pdf"
+  },
+  "accept": {
+   "value": 0.077,
+   "year": "Fall 2025 entry (CDS 2025-26): 1,222 admitted of 15,819 applicants",
+   "url": "https://www.amherst.edu/system/files/C.%20First-Time%20First-Year%20Admission%202025-26_0.pdf"
+  },
+  "gpa": null,
+  "ielts": {
+   "value": 7.5,
+   "kind": "recommended",
+   "url": "https://www.amherst.edu/admission/apply/international/node/28882"
+  },
+  "deadline": {
+   "rd": "2027-01-05",
+   "early": [
+    {
+     "plan": "ED",
+     "date": "2026-11-09"
+    }
+   ],
+   "cycle": "First-Year Application and Financial Aid Deadlines (for enrollment in Fall 2027)",
+   "url": "https://www.amherst.edu/admission/apply/firstyear/calendar_deadlines"
+  },
+  "status": "complete",
+  "notes": "CDS 2025-26 shows only 92 of 6,346 international applicants admitted (1.4%); the catalog stores the overall rate."
+ },
+ "Haverford College": {
+  "domain": "haverford.edu",
+  "sat": null,
+  "accept": {
+   "value": 0.154,
+   "year": "Class of 2030: 6,392 applied, stated 15.4% admission rate",
+   "url": "https://www.haverford.edu/admission"
+  },
+  "gpa": null,
+  "ielts": {
+   "value": 7.0,
+   "kind": "minimum",
+   "url": "https://www.haverford.edu/admission/applying/international-students"
+  },
+  "deadline": {
+   "rd": "2027-01-10",
+   "early": [
+    {
+     "plan": "ED I",
+     "date": "2026-11-15"
+    },
+    {
+     "plan": "ED II",
+     "date": "2027-01-05"
+    }
+   ],
+   "cycle": "Application timeline (Nov 15 / Jan 5 / Jan 10); Haverford financial-aid pages list the same dates as Nov 15, 2026, Jan 5, 2027 and Jan 10, 2027",
+   "url": "https://www.haverford.edu/admission/applying/application-timeline"
+  },
+  "status": "partial",
+  "notes": "SAT only as section ranges (EBR 720-760, Math 730-780) -> composite left unverified"
+ },
+ "Claremont McKenna College": {
+  "domain": "cmc.edu",
+  "sat": {
+   "p25": 1480,
+   "p75": 1540,
+   "year": "Fall 2025 first-years who submitted SAT (CDS 2025-26)",
+   "url": "https://www.cmc.edu/sites/default/files/CDS_2025-26.pdf"
+  },
+  "accept": {
+   "value": 0.094,
+   "year": "Fall 2025 entry (CDS 2025-26): 655 admitted of 6,939 applicants",
+   "url": "https://www.cmc.edu/sites/default/files/CDS_2025-26.pdf"
+  },
+  "gpa": null,
+  "ielts": {
+   "value": 7.5,
+   "kind": "recommended",
+   "url": "https://www.cmc.edu/admission/international"
+  },
+  "deadline": null,
+  "status": "partial",
+  "notes": "Deadline pages show no cycle year and disagree (Jan 5 in the checklist PDF, Jan 10 on the instructions page) -> left unverified"
+ },
+ "Harvey Mudd College": {
+  "domain": "hmc.edu",
+  "sat": null,
+  "accept": {
+   "value": 0.132,
+   "year": "Class of 2030 first-year profile: 654 admitted of 4,971 applications",
+   "url": "https://www.hmc.edu/admission/apply/"
+  },
+  "gpa": null,
+  "ielts": {
+   "value": 7.5,
+   "kind": "minimum",
+   "url": "https://www.hmc.edu/admission/apply/international-applicants/"
+  },
+  "deadline": null,
+  "status": "partial",
+  "notes": "SAT only as section ranges (ERW 740-770, Math 770-800). Deadlines (ED I Nov 15, ED II/RD Jan 5) shown without year."
+ },
+ "University of Florida": {
+  "domain": "ufl.edu",
+  "sat": {
+   "p25": 1420,
+   "p75": 1520,
+   "year": "2026 Freshman Profile, Class of 2030 admitted students (middle 50%)",
+   "url": "https://admissions.ufl.edu/english-admissions-guide"
+  },
+  "accept": {
+   "value": 0.198,
+   "year": "Class of 2030: 19,012 admitted of 95,986 applicants",
+   "url": "https://admissions.ufl.edu/freshman-student-profile"
+  },
+  "gpa": null,
+  "ielts": null,
+  "deadline": {
+   "rd": "2027-01-15",
+   "early": [
+    {
+     "plan": "ED",
+     "date": "2026-10-15"
+    },
+    {
+     "plan": "EA",
+     "date": "2026-11-01"
+    }
+   ],
+   "cycle": "2026-27 Freshman Application Deadlines",
+   "url": "https://admissions.ufl.edu/english-admissions-guide"
+  },
+  "status": "partial",
+  "notes": "UF undergraduate pages give no IELTS minimum (only graduate pages do); SAT is required"
+ },
+ "University of Maryland": {
+  "domain": "umd.edu",
+  "sat": null,
+  "accept": null,
+  "gpa": null,
+  "ielts": null,
+  "deadline": {
+   "rd": "2027-01-20",
+   "early": [
+    {
+     "plan": "EA",
+     "date": "2026-11-01"
+    }
+   ],
+   "cycle": "Deadlines: Nov. 1, 2026 (Early Action), Jan. 20, 2027 (Regular Decision)",
+   "url": "https://www.rhsmith.umd.edu/programs/undergraduate/admissions/prospective-freshmen"
+  },
+  "status": "partial",
+  "notes": "Nov 1 / Jan 20 match the main UMD admissions page, which gives no year. No admitted count, SAT range or current IELTS page found."
+ },
+ "Virginia Tech": {
+  "domain": "vt.edu",
+  "sat": null,
+  "accept": null,
+  "gpa": null,
+  "ielts": {
+   "value": 6.5,
+   "kind": "minimum",
+   "url": "https://www.vt.edu/admissions/international/requirements.html"
+  },
+  "deadline": {
+   "rd": "2027-01-15",
+   "early": [
+    {
+     "plan": "EA",
+     "date": "2026-11-15"
+    }
+   ],
+   "cycle": "Dates & Deadlines for 2026-2027",
+   "url": "https://www.vt.edu/admissions/undergraduate/apply/dates-and-deadlines.html"
+  },
+  "status": "partial",
+  "notes": "No official admit rate or SAT middle-50% found; IELTS 6.5 with no sub-score below 6.5"
+ }
+}
