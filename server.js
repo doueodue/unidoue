@@ -109,6 +109,9 @@ const Scoring = require('./public/js/scoring.js');
 const AI_PROVIDER = process.env.ANTHROPIC_API_KEY ? 'anthropic' : (process.env.AI_API_KEY && process.env.AI_BASE_URL ? 'openai' : '');
 const AI_KEY = process.env.ANTHROPIC_API_KEY || process.env.AI_API_KEY || '';
 const AI_MODEL = process.env.AI_MODEL || (AI_PROVIDER === 'openai' ? '' : 'claude-sonnet-5-5');
+const TG_TOKEN = process.env.TG_BOT_TOKEN || '';
+const TG_SECRET = TG_TOKEN ? crypto.createHash('sha256').update('tg-wh:' + TG_TOKEN).digest('hex').slice(0, 48) : '';
+let TG_USER = '';
 const AI_URL = AI_PROVIDER === 'openai' ? String(process.env.AI_BASE_URL).replace(/\/+$/, '') + '/chat/completions' : (process.env.ANTHROPIC_URL || 'https://api.anthropic.com/v1/messages');
 const MAIL_URL = process.env.RESEND_URL || 'https://api.resend.com/emails';
 const RESEND_KEY = process.env.RESEND_API_KEY || '';
@@ -289,6 +292,7 @@ function accountInfo(u) {
     limits: { ai: pl.ai, apps: pl.apps, finder: pl.finder, compare: pl.compare }, features: pl.features,
     usage: { ai: us.ai, period: us.p }, consent: { mentorMemory: !!(u.consent && u.consent.mentorMemory) },
     config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: false },
+    tg: { on: !!(TG_TOKEN && TG_USER), linked: !!u.tgChat, bot: TG_USER },
     pay: { ref: payRef(u), info: PAY_INFO, requested: u.planReq || null, plan: u.planReqPlan || 'pro', price: (PLANS[u.planReqPlan] || PLANS.pro).price }
   };
 }
@@ -603,6 +607,39 @@ async function api(req, res, pathname) {
     return send(res, 201, { ok: true, account: accountInfo(u) });
   }
 
+  /* ---- Telegram bot: hisobni ulash + deadline eslatmalari ---- */
+  if (pathname === '/api/tg/webhook' && method === 'POST') {
+    const got = String(req.headers['x-telegram-bot-api-secret-token'] || '');
+    if (!TG_TOKEN || !got || got.length !== TG_SECRET.length || !crypto.timingSafeEqual(Buffer.from(got), Buffer.from(TG_SECRET))) return fail(res, 401, 'Ruxsat yoʻq.');
+    const upd = await readJson(req);
+    send(res, 200, { ok: true });
+    tgHandle(upd).catch(e => console.error('TG xatosi', e.message));
+    return;
+  }
+  if (pathname === '/api/tg/link' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (!TG_TOKEN || !TG_USER) return fail(res, 503, 'Telegram bot hozircha ulanmagan.');
+    if (limited('tg:' + u.id, 10, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
+    const code = crypto.randomBytes(6).toString('hex');
+    u.tgCode = { h: sha256(code), exp: Date.now() + 15 * 60 * 1000 };
+    save();
+    return send(res, 200, { link: 'https://t.me/' + TG_USER + '?start=' + code, bot: TG_USER });
+  }
+  if (pathname === '/api/tg/unlink' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    delete u.tgChat; delete u.tgCode; save();
+    return send(res, 200, { ok: true, account: accountInfo(u) });
+  }
+  if (pathname === '/api/admin/remind' && (method === 'POST' || method === 'GET')) {
+    if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
+    const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (!tok || !crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok)))) return fail(res, 401, 'Ruxsat yoʻq.');
+    const n = await runReminders(true);
+    return send(res, 200, { ok: true, sent: n });
+  }
+
   if (pathname === '/api/consent' && method === 'POST') {
     const u = sessionUser(req);
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
@@ -703,6 +740,48 @@ async function api(req, res, pathname) {
     if (built.error) return fail(res, 400, built.error);
     // Kredit javobdan OLDIN band qilinadi (bir vaqtdagi soʻrovlar limitdan oshib ketmasligi uchun); xato boʻlsa qaytariladi.
     us.ai += cost;
+    if (b.stream === true) {
+      // Oqimli javob (SSE): matn yozilib borishi bilan brauzerga yuboriladi.
+      let got = '', started = false;
+      const maxS = tool === 'mentor' && !can(u, 'mentor_adv') ? 700 : 1600, ac = new AbortController(), tm = setTimeout(() => ac.abort(), 90000);
+      req.on('close', () => { if (!res.writableEnded) ac.abort(); });
+      const ev = o => res.write('data: ' + JSON.stringify(o) + '\n\n');
+      try {
+        const r = AI_PROVIDER === 'anthropic'
+          ? await fetch(AI_URL, { method: 'POST', signal: ac.signal, headers: { 'x-api-key': AI_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+              body: JSON.stringify({ model: AI_MODEL, max_tokens: maxS, stream: true, system: built.system, messages: built.messages }) })
+          : await fetch(AI_URL, { method: 'POST', signal: ac.signal, headers: { Authorization: 'Bearer ' + AI_KEY, 'content-type': 'application/json' },
+              body: JSON.stringify({ model: AI_MODEL, max_tokens: maxS, temperature: 0.3, stream: true, messages: [{ role: 'system', content: built.system }, ...built.messages] }) });
+        if (!r.ok || !r.body) { console.error('AI xatosi', r.status); throw new Error('upstream'); }
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/event-stream; charset=utf-8'); res.setHeader('Cache-Control', 'no-store, no-transform'); res.setHeader('X-Accel-Buffering', 'no');
+        res.flushHeaders(); started = true;
+        let buf = '';
+        const dec = new TextDecoder();
+        for await (const chunk of r.body) {
+          buf += dec.decode(chunk, { stream: true });
+          let i;
+          while ((i = buf.indexOf('\n')) >= 0) {
+            const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+            if (!line.startsWith('data:')) continue;
+            const d = line.slice(5).trim();
+            if (!d || d === '[DONE]') continue;
+            let j; try { j = JSON.parse(d); } catch (e) { continue; }
+            const t = AI_PROVIDER === 'anthropic' ? (j.type === 'content_block_delta' && j.delta && j.delta.type === 'text_delta' ? j.delta.text : '') : (((j.choices || [])[0] || {}).delta || {}).content || '';
+            if (t) { got += t; ev({ t }); }
+          }
+        }
+      } catch (e) { console.error('AI oqim xatosi', e.message); }
+      clearTimeout(tm);
+      if (!got.trim()) {
+        us.ai -= cost;
+        if (!started) return fail(res, 502, 'AI xizmati hozir javob bermadi. Keyinroq urinib koʻring.');
+        ev({ error: 'AI boʻsh javob qaytardi.' }); return res.end();
+      }
+      save();
+      ev({ done: true, usage: { ai: us.ai }, limit: pl.ai });
+      return res.end();
+    }
     let reply;
     try {
       const maxTok = tool === 'mentor' && !can(u, 'mentor_adv') ? 700 : 1600;
@@ -721,6 +800,66 @@ async function api(req, res, pathname) {
   }
 
   return fail(res, 404, 'Topilmadi.');
+}
+
+/* ---- Telegram bot ---- */
+async function tgApi(method, payload) {
+  const r = await fetch(`${process.env.TG_API_BASE || "https://api.telegram.org"}/bot${TG_TOKEN}/${method}`, { method: 'POST', signal: AbortSignal.timeout(10000), headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload || {}) });
+  return r.json().catch(() => ({}));
+}
+const tgSay = (chat, text) => tgApi('sendMessage', { chat_id: chat, text: String(text).slice(0, 3900), disable_web_page_preview: true });
+function dayDiff(iso, today) { return Math.round((Date.parse(iso + 'T00:00:00Z') - Date.parse(today + 'T00:00:00Z')) / 864e5); }
+function upcomingFor(u, horizon = 30) {
+  let apps = []; try { apps = JSON.parse((u.data || {})['qabul:apps'] || '[]'); } catch (e) {}
+  const today = tashkentISO(), out = [];
+  for (const a of Array.isArray(apps) ? apps : []) {
+    if (!a || typeof a.n !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(a.d || '') || (a.s | 0) > 1) continue; // topshirilgan/yopilganlar uchun eslatma yoʻq
+    const days = dayDiff(a.d, today);
+    if (days >= 0 && days <= horizon) out.push({ n: a.n.slice(0, 80), d: a.d, days });
+  }
+  return out.sort((x, y) => x.days - y.days);
+}
+async function tgHandle(upd) {
+  const m = upd && upd.message; if (!m || !m.chat || m.chat.type !== 'private' || typeof m.text !== 'string') return;
+  const chat = m.chat.id, txt = m.text.trim(), [cmd, arg] = txt.split(/\s+/), c = cmd.split('@')[0].toLowerCase();
+  const me = Object.values(db.users).find(x => x.tgChat === chat);
+  if (c === '/start' && arg) {
+    const h = sha256(arg), u = Object.values(db.users).find(x => x.tgCode && x.tgCode.h === h && x.tgCode.exp > Date.now());
+    if (!u) return tgSay(chat, 'Kod eskirgan yoki notoʻgʻri. UniDoue → Profil bo‘limidan yangi havola oling.');
+    for (const x of Object.values(db.users)) if (x.tgChat === chat) delete x.tgChat;
+    u.tgChat = chat; delete u.tgCode; save();
+    return tgSay(chat, `Ulandi ✓ Salom, ${u.name || ''}! Ariza muddatlari yaqinlashganda (14, 7, 3 va 1 kun oldin) shu yerga eslatma yuboraman.\n\n/deadlines — yaqin muddatlar\n/stop — eslatmalarni oʻchirish`);
+  }
+  if (c === '/stop') { if (me) { delete me.tgChat; save(); } return tgSay(chat, 'Eslatmalar oʻchirildi. Qayta yoqish: UniDoue → Profil → Telegram.'); }
+  if (c === '/deadlines') {
+    if (!me) return tgSay(chat, 'Avval hisobni ulang: UniDoue → Profil → Telegram.');
+    const l = upcomingFor(me, 120);
+    return tgSay(chat, l.length ? 'Yaqin muddatlar:\n' + l.map(x => `• ${x.n}: ${x.d} (${x.days ? x.days + ' kun' : 'bugun'})`).join('\n') : 'Yaqin muddatli ariza yoʻq. Arizalaringizga muddat qoʻshing: unidoue.uz');
+  }
+  return tgSay(chat, me ? 'Buyruqlar: /deadlines, /stop' : 'UniDoue eslatma boti. Ulash uchun unidoue.uz → Profil → Telegram tugmasini bosing.');
+}
+let remindBusy = false;
+async function runReminders(force) {
+  if (!TG_TOKEN || remindBusy) return 0;
+  const hr = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Tashkent', hour: '2-digit', hour12: false }).format(new Date());
+  if (!force && (hr < 9 || hr >= 21)) return 0;
+  remindBusy = true; let sent = 0;
+  try {
+    for (const u of Object.values(db.users)) {
+      if (!u.tgChat) continue;
+      const sentMap = u.tgSent || (u.tgSent = {}), today = tashkentISO();
+      for (const k of Object.keys(sentMap)) if (sentMap[k] < today) delete sentMap[k];
+      for (const x of upcomingFor(u, 14)) {
+        if (![14, 7, 3, 1, 0].includes(x.days)) continue;
+        const key = x.n + '|' + x.d + '|' + x.days; if (sentMap[key]) continue;
+        const left = x.days === 0 ? 'BUGUN' : x.days === 1 ? 'ertaga' : x.days + ' kundan keyin';
+        const r = await tgSay(u.tgChat, `⏰ ${x.n}: ariza muddati ${left} (${x.d}).\nHujjatlar va esseni tekshirib chiqing. Aniq muddatni universitetning rasmiy saytidan tasdiqlang.`);
+        if (r && r.ok) { sentMap[key] = x.d; sent++; }
+        else if (r && r.error_code === 403) { delete u.tgChat; break; } // foydalanuvchi botni bloklagan
+      }
+    }
+  } finally { remindBusy = false; if (sent) save(); }
+  return sent;
 }
 
 async function notifyTelegram(r) {
@@ -760,6 +899,15 @@ function serveStatic(req, res, pathname) {
 /* ---------------- server ---------------- */
 let APP_ORIGIN = '', APP_HOST = '';
 try { if (process.env.APP_URL) { const u = new URL(process.env.APP_URL); APP_ORIGIN = u.origin; APP_HOST = u.host; } } catch (e) {}
+async function tgInit() {
+  if (!TG_TOKEN) return;
+  try {
+    const me = await tgApi('getMe'); TG_USER = (me.result && me.result.username) || '';
+    if (TG_USER && APP_ORIGIN && process.env.TG_WEBHOOK !== '0')
+      await tgApi('setWebhook', { url: APP_ORIGIN + '/api/tg/webhook', secret_token: TG_SECRET, allowed_updates: ['message'] });
+    console.log('Telegram bot:', TG_USER ? '@' + TG_USER : 'ulanmadi');
+  } catch (e) { console.error('Telegram init xatosi:', e.message); }
+}
 const server = http.createServer(async (req, res) => {
   try {
     const pathname = new URL(req.url, 'http://x').pathname;
@@ -782,5 +930,5 @@ const server = http.createServer(async (req, res) => {
     fail(res, 500, 'Server xatosi. Keyinroq urinib koʻring.');
   }
 });
-remoteInit().then(() => server.listen(PORT, HOST, () => console.log(`UniDoue http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  (data: ${DATA_DIR}${DATABASE_URL ? ', Neon' : ''})`)),
+remoteInit().then(() => server.listen(PORT, HOST, () => { console.log(`UniDoue http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  (data: ${DATA_DIR}${DATABASE_URL ? ', Neon' : ''})`); tgInit(); if (TG_TOKEN) setInterval(() => runReminders(false).catch(e => console.error('Eslatma xatosi', e.message)), 60 * 60 * 1000).unref(); }),
   e => { console.error('Neon bazasiga ulanib boʻlmadi — ustiga yozmaslik uchun toʻxtadim:', e.message); process.exit(1); });

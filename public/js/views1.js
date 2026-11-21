@@ -176,6 +176,7 @@ export async function profile(el) {
   <div class="grid" style="align-content:start"><section class="card"><h3>AI mentor xotirasi</h3><p class="sub">Mentor profilingizni eslab qolishi uchun ruxsat bering. Istalgan vaqtda o‘chirishingiz mumkin.</p>
     <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="p-cons" ${a.consent.mentorMemory ? 'checked' : ''} style="margin-top:4px"><span>Mentor GPA, SAT, IELTS, sinf va yo‘nalishimdan foydalanishiga ruxsat beraman. Ism va email yuborilmaydi.</span></label><div class="msg" id="p-cm"></div></section>
   <section class="card"><h3>Zaxira nusxa</h3><p class="sub">Ma’lumotlaringizni matn sifatida saqlab qo‘ying.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" id="p-ex">Nusxa olish</button><button class="btn sm" id="p-im">Tiklash</button></div><textarea id="p-bt" rows="3" style="margin-top:10px;min-height:70px" placeholder="Zaxira matni shu yerga"></textarea><div class="msg" id="p-bm"></div></section>
+  ${a.tg && a.tg.on ? `<section class="card"><h3>Telegram eslatmalar</h3><p class="sub">Ariza muddati yaqinlashganda (14, 7, 3 va 1 kun oldin) botimiz Telegramga yozadi.</p>${a.tg.linked ? '<p class="msg ok" style="display:block">Telegram ulangan ✓</p><button class="btn sm" id="tg-off">Uzish</button>' : '<button class="btn primary sm" id="tg-on">Telegramni ulash</button>'}<div class="msg" id="tg-m" role="status"></div></section>` : ''}
   <section class="card"><h3>Hisob</h3><p class="sub">${esc(S.user.email)}</p><button class="btn danger sm" id="p-del">Hisobni butunlay o‘chirish</button></section></div></div>`;
   $('#p-f', el).onsubmit = ev => {
     ev.preventDefault(); const g = id => $('#' + id, el).value.trim(), m = $('#p-m', el); m.className = 'msg err';
@@ -191,6 +192,16 @@ export async function profile(el) {
   const dumpTxt = () => { const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('qabul:') && k !== 'qabul:sync') o[k] = localStorage.getItem(k); } return JSON.stringify(o); };
   $('#p-ex', el).onclick = () => { const t = dumpTxt(); $('#p-bt', el).value = t; $('#p-bt', el).select(); try { navigator.clipboard.writeText(t); $('#p-bm', el).textContent = 'Nusxalandi.'; } catch (e) { $('#p-bm', el).textContent = 'Matnni qo‘lda nusxalang.'; } };
   $('#p-im', el).onclick = () => { const m = $('#p-bm', el); try { const o = JSON.parse($('#p-bt', el).value); let n = 0; for (const k in o) if (k.startsWith('qabul:') && k !== 'qabul:sync' && typeof o[k] === 'string') { ls.set(k, JSON.parse(o[k])); n++; } m.textContent = n ? 'Tiklandi: ' + n + ' ta yozuv.' : 'Zaxira topilmadi.'; } catch (e) { m.textContent = 'Matn noto‘g‘ri.'; } };
+  const tgOn = $('#tg-on', el), tgOff = $('#tg-off', el);
+  if (tgOn) tgOn.onclick = async () => {
+    const m = $('#tg-m', el); m.className = 'msg'; tgOn.disabled = true;
+    try {
+      const r = await api('/api/tg/link', 'POST', {}); window.open(r.link, '_blank', 'noopener'); m.textContent = 'Telegram ochildi: botda “Start” tugmasini bosing. Ulanish avtomatik aniqlanadi.';
+      for (let i = 0; i < 40; i++) { await new Promise(r2 => setTimeout(r2, 3000)); if (!el.isConnected) return; const me = await api('/api/me'); if (me.account.tg && me.account.tg.linked) { S.account = me.account; return profile(el); } }
+      m.textContent = 'Ulanish aniqlanmadi. Qayta urinib ko‘ring.'; tgOn.disabled = false;
+    } catch (e) { m.className = 'msg err'; m.textContent = e.message; tgOn.disabled = false; }
+  };
+  if (tgOff) tgOff.onclick = async () => { try { const r = await api('/api/tg/unlink', 'POST', {}); S.account = r.account; profile(el); } catch (e) { toast(e.message, 'err'); } };
   $('#p-del', el).onclick = async () => {
     const v = await modal({ title: 'Hisobni o‘chirasizmi?', body: '<p>Profil, natijalar, arizalar va so‘rovlaringiz butunlay o‘chadi. Qaytarib bo‘lmaydi. Tasdiqlash uchun parolingizni kiriting.</p><div class="field" style="margin-top:12px"><input id="dpw" type="password" autocomplete="current-password" placeholder="Parol"></div>', actions: [{ label: 'Bekor', value: 0 }, { label: 'O‘chirish', value: 1, cls: 'danger' }], collect: bg => ($('#dpw', bg) || {}).value });
     if (v !== 1) return;

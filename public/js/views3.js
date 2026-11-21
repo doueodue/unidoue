@@ -7,6 +7,37 @@ const left = () => S.account.limits.ai - S.account.usage.ai;
 /** Xavfsiz minimal formatlash: avval escape, keyin **qalin** va sarlavhalar. */
 const md = t => esc(t).replace(/^#{1,4}\s*(.+)$/gm, '<b>$1</b>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 
+/** Oqimli chaqiruv: matn kelib turganda onText(toʻliq matn) chaqiriladi. */
+async function streamAI(body, onText) {
+  let r;
+  try { r = await fetch('/api/ai', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, stream: true }) }); }
+  catch (e) { throw Object.assign(new Error('Serverga ulanib bo‘lmadi. Internetni tekshiring.'), { status: 0 }); }
+  if (!r.ok) {
+    let j = {}; try { j = await r.json(); } catch (e) {}
+    const err = Object.assign(new Error(j.error || 'Xatolik yuz berdi.'), { status: r.status, code: j.code, data: j });
+    if (err.code === 'AI_LIMIT') upsell('essay_adv', err.message + ' Limitni oshirish uchun tarifni yaxshilang.');
+    else if (err.code === 'PLAN_REQUIRED') upsell(err.data.feature);
+    throw err;
+  }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', text = '', fin = null;
+  for (;;) {
+    const { done, value } = await rd.read(); if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf('\n\n')) >= 0) {
+      const blk = buf.slice(0, i); buf = buf.slice(i + 2);
+      if (!blk.startsWith('data:')) continue;
+      let o; try { o = JSON.parse(blk.slice(5)); } catch (e) { continue; }
+      if (o.t) { text += o.t; onText(text); }
+      if (o.error) throw new Error(o.error);
+      if (o.done) fin = o;
+    }
+  }
+  if (!fin) { if (!text) throw new Error('AI javobi uzilib qoldi.'); fin = { usage: { ai: S.account.usage.ai + 0 } }; }
+  S.account.usage.ai = fin.usage.ai; document.dispatchEvent(new CustomEvent('unidoue:account'));
+  return { reply: text };
+}
+
 async function callAI(body) {
   try {
     const r = await api('/api/ai', 'POST', body);
@@ -84,7 +115,7 @@ export async function mentor(el) {
     ev.preventDefault(); const inp = $('#m-i', el), q = inp.value.trim(); if (!q) return;
     if (!acc.config.ai) { toast('AI hozircha ulanmagan.', 'err'); return; }
     inp.value = ''; hist.push({ role: 'user', content: q }); add('u', q); const wait = add('a', '…'); $('#m-s', el).disabled = true;
-    try { const r = await callAI({ tool: 'mentor', messages: hist }); hist.push({ role: 'assistant', content: r.reply }); wait.innerHTML = md(r.reply); $('.badge', el).textContent = left() + ' kredit qoldi'; }
+    try { const r = await streamAI({ tool: 'mentor', messages: hist }, t => { wait.innerHTML = md(t); wait.scrollIntoView({ block: 'nearest' }); }); hist.push({ role: 'assistant', content: r.reply }); wait.innerHTML = md(r.reply); $('.badge', el).textContent = left() + ' kredit qoldi'; }
     catch (e) { hist.pop(); wait.textContent = e.message; wait.style.color = 'var(--bad)'; }
     $('#m-s', el).disabled = false; inp.focus();
   };

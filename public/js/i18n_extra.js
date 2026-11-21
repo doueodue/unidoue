@@ -1,5 +1,14 @@
 /* Qoʻshimcha tarjimalar va dinamik (raqamli) matn qoidalari. Kalit: oʻzbekcha matn aynan shunday. */
 export const XRU = {
+ "Telegram eslatmalar": "Напоминания в Telegram",
+ "Ariza muddati yaqinlashganda (14, 7, 3 va 1 kun oldin) botimiz Telegramga yozadi.": "Когда срок подачи приближается (за 14, 7, 3 и 1 день), наш бот напишет вам в Telegram.",
+ "Telegram ulangan ✓": "Telegram подключён ✓",
+ "Uzish": "Отключить",
+ "Telegramni ulash": "Подключить Telegram",
+ "Telegram ochildi: botda “Start” tugmasini bosing. Ulanish avtomatik aniqlanadi.": "Telegram открыт: нажмите «Start» в боте. Подключение определится автоматически.",
+ "Ulanish aniqlanmadi. Qayta urinib ko‘ring.": "Подключение не определено. Попробуйте ещё раз.",
+ "AI javobi uzilib qoldi.": "Ответ ИИ прервался.",
+
  "Profilingiz 0% to‘liq. To‘liq profil universitet tavsiyalarini aniqroq qiladi.": "Ваш профиль заполнен на 0%. Полный профиль делает рекомендации университетов точнее.",
  "Profilni to‘ldirish": "Заполнить профиль",
  "AI mentordan so‘rash": "Спросить AI-ментора",
@@ -154,6 +163,15 @@ export const XRU = {
 };
 Object.assign(XRU, {"Salom,": "Здравствуйте,", "Graduategacha necha kun qoldi?": "Сколько дней до выпуска?", "Obuna holati": "Статус подписки", "Buyuk Britaniya hukumati (FCDO) va hamkor tashkilotlar": "Правительство Великобритании (FCDO) и партнёрские организации", "Koreya hukumati, NIIED": "Правительство Кореи, NIIED", "Turkiya hukumati": "Правительство Турции", "AI mentor hozircha ulanmagan: sayt egasi serverda AI kalitini sozlagach, shu yerda ishlaydi.": "AI-ментор пока не подключён: заработает здесь, когда владелец сайта настроит AI-ключ на сервере.", "Bitiruv sanasi": "Дата выпуска", "qidiruvi": "поиск", "taxminiy": "примерно", "Haqida": "О вузе", "SAT tekshirilgan": "SAT проверен", "Rasmiy manbadan": "Из официального источника", "Mamlakat": "Страна", "Xalqaro": "Международная", "Moliyalashtirish": "Финансирование", "Qisman": "Частичная", "Talablar:": "Требования:", "Rasmiy sahifa": "Официальная страница", "Summa:": "Сумма:", "Vengriya hukumati, Tempus Public Foundation": "Правительство Венгрии, Tempus Public Foundation", "Shveytsariya hukumati (SERI/FCS)": "Правительство Швейцарии (SERI/FCS)", "Oyiga 2 450 CHF.": "2 450 CHF в месяц.", "Gates Cambridge Trust, Kembrij universiteti": "Gates Cambridge Trust, Кембриджский университет", "Fransiya hukumati, Campus France": "Правительство Франции, Campus France", "solishtirish": "университетов", "Masalan: University of Toronto": "Например: University of Toronto", "xaritasi": "карта", "Tavsiyanomalar": "Рекомендательные письма", "Esse": "Эссе", "Telegramda yozing: @unidoue_yordam": "Напишите в Telegram: @unidoue_yordam", "Yozish": "Написать", "yordamchisi": "помощник", "Esse matni": "Текст эссе", "Tezkor tahlil (bepul)": "Быстрый анализ (бесплатно)", "Esseni shu yerga joylang (kamida 200 belgi)": "Вставьте эссе сюда (минимум 200 символов)", "AI hozircha ulanmagan.": "AI пока не подключён.", "Yuborish": "Отправить", "Pro vositalar": "Инструменты Pro", "Qabul strategiyasi (6)": "Стратегия поступления (6)", "Xizmat": "Услуга", "Esse tahlili": "Разбор эссе", "Boshqa": "Другое", "Izoh": "Комментарий", "Savolingizni yozing…": "Напишите свой вопрос…", "shaffof": "прозрачные", "Hisobingiz:": "Ваш тариф:", "qoldi.": "осталось.", "Mashhur": "Популярный", "/ oy": "/ мес.", "Shaxsiy qabul strategiyasi": "Личная стратегия поступления", "Chuqur esse tahlili": "Глубокий анализ эссе", "Ustuvor yordam": "Приоритетная поддержка", "mentor savoli": "вопрос ментору", "esse tahlili (oddiy / chuqur)": "анализ эссе (обычный / глубокий)", "Mening": "Мой", "Shaxsiy ma’lumot": "Личные данные", "Tavsiyalar shunga tayanadi.": "Рекомендации строятся на этом.", "Ism": "Имя", "Shahar": "Город", "Sinf": "Класс", "9-sinf": "9 класс", "10-sinf": "10 класс", "11-sinf": "11 класс", "Bitirganman": "Я выпускник", "Maqsad yili": "Целевой год", "Bitiruv (graduate) sanasi": "Дата выпуска (graduate)", "Bosh panelda “graduategacha necha kun qoldi” hisoblagichi chiqadi.": "На главной появится счётчик «сколько дней до выпуска».", "Olimpiada, loyiha, volontyorlik": "Олимпиады, проекты, волонтёрство", "Bir oz": "Немного", "Yaxshi": "Хорошо", "Juda kuchli": "Очень сильно", "Akademik yutuqlar": "Академические достижения", "Kiritilmagan": "Не указано", "Maktab olimpiadasi": "Школьная олимпиада", "Respublika / viloyat": "Республика / область", "AI mentor xotirasi": "Память AI-ментора", "Zaxira nusxa": "Резервная копия", "Nusxa olish": "Копировать", "Tiklash": "Восстановить", "Informatika, biznes…": "Информатика, бизнес…", "Zaxira matni shu yerga": "Вставьте текст резервной копии сюда", "Tekshirilgan": "Проверено"});
 export const XEN = {
+ "Telegram eslatmalar": "Telegram reminders",
+ "Ariza muddati yaqinlashganda (14, 7, 3 va 1 kun oldin) botimiz Telegramga yozadi.": "When an application deadline is close (14, 7, 3 and 1 day before), our bot will message you on Telegram.",
+ "Telegram ulangan ✓": "Telegram connected ✓",
+ "Uzish": "Disconnect",
+ "Telegramni ulash": "Connect Telegram",
+ "Telegram ochildi: botda “Start” tugmasini bosing. Ulanish avtomatik aniqlanadi.": "Telegram opened: press “Start” in the bot. The connection is detected automatically.",
+ "Ulanish aniqlanmadi. Qayta urinib ko‘ring.": "Connection not detected. Please try again.",
+ "AI javobi uzilib qoldi.": "The AI response was interrupted.",
+
  "Profilingiz 0% to‘liq. To‘liq profil universitet tavsiyalarini aniqroq qiladi.": "Your profile is 0% complete. A complete profile makes university recommendations more accurate.",
  "Profilni to‘ldirish": "Complete profile",
  "AI mentordan so‘rash": "Ask the AI mentor",
