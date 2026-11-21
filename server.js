@@ -15,6 +15,7 @@
  *  TRUST_PROXY=1                   — Render/Railway/nginx ortida: haqiqiy IP uchun X-Forwarded-For
  *  TG_BOT_TOKEN, TG_CHAT_ID        — mentor so'rovlari Telegramga tushishi uchun
  *  ADMIN_TOKEN                     — GET /api/admin/requests uchun (Authorization: Bearer ...)
+ *  USD_UZS_RATE, PAYME_*, CLICK_*     — (ixtiyoriy) onlayn toʻlov: Payme va Click. Batafsil: payments.js boshi va README
  */
 const http = require('node:http');
 const fs = require('node:fs');
@@ -33,10 +34,10 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-let db = { users: {}, sessions: {}, requests: [], resets: {} };
+let db = { users: {}, sessions: {}, requests: [], resets: {}, orders: {} };
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-  db = { users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {} };
+  db = { users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {} };
 } catch (e) {
   if (e.code !== 'ENOENT') {
     console.error('db.json oʻqib boʻlmadi — ustiga yozmaslik uchun toʻxtadim:', e.message);
@@ -78,7 +79,7 @@ async function remoteInit() {
   const rows = await sql("SELECT v FROM unidoue_kv WHERE k = 'db'");
   if (rows.length && rows[0].v) {
     const raw = typeof rows[0].v === 'string' ? JSON.parse(rows[0].v) : rows[0].v;
-    db = { users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {} };
+    db = { users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {} };
     reindex();
     console.log('Maʼlumotlar Neon bazasidan tiklandi:', Object.keys(db.users).length, 'ta hisob');
   } else {
@@ -291,12 +292,19 @@ function accountInfo(u) {
     plan: pl.id, planUntil: pl.id === 'free' ? null : (u.planUntil || null),
     limits: { ai: pl.ai, apps: pl.apps, finder: pl.finder, compare: pl.compare }, features: pl.features,
     usage: { ai: us.ai, period: us.p }, consent: { mentorMemory: !!(u.consent && u.consent.mentorMemory) },
-    config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: false },
+    config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: PAY.enabled, online: PAY.info() },
     tg: { on: !!(TG_TOKEN && TG_USER), linked: !!u.tgChat, bot: TG_USER },
     pay: { ref: payRef(u), info: PAY_INFO, requested: u.planReq || null, plan: u.planReqPlan || 'pro', price: (PLANS[u.planReqPlan] || PLANS.pro).price }
   };
 }
 const meBody = u => ({ user: publicUser(u), account: accountInfo(u), rev: u.rev || 0, hasData: !!(u.data && Object.keys(u.data).length), data: u.data || {} });
+
+/* ---- onlayn toʻlov: Payme + Click (payments.js). Kalitlar boʻlmasa oʻchiq, sayt qoʻlda toʻlovga qaytadi ---- */
+const PAY = require('./payments')({
+  getDb: () => db, save, PLANS, PLAN_ORDER, effPlan, sessionUser, send, fail, readJson, limited, clean,
+  notify: r => notifyTelegram(r),
+  appBase: req => process.env.APP_URL || (isHttps(req) ? 'https://' : 'http://') + req.headers.host
+});
 
 
 /* ---------------- AI soʻrovlarini tayyorlash ---------------- */
@@ -356,6 +364,11 @@ function buildAi(u, tool, b, deep) {
 /* ---------------- marshrutlar ---------------- */
 async function api(req, res, pathname) {
   const method = req.method;
+  // Payme / Click serverdan serverga chaqiradi: cookie, Origin yoki JSON sarlavhasi yoʻq. Himoya: Basic kalit (Payme) va MD5 imzo (Click)
+  if (pathname === '/api/pay/payme' || pathname === '/api/pay/click') {
+    if (method !== 'POST') return fail(res, 405, 'POST kerak.');
+    return PAY.webhook(req, res, pathname);
+  }
   if (method !== 'GET') {
     // CSRF: Origin boʻlsa, bizning host boʻlishi shart; JSON boʻlishi shart
     const origin = req.headers.origin;
@@ -571,8 +584,8 @@ async function api(req, res, pathname) {
   }
 
   if (pathname === '/api/plans' && method === 'GET') {
-    return send(res, 200, { plans: Object.values(PLANS).map(p => ({ id: p.id, name: p.name, price: p.price, ai: p.ai, apps: p.apps, finder: p.finder, compare: p.compare, features: p.features })),
-      config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: false } });
+    return send(res, 200, { plans: Object.values(PLANS).map(p => ({ id: p.id, name: p.name, price: p.price, uzs: PAY.uzsFor(p.id), ai: p.ai, apps: p.apps, finder: p.finder, compare: p.compare, features: p.features })),
+      config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: PAY.enabled, online: PAY.info() } });
   }
 
   if (pathname === '/api/plan/downgrade' && method === 'POST') {
@@ -594,6 +607,8 @@ async function api(req, res, pathname) {
     db.requests.push(r); if (db.requests.length > 5000) db.requests.shift(); save(); notifyTelegram(r);
     return send(res, 201, { ok: true });
   }
+
+  if (pathname.startsWith('/api/pay/') && await PAY.route(req, res, pathname, method)) return;
 
   if (pathname === '/api/plan/request' && method === 'POST') {
     const u = sessionUser(req);
@@ -682,6 +697,12 @@ async function api(req, res, pathname) {
     });
   }
 
+  if (pathname === '/api/admin/orders' && method === 'GET') {
+    if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
+    const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (!tok || !crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok)))) return fail(res, 401, 'Ruxsat yoʻq.');
+    return send(res, 200, { enabled: PAY.enabled, orders: PAY.adminList() });
+  }
   if (pathname === '/api/admin/plan' && method === 'POST') {
     if (limited('adm:' + ip, 20, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
     const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');

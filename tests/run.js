@@ -254,5 +254,155 @@ class Client {
     } catch (e) { failN++; console.log('XATO:', e); }
     vs.kill(); mm.close(); fs.rmSync(vd, { recursive: true, force: true });
   }
+  {
+    console.log('Onlayn toʻlov (Payme + Click)');
+    const stop = async (sp, dir) => { await new Promise(r => { sp.once('exit', r); sp.kill(); setTimeout(r, 2000); }); try { fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); } catch (e) {} };
+    // 1) kalitlar yoʻq: toʻlov oʻchiq, qoʻlda usul ishlaydi
+    {
+      const d = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), port = PORT + 8, NB = `http://localhost:${port}`;
+      const sp = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: port, DATA_DIR: d, ANTHROPIC_API_KEY: '', RESEND_API_KEY: '', BREVO_API_KEY: '', PAYME_KEY: '', CLICK_SECRET_KEY: '', USD_UZS_RATE: '' }, stdio: 'ignore' });
+      for (let i = 0; i < 40; i++) { try { if ((await fetch(NB + '/healthz')).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
+      try {
+        const rg = await fetch(NB + '/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'nopay@gmail.com', password: 'parol12345', name: 'NoPay' }) });
+        const ck = rg.headers.get('set-cookie').split(';')[0];
+        let j = await (await fetch(NB + '/api/plans')).json(); ok(j.config.payments === false && j.config.online === null, 'kalitsiz: toʻlov oʻchiq', j.config);
+        const cr = await fetch(NB + '/api/pay/create', { method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: ck }, body: JSON.stringify({ plan: 'plus', provider: 'payme' }) }); ok(cr.status === 503, 'kalitsiz: buyurtma yaratib boʻlmaydi', cr.status);
+        j = await (await fetch(NB + '/api/pay/payme', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"jsonrpc":"2.0","id":1,"method":"CheckTransaction","params":{"id":"x"}}' })).json();
+        ok(j.error && j.error.code === -32504, 'kalitsiz: Payme manzili ruxsat bermaydi', j);
+      } catch (e) { failN++; console.log('XATO:', e); }
+      await stop(sp, d);
+    }
+    // 2) kalitlar bilan
+    const pd = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), pp = PORT + 6, PB = `http://localhost:${pp}`;
+    const ps = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: pp, DATA_DIR: pd, ANTHROPIC_API_KEY: '', RESEND_API_KEY: '', BREVO_API_KEY: '', ADMIN_TOKEN: 'adm-secret', APP_URL: 'https://unidoue.uz', USD_UZS_RATE: '12700', PAYME_MERCHANT_ID: 'merch123', PAYME_KEY: 'payme-secret', CLICK_SERVICE_ID: '555', CLICK_MERCHANT_ID: '777', CLICK_SECRET_KEY: 'click-secret' }, stdio: 'ignore' });
+    for (let i = 0; i < 40; i++) { try { if ((await fetch(PB + '/healthz')).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
+    const mkc = () => { let ck = ''; return async (m, u, bd) => { const r = await fetch(PB + u, { method: m, headers: { ...(bd ? { 'Content-Type': 'application/json' } : {}), ...(ck ? { Cookie: ck } : {}) }, body: bd ? JSON.stringify(bd) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) ck = sc.split(';')[0]; let j = null; try { j = await r.json(); } catch (e) {} return { s: r.status, j }; }; };
+    const PAYME_AUTH = 'Basic ' + Buffer.from('Paycom:payme-secret').toString('base64');
+    let rpcId = 0;
+    const pm = async (method, params, auth = PAYME_AUTH) => (await fetch(PB + '/api/pay/payme', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(auth ? { Authorization: auth } : {}) }, body: JSON.stringify({ jsonrpc: '2.0', id: ++rpcId, method, params }) })).json();
+    const md5 = x => require('node:crypto').createHash('md5').update(x).digest('hex');
+    const click = async (o) => {
+      const q = { click_trans_id: '9001', service_id: '555', click_paydoc_id: '1', merchant_trans_id: '', amount: '38000.00', action: '0', error: '0', error_note: 'Success', sign_time: '2026-11-21 12:00:00', ...o };
+      if (!o.sign_string) q.sign_string = md5(q.click_trans_id + q.service_id + 'click-secret' + q.merchant_trans_id + (q.action === '1' ? (q.merchant_prepare_id || '') : '') + q.amount + q.action + q.sign_time);
+      return (await fetch(PB + '/api/pay/click', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(q).toString() })).json();
+    };
+    try {
+      const u = mkc();
+      let q = await u('POST', '/api/register', { email: 'payer@gmail.com', password: 'parol12345', name: 'Payer' });
+      q = await u('GET', '/api/plans');
+      const plus = q.j.plans.find(x => x.id === 'plus'), pro = q.j.plans.find(x => x.id === 'pro');
+      ok(q.j.config.payments === true && q.j.config.online.payme && q.j.config.online.click, 'kalitlar bilan: toʻlov yoqilgan', q.j.config);
+      ok(plus.uzs === 38000 && pro.uzs === 63000 && q.j.plans[0].uzs === 0, 'soʻm narxi dollardan hisoblanadi (1000 gacha yaxlitlash)', [plus.uzs, pro.uzs]);
+      q = await mkc()('POST', '/api/pay/create', { plan: 'plus', provider: 'payme' }); ok(q.s === 401, 'kirmagan foydalanuvchi buyurtma yarata olmaydi', q.s);
+      q = await u('POST', '/api/pay/create', { plan: 'free', provider: 'payme' }); ok(q.s === 400, 'free uchun toʻlov yoʻq', q.s);
+      q = await u('POST', '/api/pay/create', { plan: 'plus', provider: 'stripe' }); ok(q.s === 400, 'nomaʼlum provayder rad etiladi', q.s);
+      q = await u('POST', '/api/pay/create', { plan: 'plus', provider: 'payme' }); ok(q.s === 201 && /^[a-f0-9]{16}$/.test(q.j.order.id), 'Payme buyurtmasi yaratildi', q);
+      const o1 = q.j.order.id, pu = q.j.url;
+      ok(pu.startsWith('https://checkout.paycom.uz/'), 'Payme checkout manzili', pu);
+      const dec = Buffer.from(pu.split('/').pop(), 'base64').toString();
+      ok(dec === `m=merch123;ac.order_id=${o1};a=3800000;l=uz;c=https://unidoue.uz/app#/pricing?paid=${o1};cr=860`, 'Payme parametrlari (tiyinda)', dec);
+      q = await u('POST', '/api/pay/create', { plan: 'plus', provider: 'payme' }); ok(q.j.order.id === o1, 'ishlatilmagan buyurtma qayta ishlatiladi', q.j);
+      q = await u('POST', '/api/pay/create', { plan: 'pro', provider: 'click' });
+      const oc = q.j.order.id, cu = new URL(q.j.url);
+      ok(cu.origin + cu.pathname === 'https://my.click.uz/services/pay' && cu.searchParams.get('service_id') === '555' && cu.searchParams.get('merchant_id') === '777' && cu.searchParams.get('amount') === '63000' && cu.searchParams.get('transaction_param') === oc, 'Click toʻlov manzili', q.j.url);
+
+      // --- Payme: kirish va xatolar
+      let r = await pm('CheckPerformTransaction', { amount: 3800000, account: { order_id: o1 } }, null); ok(r.error && r.error.code === -32504 && r.id === rpcId, 'Payme: Authorization yoʻq → -32504', r);
+      r = await pm('CheckPerformTransaction', { amount: 3800000, account: { order_id: o1 } }, 'Basic ' + Buffer.from('Paycom:wrong').toString('base64')); ok(r.error && r.error.code === -32504, 'Payme: notoʻgʻri kalit → -32504', r);
+      r = await pm('Nope', {}); ok(r.error && r.error.code === -32601, 'Payme: nomaʼlum usul → -32601', r);
+      r = await (await fetch(PB + '/api/pay/payme', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: PAYME_AUTH }, body: '{bad' })).json(); ok(r.error && r.error.code === -32700, 'Payme: buzilgan JSON → -32700', r);
+      r = await pm('CheckPerformTransaction', { amount: 3800000, account: { order_id: 'ffffffffffffffff' } }); ok(r.error && r.error.code === -31050 && r.error.data === 'order_id' && r.error.message.uz && r.error.message.ru && r.error.message.en, 'Payme: buyurtma yoʻq → -31050 (3 tilda)', r);
+      r = await pm('CheckPerformTransaction', { amount: 100, account: { order_id: o1 } }); ok(r.error && r.error.code === -31001, 'Payme: summa notoʻgʻri → -31001', r);
+      r = await pm('CheckPerformTransaction', { amount: 3800000, account: { order_id: oc } }); ok(r.error && r.error.code === -31050, 'Payme: Click buyurtmasi Payme’da topilmaydi', r);
+      r = await pm('CheckPerformTransaction', { amount: 3800000, account: { order_id: o1 } }); ok(r.result && r.result.allow === true, 'Payme: CheckPerformTransaction → allow', r);
+
+      // --- Payme: yaratish / bajarish
+      r = await pm('CreateTransaction', { id: 'tx-1', time: Date.now(), amount: 3800000, account: { order_id: o1 } });
+      ok(r.result && r.result.state === 1 && r.result.transaction === o1 && r.result.create_time > 0, 'Payme: CreateTransaction', r);
+      const ct = r.result.create_time;
+      r = await pm('CreateTransaction', { id: 'tx-1', time: Date.now(), amount: 3800000, account: { order_id: o1 } }); ok(r.result && r.result.create_time === ct, 'Payme: CreateTransaction takror → bir xil natija', r);
+      r = await pm('CreateTransaction', { id: 'tx-2', time: Date.now(), amount: 3800000, account: { order_id: o1 } }); ok(r.error && r.error.code === -31099, 'Payme: band buyurtmaga ikkinchi tranzaksiya → -31099', r);
+      r = await pm('CheckTransaction', { id: 'tx-1' }); ok(r.result && r.result.state === 1 && r.result.perform_time === 0 && r.result.reason === null, 'Payme: CheckTransaction (kutilmoqda)', r);
+      q = await u('GET', '/api/me'); ok(q.j.account.plan === 'free', 'toʻlovdan oldin tarif oʻzgarmagan', q.j.account.plan);
+      r = await pm('PerformTransaction', { id: 'nope' }); ok(r.error && r.error.code === -31003, 'Payme: tranzaksiya yoʻq → -31003', r);
+      r = await pm('PerformTransaction', { id: 'tx-1' }); ok(r.result && r.result.state === 2 && r.result.perform_time > 0, 'Payme: PerformTransaction', r);
+      const perf = r.result.perform_time;
+      q = await u('GET', '/api/me');
+      ok(q.j.account.plan === 'plus' && Math.abs(q.j.account.planUntil - (Date.now() + 30 * 864e5)) < 60000, 'toʻlovdan keyin Plus 30 kunga yoqildi', [q.j.account.plan, q.j.account.planUntil]);
+      r = await pm('PerformTransaction', { id: 'tx-1' }); ok(r.result && r.result.perform_time === perf, 'Payme: PerformTransaction takror → bir xil (kuni uzaymaydi)', r);
+      q = await u('GET', '/api/me'); const until1 = q.j.account.planUntil; ok(Math.abs(until1 - (Date.now() + 30 * 864e5)) < 60000, 'takror Perform muddatni uzaytirmaydi');
+      r = await pm('CheckPerformTransaction', { amount: 3800000, account: { order_id: o1 } }); ok(r.error && r.error.code === -31051, 'Payme: toʻlangan buyurtma → -31051', r);
+      r = await pm('CreateTransaction', { id: 'tx-9', time: Date.now(), amount: 3800000, account: { order_id: o1 } }); ok(r.error && r.error.code === -31051, 'Payme: toʻlangan buyurtmaga yangi tranzaksiya yaratib boʻlmaydi', r);
+      r = await pm('GetStatement', { from: Date.now() - 60000, to: Date.now() + 60000 }); ok(r.result && r.result.transactions.length === 1 && r.result.transactions[0].id === 'tx-1' && r.result.transactions[0].account.order_id === o1 && r.result.transactions[0].amount === 3800000, 'Payme: GetStatement', r);
+      q = await u('GET', '/api/pay/order?id=' + o1); ok(q.s === 200 && q.j.state === 'paid' && q.j.plan === 'plus', 'buyurtma holati: paid', q);
+      q = await mkc()('GET', '/api/pay/order?id=' + o1); ok(q.s === 401, 'buyurtma holatini begona koʻra olmaydi (kirmagan)', q.s);
+      { const o = mkc(); await o('POST', '/api/register', { email: 'other@gmail.com', password: 'parol12345', name: 'Other' }); q = await o('GET', '/api/pay/order?id=' + o1); ok(q.s === 404, 'boshqa foydalanuvchi buyurtmasi → 404', q.s); }
+
+      // --- yangilash: Plus faol, yana Plus → muddat uzayadi
+      q = await u('POST', '/api/pay/create', { plan: 'plus', provider: 'payme' }); const o2 = q.j.order.id; ok(o2 !== o1, 'yangi buyurtma (eskisi toʻlangan)');
+      await pm('CreateTransaction', { id: 'tx-3', time: Date.now(), amount: 3800000, account: { order_id: o2 } });
+      r = await pm('PerformTransaction', { id: 'tx-3' }); ok(r.result && r.result.state === 2, 'Payme: ikkinchi toʻlov');
+      q = await u('GET', '/api/me'); ok(Math.abs(q.j.account.planUntil - (until1 + 30 * 864e5)) < 60000, 'faol tarif yangilansa, 30 kun qoʻshiladi (jami ~60)', q.j.account.planUntil);
+      // --- qaytarish: bekor qilingan toʻlov muddati qaytariladi
+      r = await pm('CancelTransaction', { id: 'tx-3', reason: 5 }); ok(r.result && r.result.state === -2 && r.result.cancel_time > 0, 'Payme: bajarilgan toʻlovni bekor qilish → -2', r);
+      q = await u('GET', '/api/me'); ok(q.j.account.plan === 'plus' && Math.abs(q.j.account.planUntil - until1) < 60000, 'bekor qilingach qoʻshilgan 30 kun olib tashlanadi', q.j.account.planUntil);
+      r = await pm('CheckTransaction', { id: 'tx-3' }); ok(r.result.state === -2 && r.result.reason === 5, 'Payme: CheckTransaction (qaytarilgan)', r);
+      r = await pm('CancelTransaction', { id: 'tx-3', reason: 5 }); ok(r.result && r.result.state === -2, 'Payme: takroriy bekor → bir xil natija');
+      r = await pm('CancelTransaction', { id: 'nope', reason: 1 }); ok(r.error && r.error.code === -31003, 'Payme: CancelTransaction, tranzaksiya yoʻq → -31003', r);
+      // --- kutilayotgan tranzaksiyani bekor qilish
+      q = await u('POST', '/api/pay/create', { plan: 'plus', provider: 'payme' }); const oStale = q.j.order.id;
+      q = await u('POST', '/api/pay/create', { plan: 'plus', provider: 'click' }); const oStaleC = q.j.order.id;
+      q = await u('POST', '/api/pay/create', { plan: 'pro', provider: 'payme' }); const o3 = q.j.order.id;
+      await pm('CreateTransaction', { id: 'tx-4', time: Date.now(), amount: 6300000, account: { order_id: o3 } });
+      r = await pm('CancelTransaction', { id: 'tx-4', reason: 3 }); ok(r.result && r.result.state === -1, 'Payme: kutilayotgan tranzaksiya bekor (-1)', r);
+      r = await pm('PerformTransaction', { id: 'tx-4' }); ok(r.error && r.error.code === -31008, 'Payme: bekor qilinganini bajarib boʻlmaydi → -31008', r);
+      r = await pm('CreateTransaction', { id: 'tx-5', time: Date.now(), amount: 6300000, account: { order_id: o3 } }); ok(r.result && r.result.state === 1, 'Payme: bekor qilingandan keyin shu buyurtmaga yangi tranzaksiya mumkin', r);
+      r = await pm('PerformTransaction', { id: 'tx-5' }); ok(r.result && r.result.state === 2, 'Payme: Pro toʻlovi');
+      q = await u('GET', '/api/me'); ok(q.j.account.plan === 'pro', 'Plus → Pro yangilandi', q.j.account.plan);
+      q = await u('POST', '/api/pay/create', { plan: 'plus', provider: 'click' }); ok(q.s === 400, 'Pro egasi Plus sotib ola olmaydi', q.s);
+      r = await pm('CheckPerformTransaction', { amount: 3800000, account: { order_id: oStale } }); ok(r.error && r.error.code === -31051, 'Payme: Pro egasiga eski Plus buyurtmasi toʻlanmaydi (-31051)', r);
+      const c0 = await click({ merchant_trans_id: oStaleC, amount: '38000.00' }); ok(c0.error === -9, 'Click: Pro egasiga eski Plus buyurtmasi toʻlanmaydi (-9)', c0);
+
+      // --- Click
+      let c = await click({ merchant_trans_id: oc, sign_string: '0'.repeat(32) }); ok(c.error === -1, 'Click: notoʻgʻri imzo → -1', c);
+      c = await click({ merchant_trans_id: oc, amount: '100.00' }); ok(c.error === -2, 'Click: summa notoʻgʻri → -2', c);
+      c = await click({ merchant_trans_id: 'ffffffffffffffff', amount: '63000.00' }); ok(c.error === -5, 'Click: buyurtma yoʻq → -5', c);
+      c = await click({ merchant_trans_id: o1, amount: '38000.00' }); ok(c.error === -5, 'Click: Payme buyurtmasi Click’da topilmaydi → -5', c);
+      c = await click({ merchant_trans_id: oc, amount: '63000.00', action: '7' }); ok(c.error === -3, 'Click: nomaʼlum action → -3', c);
+      c = await click({ merchant_trans_id: oc, amount: '63000.00', service_id: '999' }); ok(c.error === -8, 'Click: boshqa service_id → -8', c);
+      c = await click({ merchant_trans_id: oc, amount: '63000.00' });
+      ok(c.error === 0 && c.merchant_trans_id === oc && Number.isInteger(c.merchant_prepare_id), 'Click: Prepare', c);
+      const prep = String(c.merchant_prepare_id);
+      c = await click({ merchant_trans_id: oc, amount: '63000.00', action: '1', merchant_prepare_id: '1' }); ok(c.error === -6, 'Click: Complete, prepare id notoʻgʻri → -6', c);
+      c = await click({ merchant_trans_id: oc, amount: '63000.00', action: '1', merchant_prepare_id: prep, error: '-5017' }); ok(c.error === -9, 'Click: Click tomonida xato → -9', c);
+      q = await u('GET', '/api/pay/order?id=' + oc); ok(q.j.state === 'new', 'Click xatosidan keyin buyurtma toʻlanmagan');
+      c = await click({ merchant_trans_id: oc, amount: '63000.00' }); const prep2 = String(c.merchant_prepare_id); ok(c.error === 0, 'Click: qayta Prepare');
+      c = await click({ merchant_trans_id: oc, amount: '63000.00', action: '1', merchant_prepare_id: prep2 });
+      ok(c.error === 0 && c.merchant_confirm_id, 'Click: Complete', c);
+      c = await click({ merchant_trans_id: oc, amount: '63000.00', action: '1', merchant_prepare_id: prep2 }); ok(c.error === -4, 'Click: takroriy Complete → -4 (kun uzaymaydi)', c);
+      c = await click({ merchant_trans_id: oc, amount: '63000.00' }); ok(c.error === -4, 'Click: toʻlangan buyurtmaga Prepare → -4', c);
+      q = await u('GET', '/api/me'); ok(q.j.account.plan === 'pro' && Math.abs(q.j.account.planUntil - (Date.now() + 30 * 864e5)) > 25 * 864e5, 'Click orqali Pro yangilandi (muddat uzaydi)', q.j.account.planUntil);
+      q = await u('GET', '/api/pay/order?id=' + oc); ok(q.j.state === 'paid', 'Click buyurtmasi paid');
+      // JSON tanasi ham qabul qilinadi
+      { const body = { click_trans_id: '9100', service_id: '555', merchant_trans_id: oc, amount: '63000', action: '0', sign_time: 'x' }; body.sign_string = md5('9100' + '555' + 'click-secret' + oc + '63000' + '0' + 'x');
+        const j = await (await fetch(PB + '/api/pay/click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })).json(); ok(j.error === -4, 'Click: JSON tanasi ham ishlaydi', j); }
+
+      // --- administrator
+      q = await mkc()('GET', '/api/admin/orders'); ok(q.s === 401, 'admin buyurtmalari tokensiz → 401', q.s);
+      q = await (await fetch(PB + '/api/admin/orders', { headers: { Authorization: 'Bearer adm-secret' } })).json();
+      ok(q.enabled === true && q.orders.length >= 4 && q.orders.some(x => x.id === oc && x.state === 'paid' && x.email === 'payer@gmail.com') && !JSON.stringify(q).includes('payme-secret'), 'admin buyurtmalar roʻyxati', q.orders && q.orders.length);
+      // vebhuk GET ni qabul qilmaydi
+      q = await fetch(PB + '/api/pay/click'); ok(q.status === 405, 'vebhuk faqat POST', q.status);
+    } catch (e) { failN++; console.log('XATO:', e); }
+    await stop(ps, pd);
+    // kurs yoʻq boʻlsa toʻlov yoqilmaydi
+    {
+      const d = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), port = PORT + 7;
+      const sp = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: port, DATA_DIR: d, ANTHROPIC_API_KEY: '', PAYME_MERCHANT_ID: 'm', PAYME_KEY: 'k', USD_UZS_RATE: '' }, stdio: 'ignore' });
+      for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${port}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
+      try { const j = await (await fetch(`http://localhost:${port}/api/plans`)).json(); ok(j.config.payments === false, 'kurs sozlanmasa toʻlov yoqilmaydi', j.config); } catch (e) { failN++; console.log('XATO:', e); }
+      await stop(sp, d);
+    }
+  }
   console.log(`\n${pass} ta oʻtdi, ${failN} ta yiqildi`); process.exit(failN ? 1 : 0);
 })();

@@ -130,8 +130,9 @@ const FEAT = {
   pro: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Shaxsiy qabul strategiyasi', 'Chuqur esse tahlili', 'Universitet hisobotlari', '4 ta universitetni solishtirish', '300 AI kredit / oy', 'Ustuvor yordam']
 };
 const ORDER = { free: 0, plus: 1, pro: 2 };
-function payBox(a, cur) {
+function payBox(a, cur, online) {
   const pay = a.pay || {};
+  if (cur !== 'free' && online) return a.planUntil ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>${cur === 'pro' ? 'Pro' : 'Plus'} faol.</b> Amal qilish muddati: <b>${new Date(a.planUntil).toLocaleDateString('uz-UZ')}</b> gacha. Uzaytirish uchun pastdagi tugmalardan foydalaning.</div></div>` : '';
   if (cur !== 'free') return a.planUntil ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>${cur === 'pro' ? 'Pro' : 'Plus'} faol.</b> Amal qilish muddati: <b>${new Date(a.planUntil).toLocaleDateString('uz-UZ')}</b> gacha. Uzaytirish uchun to‘lovdan keyin <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing.</div></div>` : '';
   if (!pay.requested) return '';
   const info = pay.info ? `Karta: <b>${esc(pay.info.card)}</b>${pay.info.holder ? ' (' + esc(pay.info.holder) + ')' : ''}. ` : 'To‘lov rekvizitlarini olish uchun ';
@@ -141,18 +142,50 @@ function payBox(a, cur) {
     <li>Chekni (skrinshot) <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yuboring va hisob emailingizni ayting: <b>${esc(S.user.email)}</b></li></ol>
     <p class="hint">Odatda tekshirish va yoqish bir necha soat ichida bo‘ladi.</p></div>`;
 }
+/** Payme/Click sahifasidan qaytgach: buyurtma holatini tekshiramiz (provayder serverimizga xabar bergunicha bir necha soniya ketishi mumkin). */
+async function checkPaid(el, id) {
+  const box = document.createElement('div'); box.className = 'notice info'; box.style.marginBottom = '18px'; box.setAttribute('role', 'status');
+  const show = html => { box.innerHTML = svg('info') + '<div>' + html + '</div>'; };
+  show('<b>To‘lov tekshirilmoqda…</b> Bir necha soniya kuting.');
+  (el.querySelector('.page-h') || el.firstChild).after(box);
+  for (let i = 0; i < 20; i++) {
+    let r; try { r = await api('/api/pay/order?id=' + id); } catch (e) { box.remove(); return; }
+    if (!el.isConnected) return;
+    if (r.state === 'paid') {
+      history.replaceState(null, '', '#/pricing'); await refreshAccount(); accountChanged(); toast('To‘lov qabul qilindi. Tarif yoqildi ✓'); return pricing(el);
+    }
+    if (r.state !== 'new') { history.replaceState(null, '', '#/pricing'); show('<b>Bu buyurtma yopilgan.</b> Yangi to‘lov uchun tarifni qayta tanlang.'); return; }
+    await new Promise(r2 => setTimeout(r2, 2000));
+  }
+  show(`<b>To‘lov hali tasdiqlanmadi.</b> Agar pul yechilgan bo‘lsa, tarif bir necha daqiqada yoqiladi. Yoqilmasa <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing va buyurtma kodini ayting: <b>${esc(id)}</b>. <button class="btn sm" id="pay-recheck" type="button" style="margin-left:6px">Qayta tekshirish</button>`);
+  const rb = $('#pay-recheck', box); if (rb) rb.onclick = () => { box.remove(); checkPaid(el, id); };
+}
 export async function pricing(el) {
   const { plans, config } = await api('/api/plans'); await refreshAccount(); const cur = S.account.plan;
+  const online = config.payments && config.online ? config.online : null;
+  const payButtons = (p, renew) => `<div class="paybtns"><div class="hint">${renew ? 'Muddatni 30 kunga uzaytirish' : '30 kunlik tarif'}</div>
+    ${online.payme ? `<button class="btn ${p.id === 'pro' ? 'primary' : 'dark'}" style="width:100%" data-pay="${p.id}" data-prov="payme">Payme orqali to‘lash</button>` : ''}${online.click ? `<button class="btn" style="width:100%" data-pay="${p.id}" data-prov="click">Click orqali to‘lash</button>` : ''}</div>`;
   el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b>${S.account.limits.ai - S.account.usage.ai} / ${S.account.limits.ai}</b> qoldi.</p></div></div>
-  ${payBox(S.account, cur)}
-  ${config.payments ? '' : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov qo‘lda qabul qilinadi.</b> So‘rov yuboring, to‘lov ko‘rsatmasini olasiz. Administrator to‘lovni tekshirib, tarifni qo‘lda yoqadi. Tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
-  <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === 'pro' ? 'feat' : ''}">${p.id === 'pro' ? '<span class="badge pop">Mashhur</span>' : ''}<div><h3>${p.name}</h3></div><div class="price">$${p.price === 0 ? '0' : p.price.toFixed(2)}<small>${p.price ? ' / oy' : ''}</small></div>
+  ${payBox(S.account, cur, !!online)}
+  ${config.payments ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>Karta bilan to‘lash.</b> To‘lov Payme yoki Click sahifasida amalga oshadi, karta ma’lumotlari UniDoue’ga berilmaydi. Tarif to‘lovdan keyin darhol yoqiladi va 30 kun amal qiladi, avtomatik yechilmaydi. Yuqoriroq tarifga o‘tsangiz, yangi 30 kun to‘lovdan boshlab hisoblanadi.</div></div>` : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov qo‘lda qabul qilinadi.</b> So‘rov yuboring, to‘lov ko‘rsatmasini olasiz. Administrator to‘lovni tekshirib, tarifni qo‘lda yoqadi. Tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
+  <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === 'pro' ? 'feat' : ''}">${p.id === 'pro' ? '<span class="badge pop">Mashhur</span>' : ''}<div><h3>${p.name}</h3></div><div class="price">$${p.price === 0 ? '0' : p.price.toFixed(2)}<small>${p.price ? ' / oy' : ''}</small></div>${online && p.uzs ? `<div class="uzs"><b>${p.uzs.toLocaleString('en-US').replace(/,/g, ' ')}</b> <span>so‘m / oy</span></div>` : ''}
     <ul>${FEAT[p.id].map(f => `<li>${f}</li>`).join('')}</ul><div style="margin-top:auto">${
-      p.id === cur ? '<button class="btn" disabled style="width:100%">Joriy tarif</button>'
+      p.id === cur ? (online && cur !== 'free' && S.account.planUntil ? payButtons(p, true) : '<button class="btn" disabled style="width:100%">Joriy tarif</button>')
       : ORDER[p.id] < ORDER[cur] ? `<button class="btn" style="width:100%" data-down="${p.id}">${p.name} ga o‘tish</button>`
-      : `<button class="btn ${p.id === 'pro' ? 'primary' : 'dark'}" style="width:100%" data-up="${p.id}">${p.name} uchun so‘rov yuborish</button>`}</div></section>`).join('')}</div>
+      : online ? payButtons(p, false) : `<button class="btn ${p.id === 'pro' ? 'primary' : 'dark'}" style="width:100%" data-up="${p.id}">${p.name} uchun so‘rov yuborish</button>`}</div></section>`).join('')}</div>
   <div class="card" style="margin-top:18px"><h3>AI kredit qanday sarflanadi</h3><p class="sub">Limit har oy yangilanadi. Xatolik bo‘lsa, kredit yechilmaydi.</p><div class="row"><div class="stat"><b>1</b><span>mentor savoli</span></div><div class="stat"><b>2 / 4</b><span>esse tahlili (oddiy / chuqur)</span></div><div class="stat"><b>6</b><span>strategiya yoki hisobot</span></div></div></div>
   <p class="hint" style="margin-top:14px">Qabul natijasi hech bir tarifda kafolatlanmaydi. Narxlar AQSh dollarida.</p>`;
+  $$('[data-pay]', el).forEach(b => (b.onclick = async () => {
+    const all = $$('[data-pay]', el), old = b.textContent; all.forEach(x => (x.disabled = true)); b.textContent = 'Yo‘naltirilmoqda…';
+    try {
+      const r = await api('/api/pay/create', 'POST', { plan: b.dataset.pay, provider: b.dataset.prov });
+      addEventListener('pageshow', ev => { if (ev.persisted && el.isConnected) pricing(el); }, { once: true }); // orqaga qaytilsa tugmalar qayta ochiladi
+      location.href = r.url; return;
+    } catch (e) { toast(e.message, 'err'); }
+    all.forEach(x => (x.disabled = false)); b.textContent = old;
+  }));
+  const back = new URLSearchParams(location.hash.split('?')[1] || '').get('paid');
+  if (online && /^[a-f0-9]{16}$/.test(back || '')) checkPaid(el, back);
   $$('[data-up]', el).forEach(b => (b.onclick = async () => { b.disabled = true; try { const r = await api('/api/plan/request', 'POST', { plan: b.dataset.up }); S.account = r.account; toast('So‘rov yuborildi. To‘lov ko‘rsatmasi sahifada.'); pricing(el); return; } catch (e) { toast(e.message, 'err'); } b.disabled = false; }));
   $$('[data-down]', el).forEach(b => (b.onclick = async () => {
     if ((await modal({ title: 'Tarifni pasaytirasizmi?', body: '<p>Yuqori tarif imkoniyatlari darhol o‘chadi. Ma’lumotlaringiz saqlanadi, lekin arizalar limiti oshgan bo‘lsa yangilari qo‘shilmaydi.</p>', actions: [{ label: 'Bekor', value: 0 }, { label: 'Pasaytirish', value: 1, cls: 'danger' }] })) !== 1) return;

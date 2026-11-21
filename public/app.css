@@ -358,3 +358,7 @@ html[data-theme=dark] .lang-seg{background:rgba(255,255,255,.07);box-shadow:inse
 .md .tbl tr:last-child td{border-bottom:0}
 html[data-theme=dark] .md code{background:rgba(255,255,255,.1)}
 html[data-theme=dark] .md pre{background:rgba(255,255,255,.07)}
+
+/* Onlayn toʻlov (Payme / Click) */
+.plan .uzs{margin-top:-8px;font-size:14px;color:var(--muted)}.plan .uzs b{color:var(--ink);font-weight:650;font-size:16px}
+.paybtns{display:grid;gap:8px}.paybtns .hint{margin:0;text-align:center}
