@@ -237,15 +237,16 @@ async function act(d, el) {
 }
 
 /* ---------- kirish nuqtasi ---------- */
+const emTitle = x => { const y = tr(x), i = y.lastIndexOf(' '); return i < 0 ? '<em>' + esc(y) + '</em>' : esc(y.slice(0, i)) + ' <em>' + esc(y.slice(i + 1)) + '</em>'; };
 export async function portfolio(el) {
-  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=44'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
+  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=46'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
   Object.keys(st).forEach(k => delete st[k]);
   const saved = ls.get(KEY, null), fresh = !saved;
   Object.assign(st, { el, pf: normalize(saved), imgs: {}, tab: 'build', step: 0, open: new Set(['about']), pick: new Set(), read: new Set(), last: JSON.stringify(normalize(saved || emptyPf())) });
   if (fresh) st.pf = seedFromProfile(emptyPf(), ls.get('qabul:profile', {}), ls.get('qabul:p', {}), ls.get('qabul:apps', []), 'en');
   st.mode = canExport(st.pf) && !fresh ? 'edit' : 'ask';
   await Promise.all(st.pf.att.map(async a => { const v = await store.get(a.id); if (v && v.url) st.imgs[a.id] = v; }));
-  el.innerHTML = `<div class="page-h"><div><h2>Portfolio <em>quruvchi</em></h2><p>Yutuqlaringizni bir hujjatga jamlang: PDF, Word yoki veb-sahifa. Sayt kerakli ma’lumotni so‘raydi, rasmlaringizni o‘qiydi va portfolioni baholaydi.</p></div><span class="badge" data-cr="badge">${credits().left} / ${credits().limit} kredit qoldi</span></div>
+  el.innerHTML = `<div class="page-h"><div><h2>${emTitle('Portfolio quruvchi')}</h2><p>Yutuqlaringizni bir hujjatga jamlang: PDF, Word yoki veb-sahifa. Sayt kerakli ma’lumotni so‘raydi, rasmlaringizni o‘qiydi va portfolioni baholaydi.</p></div><span class="badge" data-cr="badge">${credits().left} / ${credits().limit} kredit qoldi</span></div>
   <div class="pf" data-t="build"><div class="tabs pf-tabs" role="tablist"><button type="button" role="tab" data-tab="build" aria-selected="true">Tuzish</button><button type="button" role="tab" class="t-view" data-tab="view" aria-selected="false">Ko‘rinish</button><button type="button" role="tab" data-tab="score" aria-selected="false">Baho</button></div>
   <div class="pf-grid"><div class="pf-main"><div id="pf-build"></div><div id="pf-score" hidden></div></div>
   <aside class="pf-aside"><div id="pf-sc"></div>${expHTML()}<div class="pf-desk"><div class="pf-paper" id="pf-paper"></div></div><div class="pf-pg" id="pf-pg"></div>${ctlHTML()}</aside></div></div>`;

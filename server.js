@@ -161,8 +161,8 @@ const PAY_INFO = /^\d{16}$/.test(PAY_CARD) ? { card: PAY_CARD.replace(/(\d{4})(?
 const payRef = u => 'UD-' + String(u.id).slice(0, 6).toUpperCase();
 const AI_GLOBAL_CAP = Math.max(parseInt(process.env.AI_GLOBAL_CAP, 10) || 0, 0);
 const F_FREE = ['finder_basic', 'profile', 'compare_basic', 'predictor_basic', 'essay_basic', 'mentor_basic', 'finder_adv', 'scholarships', 'predictor', 'tracker'];
-const F_PLUS = [...F_FREE, 'mentor_adv'];
-const F_PRO = [...F_PLUS, 'strategy', 'essay_adv', 'reports', 'priority'];
+const F_PLUS = [...F_FREE, 'mentor_adv', 'coach']; // coach: esse murabbiyi (Plus va Pro)
+const F_PRO = [...F_PLUS, 'strategy', 'essay_adv', 'reports', 'priority', 'portfolio']; // portfolio: faqat Pro
 const PLAN_ORDER = { free: 0, plus: 1, pro: 2 };
 const PLANS = {
   free: { id: 'free', name: 'Free', price: 0, ai: 15, apps: 1000, finder: 101, compare: 3, features: F_FREE },
@@ -1000,6 +1000,8 @@ async function api(req, res, pathname) {
     if (limited('ai:' + u.id, 8, 60 * 1000)) return fail(res, 429, 'Juda tez soʻrayapsiz. Bir daqiqadan keyin urinib koʻring.');
     const b = await readJson(req, 1700 * 1024), tool = b.tool, deep = b.deep === true; // 1.7 MB: portfolio sertifikat rasmlari uchun
     if (!['mentor', 'essay', 'strategy', 'report', 'coach', 'portfolio'].includes(tool)) return fail(res, 400, 'Notoʻgʻri vosita.');
+    if (tool === 'coach' && !can(u, 'coach')) return needPlan(res, 'coach');
+    if (tool === 'portfolio' && !can(u, 'portfolio')) return needPlan(res, 'portfolio');
     const mode = String(b.mode || '');
     if (tool === 'coach' && !['step', 'plan'].includes(mode)) return fail(res, 400, 'Notoʻgʻri rejim.');
     if (tool === 'portfolio' && !['review', 'polish', 'extract'].includes(mode)) return fail(res, 400, 'Notoʻgʻri rejim.');

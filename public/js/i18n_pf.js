@@ -277,7 +277,33 @@ const P = [
   ['Hech narsa qo‘shilmadi. Nomini kiriting.', 'Ничего не добавлено. Введите название.', 'Nothing was added. Enter a title.'],
   ['Avval portfolioga ma’lumot kiriting.', 'Сначала добавьте данные в портфолио.', 'First add some details to your portfolio.'],
   ['Avval portfolioga maʼlumot kiriting.', 'Сначала добавьте данные в портфолио.', 'First add some details to your portfolio.'],
-  ['Yaxshilash uchun yozuv topilmadi.', 'Не найдено записей для улучшения.', 'No entries to improve were found.']
+  ['Yaxshilash uchun yozuv topilmadi.', 'Не найдено записей для улучшения.', 'No entries to improve were found.'],
+  /* ---- tarif cheklovi (Esse murabbiyi: Plus+, Portfolio: Pro) ---- */
+  ['Esse murabbiyi: darslar, tekshiruv va AI fikri', 'Тренер по эссе: уроки, проверка и отзыв AI', 'Essay coach: lessons, checks and AI feedback'],
+  ['Portfolio quruvchi: PDF, Word va veb-sahifa', 'Конструктор портфолио: PDF, Word и веб-страница', 'Portfolio builder: PDF, Word and web page'],
+  ['Portfolio quruvchi', 'Конструктор портфолио', 'Portfolio builder'],
+  ['Esse murabbiyi Plus va Pro tarifida mavjud.', 'Тренер по эссе доступен на тарифах Plus и Pro.', 'The essay coach is available on the Plus and Pro plans.'],
+  ['Portfolio quruvchi faqat Pro tarifida mavjud.', 'Конструктор портфолио доступен только на тарифе Pro.', 'The portfolio builder is available on the Pro plan only.'],
+  ['Plus va Pro tarifida', 'На тарифах Plus и Pro', 'On the Plus and Pro plans'],
+  ['Faqat Pro tarifida', 'Только на тарифе Pro', 'On the Pro plan only'],
+  ['Bu bo‘lim hozirgi tarifingizda yo‘q', 'Этого раздела нет на вашем текущем тарифе', 'This section is not included in your current plan'],
+  ['Zo‘r esse qanday yoziladi, shuni o‘rganing: qisqa dars, namuna, o‘zingiz yozasiz, murabbiy fikr bildiradi.', 'Научитесь писать сильное эссе: короткий урок, пример, вы пишете сами, тренер даёт отзыв.', 'Learn how a strong essay is written: a short lesson, an example, you write, the coach gives feedback.'],
+  ['Motivatsion xat va shaxsiy esse bo‘yicha qisqa darslar va namunalar', 'Короткие уроки и примеры по мотивационному письму и личному эссе', 'Short lessons and examples for motivation letters and personal essays'],
+  ['Yozayotganda klishe va noaniq so‘zlar bepul belgilanadi', 'Пока вы пишете, клише и расплывчатые слова отмечаются бесплатно', 'Clichés and vague words are flagged for free as you write'],
+  ['Har bosqich uchun AI murabbiy fikri va esse rejasi', 'Отзыв AI-тренера по каждому этапу и план эссе', 'AI coach feedback for every step and an essay outline'],
+  ['Esseni siz uchun yozmaydi: o‘rgatadi va savol beradi', 'Не пишет эссе за вас: учит и задаёт вопросы', 'It does not write the essay for you: it teaches and asks questions'],
+  ['Plus tarifini ko‘rish', 'Посмотреть тариф Plus', 'See the Plus plan'],
+  ['AI mentorga qaytish', 'Вернуться к AI-ментору', 'Back to the AI mentor'],
+  ['Yutuqlaringizni bir hujjatga jamlang: PDF, Word yoki veb-sahifa. Sayt kerakli ma’lumotni o‘zi so‘raydi.', 'Соберите достижения в один документ: PDF, Word или веб-страница. Сайт сам спросит нужные данные.', 'Bring your achievements into one document: PDF, Word or a web page. The site asks for the details it needs.'],
+  ['Suhbat orqali ma’lumot yig‘adi: ta’lim, testlar, faoliyat, mukofotlar', 'Собирает данные в диалоге: образование, тесты, деятельность, награды', 'Collects details through a conversation: education, tests, activities, awards'],
+  ['Rasm va sertifikat yuklaysiz, AI sertifikatdan ma’lumotni o‘qiydi', 'Вы загружаете фото и сертификаты, AI считывает данные с сертификата', 'You upload a photo and certificates, and AI reads the details from the certificate'],
+  ['Portfolioni baholab, nimani kuchaytirish kerakligini aytadi', 'Оценивает портфолио и подсказывает, что усилить', 'Scores the portfolio and tells you what to strengthen'],
+  ['PDF, Word va veb-sahifa sifatida yuklab olinadi', 'Скачивается как PDF, Word и веб-страница', 'Downloads as PDF, Word and a web page'],
+  ['Pro tarifini ko‘rish', 'Посмотреть тариф Pro', 'See the Pro plan'],
+  ['Bosh panelga qaytish', 'Вернуться на главную', 'Back to the dashboard'],
+  ['Suhbat', 'Диалог', 'Chat'],
+  ['Hozirgi tarifingiz:', 'Ваш текущий тариф:', 'Your current plan:'],
+  ['Tarifni yangilagach, bu bo‘lim darhol ochiladi.', 'После обновления тарифа этот раздел откроется сразу.', 'After you upgrade, this section unlocks right away.']
 ];
 export const PRU = Object.fromEntries(P.map(x => [x[0], x[1]]));
 export const PEN = Object.fromEntries(P.map(x => [x[0], x[2]]));

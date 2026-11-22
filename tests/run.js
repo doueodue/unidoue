@@ -167,7 +167,7 @@ class Client {
     r = await new Client().call('POST', '/api/login', { email: em, password: 'parol12345' }); ok(r.s === 401, 'oʻchirilgan hisob bilan kirib boʻlmaydi');
     r = await new Client().call('GET', '/api/admin/requests', null, { Authorization: 'Bearer adm-secret' }); ok(!r.j.requests.some(x => x.email === em), 'soʻrovlar ham oʻchdi');
   } catch (e) { failN++; console.log('XATO:', e); }
-  srv.kill(); ai.close(); mail.close(); fs.rmSync(dir, { recursive: true, force: true });
+  srv.kill(); ai.close(); mail.close(); fs.rmSync(dir, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   // OpenAI-mos provayder (Groq/Gemini/OpenRouter) uchun alohida sinov
   {
     let last = null; const oa = await mock((q, b, r) => { last = { auth: q.headers.authorization, url: q.url, body: JSON.parse(b) }; r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ choices: [{ message: { content: 'OA javobi' } }] })); });
@@ -185,7 +185,7 @@ class Client {
       ok(last && last.body.messages[0].content.includes('Current date: ' + ymd), 'AI ko‘rsatmasida bugungi sana bor', last && last.body.messages[0].content.slice(-260));
       ok(last && last.url === '/v1/chat/completions' && last.auth === 'Bearer k2' && last.body.model === 'test-model' && last.body.messages[0].role === 'system', 'soʻrov formati (Bearer, model, system)', last && last.url);
     } catch (e) { failN++; console.log('XATO:', e); }
-    s2.kill(); oa.close(); fs.rmSync(dir2, { recursive: true, force: true });
+    s2.kill(); oa.close(); fs.rmSync(dir2, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   }
   // Esse murabbiyi va portfolio vositalari (alohida server: AI tezlik limitiga va roʻyxatdan oʻtish limitiga taʼsir qilmaydi)
   {
@@ -194,9 +194,33 @@ class Client {
     const sC = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: PC, DATA_DIR: dirC, ADMIN_TOKEN: 'adm', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ma.address().port}/v1/messages` }, stdio: 'ignore' });
     for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${PC}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
     console.log('Esse murabbiyi va portfolio (AI)');
-    const mkc = () => { let ck = ''; return async (m, u, b) => { const r = await fetch(`http://localhost:${PC}${u}`, { method: m, headers: { 'Content-Type': 'application/json', ...(ck ? { Cookie: ck } : {}) }, body: b ? JSON.stringify(b) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) ck = sc.split(';')[0]; return { s: r.status, j: await r.json().catch(() => null) }; }; };
+    const mkc = () => { let ck = ''; return async (m, u, b, h = {}) => { const r = await fetch(`http://localhost:${PC}${u}`, { method: m, headers: { 'Content-Type': 'application/json', ...(ck ? { Cookie: ck } : {}), ...h }, body: b ? JSON.stringify(b) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) ck = sc.split(';')[0]; return { s: r.status, j: await r.json().catch(() => null) }; }; };
     try {
       const cc = mkc(); await cc('POST', '/api/register', { email: 'coach@gmail.com', password: 'parol12345', name: 'Coach' });
+      const ADMH = { Authorization: 'Bearer adm' }, grant = (c, email, plan) => c('POST', '/api/admin/plan', { email, plan, days: 30 }, ADMH);
+      await grant(cc, 'coach@gmail.com', 'pro');
+      // Tarif cheklovi: Esse murabbiyi — Plus va Pro; Portfolio — faqat Pro (server tekshiradi, kredit yechilmaydi)
+      {
+        const cf = mkc(), cp = mkc(), TXT = 'Dadamning doʻkonidagi kassa dasturi har kuni soat 18:00 da qotib qolardi. Oʻn toʻrt yoshimda daftar ochib, xatolarini yozdim.';
+        await cf('POST', '/api/register', { email: 'free1@gmail.com', password: 'parol12345', name: 'Free1' });
+        let g = await cf('GET', '/api/me'); ok(!g.j.account.features.includes('coach') && !g.j.account.features.includes('portfolio'), 'Free: coach ham, portfolio ham yoʻq', g.j.account.features);
+        g = await cf('POST', '/api/ai', { tool: 'coach', mode: 'step', step: 'story', text: TXT }); ok(g.s === 402 && g.j.code === 'PLAN_REQUIRED' && g.j.feature === 'coach', 'Free: esse murabbiyi → 402 PLAN_REQUIRED (coach)', g);
+        g = await cf('POST', '/api/ai', { tool: 'coach', mode: 'plan', parts: [{ k: 'story', t: TXT }, { k: 'major', t: TXT }] }); ok(g.s === 402 && g.j.feature === 'coach', 'Free: esse rejasi ham yopiq');
+        g = await cf('POST', '/api/ai', { tool: 'portfolio', mode: 'review', pf: { headline: 'CS student building tools', summary: 'Runs a club', edu: [{ school: 'School 110' }] } }); ok(g.s === 402 && g.j.code === 'PLAN_REQUIRED' && g.j.feature === 'portfolio', 'Free: portfolio baho → 402 PLAN_REQUIRED (portfolio)', g);
+        g = await cf('POST', '/api/ai', { tool: 'portfolio', mode: 'extract', images: ['data:image/png;base64,iVBORw0KGgoAAAANSUhEUg=='] }); ok(g.s === 402 && g.j.feature === 'portfolio', 'Free: rasmdan oʻqish ham yopiq (AI_NO_VISION emas, tarif xatosi)');
+        g = await cf('POST', '/api/ai', { tool: 'portfolio', mode: 'zzz' }); ok(g.s === 402, 'Free: notoʻgʻri rejim bilan ham tarifdan oʻtib boʻlmaydi');
+        g = await cf('GET', '/api/credits'); ok(g.j.credits.used === 0, 'Free: rad etilgan soʻrovlarda kredit yechilmaydi', g.j.credits);
+        await cp('POST', '/api/register', { email: 'plus2@gmail.com', password: 'parol12345', name: 'Plus2' }); await grant(cp, 'plus2@gmail.com', 'plus');
+        g = await cp('GET', '/api/me'); ok(g.j.account.features.includes('coach') && !g.j.account.features.includes('portfolio'), 'Plus: coach bor, portfolio yoʻq', g.j.account.features);
+        g = await cp('POST', '/api/ai', { tool: 'coach', mode: 'step', step: 'story', text: TXT }); ok(g.s === 200 && g.j.credits.used === 1, 'Plus: esse murabbiyi ishlaydi (1 kredit)', g);
+        g = await cp('POST', '/api/ai', { tool: 'portfolio', mode: 'review', pf: { headline: 'CS student building tools', summary: 'Runs a club', edu: [{ school: 'School 110' }] } }); ok(g.s === 402 && g.j.feature === 'portfolio', 'Plus: portfolio yopiq (faqat Pro)', g);
+        g = await cp('POST', '/api/ai', { tool: 'portfolio', mode: 'polish', pf: {}, items: [{ id: 'a', kind: 'activity', title: 'x', what: 'y' }] }); ok(g.s === 402, 'Plus: portfolio sayqali ham yopiq');
+        g = await cp('GET', '/api/credits'); ok(g.j.credits.used === 1, 'Plus: faqat murabbiy soʻrovi kredit yeydi', g.j.credits);
+        g = await cc('GET', '/api/me'); ok(g.j.account.features.includes('coach') && g.j.account.features.includes('portfolio'), 'Pro: coach ham, portfolio ham bor', g.j.account.features);
+        // Tarif tugasa yoki pasaytirilsa, yopiladi
+        const dn = await cp('POST', '/api/plan/downgrade', { plan: 'free' }); ok(dn.s === 200, 'Plus → Free pasaytirildi');
+        g = await cp('POST', '/api/ai', { tool: 'coach', mode: 'step', step: 'story', text: TXT }); ok(g.s === 402 && g.j.feature === 'coach', 'Pasaytirgach esse murabbiyi yana yopiladi', g);
+      }
       const story = 'Dadamning doʻkonidagi kassa dasturi har kuni soat 18:00 da qotib qolardi. Oʻn toʻrt yoshimda daftar ochib, xatolarini yozdim.';
       let r = await cc('POST', '/api/ai', { tool: 'coach', mode: 'xx', step: 'story', text: story }); ok(r.s === 400, 'coach: notoʻgʻri rejim → 400', r.s);
       r = await cc('POST', '/api/ai', { tool: 'coach', mode: 'step', step: 'nope', text: story }); ok(r.s === 400, 'coach: notoʻgʻri bosqich → 400', r.s);
@@ -221,6 +245,7 @@ class Client {
       const c0 = last.messages[0].content;
       ok(Array.isArray(c0) && c0.filter(x => x.type === 'image').length === 1 && c0[0].type === 'image' && c0[0].source.media_type === 'image/png' && c0[0].source.type === 'base64', 'Anthropic: faqat yaroqli rasm image blokida yuboriladi (HTML va tashqi havola tashlanadi)', c0 && c0.map(x => x.type));
       const c2 = mkc(); await c2('POST', '/api/register', { email: 'coach2@gmail.com', password: 'parol12345', name: 'Coach2' });
+      await grant(c2, 'coach2@gmail.com', 'pro');
       r = await c2('POST', '/api/ai', { tool: 'portfolio', mode: 'extract', images: ['data:text/html;base64,PHNjcmlwdD4='] }); ok(r.s === 400, 'portfolio rasm: yaroqsiz rasm → 400', r.s);
       r = await c2('POST', '/api/ai', { tool: 'portfolio', mode: 'review', pf: {} }); ok(r.s === 400, 'portfolio baho: boʻsh portfolio → 400', r.s);
       r = await c2('POST', '/api/ai', { tool: 'portfolio', mode: 'polish', pf: {}, items: [] }); ok(r.s === 400, 'portfolio sayqal: yozuvsiz → 400', r.s);
@@ -235,7 +260,7 @@ class Client {
       await cc('POST', '/api/logout', {}); r = await cc('POST', '/api/login', { email: 'coach@gmail.com', password: 'parol12345' });
       const back = await c2('GET', '/api/me'); ok(back.j.data && JSON.parse(back.j.data['qabul:coach']).v === 1 && JSON.parse(back.j.data['qabul:portfolio']).name === 'A', 'esse murabbiyi va portfolio maʼlumoti serverdan qaytadi', Object.keys(back.j.data || {}));
     } catch (e) { failN++; console.log('XATO:', e); }
-    sC.kill(); ma.close(); await new Promise(r => setTimeout(r, 200)); fs.rmSync(dirC, { recursive: true, force: true });
+    sC.kill(); ma.close(); await new Promise(r => setTimeout(r, 200)); fs.rmSync(dirC, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   }
   // AI_VISION=1: OpenAI-mos provayderda rasm image_url shaklida yuboriladi
   {
@@ -245,14 +270,15 @@ class Client {
     for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${PV}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
     console.log('AI_VISION=1 (OpenAI-mos)');
     try {
-      let ck = ''; const call = async (m, u, b) => { const r = await fetch(`http://localhost:${PV}${u}`, { method: m, headers: { 'Content-Type': 'application/json', ...(ck ? { Cookie: ck } : {}) }, body: b ? JSON.stringify(b) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) ck = sc.split(';')[0]; return { s: r.status, j: await r.json().catch(() => null) }; };
+      let ck = ''; const call = async (m, u, b, h = {}) => { const r = await fetch(`http://localhost:${PV}${u}`, { method: m, headers: { 'Content-Type': 'application/json', ...(ck ? { Cookie: ck } : {}), ...h }, body: b ? JSON.stringify(b) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) ck = sc.split(';')[0]; return { s: r.status, j: await r.json().catch(() => null) }; };
       await call('POST', '/api/register', { email: 'vis@gmail.com', password: 'parol12345', name: 'Vis' });
+      await call('POST', '/api/admin/plan', { email: 'vis@gmail.com', plan: 'pro', days: 30 }, { Authorization: 'Bearer adm' }); // portfolio faqat Pro
       const cfg = await call('GET', '/api/me'); ok(cfg.j.account.config.vision === true, 'config.vision: AI_VISION=1 da true');
       const r = await call('POST', '/api/ai', { tool: 'portfolio', mode: 'extract', images: ['data:image/jpeg;base64,/9j/4AAQSkZJRg=='] });
       const c = last && last.messages && last.messages[last.messages.length - 1].content;
       ok(r.s === 200 && Array.isArray(c) && c.some(x => x.type === 'image_url' && /^data:image\/jpeg;base64,/.test(x.image_url.url)) && c.some(x => x.type === 'text'), 'OpenAI-mos: rasm image_url shaklida yuboriladi', c);
     } catch (e) { failN++; console.log('XATO:', e); }
-    sV.kill(); oa.close(); await new Promise(r => setTimeout(r, 200)); fs.rmSync(dirV, { recursive: true, force: true });
+    sV.kill(); oa.close(); await new Promise(r => setTimeout(r, 200)); fs.rmSync(dirV, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   }
   // OpenAI reasoning modellari (gpt-6-luna...): max_completion_tokens, temperature yoʻq, reasoning_effort
   {
@@ -264,6 +290,7 @@ class Client {
     try {
       const c = new Client(), call = async (m, u, b, h = {}) => { const r = await fetch(`http://localhost:${P4}${u}`, { method: m, headers: { 'Content-Type': 'application/json', ...(c.cookie ? { Cookie: c.cookie } : {}), ...h }, body: b ? JSON.stringify(b) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) c.cookie = sc.split(';')[0]; return { s: r.status, j: await r.json().catch(() => null) }; };
       await call('POST', '/api/register', { email: 'luna@gmail.com', password: 'parol12345', name: 'Luna' });
+      await call('POST', '/api/admin/plan', { email: 'luna@gmail.com', plan: 'pro', days: 30 }, { Authorization: 'Bearer adm' });
       const r = await call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'Salom' }] });
       ok(r.s === 200 && r.j.reply === 'Luna javobi' && r.j.credits.used === 1, 'reasoning model: javob va 1 kredit', r.j);
       const IMGX = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==';
@@ -274,7 +301,7 @@ class Client {
       const st = await call('GET', '/api/admin/stats', null, { Authorization: 'Bearer adm' });
       ok(st.s === 200 && st.j.aiTokensMonth === 200, 'provayder bergan token sarfi (120 + 80) yoziladi', st.j && st.j.aiTokensMonth);
     } catch (e) { failN++; console.log('XATO:', e); }
-    s4.kill(); oa.close(); await new Promise(r => setTimeout(r, 200)); fs.rmSync(dir4, { recursive: true, force: true });
+    s4.kill(); oa.close(); await new Promise(r => setTimeout(r, 200)); fs.rmSync(dir4, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   }
   // Brevo orqali xat (domensiz variant)
   {
@@ -290,7 +317,7 @@ class Client {
       ok(r.s === 200 && got && got.key === 'bk', 'Brevo’ga api-key bilan soʻrov ketdi', r.s);
       ok(got && got.body.sender.email === 'noreply@example.com' && got.body.to[0].email === 'bv@gmail.com' && /token=/.test(got.body.htmlContent), 'joʻnatuvchi, qabul qiluvchi va havola toʻgʻri');
     } catch (e) { failN++; console.log('XATO:', e); }
-    s3.kill(); bm.close(); fs.rmSync(dir3, { recursive: true, force: true });
+    s3.kill(); bm.close(); fs.rmSync(dir3, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   }
   // Eski onrender.com manzilidan APP_URL ga yoʻnaltirish
   {
@@ -304,7 +331,7 @@ class Client {
       r = await hreq('unidoue.onrender.com', '/healthz'); ok(r.s === 200, 'healthz yoʻnaltirilmaydi', r.s);
       r = await hreq('unidoue.uz', '/'); ok(r.s === 200, 'asosiy domen yoʻnaltirilmaydi', r.s);
     } catch (e) { failN++; console.log('XATO:', e); }
-    s4.kill(); fs.rmSync(dir4, { recursive: true, force: true });
+    s4.kill(); fs.rmSync(dir4, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   }
   {
     const dirT = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), PT = PORT + 10, FP2 = '11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11';
@@ -316,7 +343,7 @@ class Client {
       ok(j.length === 1 && j[0].target.package_name === 'uz.unidoue.test', 'TWA_PACKAGE paket nomini almashtiradi', JSON.stringify(j[0].target.package_name));
       ok(fps.length === 2 && fps.includes(FP2) && fps.every(f => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(f)), 'TWA_SHA256: yangi izlar qoʻshiladi, takrorlanmaydi, yaroqsizi tashlanadi', fps.join(' | '));
     } catch (e) { failN++; console.log('XATO:', e); }
-    sT.kill(); fs.rmSync(dirT, { recursive: true, force: true });
+    sT.kill(); fs.rmSync(dirT, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   }
   // Doimiy saqlash (Neon) — soxta SQL-over-HTTP serveri bilan
   {
@@ -349,7 +376,7 @@ class Client {
     const bad = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...env, PORT: PORT + 4, DATA_DIR: d2, NEON_SQL_URL: 'http://localhost:1/sql' }, stdio: 'ignore' });
     const code = await new Promise(r => { bad.on('exit', r); setTimeout(() => { bad.kill(); r('timeout'); }, 8000); });
     ok(code === 1, 'Neon ulanmasa server toʻxtaydi (bazani boʻsh qilib yozmaydi)', code);
-    nm.close(); fs.rmSync(d1, { recursive: true, force: true }); fs.rmSync(d2, { recursive: true, force: true });
+    nm.close(); fs.rmSync(d1, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 }); fs.rmSync(d2, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   }
   {
     console.log('Email tasdiqlash');
@@ -379,7 +406,7 @@ class Client {
       for (let i = 0; i < 5; i++) await c('POST', '/api/verify', { code: bad });
       r = await c('POST', '/api/verify', { code: c2 }); ok(r.s === 400, '5 xato urinishdan keyin kod bloklanadi', r.s);
     } catch (e) { failN++; console.log('XATO:', e); }
-    vs.kill(); mm.close(); fs.rmSync(vd, { recursive: true, force: true });
+    vs.kill(); mm.close(); fs.rmSync(vd, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
   }
   {
     console.log('Onlayn toʻlov (Payme + Click)');

@@ -1,4 +1,4 @@
-import { $, $$, S, api, adopt, wipeLocal, esc, svg, skeleton, errorBox, toast, push, refreshCredits } from './core.js';
+import { $, $$, S, api, adopt, wipeLocal, esc, svg, skeleton, errorBox, toast, push, refreshCredits, refreshAccount, hasFeature, NEED_PLAN } from './core.js';
 import { t, langSelect, bindLang } from './i18n.js';
 import { themeSwitch } from './theme-ui.js';
 import * as fx from './fx.js';
@@ -16,8 +16,8 @@ const ROUTES = [
   { id: 'guide', t: 'Hujjatlar yo‘riqnomasi', i: 'list', v: () => import('./views5.js').then(m => m.guide) },
   { id: 'essay', t: 'Esse yordamchisi', i: 'pen', v: () => import('./views3.js').then(m => m.essay) },
   { id: 'mentor', t: 'AI mentor', i: 'bot', v: () => import('./views3.js').then(m => m.mentor) },
-  { id: 'coach', t: 'Esse murabbiyi', i: 'pen', hide: 1, nav: 'mentor', v: () => import('./coach.js').then(m => m.coach) },
-  { id: 'portfolio', t: 'Portfolio', i: 'folder', tag: 'NEW', v: () => import('./portfolio.js').then(m => m.portfolio) },
+  { id: 'coach', t: 'Esse murabbiyi', i: 'pen', hide: 1, nav: 'mentor', need: 'coach', v: () => import('./coach.js').then(m => m.coach) },
+  { id: 'portfolio', t: 'Portfolio', i: 'folder', tag: 'NEW', need: 'portfolio', v: () => import('./portfolio.js').then(m => m.portfolio) },
   { id: 'pricing', t: 'Tariflar', i: 'card', sec: 'Hisob', v: () => import('./views1.js').then(m => m.pricing) },
   { id: 'profile', t: 'Profil', i: 'user', v: () => import('./views1.js').then(m => m.profile) }
 ];
@@ -93,7 +93,7 @@ document.addEventListener('unidoue:unverified', () => { if (S.user) verifyScreen
 /* ---------- ilova qobig‘i ---------- */
 function shell() {
   let sec = '';
-  const nav = ROUTES.filter(r => !r.hide).map(r => { const h = r.sec && r.sec !== sec ? `<div class="nav-sec">${t(sec = r.sec)}</div>` : ''; return `${h}<a href="#/${r.id}" data-r="${r.id}">${svg(r.i)}<span>${t(r.t)}</span>${r.tag ? `<span class="tag">${r.tag}</span>` : ''}</a>`; }).join('');
+  const nav = ROUTES.filter(r => !r.hide).map(r => { const h = r.sec && r.sec !== sec ? `<div class="nav-sec">${t(sec = r.sec)}</div>` : ''; return `${h}<a href="#/${r.id}" data-r="${r.id}">${svg(r.i)}<span>${t(r.t)}</span>${r.need ? `<span class="tag${hasFeature(r.need) ? '' : ' lk'}" data-need="${r.need}">${hasFeature(r.need) ? r.tag || '' : NEED_PLAN[r.need]}</span>` : r.tag ? `<span class="tag">${r.tag}</span>` : ''}</a>`; }).join('');
   root.innerHTML = `<div class="shell"><aside class="side" id="side"><a class="brand" href="#/dashboard"><i>U</i>UniDoue</a><nav class="nav" aria-label="${t('Asosiy menyu')}">${nav}</nav>
   <a class="nav-tg" href="https://t.me/unidoue" target="_blank" rel="noopener noreferrer">✈ ${t('Telegram kanal')}</a>
   <a class="nav-tg" href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">💬 ${t('Yordam')}</a>
@@ -110,6 +110,7 @@ function shell() {
 export function updatePlanUI() {
   if (!$('#sf-u') || !S.user) return;
   const a = S.account || {}; $('#sf-u').textContent = S.user.name || S.user.email; $('#sf-p').textContent = S.user.email;
+  ROUTES.filter(r => r.need).forEach(r => { const tg = $(`.nav .tag[data-need="${r.need}"]`); if (!tg) return; const ok = hasFeature(r.need); tg.textContent = ok ? r.tag || '' : NEED_PLAN[r.need]; tg.classList.toggle('lk', !ok); tg.hidden = ok && !r.tag; });
   const pb = $('#pb'); pb.textContent = ({ free: 'Free', plus: 'Plus', pro: 'Pro' })[a.plan] || 'Free'; pb.className = 'badge' + (a.plan !== 'free' ? ' ok' : '');
 }
 document.addEventListener('unidoue:account', updatePlanUI);
@@ -122,8 +123,10 @@ async function route() {
   refreshCredits(); // har sahifaga oʻtganda kreditlarni serverdan yangilaymiz (boshqa qurilma/oyna, oy almashishi)
   const el = $('#view'); el.innerHTML = skeleton(3); el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
   fx.start();
-  try { const fn = await r.v(); if (my !== token) return; el.innerHTML = ''; fx.watch(el); await fn(el); }
-  catch (e) { if (my !== token) return; el.innerHTML = errorBox(e.message, true); const b = $('[data-retry]', el); if (b) b.onclick = route; }
+  try {
+    if (r.need) { await refreshAccount().catch(() => {}); document.dispatchEvent(new CustomEvent('unidoue:account')); } // tarif oʻzgargan boʻlsa (toʻlov, muddat tugashi) qulf holati aniq boʻlsin
+    const fn = r.need && !hasFeature(r.need) ? (await import('./gate.js')).gate(r.need) : await r.v(); if (my !== token) return; el.innerHTML = ''; fx.watch(el); await fn(el);
+  } catch (e) { if (my !== token) return; el.innerHTML = errorBox(e.message, true); const b = $('[data-retry]', el); if (b) b.onclick = route; }
   if (my === token) { window.scrollTo(0, 0); fx.done(); }
 }
 

@@ -28,7 +28,7 @@ const planHash = ps => hash(ps.map(p => p.k + p.t).join('|') + d.kind + d.uni + 
 
 async function css() {
   if ($('link[data-cc]')) return;
-  const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/coach.css?v=45'; l.dataset.cc = '';
+  const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/coach.css?v=46'; l.dataset.cc = '';
   document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); });
 }
 
@@ -142,10 +142,11 @@ async function ask(plan) {
 }
 
 /* ---------- kirish nuqtasi ---------- */
+const emTitle = s => { const x = t(s), i = x.lastIndexOf(' '); return i < 0 ? '<em>' + esc(x) + '</em>' : esc(x.slice(0, i)) + ' <em>' + esc(x.slice(i + 1)) + '</em>'; }; // sarlavhaning oxirgi soʻzi kursiv; tarjima bilan ham ishlaydi
 export async function coach(el) {
   await css(); d = load(); ui.tok++; ui.busy = false;
   const c = credits();
-  el.innerHTML = `<div class="page-h"><div><h2>Esse <em>murabbiyi</em></h2><p>Zo‘r esse qanday yoziladi, shuni o‘rganing: qisqa dars, namuna, o‘zingiz yozasiz, murabbiy fikr bildiradi. U esseni siz uchun yozmaydi.</p></div><span class="badge" data-cr="badge">${c.left} / ${c.limit} kredit qoldi</span></div>
+  el.innerHTML = `<div class="page-h"><div><h2>${emTitle('Esse murabbiyi')}</h2><p>Zo‘r esse qanday yoziladi, shuni o‘rganing: qisqa dars, namuna, o‘zingiz yozasiz, murabbiy fikr bildiradi. U esseni siz uchun yozmaydi.</p></div><span class="badge" data-cr="badge">${c.left} / ${c.limit} kredit qoldi</span></div>
   ${mentorTabs('coach')}${S.account.config.ai ? '' : aiOff()}
   <div class="cc"><aside class="cc-rail" id="cc-rail"></aside><section class="cc-main" id="cc-main"></section></div>`;
   bindMentorTabs(el);

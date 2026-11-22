@@ -1,4 +1,4 @@
-import { $, $$, S, api, ls, esc, toast, svg, catalog, upsell, credits, applyCredits, refreshCredits, aiFlag } from './core.js';
+import { $, $$, S, api, ls, esc, toast, svg, catalog, upsell, credits, applyCredits, refreshCredits, aiFlag, hasFeature } from './core.js';
 import { md } from './markdown.js';
 import { t as tr, lang } from './i18n.js';
 
@@ -6,7 +6,7 @@ const costOf = { mentor: 1, essay: 2, essay_deep: 4, strategy: 6, report: 6 };
 export const aiOff = () => `<div class="notice">${svg('info')}<div><b>AI hozircha ulanmagan.</b> Sayt egasi serverda AI kalitini sozlashi kerak. Kalit faqat serverda saqlanadi va brauzerga chiqmaydi.</div></div>`;
 
 /** AI mentor sahifalari uchun umumiy tab: Suhbat | Esse murabbiyi */
-export const mentorTabs = on => `<div class="tabs mtabs" role="tablist" aria-label="AI mentor bo‘limlari"><button type="button" role="tab" aria-selected="${on === 'chat'}" data-go="mentor">Suhbat</button><button type="button" role="tab" aria-selected="${on === 'coach'}" data-go="coach">Esse murabbiyi</button></div>`;
+export const mentorTabs = on => `<div class="tabs mtabs" role="tablist" aria-label="AI mentor bo‘limlari"><button type="button" role="tab" aria-selected="${on === 'chat'}" data-go="mentor">Suhbat</button><button type="button" role="tab" aria-selected="${on === 'coach'}" data-go="coach">Esse murabbiyi${hasFeature('coach') ? '' : ' <span class="lk">Plus</span>'}</button></div>`;
 export const bindMentorTabs = el => $$('.mtabs [data-go]', el).forEach(b => (b.onclick = () => { location.hash = '#/' + b.dataset.go; }));
 
 
