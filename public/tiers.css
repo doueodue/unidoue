@@ -1,0 +1,140 @@
+/* UniDoue tarif shishasi: Free — muz, Plus — kumush, Pro — oltin va toj.
+   Belgilar va markup: public/js/tiers.js. Ranglar [data-tier] yoki .tier-* orqali oʻrnatiladi. */
+
+/* ---------- ranglar (yorugʻ) ---------- */
+[data-tier=free],.tier-free{
+  --tg-ink:#22336a;--tg-acc:#4d6fd6;--tg-glow:rgba(77,111,214,.32);--tg-ring:rgba(70,100,190,.34);--tg-on:#17296b;--tg-base:#f2f7ff;
+  --tg-fill:linear-gradient(158deg,rgba(255,255,255,.82),rgba(203,222,255,.40) 58%,rgba(238,245,255,.62));
+  --tg-edge:linear-gradient(150deg,#fff,rgba(124,160,255,.62) 38%,rgba(255,255,255,.7) 62%,rgba(112,150,250,.55));
+  --tg-metal:linear-gradient(145deg,#f6f9ff,#c0d4ff 42%,#86a7f2 100%);
+  --tg-grain:none}
+[data-tier=plus],.tier-plus{
+  --tg-ink:#283043;--tg-acc:#7a86a0;--tg-glow:rgba(112,126,156,.38);--tg-ring:rgba(98,110,138,.45);--tg-on:#232b3d;--tg-base:#f4f6fa;
+  --tg-fill:linear-gradient(158deg,rgba(255,255,255,.88),rgba(212,219,233,.52) 46%,rgba(249,250,253,.7));
+  --tg-edge:linear-gradient(135deg,#fff,#9ea9bf 24%,#f4f6fb 48%,#79849c 74%,#fff);
+  --tg-metal:linear-gradient(145deg,#fefeff,#d5dbe8 28%,#98a3b9 60%,#eaeef6 100%);
+  --tg-grain:repeating-linear-gradient(98deg,rgba(255,255,255,.24) 0 1px,rgba(150,162,186,.07) 1px 3px)}
+[data-tier=pro],.tier-pro{
+  --tg-ink:#4a3200;--tg-acc:#c48a10;--tg-glow:rgba(236,176,32,.52);--tg-ring:rgba(160,108,8,.5);--tg-on:#3f2a00;--tg-base:#fff8df;
+  --tg-fill:linear-gradient(158deg,rgba(255,247,210,.88),rgba(249,211,112,.46) 50%,rgba(255,238,176,.68));
+  --tg-edge:linear-gradient(135deg,#fff4c6,#ebb62a 24%,#fff1b5 48%,#b98608 74%,#ffe58f);
+  --tg-metal:linear-gradient(145deg,#fff7c9,#f6c748 30%,#c78a0b 64%,#ffe27e 100%);
+  --tg-grain:none}
+
+/* ---------- ranglar (qorongʻi: tema + yon panel doim qorongʻi) ---------- */
+html[data-theme=dark] [data-tier=free],.side [data-tier=free]{
+  --tg-ink:#dce7ff;--tg-acc:#8fb0ff;--tg-base:#161d38;
+  --tg-fill:linear-gradient(158deg,rgba(150,182,255,.22),rgba(80,112,205,.10) 60%,rgba(150,182,255,.15));
+  --tg-edge:linear-gradient(150deg,rgba(255,255,255,.6),rgba(130,165,255,.26) 42%,rgba(255,255,255,.2) 64%,rgba(130,165,255,.42))}
+html[data-theme=dark] [data-tier=plus],.side [data-tier=plus]{
+  --tg-ink:#eef1f8;--tg-acc:#c3cbdd;--tg-base:#1a1e2c;
+  --tg-fill:linear-gradient(158deg,rgba(235,240,252,.24),rgba(170,180,204,.11) 50%,rgba(235,240,252,.16));
+  --tg-edge:linear-gradient(135deg,rgba(255,255,255,.75),rgba(158,169,191,.3) 26%,rgba(244,246,251,.6) 50%,rgba(121,132,156,.35) 74%,rgba(255,255,255,.7));
+  --tg-grain:repeating-linear-gradient(98deg,rgba(255,255,255,.07) 0 1px,transparent 1px 3px)}
+html[data-theme=dark] [data-tier=pro],.side [data-tier=pro]{
+  --tg-ink:#ffeab0;--tg-acc:#f4c23e;--tg-base:#221b0c;
+  --tg-fill:linear-gradient(158deg,rgba(255,224,130,.26),rgba(226,164,30,.12) 52%,rgba(255,224,130,.17));
+  --tg-edge:linear-gradient(135deg,rgba(255,244,198,.85),rgba(235,182,42,.4) 26%,rgba(255,241,181,.7) 50%,rgba(185,134,8,.45) 74%,rgba(255,229,143,.8))}
+
+/* ---------- shisha yuza ---------- */
+.tg{position:relative;isolation:isolate;color:var(--tg-ink);border:0;
+  background:var(--tg-grain,none),var(--tg-fill);
+  -webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75),inset 0 -1px 0 rgba(0,0,0,.05),0 22px 44px -22px var(--tg-glow),0 2px 6px rgba(16,26,66,.07)}
+.tg::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.3px;background:var(--tg-edge);pointer-events:none;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.tg::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;
+  background:radial-gradient(380px circle at var(--mx,16%) var(--my,0%),rgba(255,255,255,.58),transparent 58%),linear-gradient(112deg,transparent 32%,rgba(255,255,255,.5) 47%,transparent 62%) no-repeat;
+  background-size:100% 100%,280% 100%;background-position:0 0,170% 0;transition:background-position 1s cubic-bezier(.22,1,.36,1)}
+.tg:hover::after{background-position:0 0,-70% 0}
+html[data-theme=dark] .tg::after,.side .tg::after{background:radial-gradient(380px circle at var(--mx,16%) var(--my,0%),rgba(255,255,255,.16),transparent 58%),linear-gradient(112deg,transparent 32%,rgba(255,255,255,.16) 47%,transparent 62%) no-repeat;background-size:100% 100%,280% 100%;background-position:0 0,170% 0}
+html[data-theme=dark] .tg:hover::after,.side .tg:hover::after{background-position:0 0,-70% 0}
+html[data-theme=dark] .tg{box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(0,0,0,.25),0 22px 44px -22px var(--tg-glow),0 2px 8px rgba(0,0,0,.3)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.tg{background:var(--tg-fill),var(--tg-base)}}
+.tg[data-tier=pro][data-sweep]::after{animation:tg-sweep 7s ease-in-out infinite}
+@keyframes tg-sweep{0%{background-position:0 0,170% 0}24%,100%{background-position:0 0,-70% 0}}
+
+/* ---------- medalyon va tabletka ---------- */
+.tm{flex:none;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;color:var(--tg-on);background:var(--tg-metal);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.92),inset 0 -2px 4px rgba(0,0,0,.2),0 8px 16px -6px var(--tg-glow),0 0 0 1px var(--tg-ring)}
+.tm .ti{width:54%;height:54%;fill:currentColor;filter:drop-shadow(0 1px 0 rgba(255,255,255,.6))}
+.tp{position:relative;display:inline-flex;align-items:center;gap:6px;padding:4px 12px 4px 9px;border-radius:99px;font-weight:700;font-size:12.5px;line-height:1.3;letter-spacing:.01em;color:var(--tg-on);
+  background:var(--tg-metal);overflow:hidden;isolation:isolate;white-space:nowrap;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1.5px 2px rgba(0,0,0,.16),0 6px 14px -7px var(--tg-glow),0 0 0 1px var(--tg-ring)}
+.tp::before{content:"";position:absolute;left:3px;right:3px;top:1px;height:48%;border-radius:99px;background:linear-gradient(rgba(255,255,255,.72),rgba(255,255,255,.06));z-index:-1;pointer-events:none}
+.tp::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(105deg,transparent 36%,rgba(255,255,255,.78) 50%,transparent 64%);transform:translateX(-130%)}
+.tp[data-tier=pro]::after{animation:tp-sweep 5.5s ease-in-out infinite}
+@keyframes tp-sweep{0%{transform:translateX(-130%)}26%,100%{transform:translateX(130%)}}
+.tp .ti{width:15px;height:15px;fill:currentColor;flex:none}
+.top .tp{font-size:13px}
+
+/* ---------- tugmalar ---------- */
+.btn.tier-plus,.btn.tier-pro{border:0;color:var(--tg-on);background:var(--tg-metal);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.88),inset 0 -2px 3px rgba(0,0,0,.14),0 10px 20px -10px var(--tg-glow),0 0 0 1px var(--tg-ring)}
+.btn.tier-plus:hover:not([disabled]),.btn.tier-pro:hover:not([disabled]){filter:brightness(1.05) saturate(1.05);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -2px 3px rgba(0,0,0,.14),0 14px 26px -10px var(--tg-glow),0 0 0 1px var(--tg-ring)}
+.btn.tier-plus::after,.btn.tier-pro::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);transform:translateX(-130%)}
+.btn.tier-plus:hover:not([disabled])::after,.btn.tier-pro:hover:not([disabled])::after{transform:translateX(130%);transition:transform .75s ease}
+
+/* ---------- narxlar sahifasi ---------- */
+.tier-stage{position:relative;isolation:isolate;padding:44px 0 8px}
+.tier-stage::before{content:"";position:absolute;inset:0 -3% -3% -3%;z-index:-1;pointer-events:none;filter:blur(6px);
+  background:radial-gradient(34% 48% at 15% 46%,rgba(92,128,255,.52),transparent 72%),radial-gradient(32% 46% at 50% 58%,rgba(146,158,188,.58),transparent 72%),radial-gradient(36% 54% at 86% 40%,rgba(255,186,46,.6),transparent 72%)}
+html[data-theme=dark] .tier-stage::before{background:radial-gradient(32% 44% at 15% 48%,rgba(92,128,255,.34),transparent 70%),radial-gradient(30% 42% at 50% 60%,rgba(170,182,215,.26),transparent 70%),radial-gradient(34% 50% at 86% 42%,rgba(255,186,46,.34),transparent 70%)}
+@media(max-width:1100px){.tier-stage::before{background:radial-gradient(60% 18% at 50% 14%,rgba(92,128,255,.40),transparent 70%),radial-gradient(60% 18% at 50% 50%,rgba(146,158,188,.46),transparent 70%),radial-gradient(60% 20% at 50% 88%,rgba(255,186,46,.48),transparent 70%)}.tier-stage{gap:34px}.tier-stage .plan[data-tier=pro]{margin-top:34px}}
+.plan.tg{border-radius:24px;padding:26px 24px 24px;gap:16px}
+.plan.tg.cur{box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 0 0 2px var(--tg-acc),0 26px 50px -22px var(--tg-glow)}
+.plan-h{display:flex;align-items:center;gap:13px}
+.plan-h h3{font-size:23px;letter-spacing:-.03em;color:var(--tg-ink)}
+.plan-tag{margin-top:2px;font-size:13px;color:color-mix(in srgb,var(--tg-ink) 68%,transparent)}
+.plan-cur{margin-left:auto;align-self:flex-start;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;color:var(--tg-on);background:var(--tg-metal);box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 0 0 1px var(--tg-ring)}
+.plan.tg .price{color:var(--tg-ink)}
+.plan.tg .price small,.plan.tg .uzs{color:color-mix(in srgb,var(--tg-ink) 62%,transparent)}.plan.tg .uzs b{color:var(--tg-ink)}
+.plan.tg li{color:color-mix(in srgb,var(--tg-ink) 90%,transparent)}
+.plan.tg li::before{color:var(--tg-acc)}
+.plan.tg .hint,.plan.tg .paybtns .hint{color:color-mix(in srgb,var(--tg-ink) 62%,transparent)}
+.plan.tg .btn:not([class*=tier-]){background:rgba(255,255,255,.55);border-color:var(--tg-ring);color:var(--tg-ink);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+html[data-theme=dark] .plan.tg .btn:not([class*=tier-]){background:rgba(255,255,255,.08)}
+.plan.tg .btn[disabled]{opacity:.75}
+.plan.tg .badge.pop{top:-12px;right:20px;background:var(--tg-metal);color:var(--tg-on);border:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 6px 14px -6px var(--tg-glow),0 0 0 1px var(--tg-ring)}
+html[data-theme=dark] .plan .badge.pop{background:var(--tg-metal);color:var(--tg-on)}
+.plan[data-tier=pro].tg{box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 30px 64px -24px rgba(232,166,22,.6),0 2px 8px rgba(120,80,0,.1)}
+
+/* toj */
+.tc{position:absolute;left:50%;top:-46px;width:84px;height:67px;z-index:3;pointer-events:none;transform:translateX(-50%) rotate(-5deg);
+  filter:drop-shadow(0 9px 10px rgba(170,110,0,.38)) drop-shadow(0 0 16px rgba(255,204,64,.6));animation:tc-float 4.8s ease-in-out infinite}
+.tc>svg:first-child{display:block;width:100%;height:100%}
+@keyframes tc-float{50%{transform:translateX(-50%) translateY(-4px) rotate(-2deg)}}
+.tc .sp{position:absolute;width:15px;height:15px;fill:#fff3b4;stroke:#d9981a;stroke-width:.9;opacity:0;animation:tc-tw 2.8s ease-in-out infinite}
+.tc .s1{left:-12px;top:10px}.tc .s2{right:-14px;top:3px;width:11px;height:11px;animation-delay:1s}.tc .s3{right:8px;top:-14px;width:9px;height:9px;animation-delay:1.8s}
+@keyframes tc-tw{0%,100%{opacity:0;transform:scale(.3) rotate(0)}50%{opacity:1;transform:scale(1) rotate(28deg)}}
+
+/* ---------- yon panel va yuqori panel ---------- */
+.side-foot .sf-row{display:flex;align-items:center;gap:8px}.side-foot .sf-row b{flex:1;min-width:0}
+.side-foot.tg{border-radius:var(--r);-webkit-backdrop-filter:blur(14px) saturate(1.5);backdrop-filter:blur(14px) saturate(1.5)}
+.side-foot.tg b{color:var(--tg-ink)}
+.side-foot.tg small{color:color-mix(in srgb,var(--tg-ink) 72%,transparent)}
+.side-foot.tg .btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:var(--tg-ink)}
+.side-foot.tg[data-tier=pro]{box-shadow:inset 0 1px 0 rgba(255,236,170,.4),0 18px 34px -18px rgba(240,180,40,.55)}
+.nav .tag.lk,.mtabs .lk{background:linear-gradient(145deg,#fdfdff,#d3d9e6 40%,#98a3b9);color:#232b3d;border:0;box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(98,110,138,.4)}
+
+/* ---------- qulf ekrani va taklif oynasi ---------- */
+.gate.tg{border-radius:var(--r-lg)}
+.gate-tp{font-size:13px}
+.gate.tg .gate-ul li{color:color-mix(in srgb,var(--tg-ink) 88%,transparent)}
+.gate.tg .hint{color:color-mix(in srgb,var(--tg-ink) 66%,transparent)}
+.modal.tg{background:var(--tg-fill),var(--tg-base);overflow:visible}
+.modal.tg h3{color:var(--tg-ink)}.modal.tg p{color:color-mix(in srgb,var(--tg-ink) 82%,transparent)}
+.modal-h{display:flex;align-items:center;gap:14px;margin-bottom:10px}.modal-h h3{margin:0}
+.modal.tg .btn:not([class*=tier-]){background:rgba(255,255,255,.6);border-color:var(--tg-ring);color:var(--tg-ink)}
+html[data-theme=dark] .modal.tg .btn:not([class*=tier-]){background:rgba(255,255,255,.08)}
+.modal.tg .tc{top:-48px}
+
+/* ---------- portfolio studiyasi ---------- */
+.pf-lk[data-tier]{background:var(--tg-metal);color:var(--tg-on);box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 0 0 1px var(--tg-ring)}
+.pf-lk .ti{width:12px;height:12px;fill:currentColor;stroke:none}
+.pf-up.tg{border:0;border-radius:18px;padding:16px 18px;gap:16px;justify-content:flex-start}
+.pf-up.tg>div:not(.tm){flex:1;min-width:0}
+.pf-up.tg b{color:var(--tg-ink)}.pf-up.tg p{color:color-mix(in srgb,var(--tg-ink) 72%,transparent)}
+.pf-up.tg .btn{flex:none}
+
+@media(prefers-reduced-motion:reduce){.tc,.tc .sp,.tg::after,.tp::after,.btn.tier-plus::after,.btn.tier-pro::after{animation:none!important;transition:none!important}.tc .sp{opacity:.9;transform:none}}

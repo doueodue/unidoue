@@ -9,6 +9,7 @@ import { effective, allow, cleanDz, defaultDz, designFromAI, lockedCount, TPLS, 
 import { webCSS } from '../public/js/pfwebcss.js';
 import { printCSS } from '../public/js/pfcss.js';
 import { readFileSync } from 'node:fs';
+import { tierPill, tierIcon, tierMedal, crownHTML, tierOf, TIER_NAME, TIER_TAG } from '../public/js/tiers.js';
 
 let n = 0; const ok = (c, m) => { n++; if (!c) { console.error('FAIL:', m); process.exitCode = 1; } };
 const eq = (a, b, m) => { n++; try { assert.deepEqual(a, b); } catch (e) { console.error('FAIL:', m, '\n  got', JSON.stringify(a), '\n  want', JSON.stringify(b)); process.exitCode = 1; } };
@@ -139,4 +140,15 @@ ok(!/eval\(|new Function|document\.write|innerHTML|XMLHttpRequest|fetch\(/.test(
 try { new Function(js); ok(true, 'pfweb.js sintaksisi'); } catch (e) { ok(false, 'pfweb.js sintaksisi: ' + e.message); }
 const dxFree = docxBytes({ ...full, accent: '#123456', tpl: 'noir' }, {}, 'free'), dxPro = docxBytes({ ...full, accent: '#123456', tpl: 'noir' }, {}, 'pro');
 ok(new TextDecoder().decode(parseZip(dxPro)['word/document.xml']).includes('123456') && !new TextDecoder().decode(parseZip(dxFree)['word/document.xml']).includes('123456'), 'Word: rang tarifga qarab (Free paletaga yaqinlashadi, Pro oʻzi)');
+
+/* ---- tarif shishasi (Free muz, Plus kumush, Pro oltin+toj) ---- */
+ok(['free', 'plus', 'pro'].every(p => tierPill(p).includes(`data-tier="${p}"`) && tierPill(p).includes(`#ti-${p}`) && tierMedal(p).includes(`data-tier="${p}"`)), 'tiers: pill va medalyon har tarif uchun');
+ok(tierPill('hack"><b>').includes('data-tier="free"') && !tierPill('x').includes('<b>') && tierIcon('zzz').includes('#ti-free'), 'tiers: nomaʼlum tarif → free (inyeksiya yoʻq)');
+eq([tierOf(0), tierOf(1), tierOf(2), tierOf(5)], ['free', 'plus', 'pro', 'pro'], 'tiers: tierOf 0/1/2');
+ok(crownHTML().includes('#tc-crown') && crownHTML().includes('aria-hidden="true"') && Object.keys(TIER_TAG).join() === Object.keys(TIER_NAME).join(), 'tiers: toj va taglavhalar');
+const tj = readFileSync(new URL('../public/js/tiers.js', import.meta.url), 'utf8'), tcss = readFileSync(new URL('../public/tiers.css', import.meta.url), 'utf8');
+ok(!/(?:stop-color|fill|stroke)="#(?:[0-9a-fA-F]{1,2}|[0-9a-fA-F]{4,5}|[0-9a-fA-F]{7,})"/.test(tj) && ['tg-gold', 'tg-gold2', 'tg-ruby', 'tg-sap', 'ti-free', 'ti-plus', 'ti-pro', 'tc-crown', 'tc-spark'].every(id => tj.includes(`id="${id}"`)), 'tiers.js: sprite idlari va rang kodlari toʻgʻri');
+ok(!/eval\(|innerHTML\s*=\s*[a-z]+\.value|document\.write/.test(tj), 'tiers.js: xavfli chaqiruvlarsiz');
+ok((tcss.match(/{/g) || []).length === (tcss.match(/}/g) || []).length, 'tiers.css: qavslar muvozanatda');
+ok(['free', 'plus', 'pro'].every(t => tcss.includes(`[data-tier=${t}],.tier-${t}{`) && tcss.includes(`html[data-theme=dark] [data-tier=${t}],.side [data-tier=${t}]{`)) && /prefers-reduced-motion:reduce/.test(tcss) && /backdrop-filter/.test(tcss), 'tiers.css: 3 tarif ranglari, qorongʻi variant, reduced-motion, shisha');
 console.log(`pf: ${n} checks, ${process.exitCode ? 'FAILED' : 'ok'}`);

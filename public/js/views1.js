@@ -1,4 +1,5 @@
 import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, refreshAccount, upsell, push, wipeLocal, errorBox, credits, inPlay } from './core.js';
+import { tierMedal, tierPill, crownHTML, liveGlass, TIER_TAG } from './tiers.js';
 import { t, dateL } from './i18n.js';
 import * as pn from './push.js';
 
@@ -170,27 +171,30 @@ async function checkPaid(el, id) {
   show(`<b>To‘lov hali tasdiqlanmadi.</b> Agar pul yechilgan bo‘lsa, tarif bir necha daqiqada yoqiladi. Yoqilmasa <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yozing va buyurtma kodini ayting: <b>${esc(id)}</b>. <button class="btn sm" id="pay-recheck" type="button" style="margin-left:6px">Qayta tekshirish</button>`);
   const rb = $('#pay-recheck', box); if (rb) rb.onclick = () => { box.remove(); checkPaid(el, id); };
 }
+/** Tarif kartasi: Free — muz, Plus — kumush, Pro — oltin shisha (toj bilan). */
+const planCard = (p, cur, inner) => `<section class="card plan tg${p.id === cur ? ' cur' : ''}" data-tier="${p.id}" data-live${p.id === 'pro' ? ' data-sweep' : ''}>${p.id === 'pro' ? crownHTML() + (cur === 'pro' ? '' : '<span class="badge pop">Mashhur</span>') : ''}
+  <div class="plan-h">${tierMedal(p.id)}<div><h3>${p.name}</h3><p class="plan-tag">${TIER_TAG[p.id]}</p></div>${p.id === cur ? '<span class="plan-cur">Joriy</span>' : ''}</div>${inner}</section>`;
 export async function pricing(el) {
-  const { plans, config } = await api('/api/plans'); await refreshAccount(); const cur = S.account.plan;
+  const { plans, config } = await api('/api/plans'); await refreshAccount(); const cur = S.account.plan; liveGlass(el);
   if (inPlay) { // Google Play ilovasi: toʻlov siyosati sababli narx, toʻlov va "soʻrov yuborish" tugmalari yoʻq — faqat tarif imkoniyatlari
     const a = S.account, until = cur !== 'free' && a.planUntil ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>${cur === 'pro' ? 'Pro' : 'Plus'} faol.</b> Amal qilish muddati: <b>${new Date(a.planUntil).toLocaleDateString('uz-UZ')}</b> gacha.</div></div>` : '';
-    el.innerHTML = `<div class="page-h"><div><h2>Tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b data-cr="frac">${credits().left} / ${credits().limit}</b> qoldi.</p></div></div>${until}
-    <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === cur ? 'feat' : ''}"><div><h3>${p.name}</h3></div><ul>${FEAT[p.id].map(f => `<li>${f}</li>`).join('')}</ul>${p.id === cur ? '<div style="margin-top:auto"><button class="btn" disabled style="width:100%">Joriy tarif</button></div>' : ''}</section>`).join('')}</div>
+    el.innerHTML = `<div class="page-h"><div><h2>Tariflar</h2><p>Hisobingiz: ${tierPill(cur)}. Bu oy AI kredit: <b data-cr="frac">${credits().left} / ${credits().limit}</b> qoldi.</p></div></div>${until}
+    <div class="grid g3 tier-stage">${plans.map(p => planCard(p, cur, `<ul>${FEAT[p.id].map(f => `<li>${f}</li>`).join('')}</ul>${p.id === cur ? '<div style="margin-top:auto"><button class="btn" disabled style="width:100%">Joriy tarif</button></div>' : ''}`)).join('')}</div>
     <div class="card" style="margin-top:18px"><h3>AI kredit qanday sarflanadi</h3><p class="sub">Limit har oy yangilanadi. Xatolik bo‘lsa, kredit yechilmaydi.</p><div class="row"><div class="stat"><b>1</b><span>mentor savoli</span></div><div class="stat"><b>2 / 4</b><span>esse tahlili (oddiy / chuqur)</span></div><div class="stat"><b>6</b><span>strategiya yoki hisobot</span></div></div></div>
     <p class="hint" style="margin-top:14px">Qabul natijasi hech bir tarifda kafolatlanmaydi.</p>`;
     return;
   }
   const online = config.payments && config.online ? config.online : null;
   const payButtons = (p, renew) => `<div class="paybtns"><div class="hint">${renew ? 'Muddatni 30 kunga uzaytirish' : '30 kunlik tarif'}</div>
-    ${online.payme ? `<button class="btn ${p.id === 'pro' ? 'primary' : 'dark'}" style="width:100%" data-pay="${p.id}" data-prov="payme">Payme orqali to‘lash</button>` : ''}${online.click ? `<button class="btn" style="width:100%" data-pay="${p.id}" data-prov="click">Click orqali to‘lash</button>` : ''}</div>`;
-  el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b data-cr="frac">${credits().left} / ${credits().limit}</b> qoldi.</p></div></div>
+    ${online.payme ? `<button class="btn tier-${p.id}" style="width:100%" data-pay="${p.id}" data-prov="payme">Payme orqali to‘lash</button>` : ''}${online.click ? `<button class="btn" style="width:100%" data-pay="${p.id}" data-prov="click">Click orqali to‘lash</button>` : ''}</div>`;
+  el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: ${tierPill(cur)}. Bu oy AI kredit: <b data-cr="frac">${credits().left} / ${credits().limit}</b> qoldi.</p></div></div>
   ${payBox(S.account, cur, !!online)}
   ${config.payments ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>Karta bilan to‘lash.</b> To‘lov Payme yoki Click sahifasida amalga oshadi, karta ma’lumotlari UniDoue’ga berilmaydi. Tarif to‘lovdan keyin darhol yoqiladi va 30 kun amal qiladi, avtomatik yechilmaydi. Yuqoriroq tarifga o‘tsangiz, yangi 30 kun to‘lovdan boshlab hisoblanadi.</div></div>` : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov qo‘lda qabul qilinadi.</b> So‘rov yuboring, to‘lov ko‘rsatmasini olasiz. Administrator to‘lovni tekshirib, tarifni qo‘lda yoqadi. Tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
-  <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === 'pro' ? 'feat' : ''}">${p.id === 'pro' ? '<span class="badge pop">Mashhur</span>' : ''}<div><h3>${p.name}</h3></div><div class="price">$${p.price === 0 ? '0' : p.price.toFixed(2)}<small>${p.price ? ' / oy' : ''}</small></div>${online && p.uzs ? `<div class="uzs"><b>${p.uzs.toLocaleString('en-US').replace(/,/g, ' ')}</b> <span>so‘m / oy</span></div>` : ''}
+  <div class="grid g3 tier-stage">${plans.map(p => planCard(p, cur, `<div class="price">$${p.price === 0 ? '0' : p.price.toFixed(2)}<small>${p.price ? ' / oy' : ''}</small></div>${online && p.uzs ? `<div class="uzs"><b>${p.uzs.toLocaleString('en-US').replace(/,/g, ' ')}</b> <span>so‘m / oy</span></div>` : ''}
     <ul>${FEAT[p.id].map(f => `<li>${f}</li>`).join('')}</ul><div style="margin-top:auto">${
       p.id === cur ? (online && cur !== 'free' && S.account.planUntil ? payButtons(p, true) : '<button class="btn" disabled style="width:100%">Joriy tarif</button>')
       : ORDER[p.id] < ORDER[cur] ? `<button class="btn" style="width:100%" data-down="${p.id}">${p.name} ga o‘tish</button>`
-      : online ? payButtons(p, false) : `<button class="btn ${p.id === 'pro' ? 'primary' : 'dark'}" style="width:100%" data-up="${p.id}">${p.name} uchun so‘rov yuborish</button>`}</div></section>`).join('')}</div>
+      : online ? payButtons(p, false) : `<button class="btn tier-${p.id}" style="width:100%" data-up="${p.id}">${p.name} uchun so‘rov yuborish</button>`}</div>`)).join('')}</div>
   <div class="card" style="margin-top:18px"><h3>AI kredit qanday sarflanadi</h3><p class="sub">Limit har oy yangilanadi. Xatolik bo‘lsa, kredit yechilmaydi.</p><div class="row"><div class="stat"><b>1</b><span>mentor savoli</span></div><div class="stat"><b>2 / 4</b><span>esse tahlili (oddiy / chuqur)</span></div><div class="stat"><b>6</b><span>strategiya yoki hisobot</span></div></div></div>
   <p class="hint" style="margin-top:14px">Qabul natijasi hech bir tarifda kafolatlanmaydi. Narxlar AQSh dollarida.</p>`;
   $$('[data-pay]', el).forEach(b => (b.onclick = async () => {

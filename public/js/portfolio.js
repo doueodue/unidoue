@@ -6,6 +6,7 @@ import { lang, t as tr } from './i18n.js';
 import { normalize, emptyPf, seedFromProfile, evaluate, canExport, uid, MAX, DIM_L, TIPS } from './pfmodel.js';
 import { studioHTML, dzApply, aiRes } from './pfstudio.js';
 import { effective } from './pfdesign.js';
+import { liveGlass } from './tiers.js';
 import { docHTML, fileBase } from './pfdoc.js';
 import { docxBytes } from './pfdocx.js';
 import { store, compress, loadImage, cropPhoto } from './pfstore.js';
@@ -146,7 +147,7 @@ function mountPreview() {
 }
 const setView = v => { if (st.view === v) return; st.view = v; mountPreview(); };
 function renderDesign() { const d = $('#pf-design', st.el); if (d) d.innerHTML = studioHTML(st, plan()); }
-const lockPrompt = tier => upsell('pf_design', tier === 1 ? 'Bu variant Plus va Pro tarifida ochiladi.' : 'Bu variant faqat Pro tarifida ochiladi. Pro tarifida hamma shablon, fon va effekt, o‘z ranglaringiz va AI dizayner bor.');
+const lockPrompt = tier => upsell('pf_design', tier === 1 ? 'Bu variant Plus va Pro tarifida ochiladi.' : 'Bu variant faqat Pro tarifida ochiladi. Pro tarifida hamma shablon, fon va effekt, o‘z ranglaringiz va AI dizayner bor.', tier === 1 ? 'plus' : 'pro');
 function dzClick(btn) {
   const key = btn.dataset.dz, r = dzApply(st, key, plan());
   if (r.lock) { lockPrompt(r.lock); return; }
@@ -277,8 +278,9 @@ async function act(d, el) {
 /* ---------- kirish nuqtasi ---------- */
 const emTitle = x => { const y = tr(x), i = y.lastIndexOf(' '); return i < 0 ? '<em>' + esc(y) + '</em>' : esc(y.slice(0, i)) + ' <em>' + esc(y.slice(i + 1)) + '</em>'; };
 export async function portfolio(el) {
-  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=47'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
+  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=48'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
   Object.keys(st).forEach(k => delete st[k]);
+  liveGlass(el);
   const saved = ls.get(KEY, null), fresh = !saved;
   Object.assign(st, { el, pf: normalize(saved), imgs: {}, tab: 'build', view: 'a4', wish: '', aiWhy: null, dzPrev: '', step: 0, open: new Set(['about']), pick: new Set(), read: new Set(), last: JSON.stringify(normalize(saved || emptyPf())) });
   if (fresh) st.pf = seedFromProfile(emptyPf(), ls.get('qabul:profile', {}), ls.get('qabul:p', {}), ls.get('qabul:apps', []), 'en');

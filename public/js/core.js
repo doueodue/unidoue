@@ -1,3 +1,4 @@
+import { tierMedal, crownHTML } from './tiers.js';
 /* Umumiy yordamchilar: DOM, API, sinxronlash, toast, modal. Tashqi kutubxonasiz. */
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -112,10 +113,12 @@ export function toast(text, kind = '') {
   const el = document.createElement('div'); el.className = 'toast ' + kind; el.textContent = text;
   $('#toasts').appendChild(el); setTimeout(() => el.classList.add('out'), 4200); setTimeout(() => el.remove(), 4500);
 }
-export function modal({ title, body, actions = [], collect }) {
+export function modal({ title, body, actions = [], collect, tier }) {
   return new Promise(res => {
     const bg = document.createElement('div'); bg.className = 'modal-bg';
-    bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><h3>${esc(title)}</h3><div>${body}</div><div class="acts"></div></div>`;
+    bg.innerHTML = tier // tarif taklifi: shisha oyna (Plus — kumush, Pro — oltin va toj)
+      ? `<div class="modal tg" data-tier="${tier}" role="dialog" aria-modal="true" aria-label="${esc(title)}">${tier === 'pro' ? crownHTML() : ''}<div class="modal-h">${tierMedal(tier)}<h3>${esc(title)}</h3></div><div>${body}</div><div class="acts"></div></div>`
+      : `<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><h3>${esc(title)}</h3><div>${body}</div><div class="acts"></div></div>`;
     let closed = false;
     const acts = $('.acts', bg), done = v => { if (closed) return; closed = true; modal.data = collect ? collect(bg) : null; bg.classList.add('out'); setTimeout(() => bg.remove(), 200); res(v); };
     actions.forEach(a => { const b = document.createElement('button'); b.className = 'btn ' + (a.cls || ''); b.textContent = a.label; b.onclick = () => done(a.value); acts.appendChild(b); });
@@ -173,8 +176,9 @@ const UPSELL_TEXT = { coach: 'Esse murabbiyi Plus va Pro tarifida mavjud.', pf_s
 export const hasFeature = f => !!(S.account && S.account.features && S.account.features.includes(f));
 
 /** Plan yetishmasa chiroyli taklif oynasi. */
-export async function upsell(feature, text) {
+export async function upsell(feature, text, tier) {
   const names = { scholarships: 'Stipendiya qidiruvi', predictor: 'To‘liq moslik tahlili', strategy: 'Shaxsiy qabul strategiyasi', reports: 'Universitet hisobotlari', essay_adv: 'Chuqur esse tahlili', tracker: 'Cheksiz arizalar', compare: 'Ko‘proq universitetni solishtirish', finder_adv: 'Kengaytirilgan qidiruv', coach: 'Esse murabbiyi', pf_studio: 'AI dizayner', pf_design: 'Portfolio dizayni' };
-  const v = await modal({ title: names[feature] || 'Yuqoriroq tarif kerak', body: `<p>${esc(text || UPSELL_TEXT[feature] || 'Bu imkoniyat Pro tarifida mavjud.')}</p>`, actions: [{ label: 'Keyinroq', value: 0 }, { label: 'Tariflarni ko‘rish', value: 1, cls: 'primary' }] });
+  const tr = tier || ({ coach: 'plus', tracker: 'plus', compare: 'plus' })[feature] || 'pro'; // qaysi tarif ochadi: Plus (kumush) yoki Pro (oltin)
+  const v = await modal({ title: names[feature] || 'Yuqoriroq tarif kerak', tier: tr, body: `<p>${esc(text || UPSELL_TEXT[feature] || 'Bu imkoniyat Pro tarifida mavjud.')}</p>`, actions: [{ label: 'Keyinroq', value: 0 }, { label: 'Tariflarni ko‘rish', value: 1, cls: 'tier-' + tr }] });
   if (v === 1) location.hash = '#/pricing';
 }

@@ -1,5 +1,5 @@
 /* UniDoue service worker: API hech qachon keshlanmaydi; sahifa avval tarmoqdan, oflayn boʻlsa keshdan. */
-const V = 'unidoue-v47';
+const V = 'unidoue-v48';
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(['/', '/app', '/app.css', '/icons/icon-192.png'])).then(() => self.skipWaiting()));
 });
@@ -11,7 +11,7 @@ self.addEventListener('fetch', e => {
   if (r.method !== 'GET' || u.origin !== location.origin || u.pathname.startsWith('/api/')) return;
   e.respondWith(
     fetch(r).then(res => {
-      if (res.ok && (r.mode === 'navigate' || u.pathname.startsWith('/icons/') || u.pathname === '/app.css')) {
+      if (res.ok && (r.mode === 'navigate' || u.pathname.startsWith('/icons/') || u.pathname === '/app.css' || u.pathname === '/tiers.css')) {
         const copy = res.clone();
         caches.open(V).then(c => c.put(r, copy));
       }

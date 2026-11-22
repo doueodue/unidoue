@@ -4,6 +4,7 @@ import { esc } from './core.js';
 import { t as tr } from './i18n.js';
 import { TPLS, TPL, PALETTES, FONTS, BGS, FXS, MODES, SHAPES, DENS, TIERS, allow, effective, lockedCount } from './pfdesign.js';
 import { bgLayers } from './pfcss.js';
+import { tierIcon, tierMedal, tierOf } from './tiers.js';
 
 export const TPL_N = { ledger: 'Klassik', rail: 'Yon panel', atlas: 'Atlas', folio: 'Muqova', poster: 'Poster', noir: 'Noir', nova: 'Nova', timeline: 'Yo‘l' };
 const FONT_N = { auto: 'Avtomatik', serif: 'Serif', sans: 'Sans', grotesk: 'Grotesk', display: 'Display', editorial: 'Editorial', mono: 'Mono' };
@@ -26,7 +27,7 @@ export const THUMB = {
   timeline: '<circle cx="9" cy="10" r="5" class="g"/><rect x="18" y="6" width="20" height="4" class="d"/><rect x="18" y="12" width="14" height="1.8" class="a"/><rect x="21.3" y="21" width="1.5" height="35" class="a" opacity=".5"/><rect x="4" y="23" width="14" height="9" rx="2" class="g" opacity=".55"/><circle cx="22" cy="26" r="2.3" class="w" stroke="var(--a)" stroke-width="1.2"/><rect x="26" y="35" width="14" height="9" rx="2" class="g" opacity=".55"/><circle cx="22" cy="38" r="2.3" class="w" stroke="var(--a)" stroke-width="1.2"/><rect x="4" y="46" width="14" height="9" rx="2" class="g" opacity=".55"/><circle cx="22" cy="50" r="2.3" class="w" stroke="var(--a)" stroke-width="1.2"/>'
 };
 
-const tag = n => (n ? `<i class="pf-lk" aria-hidden="true">${LOCK}${TIER_N[n]}</i>` : '');
+const tag = n => (n ? `<i class="pf-lk" data-tier="${tierOf(n)}" aria-hidden="true">${tierIcon(tierOf(n))}${TIER_N[n]}</i>` : ''); // Plus — kumush, Pro — oltin
 const chip = (key, label, on, need, extra = '') => `<button type="button" class="pf-ch${need ? ' lk' : ''}" role="radio" aria-checked="${on}" data-dz="${key}"${need ? ` data-need="${need}"` : ''}>${extra}<span>${esc(tr(label))}</span>${tag(need)}</button>`;
 const sec = (title, hint, body) => `<section class="pf-dzs"><h4 class="pf-h">${esc(tr(title))}</h4>${hint ? `<p class="hint">${esc(tr(hint))}</p>` : ''}${body}</section>`;
 
@@ -49,7 +50,8 @@ export function studioHTML(st, plan) {
   const ai = `<section class="pf-ai card"><div class="pf-ai-h"><h3>${esc(tr('AI dizayner'))}</h3>${A.ai ? '' : tag(2)}</div><p class="sub">${esc(tr('Yo‘nalishingiz va xohishingizga qarab AI shablon, rang, shrift, fon va effektlarni o‘zi tanlaydi. Natijani ko‘rib, o‘zingiz tahrirlaysiz.'))}</p>
     <div class="field"><label class="f" for="pf-wish">${esc(tr('Qanday ko‘rinish xohlaysiz? (ixtiyoriy)'))}</label><input id="pf-wish" type="text" maxlength="200" value="${esc(st.wish || '')}" placeholder="${esc(tr('Masalan: jiddiy, zamonaviy, qora fon'))}" autocomplete="off"></div>
     <div class="pf-bar"><button type="button" class="btn ${A.ai ? 'primary' : ''}" data-do="ai-design">${esc(tr('AI dizayn tanlasin (2 kredit)'))}</button></div><div id="pf-ai-res">${st.aiWhy ? aiRes(st.aiWhy) : ''}</div></section>`;
-  return `${n ? `<div class="pf-up"><div><b>${esc(tr('Tarifingizda yopiq variantlar:'))} ${n}</b><p>${esc(tr('Plus va Pro tarifida ko‘proq shablon, rang, fon va effekt ochiladi. Pro tarifida hammasi va o‘z ranglaringiz.'))}</p></div><a class="btn sm" href="#/pricing">${esc(tr('Tariflarni ko‘rish'))}</a></div>` : ''}
+  const nx = plan === 'free' ? 'plus' : 'pro';
+  return `${n ? `<div class="pf-up tg" data-tier="${nx}" data-live>${tierMedal(nx)}<div><b>${esc(tr('Tarifingizda yopiq variantlar:'))} ${n}</b><p>${esc(tr('Plus va Pro tarifida ko‘proq shablon, rang, fon va effekt ochiladi. Pro tarifida hammasi va o‘z ranglaringiz.'))}</p></div><a class="btn sm tier-${nx}" href="#/pricing">${esc(tr('Tariflarni ko‘rish'))}</a></div>` : `<div class="pf-up tg" data-tier="pro" data-live data-sweep>${tierMedal('pro')}<div><b>${esc(tr('Pro: hamma dizayn ochiq'))}</b><p>${esc(tr('Barcha shablon, fon, effekt va shriftlar, o‘z ranglaringiz va AI dizayner sizniki.'))}</p></div></div>`}
   ${ai}<div class="card pf-dz">${sec('Shablon', '', `<div class="pf-tpls">${tpls}</div>`)}${sec('Rang', '', `<div class="pf-pal" role="radiogroup" aria-label="${esc(tr('Rang'))}">${pals}</div>${custom}`)}${sec('Shrift', '', `<div class="pf-chs" role="radiogroup">${fonts}</div>`)}
   ${sec('Fon', 'Fon PDF da ham, veb-sahifada ham ko‘rinadi. Veb-sahifada harakatlanadi.', `<div class="pf-chs pf-bgl" role="radiogroup">${bgs}</div>`)}${sec('Veb-sayt effektlari', 'Effektlar faqat veb-sahifada ishlaydi.', `<div class="pf-chs">${fxs}</div>`)}
   ${sec('Rejim', 'Tungi va kunduzgi rejim veb-sahifada ishlaydi.', `<div class="pf-chs" role="radiogroup">${modes}</div>`)}${sec('Shakl', '', `<div class="pf-chs" role="radiogroup">${shapes}</div>`)}${sec('Zichlik', '', `<div class="pf-chs" role="radiogroup">${denss}</div>`)}</div>`;

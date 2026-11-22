@@ -159,6 +159,8 @@ class Client {
     const ap = await fetch(B + '/app'); ok(/script-src 'self';/.test(ap.headers.get('content-security-policy') || ''), '/app CSP: skriptlar faqat oʻzimizdan');
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
+    const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v48/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v48');
 
     console.log('Hisobni oʻchirish');
     r = await a.call('DELETE', '/api/account', { password: 'xato' }); ok(r.s === 401, 'notoʻgʻri parol bilan oʻchirib boʻlmaydi');

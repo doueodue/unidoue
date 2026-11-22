@@ -3,6 +3,7 @@ import { t, langSelect, bindLang } from './i18n.js';
 import { themeSwitch } from './theme-ui.js';
 import * as fx from './fx.js';
 import * as pn from './push.js';
+import { tierPill, liveGlass } from './tiers.js';
 
 const ROUTES = [
   { id: 'dashboard', t: 'Bosh panel', i: 'home', sec: 'Asosiy', v: () => import('./views1.js').then(m => m.dashboard) },
@@ -97,21 +98,22 @@ function shell() {
   root.innerHTML = `<div class="shell"><aside class="side" id="side"><a class="brand" href="#/dashboard"><i>U</i>UniDoue</a><nav class="nav" aria-label="${t('Asosiy menyu')}">${nav}</nav>
   <a class="nav-tg" href="https://t.me/unidoue" target="_blank" rel="noopener noreferrer">✈ ${t('Telegram kanal')}</a>
   <a class="nav-tg" href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">💬 ${t('Yordam')}</a>
-  <div class="side-foot"><b id="sf-u"></b><small id="sf-p"></small><button class="btn sm" id="lo" type="button">${t('Chiqish')}</button></div></aside>
+  <div class="side-foot tg" id="sf" data-tier="free" data-live><div class="sf-row"><b id="sf-u"></b><span id="sf-t"></span></div><small id="sf-p"></small><button class="btn sm" id="lo" type="button">${t('Chiqish')}</button></div></aside>
   <div class="scrim" id="scrim"></div>
-  <div class="main"><header class="top"><button class="burger" id="bg" aria-label="Menyu" type="button">${svg('menu')}</button><h1 id="ttl"></h1><span class="top-tools">${themeSwitch()}${langSelect('lang')}</span><span class="badge" id="pb"></span></header>
+  <div class="main"><header class="top"><button class="burger" id="bg" aria-label="Menyu" type="button">${svg('menu')}</button><h1 id="ttl"></h1><span class="top-tools">${themeSwitch()}${langSelect('lang')}</span><span id="pb"></span></header>
   <main class="content" id="view" tabindex="-1"></main></div></div>`;
   bindLang('lang', () => { shell(); route(); });
   $('#bg').onclick = () => document.body.classList.toggle('nav-open');
   $('#scrim').onclick = () => document.body.classList.remove('nav-open');
   $('#lo').onclick = async () => { try { if (localStorage.getItem('qabul:sync')) await push(); await pn.forget(); await api('/api/logout', 'POST', {}); } catch (e) {} wipeLocal(); location.hash = ''; location.reload(); };
-  updatePlanUI();
+  liveGlass($('#sf')); updatePlanUI();
 }
 export function updatePlanUI() {
   if (!$('#sf-u') || !S.user) return;
   const a = S.account || {}; $('#sf-u').textContent = S.user.name || S.user.email; $('#sf-p').textContent = S.user.email;
   ROUTES.filter(r => r.need).forEach(r => { const tg = $(`.nav .tag[data-need="${r.need}"]`); if (!tg) return; const ok = hasFeature(r.need); tg.textContent = ok ? r.tag || '' : NEED_PLAN[r.need]; tg.classList.toggle('lk', !ok); tg.hidden = ok && !r.tag; });
-  const pb = $('#pb'); pb.textContent = ({ free: 'Free', plus: 'Plus', pro: 'Pro' })[a.plan] || 'Free'; pb.className = 'badge' + (a.plan !== 'free' ? ' ok' : '');
+  const pl = ['plus', 'pro'].includes(a.plan) ? a.plan : 'free'; // tarif belgisi: Free muz, Plus kumush, Pro oltin
+  $('#pb').innerHTML = tierPill(pl); $('#sf-t').innerHTML = tierPill(pl); $('#sf').dataset.tier = pl;
 }
 document.addEventListener('unidoue:account', updatePlanUI);
 

@@ -1192,7 +1192,7 @@ function serveStatic(req, res, pathname) {
   let rel = PAGES[pathname];
   if (!rel) {
     try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch (e) { return false; }
-    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
+    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
     if (!ok) return false;
   }
   const file = path.resolve(PUBLIC_DIR, rel);
@@ -1221,7 +1221,7 @@ async function tgInit() {
 const server = http.createServer(async (req, res) => {
   try {
     const pathname = new URL(req.url, 'http://x').pathname;
-    secHeaders(res, pathname === '/' || pathname === '/app' || pathname === '/reset' || pathname === '/admin' || pathname.startsWith('/js/') || pathname === '/app.css');
+    secHeaders(res, pathname === '/' || pathname === '/app' || pathname === '/reset' || pathname === '/admin' || pathname.startsWith('/js/') || pathname === '/app.css' || pathname === '/tiers.css');
     // Eski *.onrender.com manzilidan asosiy domenga (APP_URL) yoʻnaltirish — faqat sahifalar uchun (API, healthz, .well-known tegilmaydi)
     if (APP_HOST && (req.method === 'GET' || req.method === 'HEAD') && /\.onrender\.com$/i.test(String(req.headers.host || '').split(':')[0]) && !pathname.startsWith('/api/') && pathname !== '/healthz' && !pathname.startsWith('/.well-known/')) {
       res.statusCode = 301; res.setHeader('Location', APP_ORIGIN + req.url); return res.end();

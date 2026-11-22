@@ -115,6 +115,12 @@ Foydalanuvchi soʻrovlari: `GET /api/admin/requests`.
 - **Esse murabbiyi** (`#/coach`, Plus va Pro; AI mentor ichida "Esse murabbiyi" tabi): motivation letter / personal statement boʻyicha darslar, yaxshi va zaif misollar, mashqlar, bepul mahalliy tekshiruvlar (klishe, noaniq soʻzlar, aniq tafsilotlar, soʻz limiti), bosqichma-bosqich AI fikri (1 kredit) va reja/outline (2 kredit). Murabbiy esseni **yozib bermaydi** — faqat oʻrgatadi va savol beradi. Maʼlumot `qabul:coach` kaliti bilan saqlanadi.
 - Testlar: `tests/pf.mjs` (brauzerda portfolio), `tests/run.js` ichidagi “Esse murabbiyi va portfolio (AI)” va “AI_VISION” boʻlimlari.
 
+## Tarif dizayni (shisha uslubi)
+Har bir tarifning oʻz shisha (glass) koʻrinishi bor: **Free — muz** (koʻkimtir shaffof), **Plus — kumush** (jilolangan metall, nozik chiziqli), **Pro — oltin** (oltin shisha va yaltiroq **toj**, ustiga sekin yaltirash yuguradi). Ranglar `[data-tier=free|plus|pro]` (yoki `.tier-*`) orqali CSS oʻzgaruvchilari boʻlib beriladi, yorugʻ va qorongʻi tema alohida sozlangan.
+- Fayllar: `public/tiers.css` (uslublar), `public/js/tiers.js` (belgilar: `tierPill`, `tierMedal`, `crownHTML`, `liveGlass`; SVG sprite sahifaga bir marta qoʻshiladi).
+- Qayerda koʻrinadi: yuqori paneldagi tarif belgisi, yon paneldagi hisob kartasi, **Tariflar** sahifasi (kartalar, Pro ustida toj), qulf ekrani (Esse murabbiyi — Plus kumushi), `upsell()` oynalari (`modal({ tier })`: Plus — kumush, Pro — oltin va toj), portfolio studiyasidagi qulf belgilari va banner.
+- Qimirlash (`prefers-reduced-motion`) yoqilgan boʻlsa, toj harakati, yaltirash va kursor nuri oʻchadi. `backdrop-filter` yoʻq brauzerda oddiy toʻq fon ishlatiladi.
+
 ## Universitet maʼlumotlari
 `public/data/universities.json`: har bir koʻrsatkichda `satV`, `accV`, `rdV` bayroqlari bor (`true` = rasmiy manbadan tekshirilgan). Hozir 9 ta universitetning SAT oraligʻi va 10 tasining muddati tekshirilgan, qolganlari "taxminiy" deb belgilanadi.
 

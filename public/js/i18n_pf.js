@@ -385,7 +385,13 @@ const P = [
   ['AI dizayner va to‘liq dizayn studiyasi (hamma shablon, fon, effekt va o‘z ranglaringiz) Pro tarifida mavjud.', 'AI-дизайнер и полная студия дизайна (все шаблоны, фоны, эффекты и свои цвета) доступны в тарифе Pro.', 'The AI designer and the full design studio (every template, background, effect and your own colors) are on the Pro plan.'],
   ['Portfolio dizayni: 5 ta shablon, 10 rang, fon va effektlar', 'Дизайн портфолио: 5 шаблонов, 10 цветов, фоны и эффекты', 'Portfolio design: 5 templates, 10 colors, backgrounds and effects'],
   ['Portfolio quruvchi: PDF, Word, veb-sahifa (2 ta shablon)', 'Конструктор портфолио: PDF, Word, веб-страница (2 шаблона)', 'Portfolio builder: PDF, Word, web page (2 templates)'],
-  ['Portfolio dizayn studiyasi: 8 shablon, fon va effektlar, o‘z ranglaringiz, AI dizayner', 'Студия дизайна портфолио: 8 шаблонов, фоны и эффекты, свои цвета, AI-дизайнер', 'Portfolio design studio: 8 templates, backgrounds and effects, your own colors, AI designer']
+  ['Portfolio dizayn studiyasi: 8 shablon, fon va effektlar, o‘z ranglaringiz, AI dizayner', 'Студия дизайна портфолио: 8 шаблонов, фоны и эффекты, свои цвета, AI-дизайнер', 'Portfolio design studio: 8 templates, backgrounds and effects, your own colors, AI designer'],
+  ['Boshlash uchun', 'Для старта', 'To get started'],
+  ['Jiddiy tayyorgarlik uchun', 'Для серьёзной подготовки', 'For serious preparation'],
+  ['Hammasi ochiq', 'Всё открыто', 'Everything unlocked'],
+  ['Joriy', 'Текущий', 'Current'],
+  ['Pro: hamma dizayn ochiq', 'Pro: весь дизайн открыт', 'Pro: every design unlocked'],
+  ['Barcha shablon, fon, effekt va shriftlar, o‘z ranglaringiz va AI dizayner sizniki.', 'Все шаблоны, фоны, эффекты и шрифты, свои цвета и AI-дизайнер — ваши.', 'Every template, background, effect and font, your own colors and the AI designer are yours.'],
 ];
 export const PRU = Object.fromEntries(P.map(x => [x[0], x[1]]));
 export const PEN = Object.fromEntries(P.map(x => [x[0], x[2]]));

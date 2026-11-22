@@ -3,6 +3,7 @@
 import { S, esc } from './core.js';
 import { t } from './i18n.js';
 import { mentorTabs, bindMentorTabs } from './views3.js';
+import { tierIcon, liveGlass } from './tiers.js';
 
 const COPY = {
   coach: {
@@ -25,15 +26,16 @@ const peek = () => `<div class="gate-pk" aria-hidden="true"><div class="gate-pk-
 export const gate = need => el => {
   const c = COPY[need], cur = (S.account && S.account.plan) || 'free';
   el.innerHTML = `<div class="page-h"><div><h2>${emTitle(c.title)}</h2><p>${esc(c.lead)}</p></div></div>${need === 'coach' ? mentorTabs('coach') : ''}
-  <section class="gate card" aria-labelledby="gt-h">
+  <section class="gate card tg" data-tier="plus" data-live aria-labelledby="gt-h">
     <div class="gate-main">
-      <span class="gate-chip">${lockIc}<span>${esc(c.who)}</span></span>
+      <span class="tp gate-tp" data-tier="plus">${tierIcon('plus')}<span>${esc(c.who)}</span></span>
       <h3 id="gt-h">Bu bo‘lim hozirgi tarifingizda yo‘q</h3>
       <ul class="gate-ul">${c.items.map(x => `<li>${tick}<span>${esc(x)}</span></li>`).join('')}</ul>
-      <div class="gate-act"><a class="btn primary" href="#/pricing">${esc(c.cta)}</a><a class="btn" href="#/${c.back[0]}">${esc(c.back[1])}</a></div>
+      <div class="gate-act"><a class="btn tier-plus" href="#/pricing">${esc(c.cta)}</a><a class="btn" href="#/${c.back[0]}">${esc(c.back[1])}</a></div>
       <p class="hint"><span>Hozirgi tarifingiz:</span> <b>${esc(cur.toUpperCase())}</b> <span>·</span> <span>Tarifni yangilagach, bu bo‘lim darhol ochiladi.</span></p>
     </div>
     ${peek()}
   </section>`;
+  liveGlass(el);
   if (need === 'coach') bindMentorTabs(el);
 };
