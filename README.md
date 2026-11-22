@@ -31,6 +31,7 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 | `TG_BOT_TOKEN`, `TG_CHAT_ID` | Mentor va tarif soʻrovlari Telegramga kelishi uchun |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | (ixtiyoriy) Push bildirishnomalar kaliti. Qoʻyilmasa server oʻzi yaratib, ma'lumotlar bazasiga (Neon ulangan boʻlsa u yerga ham) saqlaydi. `VAPID_SUBJECT` — aloqa manzili (`mailto:` yoki `https://`); qoʻyilmasa `APP_URL` olinadi |
 | `TWA_SHA256`, `TWA_PACKAGE` | (ixtiyoriy) Google Play ilovasi (TWA): imzo SHA-256 barmoq izlari (vergul bilan) `/.well-known/assetlinks.json` ga qoʻshiladi; `TWA_PACKAGE` — paket nomi (standart `uz.unidoue.app`). Batafsil: `store/PLAY_MARKET.md`. |
+| `REG_RATE_MAX` | (faqat test uchun) bir IP dan soatiga ro‘yxatdan o‘tishlar chegarasi, standart 10 |
 | `USD_UZS_RATE` | Onlayn toʻlov uchun kurs: 1 USD = necha soʻm (masalan `12700`). Soʻm narxi = dollar narxi × kurs, 1000 soʻmgacha yaxlitlanadi. Kurs boʻlmasa toʻlov **yoqilmaydi** |
 | `PAYME_MERCHANT_ID`, `PAYME_KEY`, `PAYME_TEST` | Payme kassasi. `PAYME_TEST=1` — sinov muhiti (`test.paycom.uz`), shunda `PAYME_KEY` oʻrniga **TEST kalitni** qoʻying |
 | `CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID`, `CLICK_SECRET_KEY` | Click (SHOP-API) |
@@ -83,6 +84,15 @@ curl -X POST https://SAYT/api/admin/plan -H "Authorization: Bearer $ADMIN_TOKEN"
   -H "Content-Type: application/json" -d '{"email":"user@gmail.com","plan":"pro","days":30}'
 ```
 Foydalanuvchi soʻrovlari: `GET /api/admin/requests`.
+
+## Promo kodlar (admin → «Promo kodlar»)
+Admin yangi kod yaratadi, **nechta kishiga** berilishini va **necha kunlik** Plus yoki Pro berilishini tanlaydi. Foydalanuvchi **Tariflar** sahifasidagi «Promo kodingiz bormi?» qatoriga kodni yozadi — tarif bepul yoqiladi.
+- Admin: `/admin` → **Promo kodlar** (kod yozish yoki tasodifiy `UD-XXXX-XXXX`, tarif, kunlar — 7/14/30/90/180/365 tugmalari yoki qo‘lda, odam soni, ixtiyoriy «shu sanagacha amal qiladi» va izoh). Ro‘yxatda foydalanilgan/limit, holat (faol / to‘xtatilgan / to‘lgan / muddati o‘tgan), nusxalash, limitni o‘zgartirish, to‘xtatish, o‘chirish va «kimlar ishlatgan».
+- API (admin, `Authorization: Bearer $ADMIN_TOKEN`): `GET /api/admin/promos`, `POST /api/admin/promo` (`{code?, plan, days, max, until?, note?}`), `POST /api/admin/promo/set` (`{code, active?, max?}`), `POST /api/admin/promo/delete`. Foydalanuvchi: `POST /api/promo/redeem` (`{code}`).
+- Mantiq `promo.js` da (sof funksiyalar, testlanadi). Kodlar `db.promos` da saqlanadi. Bitta foydalanuvchi bitta kodni **bir marta** ishlatadi (hisob o‘chirilib qayta ochilsa ham — pochta xeshi bo‘yicha).
+- Foydalanuvchida shu tarif faol bo‘lsa muddat **uzayadi**; yuqoriroq tarif berilsa hozirdan boshlanadi; pastroq tarif (yoki cheksiz) bo‘lsa kod **rad etiladi va o‘rin sarflanmaydi**.
+- Faqat xato (topilmagan) urinishlar cheklanadi (foydalanuvchiga 8 ta, IP ga 40 ta / 15 daqiqa) — bir Wi‑Fi dagi butun sinf kodni ishlata oladi. Kodni o‘chirish yoki to‘xtatish **allaqachon berilgan tarifni qaytarib olmaydi**.
+- Testda ro‘yxatdan o‘tish cheklovi `REG_RATE_MAX` (standart 10/soat/IP) bilan oshiriladi; productionda qo‘ymang.
 
 ## Stipendiyalar bazasi
 `DATA_DIR/scholarships.json` (yoki `catalog/scholarships.json`) fayli. Faqat **rasmiy manbadan tekshirilgan** yozuvlar qoʻshing:
@@ -137,6 +147,12 @@ Butun ilova yagona vizual tilga ega: **`public/atlas.css`** (`app.css` dan keyin
 - Quruqlik ma’lumoti `globe_data.js` da 1° li bitmaska (8100 bayt, base64); manba — Natural Earth 110m (jamoat mulki). Universitetlar ro‘yxati (`PLACES`) shu faylda: ism, kenglik, uzunlik, muhimlik (1–3).
 - Statistika (`201 universitet`, `48 davlat`) `universities.json` + `intl.json` ga mos bo‘lishi testda tekshiriladi; ma’lumot qo‘shilsa, `landing.html` dagi `data-n` va matnlarni yangilang.
 - Dizayn «Yo‘l daftari» tokenlaridan foydalanadi (fasl, qorong‘i rejim, kontur foni); Free/Plus/Pro narxlari `/api/plans` dan yangilanadi. Telefonda `grid-template-columns` har doim `minmax(0,1fr)` bo‘lsin, aks holda sahifa o‘ngga cho‘ziladi.
+
+## Scrollbarlar
+Hamma aylantirish yo‘laklari **bitta tizimda**: `app.css` ichidagi `--sb-thumb/--sb-thumb-h` tokenlari va `*::-webkit-scrollbar` (12px, shaffof yo‘l, brend rangidagi dasta; yon panelda oq). Firefox uchun faqat `@supports not selector(::-webkit-scrollbar)` ichida `scrollbar-width/color`.
+- **Hech qaysi elementga `scrollbar-width` / `scrollbar-color` yozmang**: Chrome unda `::-webkit-scrollbar` uslubini butunlay o‘chirib, standart strelkali yo‘lakni qaytaradi (Esse murabbiyi paneli va portfolio yon panelidagi xato shundan edi). `tests/pf.mjs` buni tekshiradi.
+- Aylantiriladigan panellarga `overflow-x:hidden` va grid ustunlariga `minmax(0,1fr)` bering, aks holda ichki matn gorizontal yo‘lak hosil qiladi.
+- `privacy.html` / `delete-account.html` / portfolio veb-sahifalari (`pfwebcss.js`) o‘z rang sxemasida alohida yo‘lak uslubiga ega.
 
 ## Tarif dizayni (shisha uslubi)
 Har bir tarifning oʻz shisha (glass) koʻrinishi bor: **Free — muz** (koʻkimtir shaffof), **Plus — kumush** (jilolangan metall, nozik chiziqli), **Pro — oltin** (oltin shisha va yaltiroq **toj**, ustiga sekin yaltirash yuguradi). Ranglar `[data-tier=free|plus|pro]` (yoki `.tier-*`) orqali CSS oʻzgaruvchilari boʻlib beriladi, yorugʻ va qorongʻi tema alohida sozlangan.

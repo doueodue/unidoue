@@ -38,7 +38,7 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [] });
+const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {} });
 let db = normDb({});
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
@@ -110,6 +110,7 @@ for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, async () => { try { flu
 
 const Scoring = require('./public/js/scoring.js');
 const PUSH = require('./push');
+const PROMO = require('./promo');
 
 /* ---------------- tariflar va sozlamalar ---------------- */
 // AI provayderi: ANTHROPIC_API_KEY (Claude) yoki AI_API_KEY + AI_BASE_URL (OpenAI-mos: Groq, Gemini, OpenRouter...)
@@ -621,7 +622,7 @@ async function api(req, res, pathname) {
   }
 
   if (pathname === '/api/register' && method === 'POST') {
-    if (limited('reg:' + ip, 10, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Keyinroq qayta urinib koʻring.');
+    if (limited('reg:' + ip, Math.max(parseInt(process.env.REG_RATE_MAX, 10) || 10, 1), 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Keyinroq qayta urinib koʻring.');
     const b = await readJson(req);
     const email = clean(b.email, 254).toLowerCase(), name = clean(b.name, 40), pw = typeof b.password === 'string' ? b.password : '';
     if (!EMAIL_RE.test(email)) return fail(res, 400, 'Emailni toʻgʻri kiriting.');
@@ -697,6 +698,7 @@ async function api(req, res, pathname) {
     for (const [k, s] of Object.entries(db.sessions)) if (s.uid === u.id) delete db.sessions[k];
     db.requests = db.requests.filter(r => r.uid !== u.id);
     for (const [k, r] of Object.entries(db.resets)) if (r.uid === u.id) delete db.resets[k];
+    PROMO.forget(db, u.id);
     emailIdx.delete(u.email); delete db.users[u.id];
     setSessionCookie(req, res, '', 0);
     save();
@@ -833,6 +835,17 @@ async function api(req, res, pathname) {
       config: { ai: !!AI_PROVIDER, vision: !!(AI_PROVIDER && AI_VISION), email: !!MAIL_PROVIDER, payments: PAY.enabled, online: PAY.info() } });
   }
 
+  /* ---- promo kod: foydalanuvchi kiritadi → Plus/Pro admin belgilagan muddatga bepul yoqiladi. Faqat XATO urinishlar sanaladi (sinfdagi hamma bitta Wi-Fi’da bir kodni ishlata oladi). ---- */
+  if (pathname === '/api/promo/redeem' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (peek('pmu:' + u.id) >= 8 || peek('pmi:' + ip) >= 40) return fail(res, 429, 'Juda koʻp notoʻgʻri urinish. 15 daqiqadan keyin qayta urinib koʻring.');
+    const b = await readJson(req), r = PROMO.redeem(db, u, clean(b.code, 60), Date.now(), { effPlan, order: PLAN_ORDER });
+    if (!r.ok) { if (r.status === 404) { limited('pmu:' + u.id, 8, 15 * 60 * 1000); limited('pmi:' + ip, 40, 15 * 60 * 1000); } return send(res, r.status, { error: r.error, code: r.code }); }
+    save();
+    return send(res, 200, { ok: true, plan: r.plan, days: r.days, until: r.until, account: accountInfo(u) });
+  }
+
   if (pathname === '/api/plan/downgrade' && method === 'POST') {
     const u = sessionUser(req);
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
@@ -954,6 +967,40 @@ async function api(req, res, pathname) {
     if (!admGate(req, res, ip, 'orders', 300)) return;
     return send(res, 200, { enabled: PAY.enabled, orders: PAY.adminList() });
   }
+  /* ---- admin: promo kodlar ---- */
+  if (pathname === '/api/admin/promos' && method === 'GET') {
+    if (!admGate(req, res, ip, 'promos', 300)) return;
+    const now = Date.now(), list = Object.values(db.promos).sort((a, b) => b.created - a.created).map(p => PROMO.view(p, now));
+    return send(res, 200, { promos: list, limits: PROMO.LIMITS });
+  }
+  if (pathname === '/api/admin/promo' && method === 'POST') {
+    if (!admGate(req, res, ip, 'promo', 60)) return;
+    const r = PROMO.create(db, await readJson(req), Date.now(), clean);
+    if (r.error) return fail(res, r.status, r.error);
+    save();
+    return send(res, 201, { ok: true, promo: PROMO.view(r.promo) });
+  }
+  if (pathname === '/api/admin/promo/set' && method === 'POST') {
+    if (!admGate(req, res, ip, 'promo', 60)) return;
+    const b = await readJson(req), p = db.promos[PROMO.normCode(b.code)];
+    if (!p) return fail(res, 404, 'Promo kod topilmadi.');
+    if (typeof b.active === 'boolean') p.active = b.active;
+    if (b.max != null) {
+      const m = Math.floor(Number(b.max));
+      if (!Number.isFinite(m) || m < Math.max(1, p.used) || m > PROMO.LIMITS.uses) return fail(res, 400, `Foydalanuvchilar soni ${Math.max(1, p.used)} dan ${PROMO.LIMITS.uses} gacha boʻlsin (allaqachon ${p.used} kishi ishlatgan).`);
+      p.max = m;
+    }
+    save();
+    return send(res, 200, { ok: true, promo: PROMO.view(p) });
+  }
+  if (pathname === '/api/admin/promo/delete' && method === 'POST') {
+    if (!admGate(req, res, ip, 'promo', 60)) return;
+    const b = await readJson(req), code = PROMO.normCode(b.code);
+    if (!db.promos[code]) return fail(res, 404, 'Promo kod topilmadi.');
+    delete db.promos[code]; save();
+    return send(res, 200, { ok: true });
+  }
+
   if (pathname === '/api/admin/plan' && method === 'POST') {
     if (!admGate(req, res, ip, 'plan', 30)) return;
     const b = await readJson(req), id = emailIdx.get(clean(b.email, 254).toLowerCase()), u = id && db.users[id];

@@ -10,6 +10,11 @@ body{margin:0;background:#070b2e;color:#e8ebff;font:16px/1.7 system-ui,-apple-sy
 main{max-width:760px;margin:0 auto;padding:40px 20px 80px}
 h1{font-size:34px;margin:0 0 6px;color:#fff}h2{font-size:20px;margin:34px 0 8px;color:#fff}
 p,li{color:#c9cffc}a{color:#9fb0ff}ul{padding-left:22px}.m{color:#8f98d6;font-size:14px}
+html{color-scheme:dark}
+*::-webkit-scrollbar{width:12px;height:12px}*::-webkit-scrollbar-track,*::-webkit-scrollbar-corner{background:transparent}
+*::-webkit-scrollbar-thumb{background-color:rgba(159,176,255,.34);background-clip:padding-box;border:3px solid transparent;border-radius:99px;min-height:44px}
+*::-webkit-scrollbar-thumb:hover,*::-webkit-scrollbar-thumb:active{background-color:rgba(159,176,255,.68)}
+@supports not selector(::-webkit-scrollbar){*{scrollbar-width:thin;scrollbar-color:rgba(159,176,255,.4) transparent}}
 </style>
 </head>
 <body><main>

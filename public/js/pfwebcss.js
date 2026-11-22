@@ -16,7 +16,7 @@ const T = {
 const tok = a => `--bg:${a[0]};--card:${a[1]};--ink:${a[2]};--mut:${a[3]};--line:${a[4]}`;
 const RAD = { sharp: 4, round: 34 };
 
-const CORE = `*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;color-scheme:light}html.dk{color-scheme:dark}
+const CORE = `*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;color-scheme:light}html.dk{color-scheme:dark}*::-webkit-scrollbar{width:12px;height:12px}*::-webkit-scrollbar-track,*::-webkit-scrollbar-corner{background:transparent}*::-webkit-scrollbar-thumb{background-color:color-mix(in srgb,var(--a,#7a7a7a) 45%,transparent);background-clip:padding-box;border:3px solid transparent;border-radius:99px;min-height:44px}*::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--a,#7a7a7a) 80%,transparent)}@supports not selector(::-webkit-scrollbar){html{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--a,#7a7a7a) 50%,transparent) transparent}}
 body{font:16px/1.65 var(--bf);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;overflow-wrap:anywhere}img{display:block;max-width:100%}a{color:inherit;text-decoration:none}ul{list-style:none}
 :focus-visible{outline:2px solid var(--a);outline-offset:3px;border-radius:6px}::selection{background:color-mix(in srgb,var(--a) 30%,transparent)}
 .bgx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}.bgx::before{content:"";position:absolute;inset:0;background:var(--lay,none)}.bgx i{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;will-change:transform}.bgx canvas{position:absolute;inset:0;width:100%;height:100%}

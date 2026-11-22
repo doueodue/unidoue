@@ -3,6 +3,8 @@
 const { spawn } = require('node:child_process');
 const http = require('node:http');
 const fs = require('node:fs');
+// Vaqtinchalik papkani tozalash: server hali yozayotgan boʻlsa (ENOTEMPTY) test yiqilmasin
+function rmq(d) { for (let i = 0; i < 12; i++) { try { fs.rmSync(d, { recursive: true, force: true }); return; } catch (e) { const t = Date.now() + 150; while (Date.now() < t); } } }
 const os = require('node:os');
 const path = require('node:path');
 
@@ -28,7 +30,7 @@ class Client {
   const ai = await mock((q, b, r) => { aiLast = JSON.parse(b); if (aiMode === 'fail') { r.statusCode = 500; return r.end('{"error":{"type":"x"}}'); } r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ content: [{ type: 'text', text: 'Test javobi' }] })); });
   const mail = await mock((q, b, r) => { mails.push(JSON.parse(b)); r.setHeader('content-type', 'application/json'); r.end('{"id":"1"}'); });
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-'));
-  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, REQUIRE_EMAIL_VERIFY: '0', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
+  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', REG_RATE_MAX: '30', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, REQUIRE_EMAIL_VERIFY: '0', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
   for (let i = 0; i < 40; i++) { try { if ((await fetch(B + '/healthz')).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
   const PROFILE = { gpa: 4.6, sc: 5, sat: 1480, ielts: 7, ex: 2 };
   try {
@@ -141,6 +143,62 @@ class Client {
     r = await a.call('POST', '/api/plan/downgrade', { plan: 'pro' }); ok(r.s === 400, 'yuqoriroq tarifga "downgrade" rad etiladi');
     r = await a.call('POST', '/api/plan/downgrade', { plan: 'free' }); ok(r.s === 200 && r.j.account.plan === 'free', 'Free ga tushish');
 
+    console.log('Promo kodlar');
+    const ADMT = { Authorization: 'Bearer adm-secret' }, pmList = async () => (await a.call('GET', '/api/admin/promos', undefined, ADMT)).j.promos, pmGet = async c => (await pmList()).find(x => x.code === c);
+    r = await a.call('POST', '/api/promo/redeem', { code: 'YOQ-KOD' }); ok(r.s === 404 && r.j.code === 'PROMO_NOT_FOUND', 'promo: mavjud boʻlmagan kod → 404', r.s);
+    r = await new Client().call('POST', '/api/promo/redeem', { code: 'X' }); ok(r.s === 401, 'promo: kirmagan foydalanuvchiga 401');
+    r = await a.call('POST', '/api/admin/promo', { plan: 'plus', days: 30, max: 2 }); ok(r.s === 401, 'promo: admin tokensiz yaratib boʻlmaydi');
+    r = await a.call('GET', '/api/admin/promos'); ok(r.s === 401, 'promo: roʻyxat admin tokensiz 401');
+    r = await a.call('POST', '/api/admin/promo', { plan: 'free', days: 30, max: 1 }, ADMT); ok(r.s === 400, 'promo: Free tarifga kod yaratib boʻlmaydi');
+    r = await a.call('POST', '/api/admin/promo', { plan: 'plus', days: 0, max: 1 }, ADMT); ok(r.s === 400, 'promo: muddat 0 rad etiladi');
+    r = await a.call('POST', '/api/admin/promo', { plan: 'plus', days: 30, max: 0 }, ADMT); ok(r.s === 400, 'promo: soni 0 rad etiladi');
+    r = await a.call('POST', '/api/admin/promo', { plan: 'plus', days: 30, max: 1, code: 'a!' }, ADMT); ok(r.s === 400, 'promo: notoʻgʻri belgili kod rad etiladi');
+    r = await a.call('POST', '/api/admin/promo', { plan: 'plus', days: 30, max: 1, until: '2020-01-01' }, ADMT); ok(r.s === 400, 'promo: oʻtib ketgan sana rad etiladi');
+    r = await a.call('POST', '/api/admin/promo', { plan: 'plus', days: 30, max: 2, code: ' maktab 26 ', note: '2-maktab' }, ADMT); ok(r.s === 201 && r.j.promo.code === 'MAKTAB26' && r.j.promo.status === 'active' && r.j.promo.note === '2-maktab', 'promo: yaratildi (kod katta harfga, boʻsh joysiz)', r.j);
+    r = await a.call('POST', '/api/admin/promo', { plan: 'pro', days: 7, max: 1, code: 'maktab26' }, ADMT); ok(r.s === 409, 'promo: takroriy kod 409', r.s);
+    r = await a.call('POST', '/api/admin/promo', { plan: 'pro', days: 7, max: 3 }, ADMT); ok(r.s === 201 && /^UD-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(r.j.promo.code), 'promo: kod avtomatik yaratildi', r.j); const autoCode = r.j.promo.code;
+    r = await a.call('POST', '/api/promo/redeem', { code: 'Maktab-26' }); ok(r.s === 404, 'promo: harf-tire boshqacha yozilsa topilmaydi', r.s);
+    r = await a.call('POST', '/api/promo/redeem', { code: ' maktab26 ' });
+    ok(r.s === 200 && r.j.plan === 'plus' && r.j.account.plan === 'plus' && Math.abs(r.j.account.planUntil - (Date.now() + 30 * 864e5)) < 120000, 'promo: Free → Plus 30 kunga yoqildi', r.j);
+    const plusUntil = r.j.account.planUntil;
+    r = await a.call('POST', '/api/promo/redeem', { code: 'MAKTAB26' }); ok(r.s === 409 && r.j.code === 'PROMO_USED', 'promo: bir foydalanuvchi bitta koddan bir marta', r.s);
+    ok((await pmGet('MAKTAB26')).used === 1, 'promo: takroriy urinishda joy band qilinmaydi');
+    const pm2 = new Client(), pm3 = new Client();
+    await pm2.call('POST', '/api/register', { email: 'promo2@gmail.com', password: 'parol12345', name: 'P2' }); await pm3.call('POST', '/api/register', { email: 'promo3@gmail.com', password: 'parol12345', name: 'P3' });
+    r = await pm2.call('POST', '/api/promo/redeem', { code: 'MAKTAB26' }); ok(r.s === 200, 'promo: ikkinchi foydalanuvchi ham oldi', r.s);
+    r = await pm3.call('POST', '/api/promo/redeem', { code: 'MAKTAB26' }); ok(r.s === 410 && r.j.code === 'PROMO_FULL', 'promo: limit tugagach 410', r.s);
+    const full = await pmGet('MAKTAB26'); ok(full.used === 2 && full.status === 'full' && full.recent.some(x => x.email === 'promo2@gmail.com'), 'promo: admin roʻyxatida foydalanilgan soni, holat va kimlar', full);
+    r = await a.call('POST', '/api/admin/promo/set', { code: 'maktab26', max: 1 }, ADMT); ok(r.s === 400, 'promo: limitni foydalanilgandan pastga tushirib boʻlmaydi', r.s);
+    r = await a.call('POST', '/api/admin/promo/set', { code: 'maktab26', max: 3 }, ADMT); ok(r.s === 200 && r.j.promo.status === 'active', 'promo: limit oshirildi → yana faol', r.j);
+    r = await pm3.call('POST', '/api/promo/redeem', { code: 'MAKTAB26' }); ok(r.s === 200, 'promo: limit oshgach uchinchi foydalanuvchi oldi', r.s);
+    r = await a.call('POST', '/api/admin/promo', { plan: 'plus', days: 10, max: 5, code: 'UZAYTIR' }, ADMT);
+    r = await a.call('POST', '/api/promo/redeem', { code: 'UZAYTIR' }); ok(r.s === 200 && Math.abs(r.j.account.planUntil - (plusUntil + 10 * 864e5)) < 1000, 'promo: shu tarif davom etayotgan boʻlsa muddat ustiga qoʻshiladi', r.j && r.j.account && r.j.account.planUntil);
+    r = await a.call('POST', '/api/promo/redeem', { code: autoCode }); ok(r.s === 200 && r.j.account.plan === 'pro' && Math.abs(r.j.account.planUntil - (Date.now() + 7 * 864e5)) < 120000, 'promo: Plus → Pro (bugundan 7 kun)', r.j);
+    await a.call('POST', '/api/admin/promo', { plan: 'plus', days: 30, max: 5, code: 'PASTROQ' }, ADMT);
+    r = await a.call('POST', '/api/promo/redeem', { code: 'PASTROQ' }); ok(r.s === 409 && r.j.code === 'PROMO_LOWER', 'promo: yuqoriroq tarifi borga pastroq kod rad etiladi', r.s);
+    ok((await pmGet('PASTROQ')).used === 0, 'promo: rad etilganda joy band qilinmaydi');
+    r = await a.call('POST', '/api/admin/promo/set', { code: 'pastroq', active: false }, ADMT); ok(r.s === 200 && r.j.promo.status === 'paused', 'promo: to‘xtatildi');
+    r = await pm3.call('POST', '/api/promo/redeem', { code: 'PASTROQ' }); ok(r.s === 410 && r.j.code === 'PROMO_PAUSED', 'promo: toʻxtatilgan kod ishlamaydi', r.s);
+    r = await a.call('POST', '/api/admin/promo/delete', { code: 'pastroq' }, ADMT); ok(r.s === 200, 'promo: oʻchirildi');
+    r = await pm3.call('POST', '/api/promo/redeem', { code: 'PASTROQ' }); ok(r.s === 404, 'promo: oʻchirilgan kod topilmaydi', r.s);
+    r = await pm2.call('GET', '/api/me'); ok(r.j.account.plan === 'plus', 'promo: kod oʻchirilsa, allaqachon yoqilgan tarif saqlanadi', r.j.account.plan);
+    const bf = new Client(); await bf.call('POST', '/api/register', { email: 'promobf@gmail.com', password: 'parol12345', name: 'BF' });
+    let bfs = []; for (let i = 0; i < 10; i++) bfs.push((await bf.call('POST', '/api/promo/redeem', { code: 'TOPISH-' + i })).s);
+    ok(bfs.slice(0, 8).every(x => x === 404) && bfs[8] === 429 && bfs[9] === 429, 'promo: notoʻgʻri urinishlar 8 tadan keyin bloklanadi (kodni topib boʻlmaydi)', bfs);
+    { // sof mantiq: sana, bir martalik himoya, hisob oʻchirilgandan keyin qayta foydalanish
+      const PM = require('../promo'), pdb = { promos: {} }, now = Date.now(), uo = { plan: 'free' }, ord = { free: 0, plus: 1, pro: 2 };
+      ok(PM.normCode('  ud–ab12 cd ') === 'UD-AB12CD' && PM.validCode('UD-AB12CD') && !PM.validCode('AB') && !PM.validCode('-AB12'), 'promo.js: kod normallashtirish va tekshirish');
+      const tm = new Date(now + 2 * 864e5).toISOString().slice(0, 10), c1 = PM.create(pdb, { plan: 'pro', days: 5, max: 2, code: 'SANA', until: tm }, now);
+      ok(c1.promo && c1.promo.until > now && PM.statusOf(c1.promo, now) === 'active' && PM.statusOf(c1.promo, c1.promo.until + 1) === 'expired', 'promo.js: kod amal qilish sanasi (Toshkent kuni oxirigacha)');
+      const u1 = { id: 'u1', email: 'x@y.uz', plan: 'free' }, eff = u => ({ id: u.plan && u.planUntil > now ? u.plan : 'free' });
+      ok(PM.redeem(pdb, u1, 'sana', now + 3 * 864e5, { effPlan: eff, order: ord }).code === 'PROMO_EXPIRED', 'promo.js: muddati oʻtgan kod rad etiladi');
+      ok(PM.redeem(pdb, u1, 'sana', now, { effPlan: eff, order: ord }).ok === true && u1.plan === 'pro', 'promo.js: kod amal qilish sanasigacha ishlaydi');
+      PM.forget(pdb, 'u1'); ok(pdb.promos.SANA.redeemed[0].e === '' && pdb.promos.SANA.redeemed[0].h, 'promo.js: hisob oʻchirilganda email olib tashlanadi, hash qoladi');
+      const u1b = { id: 'u1-yangi', email: 'X@y.uz', plan: 'free' }; ok(PM.redeem(pdb, u1b, 'SANA', now, { effPlan: eff, order: ord }).code === 'PROMO_USED', 'promo.js: oʻchirib qayta roʻyxatdan oʻtib yana ishlatib boʻlmaydi');
+      const uu = { id: 'u2', email: 'z@y.uz', plan: 'plus', planUntil: null }; PM.create(pdb, { plan: 'plus', days: 5, max: 1, code: 'MUDDATSIZ' }, now);
+      ok(PM.redeem(pdb, uu, 'MUDDATSIZ', now, { effPlan: () => ({ id: 'plus' }), order: ord }).code === 'PROMO_UNLIMITED' && pdb.promos.MUDDATSIZ.used === 0, 'promo.js: muddatsiz tarifga kod kerak emas, joy band qilinmaydi');
+    }
+
     console.log('Parol tiklash');
     const pr = new Client(); await pr.call('POST', '/api/register', { email: 'reset@gmail.com', password: 'eski-parol1', name: 'Reset' });
     r = await new Client().call('POST', '/api/password/forgot', { email: 'yoq@gmail.com' }); ok(r.s === 200 && mails.length === 0, 'mavjud boʻlmagan email: bir xil javob, xat yoʻq');
@@ -163,7 +221,7 @@ class Client {
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
     const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
-    ok(/href="\/tiers\.css/.test(html) && /unidoue-v51/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v51');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v52/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v52');
     const ac = await fetch(B + '/atlas.css?v=50'), act = await ac.text(), cv = await fetch(B + '/contour.svg'), cvt = await cv.text();
     ok(ac.status === 200 && /text\/css/.test(ac.headers.get('content-type') || '') && /\.rt-done/.test(act) && /href="\/atlas\.css/.test(html), 'atlas.css (Yo‘l daftari dizayni) toʻgʻri MIME bilan beriladi va /app ga ulangan');
     ok(cv.status === 200 && /image\/svg\+xml/.test(cv.headers.get('content-type') || '') && /^<svg/.test(cvt) && !/<script/i.test(cvt), 'contour.svg (xarita foni) image/svg+xml bilan beriladi');
@@ -176,7 +234,7 @@ class Client {
     r = await new Client().call('POST', '/api/login', { email: em, password: 'parol12345' }); ok(r.s === 401, 'oʻchirilgan hisob bilan kirib boʻlmaydi');
     r = await new Client().call('GET', '/api/admin/requests', null, { Authorization: 'Bearer adm-secret' }); ok(!r.j.requests.some(x => x.email === em), 'soʻrovlar ham oʻchdi');
   } catch (e) { failN++; console.log('XATO:', e); }
-  srv.kill(); ai.close(); mail.close(); fs.rmSync(dir, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+  srv.kill(); ai.close(); mail.close(); rmq(dir);
   // OpenAI-mos provayder (Groq/Gemini/OpenRouter) uchun alohida sinov
   {
     let last = null; const oa = await mock((q, b, r) => { last = { auth: q.headers.authorization, url: q.url, body: JSON.parse(b) }; r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ choices: [{ message: { content: 'OA javobi' } }] })); });
@@ -194,7 +252,7 @@ class Client {
       ok(last && last.body.messages[0].content.includes('Current date: ' + ymd), 'AI ko‘rsatmasida bugungi sana bor', last && last.body.messages[0].content.slice(-260));
       ok(last && last.url === '/v1/chat/completions' && last.auth === 'Bearer k2' && last.body.model === 'test-model' && last.body.messages[0].role === 'system', 'soʻrov formati (Bearer, model, system)', last && last.url);
     } catch (e) { failN++; console.log('XATO:', e); }
-    s2.kill(); oa.close(); fs.rmSync(dir2, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    s2.kill(); oa.close(); rmq(dir2);
   }
   // Esse murabbiyi va portfolio vositalari (alohida server: AI tezlik limitiga va roʻyxatdan oʻtish limitiga taʼsir qilmaydi)
   {
@@ -274,7 +332,7 @@ class Client {
       await cc('POST', '/api/logout', {}); r = await cc('POST', '/api/login', { email: 'coach@gmail.com', password: 'parol12345' });
       const back = await c2('GET', '/api/me'); ok(back.j.data && JSON.parse(back.j.data['qabul:coach']).v === 1 && JSON.parse(back.j.data['qabul:portfolio']).name === 'A', 'esse murabbiyi va portfolio maʼlumoti serverdan qaytadi', Object.keys(back.j.data || {}));
     } catch (e) { failN++; console.log('XATO:', e); }
-    sC.kill(); ma.close(); await new Promise(r => setTimeout(r, 200)); fs.rmSync(dirC, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    sC.kill(); ma.close(); await new Promise(r => setTimeout(r, 200)); rmq(dirC);
   }
   // AI_VISION=1: OpenAI-mos provayderda rasm image_url shaklida yuboriladi
   {
@@ -292,7 +350,7 @@ class Client {
       const c = last && last.messages && last.messages[last.messages.length - 1].content;
       ok(r.s === 200 && Array.isArray(c) && c.some(x => x.type === 'image_url' && /^data:image\/jpeg;base64,/.test(x.image_url.url)) && c.some(x => x.type === 'text'), 'OpenAI-mos: rasm image_url shaklida yuboriladi', c);
     } catch (e) { failN++; console.log('XATO:', e); }
-    sV.kill(); oa.close(); await new Promise(r => setTimeout(r, 200)); fs.rmSync(dirV, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    sV.kill(); oa.close(); await new Promise(r => setTimeout(r, 200)); rmq(dirV);
   }
   // OpenAI reasoning modellari (gpt-6-luna...): max_completion_tokens, temperature yoʻq, reasoning_effort
   {
@@ -315,7 +373,7 @@ class Client {
       const st = await call('GET', '/api/admin/stats', null, { Authorization: 'Bearer adm' });
       ok(st.s === 200 && st.j.aiTokensMonth === 200, 'provayder bergan token sarfi (120 + 80) yoziladi', st.j && st.j.aiTokensMonth);
     } catch (e) { failN++; console.log('XATO:', e); }
-    s4.kill(); oa.close(); await new Promise(r => setTimeout(r, 200)); fs.rmSync(dir4, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    s4.kill(); oa.close(); await new Promise(r => setTimeout(r, 200)); rmq(dir4);
   }
   // Brevo orqali xat (domensiz variant)
   {
@@ -331,7 +389,7 @@ class Client {
       ok(r.s === 200 && got && got.key === 'bk', 'Brevo’ga api-key bilan soʻrov ketdi', r.s);
       ok(got && got.body.sender.email === 'noreply@example.com' && got.body.to[0].email === 'bv@gmail.com' && /token=/.test(got.body.htmlContent), 'joʻnatuvchi, qabul qiluvchi va havola toʻgʻri');
     } catch (e) { failN++; console.log('XATO:', e); }
-    s3.kill(); bm.close(); fs.rmSync(dir3, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    s3.kill(); bm.close(); rmq(dir3);
   }
   // Eski onrender.com manzilidan APP_URL ga yoʻnaltirish
   {
@@ -345,7 +403,7 @@ class Client {
       r = await hreq('unidoue.onrender.com', '/healthz'); ok(r.s === 200, 'healthz yoʻnaltirilmaydi', r.s);
       r = await hreq('unidoue.uz', '/'); ok(r.s === 200, 'asosiy domen yoʻnaltirilmaydi', r.s);
     } catch (e) { failN++; console.log('XATO:', e); }
-    s4.kill(); fs.rmSync(dir4, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    s4.kill(); rmq(dir4);
   }
   {
     const dirT = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), PT = PORT + 10, FP2 = '11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11';
@@ -357,7 +415,7 @@ class Client {
       ok(j.length === 1 && j[0].target.package_name === 'uz.unidoue.test', 'TWA_PACKAGE paket nomini almashtiradi', JSON.stringify(j[0].target.package_name));
       ok(fps.length === 2 && fps.includes(FP2) && fps.every(f => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(f)), 'TWA_SHA256: yangi izlar qoʻshiladi, takrorlanmaydi, yaroqsizi tashlanadi', fps.join(' | '));
     } catch (e) { failN++; console.log('XATO:', e); }
-    sT.kill(); fs.rmSync(dirT, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    sT.kill(); rmq(dirT);
   }
   // Doimiy saqlash (Neon) — soxta SQL-over-HTTP serveri bilan
   {
@@ -390,7 +448,7 @@ class Client {
     const bad = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...env, PORT: PORT + 4, DATA_DIR: d2, NEON_SQL_URL: 'http://localhost:1/sql' }, stdio: 'ignore' });
     const code = await new Promise(r => { bad.on('exit', r); setTimeout(() => { bad.kill(); r('timeout'); }, 8000); });
     ok(code === 1, 'Neon ulanmasa server toʻxtaydi (bazani boʻsh qilib yozmaydi)', code);
-    nm.close(); fs.rmSync(d1, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 }); fs.rmSync(d2, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    nm.close(); rmq(d1); rmq(d2);
   }
   {
     console.log('Email tasdiqlash');
@@ -420,7 +478,7 @@ class Client {
       for (let i = 0; i < 5; i++) await c('POST', '/api/verify', { code: bad });
       r = await c('POST', '/api/verify', { code: c2 }); ok(r.s === 400, '5 xato urinishdan keyin kod bloklanadi', r.s);
     } catch (e) { failN++; console.log('XATO:', e); }
-    vs.kill(); mm.close(); fs.rmSync(vd, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
+    vs.kill(); mm.close(); rmq(vd);
   }
   {
     console.log('Onlayn toʻlov (Payme + Click)');

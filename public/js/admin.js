@@ -28,6 +28,7 @@ const IC = {
   card: '<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6.5 15h4"/>', check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   bell: '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M13.7 20a2 2 0 0 1-3.4 0"/>', phone: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/>',
   warn: '<path d="M12 9v4M12 17h.01M10.3 4.2 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0Z"/>',
+  ticket: '<path d="M3 8a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2a2 2 0 0 0 0 4v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-2a2 2 0 0 0 0-4zM14 7.5V9M14 11.2v1.6M14 15v1.5"/>', copy: '<rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A1.5 1.5 0 0 1 6.5 5H15"/>',
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>', send: '<path d="m21 3-9.5 18-2.2-7.8L2 11 21 3ZM21 3 9.3 13.2"/>',
 };
 
@@ -59,11 +60,11 @@ function ask({ title, text, ok = 'Tasdiqlash', danger = false }) {
 }
 
 /* ---------- holat ---------- */
-let USERS = [], REQS = [], ORDERS = null, STATS = null, UF = 'all', ULIM = 100, loadedAt = 0;
+let USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all', ULIM = 100, loadedAt = 0;
 const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
 
 /* ---------- yo‘naltirish ---------- */
-const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Bildirishnomalar' };
+const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Bildirishnomalar', promos: 'Promo kodlar' };
 function route() {
   const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
   $$('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
@@ -191,6 +192,77 @@ function renderPayments() {
   fx.scan($('#v-payments'));
 }
 
+/* ---------- Promo kodlar ---------- */
+const PM_ST = { active: ['ok', 'Faol'], paused: ['mute', 'To‘xtatilgan'], full: ['warn', 'Joylar tugagan'], expired: ['bad', 'Muddati o‘tgan'] };
+const PM_DAYS = [7, 14, 30, 90, 180, 365];
+const pmAlpha = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const pmRand = () => { const b = crypto.getRandomValues(new Uint8Array(8)); let t = ''; for (const x of b) t += pmAlpha[x % pmAlpha.length]; return 'UD-' + t.slice(0, 4) + '-' + t.slice(4); };
+const dayStr = n => n % 30 === 0 && n >= 60 ? `${n} kun (${n / 30} oy)` : `${n} kun`;
+async function copyText(v) {
+  try { await navigator.clipboard.writeText(v); toast('Nusxalandi: ' + v); }
+  catch (e) { const t = document.createElement('textarea'); t.value = v; t.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); toast('Nusxalandi: ' + v); } catch (x) { toast('Nusxalab bo‘lmadi', 'err'); } t.remove(); }
+}
+function askNum({ title, text, value, min, max, ok = 'Saqlash' }) {
+  return new Promise(res => {
+    const bg = document.createElement('div'); bg.className = 'modal-bg';
+    bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mn-t"><h3 id="mn-t">${esc(title)}</h3><p>${esc(text)}</p><input type="number" id="mn-i" min="${min}" max="${max}" value="${value}" style="margin-top:10px"><div class="acts"><button class="btn" type="button" data-x>Bekor</button><button class="btn primary" type="button" data-ok>${esc(ok)}</button></div></div>`;
+    const prev = document.activeElement, inp = $('#mn-i', bg);
+    const done = v => { document.removeEventListener('keydown', key); bg.classList.add('out'); setTimeout(() => bg.remove(), 220); if (prev && prev.focus) try { prev.focus(); } catch (e) {} res(v); };
+    const key = e => { if (e.key === 'Escape') done(null); else if (e.key === 'Enter') done(parseInt(inp.value, 10) || null); };
+    bg.addEventListener('click', e => { if (e.target === bg) done(null); });
+    $('[data-x]', bg).onclick = () => done(null); $('[data-ok]', bg).onclick = () => done(parseInt(inp.value, 10) || null);
+    document.addEventListener('keydown', key); document.body.appendChild(bg); inp.focus(); inp.select();
+  });
+}
+function renderPromos() {
+  const box = $('#ml');
+  if (!PROMOS) { box.innerHTML = emptyBox('ticket', 'Promo kodlar yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#mc').textContent = ''; return; }
+  const list = PROMOS.promos || [], now = Date.now();
+  $('#mc').textContent = list.length;
+  $('#md-p').innerHTML = PM_DAYS.map(n => `<button type="button" class="chip" data-d="${n}" aria-pressed="${$('#md').value == n}">${dayStr(n)}</button>`).join('');
+  $$('#md-p [data-d]').forEach(b => (b.onclick = () => { $('#md').value = b.dataset.d; $$('#md-p [data-d]').forEach(x => x.setAttribute('aria-pressed', x === b)); }));
+  if (!list.length) { box.innerHTML = emptyBox('ticket', 'Hali promo kod yo‘q', 'Yuqoridagi shakldan birinchi kodni yarating.'); return; }
+  const ymd = ts => { const x = when(ts).split(',').slice(0, 2).join(',').replace(/ \d\d:\d\d$/, ''); return x; };
+  box.innerHTML = `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Kod</th><th>Tarif</th><th>Foydalanildi</th><th>Holat</th><th></th></tr></thead><tbody>${list.map(p => {
+    const [tone, lab] = PM_ST[p.status] || PM_ST.active, pct = Math.min(100, Math.round(p.used / p.max * 100));
+    const who = p.recent.length ? `<details class="pm-who"><summary>Kimlar ishlatgan (${p.used})</summary><ul>${p.recent.map(r => `<li><span>${esc(r.email || 'o‘chirilgan hisob')}</span><small>${esc(when(r.t))}</small></li>`).join('')}${p.used > p.recent.length ? `<li class="mut">…va yana ${p.used - p.recent.length} ta</li>` : ''}</ul></details>` : '';
+    return `<tr><td data-l="Kod"><div class="pm-cd"><code class="pm-code">${esc(p.code)}</code><button type="button" class="ic-btn sm" data-cp="${esc(p.code)}" aria-label="Nusxalash" title="Nusxalash">${svg(IC.copy)}</button></div>${p.note ? `<small class="pm-note">${esc(p.note)}</small>` : ''}<small class="pm-note">Yaratilgan: ${esc(ymd(p.created))}</small>${who}</td>
+    <td data-l="Tarif"><span class="pb ${p.plan}">${planName(p.plan)}</span><small class="pm-note">${esc(dayStr(p.days))}</small></td>
+    <td data-l="Foydalanildi"><div class="pm-use"><b>${p.used}</b><span> / ${p.max}</span></div><div class="pm-bar" aria-hidden="true"><i style="width:${pct}%"></i></div></td>
+    <td data-l="Holat"><span class="badge ${tone}">${lab}</span><small class="pm-note">${p.until ? 'Kod ' + esc(ymd(p.until)) + ' gacha' : 'Muddati cheklanmagan'}</small></td>
+    <td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-lim="${esc(p.code)}">Limit</button><button class="btn sm" type="button" data-tg="${esc(p.code)}" data-on="${p.active ? 0 : 1}">${p.active ? 'To‘xtatish' : 'Yoqish'}</button><button class="btn sm danger" type="button" data-del="${esc(p.code)}">O‘chirish</button></div></td></tr>`; }).join('')}</tbody></table></div>
+    <p class="hint" style="margin-top:10px">Kodni o‘chirish yoki to‘xtatish allaqachon yoqilgan tariflarga tegmaydi — faqat yangi foydalanishni to‘xtatadi.</p>`;
+  $$('#ml [data-cp]').forEach(b => (b.onclick = () => copyText(b.dataset.cp)));
+  $$('#ml [data-tg]').forEach(b => (b.onclick = async () => { try { await call('POST', '/api/admin/promo/set', { code: b.dataset.tg, active: b.dataset.on === '1' }); toast(b.dataset.on === '1' ? 'Kod yoqildi' : 'Kod to‘xtatildi'); loadPromos(); } catch (e) { toast(e.message, 'err'); } }));
+  $$('#ml [data-lim]').forEach(b => (b.onclick = async () => {
+    const p = list.find(x => x.code === b.dataset.lim); if (!p) return;
+    const n = await askNum({ title: 'Foydalanuvchilar soni', text: `${p.code}: hozir ${p.used} kishi foydalangan. Yangi limitni kiriting (${Math.max(1, p.used)} dan ${PROMOS.limits.uses} gacha).`, value: p.max, min: Math.max(1, p.used), max: PROMOS.limits.uses });
+    if (!n) return;
+    try { await call('POST', '/api/admin/promo/set', { code: p.code, max: n }); toast(`Limit yangilandi: ${n} kishi`); loadPromos(); } catch (e) { toast(e.message, 'err'); }
+  }));
+  $$('#ml [data-del]').forEach(b => (b.onclick = async () => {
+    const p = list.find(x => x.code === b.dataset.del); if (!p) return;
+    if (!await ask({ title: 'Promo kodni o‘chirasizmi?', text: `${p.code} o‘chiriladi (${p.used} kishi foydalangan). Allaqachon yoqilgan tariflar o‘zgarmaydi, lekin kod endi ishlamaydi.`, ok: 'O‘chirish', danger: true })) return;
+    try { await call('POST', '/api/admin/promo/delete', { code: p.code }); toast('Kod o‘chirildi'); loadPromos(); } catch (e) { toast(e.message, 'err'); }
+  }));
+}
+async function loadPromos() { try { PROMOS = await call('GET', '/api/admin/promos'); } catch (e) { if (e.status === 401) { load(); return; } toast(e.message, 'err'); } renderPromos(); }
+async function createPromo() {
+  const m = $('#mm'), btn = $('#mb'); m.className = 'msg'; m.textContent = ''; $('#mr').innerHTML = '';
+  const body = { code: $('#mk').value.trim(), plan: $('#mp').value, days: parseInt($('#md').value, 10), max: parseInt($('#mx').value, 10), until: $('#mu').value || '', note: $('#mn').value.trim() };
+  if (!(body.days >= 1)) { m.className = 'msg err'; m.textContent = 'Muddatni kunlarda kiriting (kamida 1).'; return; }
+  if (!(body.max >= 1)) { m.className = 'msg err'; m.textContent = 'Necha kishiga berilishini kiriting (kamida 1).'; return; }
+  btn.disabled = true; m.textContent = 'Yaratilmoqda…';
+  try {
+    const r = await call('POST', '/api/admin/promo', body), p = r.promo;
+    m.textContent = '';
+    $('#mr').innerHTML = `<div class="pm-done"><div><small>Yangi promo kod</small><code class="pm-big">${esc(p.code)}</code><span>${planName(p.plan)} · ${esc(dayStr(p.days))} · ${p.max} kishi${p.until ? ' · ' + esc(when(p.until).split(',').slice(0, 2).join(',').replace(/ \d\d:\d\d$/, '')) + ' gacha' : ''}</span></div><button class="btn primary" type="button" id="mr-c">${svg(IC.copy)}Nusxalash</button></div>`;
+    $('#mr-c').onclick = () => copyText(p.code);
+    $('#mk').value = ''; $('#mn').value = ''; toast('Promo kod yaratildi: ' + p.code); loadPromos();
+  } catch (e) { m.className = 'msg err'; m.textContent = e.message; }
+  btn.disabled = false;
+}
+
 /* ---------- Bildirishnomalar ---------- */
 const AUD = [['all', 'Hamma (bildirishnoma yoqqanlar)'], ['free', 'Faqat Free'], ['plus', 'Faqat Plus'], ['pro', 'Faqat Pro'], ['email', 'Bitta foydalanuvchi (email)'], ['admin', 'Faqat admin qurilmalari (sinov)']];
 const AUD_N = { all: 'barcha', free: 'Free', plus: 'Plus', pro: 'Pro', email: 'tanlangan', admin: 'admin' };
@@ -266,11 +338,12 @@ async function load(silent) {
   if (busy) return; busy = true;
   const rf = $('#rf'); rf.classList.add('spin'); if (!silent) $('#st').textContent = 'Yuklanmoqda…';
   try {
-    const [rq, us, st, od] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
-      call('GET', '/api/admin/orders').catch(e => { if (e.status === 401) throw e; return null; })]);
-    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; loadedAt = Date.now();
+    const [rq, us, st, od, pr] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
+      call('GET', '/api/admin/orders').catch(e => { if (e.status === 401) throw e; return null; }),
+      call('GET', '/api/admin/promos').catch(e => { if (e.status === 401) throw e; return null; })]);
+    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; loadedAt = Date.now();
     const first = $('#shell').hidden; $('#lg').hidden = true; $('#shell').hidden = false;
-    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); estimate();
+    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); estimate();
     $('#st').textContent = 'Yangilandi: ' + when(Date.now()).split(', ')[1].split(' ').pop();
     if (first) route(); else fx.scan($('#kpis'));
   } catch (e) {
@@ -290,6 +363,9 @@ $('#bg').onclick = () => document.body.classList.toggle('nav-open');
 $('#scrim').onclick = () => document.body.classList.remove('nav-open');
 $('#uq').oninput = () => { ULIM = 100; renderUsers(); };
 $('#pg').onclick = () => { const e = $('#pe').value.trim().toLowerCase(); if (!e) { $('#pm').className = 'msg err'; $('#pm').textContent = 'Emailni kiriting.'; return; } give(e, $('#pp').value, parseInt($('#pd').value, 10) || 30, $('#pm')); };
+$('#mb').onclick = createPromo; $('#mk-r').onclick = () => { $('#mk').value = pmRand(); $('#mk').focus(); };
+$('#md').oninput = () => $$('#md-p [data-d]').forEach(x => x.setAttribute('aria-pressed', x.dataset.d === $('#md').value));
+$('#mk').onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); createPromo(); } };
 $('#na').innerHTML = AUD.map(([k, l]) => `<option value="${k}">${l}</option>`).join('');
 $('#na').onchange = audienceUi; $('#nq').oninput = estimate; $('#nt').oninput = preview; $('#nb').oninput = preview; $('#ns').onclick = sendPush;
 preview();

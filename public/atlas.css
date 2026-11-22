@@ -338,3 +338,29 @@ article.card.hover>h3{font:400 25px/1.1 var(--serif);letter-spacing:-.012em;marg
   .rt-pt.now i{animation:rt-pop .55s var(--fx-spring) calc(.3s + var(--k,0)*.2s) backwards,rt-pulse 2.6s ease-out calc(.9s + var(--k,0)*.2s) infinite}
   .rt-pt span{animation:fade .6s ease calc(.5s + var(--k,0)*.2s) backwards}
 }
+
+/* ===== Promo kod qatori (Tariflar): ixcham «chipta» — nuqtali chiziq, brend rangidagi belgi, kod uchun monospace maydon ===== */
+.promo{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px 16px;margin:0 0 18px;padding:12px 14px;border-radius:20px;border:1.5px dashed color-mix(in srgb,var(--brand) 46%,var(--line-2));background:linear-gradient(100deg,color-mix(in srgb,var(--brand) 11%,var(--surface)),var(--surface) 64%);box-shadow:var(--sh-1);overflow:hidden}
+.promo::after{content:"";position:absolute;right:-30px;top:-46px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--brand) 16%,transparent),transparent 68%);pointer-events:none}
+.promo-ic{position:relative;z-index:1;width:42px;height:42px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand-600));box-shadow:0 8px 18px -8px var(--brand),inset 0 1px 0 rgba(255,255,255,.35)}
+.promo-ic svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.promo-t{position:relative;z-index:1;min-width:0}
+.promo-t b{display:block;font:400 20px/1.15 var(--serif);letter-spacing:-.005em;color:var(--ink)}
+.promo-t small{display:block;margin-top:3px;font-size:12.5px;line-height:1.4;color:var(--muted)}
+.promo-in{position:relative;z-index:1;display:flex;gap:8px;padding-left:16px;border-left:2px dotted var(--line-2)}
+.promo-in input[type=text]{width:204px;height:42px;padding:0 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line-2);font:600 14.5px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase}
+.promo-in input[type=text]::placeholder{text-transform:none;letter-spacing:.04em;font-weight:500;color:var(--muted);opacity:.8}
+.promo-in .btn{height:42px;padding:0 18px;white-space:nowrap}
+.promo-m{position:relative;z-index:1;grid-column:1/-1;margin:2px 0 0;font-size:13px;line-height:1.4;color:var(--muted)}
+.promo-m:empty{display:none}
+.promo-m.err{color:var(--bad);font-weight:600}
+.promo.ok{border-style:solid;border-color:color-mix(in srgb,var(--ok) 50%,var(--line));background:linear-gradient(100deg,color-mix(in srgb,var(--ok) 13%,var(--surface)),var(--surface) 70%)}
+.promo.ok .promo-ic{background:linear-gradient(135deg,var(--ok),color-mix(in srgb,var(--ok) 70%,#000));box-shadow:0 8px 18px -8px var(--ok),inset 0 1px 0 rgba(255,255,255,.35)}
+.promo.ok::after{background:radial-gradient(circle,color-mix(in srgb,var(--ok) 20%,transparent),transparent 68%)}
+.promo-t small b{display:inline;font:700 12.5px/1.4 var(--sans,inherit);letter-spacing:0;color:var(--ink)}
+@media(prefers-reduced-motion:no-preference){.promo.ok{animation:rise .45s var(--fx-spring,cubic-bezier(.2,.8,.2,1)) both}}
+@media(max-width:760px){
+  .promo{grid-template-columns:auto minmax(0,1fr);padding:12px}
+  .promo-in{grid-column:1/-1;padding:10px 0 0;border-left:0;border-top:2px dotted var(--line-2)}
+  .promo-in input[type=text]{flex:1;min-width:0;width:auto}
+}

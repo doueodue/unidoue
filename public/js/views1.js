@@ -192,6 +192,33 @@ function payBox(a, cur, online) {
     <li>Chekni (skrinshot) <a href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">@unidoue_yordam</a> ga yuboring va hisob emailingizni ayting: <b>${esc(S.user.email)}</b></li></ol>
     <p class="hint">Odatda tekshirish va yoqish bir necha soat ichida bo‘ladi.</p></div>`;
 }
+/** Promo kod qatori: ixcham, lekin koʻzga tashlanadi. Muvaffaqiyatdan keyin shu sahifa qayta chiziladi va qatorda natija koʻrinadi. */
+let promoDone = null;
+function promoBox() {
+  if (promoDone) {
+    const d = promoDone; promoDone = null;
+    return `<div class="promo ok" role="status">${'<span class="promo-ic">' + svg('ticket') + '</span>'}<div class="promo-t"><b>${d.plan === 'pro' ? 'Pro' : 'Plus'} yoqildi</b><small>Promo kod qabul qilindi. Amal qilish muddati: <b>${fmtDate(new Date(d.until).toISOString().slice(0, 10))} gacha</b></small></div></div>`;
+  }
+  return `<form class="promo" id="promo-f" novalidate><span class="promo-ic">${svg('ticket')}</span>
+    <div class="promo-t"><b>Promo kodingiz bormi?</b><small>Kodni kiriting — Plus yoki Pro bepul yoqiladi.</small></div>
+    <div class="promo-in"><input id="promo-i" type="text" maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="UD-XXXX-XXXX" aria-label="Promo kod"><button class="btn primary" type="submit">Faollashtirish</button></div>
+    <p class="promo-m" id="promo-m" role="status" aria-live="polite"></p></form>`;
+}
+function promoBind(el) {
+  const f = $('#promo-f', el); if (!f) return;
+  const i = $('#promo-i', f), m = $('#promo-m', f), b = $('button', f);
+  i.oninput = () => { if (m.textContent) { m.className = 'promo-m'; m.textContent = ''; } };
+  f.onsubmit = async ev => {
+    ev.preventDefault(); const code = i.value.trim();
+    if (!code) { m.className = 'promo-m err'; m.textContent = 'Promo kodni kiriting.'; i.focus(); return; }
+    b.disabled = true; m.className = 'promo-m'; m.textContent = 'Tekshirilmoqda…';
+    try {
+      const r = await api('/api/promo/redeem', 'POST', { code });
+      S.account = r.account; accountChanged(); promoDone = { plan: r.plan, until: r.until };
+      toast(r.plan === 'pro' ? 'Pro tarifi yoqildi' : 'Plus tarifi yoqildi'); pricing(el); return;
+    } catch (e) { m.className = 'promo-m err'; m.textContent = e.message; b.disabled = false; i.select(); }
+  };
+}
 /** Payme/Click sahifasidan qaytgach: buyurtma holatini tekshiramiz (provayder serverimizga xabar bergunicha bir necha soniya ketishi mumkin). */
 async function checkPaid(el, id) {
   const box = document.createElement('div'); box.className = 'notice info'; box.style.marginBottom = '18px'; box.setAttribute('role', 'status');
@@ -217,16 +244,18 @@ export async function pricing(el) {
   const { plans, config } = await api('/api/plans'); await refreshAccount(); const cur = S.account.plan; liveGlass(el);
   if (inPlay) { // Google Play ilovasi: toʻlov siyosati sababli narx, toʻlov va "soʻrov yuborish" tugmalari yoʻq — faqat tarif imkoniyatlari
     const a = S.account, until = cur !== 'free' && a.planUntil ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>${cur === 'pro' ? 'Pro' : 'Plus'} faol.</b> Amal qilish muddati: <b>${new Date(a.planUntil).toLocaleDateString('uz-UZ')}</b> gacha.</div></div>` : '';
-    el.innerHTML = `<div class="page-h"><div><h2>Tariflar</h2><p>Hisobingiz: ${tierPill(cur)}. Bu oy AI kredit: <b data-cr="frac">${credits().left} / ${credits().limit}</b> qoldi.</p></div></div>${until}
+    el.innerHTML = `<div class="page-h"><div><h2>Tariflar</h2><p>Hisobingiz: ${tierPill(cur)}. Bu oy AI kredit: <b data-cr="frac">${credits().left} / ${credits().limit}</b> qoldi.</p></div></div>${promoBox()}${until}
     <div class="grid g3 tier-stage">${plans.map(p => planCard(p, cur, `<ul>${FEAT[p.id].map(f => `<li>${f}</li>`).join('')}</ul>${p.id === cur ? '<div style="margin-top:auto"><button class="btn" disabled style="width:100%">Joriy tarif</button></div>' : ''}`)).join('')}</div>
     <div class="card" style="margin-top:18px"><h3>AI kredit qanday sarflanadi</h3><p class="sub">Limit har oy yangilanadi. Xatolik bo‘lsa, kredit yechilmaydi.</p><div class="row"><div class="stat"><b>1</b><span>mentor savoli</span></div><div class="stat"><b>2 / 4</b><span>esse tahlili (oddiy / chuqur)</span></div><div class="stat"><b>6</b><span>strategiya yoki hisobot</span></div></div></div>
     <p class="hint" style="margin-top:14px">Qabul natijasi hech bir tarifda kafolatlanmaydi.</p>`;
+    promoBind(el);
     return;
   }
   const online = config.payments && config.online ? config.online : null;
   const payButtons = (p, renew) => `<div class="paybtns"><div class="hint">${renew ? 'Muddatni 30 kunga uzaytirish' : '30 kunlik tarif'}</div>
     ${online.payme ? `<button class="btn tier-${p.id}" style="width:100%" data-pay="${p.id}" data-prov="payme">Payme orqali to‘lash</button>` : ''}${online.click ? `<button class="btn" style="width:100%" data-pay="${p.id}" data-prov="click">Click orqali to‘lash</button>` : ''}</div>`;
   el.innerHTML = `<div class="page-h"><div><h2>Oddiy va shaffof tariflar</h2><p>Hisobingiz: ${tierPill(cur)}. Bu oy AI kredit: <b data-cr="frac">${credits().left} / ${credits().limit}</b> qoldi.</p></div></div>
+  ${promoBox()}
   ${payBox(S.account, cur, !!online)}
   ${config.payments ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>Karta bilan to‘lash.</b> To‘lov Payme yoki Click sahifasida amalga oshadi, karta ma’lumotlari UniDoue’ga berilmaydi. Tarif to‘lovdan keyin darhol yoqiladi va 30 kun amal qiladi, avtomatik yechilmaydi. Yuqoriroq tarifga o‘tsangiz, yangi 30 kun to‘lovdan boshlab hisoblanadi.</div></div>` : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov qo‘lda qabul qilinadi.</b> So‘rov yuboring, to‘lov ko‘rsatmasini olasiz. Administrator to‘lovni tekshirib, tarifni qo‘lda yoqadi. Tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
   <div class="grid g3 tier-stage">${plans.map(p => planCard(p, cur, `<div class="price">$${p.price === 0 ? '0' : p.price.toFixed(2)}<small>${p.price ? ' / oy' : ''}</small></div>${online && p.uzs ? `<div class="uzs"><b>${p.uzs.toLocaleString('en-US').replace(/,/g, ' ')}</b> <span>so‘m / oy</span></div>` : ''}
@@ -236,6 +265,7 @@ export async function pricing(el) {
       : online ? payButtons(p, false) : `<button class="btn tier-${p.id}" style="width:100%" data-up="${p.id}">${p.name} uchun so‘rov yuborish</button>`}</div>`)).join('')}</div>
   <div class="card" style="margin-top:18px"><h3>AI kredit qanday sarflanadi</h3><p class="sub">Limit har oy yangilanadi. Xatolik bo‘lsa, kredit yechilmaydi.</p><div class="row"><div class="stat"><b>1</b><span>mentor savoli</span></div><div class="stat"><b>2 / 4</b><span>esse tahlili (oddiy / chuqur)</span></div><div class="stat"><b>6</b><span>strategiya yoki hisobot</span></div></div></div>
   <p class="hint" style="margin-top:14px">Qabul natijasi hech bir tarifda kafolatlanmaydi. Narxlar AQSh dollarida.</p>`;
+  promoBind(el);
   $$('[data-pay]', el).forEach(b => (b.onclick = async () => {
     const all = $$('[data-pay]', el), old = b.textContent; all.forEach(x => (x.disabled = true)); b.textContent = 'Yo‘naltirilmoqda…';
     try {

@@ -7,7 +7,7 @@ html[data-theme=dark] .pf input[type=tel]{background:rgba(255,255,255,.05)}
 .pf .field{margin-bottom:12px}
 .pf-grid{display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:24px;align-items:start}
 .pf-main{min-width:0}
-.pf-aside{position:sticky;top:78px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;max-height:calc(100dvh - 96px);overflow:auto;padding:2px 4px 8px 2px;scrollbar-width:thin}
+.pf-aside{position:sticky;top:78px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;max-height:calc(100dvh - 96px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:2px 4px 8px 2px}
 .pf-tabs{margin-bottom:14px}.pf-tabs .t-view{display:none}
 
 /* bo'limlar */
