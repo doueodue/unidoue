@@ -17,7 +17,7 @@ const tok = a => `--bg:${a[0]};--card:${a[1]};--ink:${a[2]};--mut:${a[3]};--line
 const RAD = { sharp: 4, round: 34 };
 
 const CORE = `*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;color-scheme:light}html.dk{color-scheme:dark}
-body{font:16px/1.65 var(--bf);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}img{display:block;max-width:100%}a{color:inherit;text-decoration:none}ul{list-style:none}
+body{font:16px/1.65 var(--bf);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;overflow-wrap:anywhere}img{display:block;max-width:100%}a{color:inherit;text-decoration:none}ul{list-style:none}
 :focus-visible{outline:2px solid var(--a);outline-offset:3px;border-radius:6px}::selection{background:color-mix(in srgb,var(--a) 30%,transparent)}
 .bgx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}.bgx::before{content:"";position:absolute;inset:0;background:var(--lay,none)}.bgx i{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;will-change:transform}.bgx canvas{position:absolute;inset:0;width:100%;height:100%}
 .b-mesh .bgx i,.b-aurora .bgx i{display:block}.bgx i{display:none}

@@ -12,7 +12,12 @@ const wavesUri = (c, o, y) => uri(`<svg xmlns='http://www.w3.org/2000/svg' viewB
 const topoUri = (c, o) => { let e = ''; for (let i = 1; i <= 9; i++) e += `<ellipse cx='210' cy='210' rx='${i * 21 + 6}' ry='${i * 17 + 4}' transform='rotate(${i * 9} 210 210)'/>`; return uri(`<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><g fill='none' stroke='${c}' stroke-opacity='${o}' stroke-width='1.1'>${e}</g></svg>`); };
 
 /** Fon qatlamlari (CSS background shorthand qatlamlari, ustidan pastga) va qo'shimcha asos rangi. a — asosiy rang (#rrggbb). dk — qorong'i yuza. */
+/** Fon qatlamlari. Yorugʻlik dogʻlari (foiz oʻlchamli radial-gradient) bir marta chiziladi; naqshlar (nuqta, toʻr, yulduz, topo) oʻz kataklarida takrorlanadi. */
 export function bgLayers(bg, a, dk) {
+  const r = bgLayersRaw(bg, a, dk);
+  return { ...r, l: r.l.map(x => (/^radial-gradient\(\d+%/.test(x) ? x + ' no-repeat' : x)) };
+}
+function bgLayersRaw(bg, a, dk) {
   const I = ink(dk);
   switch (bg) {
     case 'paper': return { l: [`${NOISE(dk, dk ? 0.5 : 0.9)} 0 0/170px 170px`, `radial-gradient(120% 80% at 50% 0%,${mix('--a', 5)},transparent 70%)`] };
@@ -33,9 +38,9 @@ export function bgLayers(bg, a, dk) {
 
 /* ---------------------------------------------------------------- A4 (PDF) ---------------------------------------------------------------- */
 export const PRINT_BASE = `*{box-sizing:border-box;margin:0;padding:0}html{-webkit-print-color-adjust:exact;print-color-adjust:exact;-webkit-text-size-adjust:100%}
-body{background:transparent;color:#15181e;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;--sp:1}body.dense{--sp:.72}img{display:block;max-width:100%}a{color:inherit;text-decoration:none}ul{list-style:none}
+body{background:transparent;color:#15181e;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;--sp:1;overflow-wrap:anywhere}body.dense{--sp:.72}img{display:block;max-width:100%}a{color:inherit;text-decoration:none}ul{list-style:none}
 .m span+span::before{content:"";display:inline-block;width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.55;margin:0 .55em;vertical-align:middle}
-.ct{display:flex;flex-wrap:wrap;gap:1pt 13pt}.ct span{white-space:nowrap}
+.ct{display:flex;flex-wrap:wrap;gap:1pt 13pt}.ct span{min-width:0;max-width:100%}
 .e{break-inside:avoid}h2{break-after:avoid}figure{break-inside:avoid}
 body.r-sharp .ph{border-radius:0!important}body.r-round .ph{border-radius:16pt!important}`;
 
@@ -103,11 +108,14 @@ const SKIN = {
 const FAM = { ledger: LEDGER, rail: RAIL, folio: FOLIO };
 
 /** Sahifa foni (html): shablonning o'z foni + tanlangan fon naqshi. */
+/** Sahifa foni (<html>). Yorugʻlik dogʻlari va yon ustun faqat BIR marta chiziladi (no-repeat), toʻr/nuqta kabi naqshlar esa takrorlanadi.
+ *  html balandligi kontentdan oshmasa (1 sahifadan qisqa hujjat), fon bloki takrorlanib sahifa oʻrtasida keskin chiziq hosil qilardi —
+ *  shuning uchun html kamida sahifa (oyna) balandligida boʻladi. */
 export function pageBg(tpl, fam, bg, a) {
   const dk = tpl === 'noir', L = bgLayers(bg, a, dk), top = [];
-  if (fam === 'rail') top.push(dk ? 'linear-gradient(90deg,#0d1322 0 68mm,transparent 68mm 100%)' : 'linear-gradient(90deg,color-mix(in srgb,var(--a) 80%,#0a0d14) 0 68mm,transparent 68mm 100%)');
-  if (tpl === 'noir') top.push('radial-gradient(70mm 70mm at 0 0,color-mix(in srgb,var(--a) 50%,transparent),transparent)', 'radial-gradient(90mm 80mm at 100% 100%,color-mix(in srgb,var(--a2) 28%,transparent),transparent)');
-  return `html{background:${[...top, ...L.l, L.base || (dk ? '#080b13' : '#fff')].join(',')}}`;
+  if (fam === 'rail') top.push((dk ? 'linear-gradient(90deg,#0d1322 0 68mm,transparent 68mm 100%)' : 'linear-gradient(90deg,color-mix(in srgb,var(--a) 80%,#0a0d14) 0 68mm,transparent 68mm 100%)') + ' no-repeat');
+  if (tpl === 'noir') top.push('radial-gradient(70mm 70mm at 0 0,color-mix(in srgb,var(--a) 50%,transparent),transparent) no-repeat', 'radial-gradient(90mm 80mm at 100% 100%,color-mix(in srgb,var(--a2) 28%,transparent),transparent) no-repeat');
+  return `html{min-height:100%;background:${[...top, ...L.l, L.base || (dk ? '#080b13' : '#fff')].join(',')}}`;
 }
 
 export const printCSS = (tpl, fam) => PRINT_BASE + FAM[fam] + (SKIN[tpl] || '');

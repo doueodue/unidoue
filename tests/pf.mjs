@@ -7,7 +7,7 @@ import { docxBytes } from '../public/js/pfdocx.js';
 import { zip, crc32 } from '../public/js/zip.js';
 import { effective, allow, cleanDz, defaultDz, designFromAI, lockedCount, TPLS, PALETTES, BGS, FXS, FONTS } from '../public/js/pfdesign.js';
 import { webCSS } from '../public/js/pfwebcss.js';
-import { printCSS } from '../public/js/pfcss.js';
+import { printCSS, pageBg, bgLayers } from '../public/js/pfcss.js';
 import { readFileSync } from 'node:fs';
 import { tierPill, tierIcon, tierMedal, crownHTML, tierOf, TIER_NAME, TIER_TAG } from '../public/js/tiers.js';
 
@@ -124,7 +124,7 @@ for (const t of TPLS) for (const mode of ['print', 'web']) {
   const h = docHTML({ ...full, tpl: t, dz: { ...defaultDz(), bg: 'aurora', fx: Object.keys(FXS), mode: 'system' } }, imgs, { mode, plan: 'pro', js: 'window.x=1;</script><b>' });
   ok(!/undefined|NaN|\[object/.test(h), `${t}/${mode}: render nopok qiymatlarsiz`); ok(h.includes('Aziza K') && h.includes(`t-${t}`), `${t}/${mode}: sinf va kontent`);
   if (mode === 'web') { ok(h.includes('fx-spot') && h.includes('class="th"') && h.includes('<h1') && h.includes('id="gallery"'), `${t}: veb effektlar, rejim tugmasi, galereya`); ok(!h.includes('window.x=1;</script>'), `${t}: skript </script> dan himoyalangan`); ok(h.split('<script>').length === 2, `${t}: bitta skript`); }
-  else ok(h.includes('@page') && h.includes('html{background:'), `${t}: A4 + sahifa foni`);
+  else ok(h.includes('@page') && h.includes('html{min-height:100%;background:'), `${t}: A4 + sahifa foni`);
 }
 const wFree = docHTML({ ...full, tpl: 'noir', dz: { ...defaultDz(), bg: 'aurora', fx: Object.keys(FXS), mode: 'dark' } }, imgs, { mode: 'web' });
 const hc = h => (h.match(/<html[^>]*class="([^"]*)"/) || [])[1] || '', bc = h => (h.match(/<body class="([^"]*)"/) || [])[1] || '';
@@ -151,4 +151,16 @@ ok(!/(?:stop-color|fill|stroke)="#(?:[0-9a-fA-F]{1,2}|[0-9a-fA-F]{4,5}|[0-9a-fA-
 ok(!/eval\(|innerHTML\s*=\s*[a-z]+\.value|document\.write/.test(tj), 'tiers.js: xavfli chaqiruvlarsiz');
 ok((tcss.match(/{/g) || []).length === (tcss.match(/}/g) || []).length, 'tiers.css: qavslar muvozanatda');
 ok(['free', 'plus', 'pro'].every(t => tcss.includes(`[data-tier=${t}],.tier-${t}{`) && tcss.includes(`html[data-theme=dark] [data-tier=${t}],.side [data-tier=${t}]{`)) && /prefers-reduced-motion:reduce/.test(tcss) && /backdrop-filter/.test(tcss), 'tiers.css: 3 tarif ranglari, qorongʻi variant, reduced-motion, shisha');
+/* ---- fon chokini (Noir) va uzun matn regressiyasi ---- */
+for (const t of TPLS) for (const bg of Object.keys(BGS)) for (const fam of ['ledger', 'rail', 'folio']) {
+  const pb = pageBg(t, fam, bg, '#2745e8');
+  if (!(pb.startsWith('html{min-height:100%;background:') && (pb.match(/\(/g) || []).length === (pb.match(/\)/g) || []).length)) { ok(false, `pageBg ${t}/${fam}/${bg}: min-height va qavslar`); break; }
+}
+ok(true, 'pageBg: barcha shablon/fon/oila uchun html{min-height:100%} va qavslar muvozanati');
+const nb = pageBg('noir', 'rail', 'dots', '#2745e8');
+ok((nb.match(/transparent\) no-repeat/g) || []).length === 2 && /transparent 68mm 100%\) no-repeat/.test(nb) && /1\.4px\) 0 0\/20px 20px,#080b13\}$/.test(nb), 'Noir: yoritish dogʻlari va yon panel no-repeat, pikselli naqsh takrorlanadi (sahifa oxirida chok yoʻq)');
+ok(/^radial-gradient\(\d+%/.test(bgLayers('aurora', '#2745e8', true).l[0]) && bgLayers('aurora', '#2745e8', true).l.filter(x => /^radial-gradient\(\d+%/.test(x)).every(x => x.endsWith('no-repeat')), 'aurora: barcha radial qatlamlar no-repeat');
+ok(!bgLayers('dots', '#2745e8', true).l.some(x => /^radial-gradient\(\d+%/.test(x)), 'dots: pikselli naqsh takrorlanishda qoladi');
+ok(/body\{[^}]*overflow-wrap:anywhere/.test(printCSS('noir', 'rail')) && !/\.ct span\{white-space:nowrap/.test(printCSS('ledger', 'ledger')), 'A4: uzun URL/email sahifadan chiqib ketmaydi (overflow-wrap, nowrap yoʻq)');
+ok(/body\{[^}]*overflow-wrap:anywhere/.test(webCSS({ tpl: 'noir', accent: '#2745e8', dz: defaultDz() })), 'veb: body overflow-wrap:anywhere');
 console.log(`pf: ${n} checks, ${process.exitCode ? 'FAILED' : 'ok'}`);
