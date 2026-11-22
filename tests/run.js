@@ -47,6 +47,20 @@ class Client {
     r = await a.call('POST', '/api/report', { uni: 'MIT', text: 'Ariza muddati 1-fevral, 15-yanvar emas' }); ok(r.s === 201, 'xato xabari yuboriladi', r.s);
     r = await new Client().call('GET', '/api/admin/requests', null, { Authorization: 'Bearer adm-secret' }); ok(r.j.requests.some(x => x.service === 'Maʼlumot xatosi' && x.message.startsWith('MIT:')), 'adminda xato xabari koʻrinadi');
     {
+      const rc = new Client(); await rc.call('POST', '/api/register', { email: 'rep1@gmail.com', password: 'parol12345', name: 'Rep1' });
+      let q = await new Client().call('POST', '/api/report', { kind: 'ai', tool: 'mentor', answer: 'Yomon javob' }); ok(q.s === 401, 'AI xabari: kirmagan foydalanuvchi yubora olmaydi', q.s);
+      q = await rc.call('POST', '/api/report', { kind: 'ai', tool: 'mentor', answer: '  ' }); ok(q.s === 400, 'AI xabari: boʻsh javob rad etiladi', q.s);
+      q = await rc.call('POST', '/api/report', { kind: 'ai', tool: 'essay', answer: 'Javob '.repeat(500) + '\u0007', note: 'Notoʻgʻri maslahat' }); ok(q.s === 201, 'AI javobi haqida xabar yuboriladi', q.s);
+      q = await rc.call('POST', '/api/report', { kind: 'ai', tool: '<script>', answer: 'Zararli javob' }); ok(q.s === 201, 'AI xabari: notanish vosita ham qabul qilinadi (mentor deb)', q.s);
+      q = await new Client().call('GET', '/api/admin/requests', null, { Authorization: 'Bearer adm-secret' });
+      const ar = q.j.requests.filter(x => x.service === 'AI javobi haqida xabar'), e1 = ar.find(x => x.message.startsWith('[essay] Notoʻgʻri maslahat')), e2 = ar.find(x => x.message.startsWith('[mentor] (izohsiz)'));
+      ok(ar.length === 2 && e1 && e2, 'AI xabarlari adminda: vosita va izoh bilan', ar.map(x => x.message.slice(0, 30)).join('|'));
+      ok(e1 && e1.message.length < 1600 && !/[\u0000-\u0009]/.test(e1.message) && e1.email === 'rep1@gmail.com', 'AI xabari: javob 1500 belgiga qisqartiriladi, boshqaruv belgilari yoʻq');
+      ok(!JSON.stringify(ar).includes('<script>'), 'AI xabari: notanish vosita nomi saqlanmaydi');
+      const al = await fetch(B + '/.well-known/assetlinks.json'), aj = await al.json(), at = aj[0] && aj[0].target;
+      ok(al.status === 200 && /json/.test(al.headers.get('content-type')) && Array.isArray(aj) && aj[0].relation[0] === 'delegate_permission/common.handle_all_urls' && at.namespace === 'android_app' && at.package_name === 'uz.unidoue.app' && at.sha256_cert_fingerprints.length >= 1 && at.sha256_cert_fingerprints.every(f => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(f)), 'assetlinks.json: Play (TWA) uchun toʻgʻri formatda beriladi', al.status);
+    }
+    {
       const pc = new Client(); let q = await pc.call('POST', '/api/register', { email: 'plus1@gmail.com', password: 'parol12345', name: 'Plus1' });
       q = await pc.call('POST', '/api/plan/request', { plan: 'plus' }); ok(q.s === 201 && q.j.account.pay.plan === 'plus' && q.j.account.pay.price === 2.99 && q.j.account.plan === 'free', 'Plus soʻrovi: $2.99, tarif oʻzgarmaydi', q.j);
       q = await pc.call('POST', '/api/admin/plan', { email: 'plus1@gmail.com', plan: 'plus', days: 30 }, { Authorization: 'Bearer adm-secret' }); ok(q.s === 200, 'admin Plus beradi (plus)');
@@ -219,6 +233,18 @@ class Client {
       r = await hreq('unidoue.uz', '/'); ok(r.s === 200, 'asosiy domen yoʻnaltirilmaydi', r.s);
     } catch (e) { failN++; console.log('XATO:', e); }
     s4.kill(); fs.rmSync(dir4, { recursive: true, force: true });
+  }
+  {
+    const dirT = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), PT = PORT + 10, FP2 = '11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11:11';
+    const sT = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: PT, DATA_DIR: dirT, TWA_SHA256: FP2.toLowerCase() + ', yaroqsiz, ' + FP2 + ', 12:34', TWA_PACKAGE: 'uz.unidoue.test' }, stdio: 'ignore' });
+    for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${PT}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
+    console.log('Digital Asset Links (TWA_SHA256)');
+    try {
+      const j = await (await fetch(`http://localhost:${PT}/.well-known/assetlinks.json`)).json(), fps = j[0].target.sha256_cert_fingerprints;
+      ok(j.length === 1 && j[0].target.package_name === 'uz.unidoue.test', 'TWA_PACKAGE paket nomini almashtiradi', JSON.stringify(j[0].target.package_name));
+      ok(fps.length === 2 && fps.includes(FP2) && fps.every(f => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(f)), 'TWA_SHA256: yangi izlar qoʻshiladi, takrorlanmaydi, yaroqsizi tashlanadi', fps.join(' | '));
+    } catch (e) { failN++; console.log('XATO:', e); }
+    sT.kill(); fs.rmSync(dirT, { recursive: true, force: true });
   }
   // Doimiy saqlash (Neon) — soxta SQL-over-HTTP serveri bilan
   {

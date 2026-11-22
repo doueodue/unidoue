@@ -1,4 +1,4 @@
-import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, refreshAccount, upsell, push, wipeLocal, errorBox, credits } from './core.js';
+import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, refreshAccount, upsell, push, wipeLocal, errorBox, credits, inPlay } from './core.js';
 import { t, dateL } from './i18n.js';
 import * as pn from './push.js';
 
@@ -66,7 +66,7 @@ export async function dashboard(el) {
   <section class="card s5"><h3>Obuna holati</h3>
     <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px"><span class="badge ${a.plan !== 'free' ? 'ok' : ''}" style="font-size:14px;padding:5px 14px">${a.plan.toUpperCase()}</span>${a.planUntil ? `<small style="color:var(--muted)">${fmtDate(new Date(a.planUntil).toISOString().slice(0, 10))} gacha</small>` : ''}</div>
     <div class="stat"><span>AI kredit (shu oy)</span></div><div class="bar ${cr.pct > 85 ? 'warn' : ''}" style="margin:8px 0 6px"><i data-cr="bar" style="width:${cr.pct}%"></i></div><p class="hint" data-cr="badge">${cr.left} / ${cr.limit} kredit qoldi</p>
-    <a class="btn ${a.plan === 'free' ? 'primary' : ''} sm" style="margin-top:14px" href="#/pricing">${a.plan === 'free' ? 'Tarifni yaxshilash' : 'Tarifni boshqarish'}</a></section>
+    <a class="btn ${a.plan === 'free' ? 'primary' : ''} sm" style="margin-top:14px" href="#/pricing">${inPlay ? 'Tariflar' : a.plan === 'free' ? 'Tarifni yaxshilash' : 'Tarifni boshqarish'}</a></section>
 
   <section class="card s6"><h3>Yaqin muddatlar</h3><p class="sub">Arizalar kuzatuvchisidan.</p>${up.length ? `<div class="list">${up.slice(0, 5).map(x => { const d = daysLeft(x.d); return `<div class="li"><div class="grow"><b>${esc(x.n)}</b><small>${fmtDate(x.d)}</small></div><span class="badge ${d <= 14 ? 'bad' : d <= 45 ? 'warn' : 'mute'}">${d} kun</span></div>`; }).join('')}</div>` : '<div class="empty"><b>Muddat yo‘q</b>Arizalar bo‘limida universitet qo‘shing.<br><a class="btn sm" style="margin-top:12px" href="#/tracker">Ariza qo‘shish</a></div>'}</section>
   <section class="card s6"><h3>Ariza jarayoni</h3><p class="sub">Holatlar bo‘yicha.</p>${apps.length ? ST.map((s, i) => { const n = apps.filter(x => +x.s === i).length; return n ? `<div class="li"><div class="grow">${s}</div><b style="flex:none">${n}</b></div>` : ''; }).join('') : '<div class="empty"><b>Hali ariza yo‘q</b>Universitet tanlab, jarayonni kuzating.</div>'}</section>
@@ -172,6 +172,14 @@ async function checkPaid(el, id) {
 }
 export async function pricing(el) {
   const { plans, config } = await api('/api/plans'); await refreshAccount(); const cur = S.account.plan;
+  if (inPlay) { // Google Play ilovasi: toʻlov siyosati sababli narx, toʻlov va "soʻrov yuborish" tugmalari yoʻq — faqat tarif imkoniyatlari
+    const a = S.account, until = cur !== 'free' && a.planUntil ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>${cur === 'pro' ? 'Pro' : 'Plus'} faol.</b> Amal qilish muddati: <b>${new Date(a.planUntil).toLocaleDateString('uz-UZ')}</b> gacha.</div></div>` : '';
+    el.innerHTML = `<div class="page-h"><div><h2>Tariflar</h2><p>Hisobingiz: <b>${cur.toUpperCase()}</b>. Bu oy AI kredit: <b data-cr="frac">${credits().left} / ${credits().limit}</b> qoldi.</p></div></div>${until}
+    <div class="grid g3">${plans.map(p => `<section class="card plan ${p.id === cur ? 'feat' : ''}"><div><h3>${p.name}</h3></div><ul>${FEAT[p.id].map(f => `<li>${f}</li>`).join('')}</ul>${p.id === cur ? '<div style="margin-top:auto"><button class="btn" disabled style="width:100%">Joriy tarif</button></div>' : ''}</section>`).join('')}</div>
+    <div class="card" style="margin-top:18px"><h3>AI kredit qanday sarflanadi</h3><p class="sub">Limit har oy yangilanadi. Xatolik bo‘lsa, kredit yechilmaydi.</p><div class="row"><div class="stat"><b>1</b><span>mentor savoli</span></div><div class="stat"><b>2 / 4</b><span>esse tahlili (oddiy / chuqur)</span></div><div class="stat"><b>6</b><span>strategiya yoki hisobot</span></div></div></div>
+    <p class="hint" style="margin-top:14px">Qabul natijasi hech bir tarifda kafolatlanmaydi.</p>`;
+    return;
+  }
   const online = config.payments && config.online ? config.online : null;
   const payButtons = (p, renew) => `<div class="paybtns"><div class="hint">${renew ? 'Muddatni 30 kunga uzaytirish' : '30 kunlik tarif'}</div>
     ${online.payme ? `<button class="btn ${p.id === 'pro' ? 'primary' : 'dark'}" style="width:100%" data-pay="${p.id}" data-prov="payme">Payme orqali to‘lash</button>` : ''}${online.click ? `<button class="btn" style="width:100%" data-pay="${p.id}" data-prov="click">Click orqali to‘lash</button>` : ''}</div>`;

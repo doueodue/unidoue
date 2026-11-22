@@ -17,6 +17,7 @@
  *  TG_BOT_TOKEN, TG_CHAT_ID        — mentor so'rovlari Telegramga tushishi uchun
  *  ADMIN_TOKEN                     — GET /api/admin/requests uchun (Authorization: Bearer ...)
  *  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT — (ixtiyoriy) Web Push kaliti; qoʻyilmasa server yaratib saqlaydi. README'ga qarang
+ *  TWA_SHA256 — (ixtiyoriy) Google Play ilovasi imzo SHA-256 barmoq izlari (vergul bilan); /.well-known/assetlinks.json ga qoʻshiladi. TWA_PACKAGE — paket nomi (standart uz.unidoue.app)
  *  USD_UZS_RATE, PAYME_*, CLICK_*     — (ixtiyoriy) onlayn toʻlov: Payme va Click. Batafsil: payments.js boshi va README
  */
 const http = require('node:http');
@@ -751,9 +752,20 @@ async function api(req, res, pathname) {
     const u = sessionUser(req);
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
     if (limited('rep:' + u.id, 8, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp xabar. Keyinroq urinib koʻring.');
-    const b = await readJson(req), uni = clean(b.uni, 120), text = String(b.text || '').trim().slice(0, 500);
-    if (!uni || text.length < 5) return fail(res, 400, 'Universitet va xato tavsifini yozing.');
-    const r = { id: crypto.randomBytes(6).toString('hex'), ts: new Date().toISOString(), uid: u.id, email: u.email, name: u.name, contact: u.email, service: 'Maʼlumot xatosi', message: uni + ': ' + text };
+    const b = await readJson(req);
+    const base = { id: crypto.randomBytes(6).toString('hex'), ts: new Date().toISOString(), uid: u.id, email: u.email, name: u.name, contact: u.email };
+    let r;
+    if (b.kind === 'ai') {
+      // AI javobidan ilova ichida shikoyat qilish (Google Play "AI-Generated Content" siyosati talabi)
+      const tool = ['mentor', 'essay', 'strategy', 'report'].includes(b.tool) ? b.tool : 'mentor';
+      const note = clean(b.note, 300), answer = String(b.answer || '').replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, ' ').trim().slice(0, 1500);
+      if (answer.length < 2) return fail(res, 400, 'Xabar beriladigan javob matni topilmadi.');
+      r = { ...base, service: 'AI javobi haqida xabar', message: '[' + tool + '] ' + (note || '(izohsiz)') + '\n— AI javobi:\n' + answer };
+    } else {
+      const uni = clean(b.uni, 120), text = String(b.text || '').trim().slice(0, 500);
+      if (!uni || text.length < 5) return fail(res, 400, 'Universitet va xato tavsifini yozing.');
+      r = { ...base, service: 'Maʼlumot xatosi', message: uni + ': ' + text };
+    }
     db.requests.push(r); if (db.requests.length > 5000) db.requests.shift(); save(); notifyOwner(r);
     return send(res, 201, { ok: true });
   }
@@ -1052,7 +1064,22 @@ async function notifyTelegram(r) {
 const PAGES = { '/': 'app.html', '/privacy': 'privacy.html', '/delete-account': 'delete-account.html', '/app': 'app.html', '/reset': 'reset.html', '/admin': 'admin.html' };
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.png': 'image/png',
   '.webmanifest': 'application/manifest+json; charset=utf-8', '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8' };
+/** Digital Asset Links (Google Play TWA): fayldagi barmoq izlariga TWA_SHA256 (vergul bilan) qoʻshiladi — Play App Signing izini kodsiz ulash uchun. TWA_PACKAGE paket nomini almashtiradi. */
+const FP_RE = /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/;
+function assetLinks() {
+  let list = []; try { const j = JSON.parse(fs.readFileSync(path.join(PUBLIC_DIR, '.well-known', 'assetlinks.json'), 'utf8')); if (Array.isArray(j)) list = j; } catch (e) {}
+  const extra = String(process.env.TWA_SHA256 || '').split(/[\s,;]+/).map(x => x.trim().toUpperCase()).filter(x => FP_RE.test(x));
+  const pkg = /^[a-zA-Z][\w]*(\.[a-zA-Z][\w]*)+$/.test(process.env.TWA_PACKAGE || '') ? process.env.TWA_PACKAGE : '';
+  let app = list.find(x => x && x.target && x.target.namespace === 'android_app');
+  if (!app && (extra.length || pkg)) { app = { relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: pkg || 'uz.unidoue.app', sha256_cert_fingerprints: [] } }; list.push(app); }
+  if (app) { if (pkg) app.target.package_name = pkg; app.target.sha256_cert_fingerprints = [...new Set([...(app.target.sha256_cert_fingerprints || []).map(x => String(x).toUpperCase()), ...extra])]; }
+  return list;
+}
 function serveStatic(req, res, pathname) {
+  if (pathname === '/.well-known/assetlinks.json') {
+    res.setHeader('Content-Type', MIME['.json']); res.setHeader('Cache-Control', 'no-cache');
+    res.end(req.method === 'HEAD' ? undefined : JSON.stringify(assetLinks(), null, 2)); return true;
+  }
   let rel = PAGES[pathname];
   if (!rel) {
     try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch (e) { return false; }

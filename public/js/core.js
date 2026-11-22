@@ -3,6 +3,7 @@ export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const S = { user: null, account: null, rev: 0, cat: null, config: {} };
+export { inPlay } from './play.js'; // Google Play (TWA) ichidami — play.js birinchi yuklanishdayoq ishga tushadi
 
 /* ---------- API ---------- */
 export async function api(path, method = 'GET', body) {
@@ -129,6 +130,20 @@ export async function reportError(uni) {
   const text = String(modal.data || '').trim();
   if (text.length < 5) { toast('Nima noto‘g‘riligini yozing.'); return; }
   try { await api('/api/report', 'POST', { uni, text }); toast('Rahmat! Xabaringiz adminga yuborildi.'); } catch (e) { toast(e.message); }
+}
+/** AI javobi haqida xabar berish — Google Play "AI-Generated Content" siyosati: AI kontentdan ilova ichida shikoyat qilish mumkin boʻlsin */
+export async function reportAI(tool, answer) {
+  const v = await modal({ title: 'AI javobi haqida xabar', body: `<p class="hint" style="margin-top:0">Javob noto‘g‘ri, zararli yoki nomaqbul bo‘lsa, bizga xabar bering. Javob matni ham adminga yuboriladi.</p><textarea id="rep-t" maxlength="300" rows="3" placeholder="Nima noto‘g‘ri? (ixtiyoriy)"></textarea>`, actions: [{ label: 'Bekor qilish', value: 0 }, { label: 'Yuborish', value: 1, cls: 'primary' }], collect: bg => bg.querySelector('#rep-t').value });
+  if (v !== 1) return;
+  try { await api('/api/report', 'POST', { kind: 'ai', tool, answer: String(answer || ''), note: String(modal.data || '').trim() }); toast('Rahmat! Xabaringiz adminga yuborildi.'); } catch (e) { toast(e.message, 'err'); }
+}
+/** AI javobi ostiga "Xabar berish" tugmasini qoʻyadi (oldingisi boʻlsa almashtiradi). text — javobning toʻliq matni. */
+export function aiFlag(host, tool, text, cls = '') {
+  if (!host || !String(text || '').trim()) return;
+  const old = host.nextElementSibling; if (old && old.classList.contains('ai-flag')) old.remove();
+  const d = document.createElement('div'); d.className = 'ai-flag ' + cls;
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'link-btn'; b.textContent = 'AI javobi haqida xabar berish';
+  b.onclick = () => reportAI(tool, text); d.appendChild(b); host.after(d);
 }
 export const skeleton = (n = 3) => `<div class="grid">${Array.from({ length: n }, () => '<div class="card"><div class="sk" style="width:40%;height:18px"></div><div class="sk" style="margin-top:14px;height:12px"></div><div class="sk" style="margin-top:8px;width:75%;height:12px"></div></div>').join('')}</div>`;
 export const errorBox = (msg, retry) => `<div class="card err-box"><b>Yuklab bo‘lmadi</b>${esc(msg)}${retry ? `<div style="margin-top:14px"><button class="btn" data-retry>Qayta urinish</button></div>` : ''}</div>`;

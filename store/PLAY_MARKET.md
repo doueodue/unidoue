@@ -12,9 +12,11 @@
 2. **PWABuilder** (pwabuilder.com) → `https://unidoue.uz` → Package for stores → Android:
    - Package ID: `uz.unidoue.app`, App name: `UniDoue`, Version: 1 (versionCode 1).
    - Signing key: **Create new**. Yuklab olingan arxivdagi `.keystore` fayli va parolini **xavfsiz joyda saqlang** (yo‘qolsa ilovani yangilab bo‘lmaydi).
+   - **Target SDK:** Google talabiga ko‘ra yangi ilova va yangilanishlar **Android 16 (API 36)** ni nishonlashi kerak. PWABuilder/Bubblewrap yangi versiyasi shunday paketlayotganini tekshiring; past bo‘lsa Play Console yuklashda xato beradi.
+   - **Start URL:** imkon bo‘lsa `/?src=twa` qo‘ying (zaxira aniqlash; pastdagi 2-bo‘limga qarang). Odatda `document.referrer` o‘zi yetarli.
    - Yuklab olingan `.aab` faylini Play Console’ga yuklaysiz.
 3. Play Console → yangi ilova → **Release → Testing → Closed testing** → `.aab` yuklash.
-4. **Play App Signing** yoqilgan bo‘ladi. Console → *App integrity → App signing* da Google ko‘rsatgan **SHA-256** barmoq izini oling va `public/.well-known/assetlinks.json` fayliga **qo‘shimcha** barmoq izi sifatida qo‘shing (menga yuboring, men qo‘shaman). Aks holda ilova ichida manzil satri (URL bar) ko‘rinib qoladi.
+4. **Play App Signing** yoqilgan bo‘ladi. Console → *Release → Setup → App integrity* da **App signing key certificate** SHA-256 barmoq izini oling va Render’da `TWA_SHA256` o‘zgaruvchisiga yozing (bir nechta bo‘lsa vergul bilan; kod yuklash shart emas, serverni qayta ishga tushirish kifoya). Server uni `https://unidoue.uz/.well-known/assetlinks.json` ga avtomatik qo‘shadi (fayldagi mavjud izlar saqlanadi). Paket nomi boshqacha bo‘lsa `TWA_PACKAGE`. Aks holda ilova ichida manzil satri (URL bar) ko‘rinib qoladi. Tekshirish: shu manzilni brauzerda oching.
 5. Do‘kon sahifasi (pastdagi matnlar, `screenshots/` va `feature-graphic-1024x500.png`), ikonka: `public/icons/icon-512.png`.
 6. Sinovchilarni qo‘shish: 12+ kishining Gmail manzillari (do‘stlar, sinfdoshlar). Ular havola orqali ilovani o‘rnatib, 14 kun o‘chirmasdan turishi kerak.
 
@@ -45,7 +47,7 @@ Nima qila olasiz:
 
 Ma’lumotlar haqida: universitet ma’lumotlari rasmiy saytlardan olinadi. Tasdiqlanmagan qiymatlar “taxminiy” deb belgilanadi yoki ko‘rsatilmaydi. Muddat va talablarni arizadan oldin universitetning rasmiy sahifasida albatta tekshiring.
 
-Tariflar: Free (bepul) va pullik Pro reja. Bepul tarifda AI kreditlari va ba’zi imkoniyatlar cheklangan.
+Ilovadan bepul foydalanish mumkin. AI kreditlari va ba’zi imkoniyatlar hisob tarifiga qarab cheklangan.
 
 UniDoue qabulni kafolatlamaydi va hech qanday universitet bilan rasmiy bog‘liq emas.
 ```
@@ -68,7 +70,7 @@ UniDoue — помощник для абитуриентов, которые п�
 
 О данных: сведения об университетах берутся с официальных сайтов. Непроверенные значения помечены как «приблизительные» или не показываются. Сроки и требования обязательно проверяйте на официальной странице университета.
 
-Тарифы: Free (бесплатно) и платный Pro. В бесплатном тарифе ИИ-кредиты и часть функций ограничены.
+Приложением можно пользоваться бесплатно. ИИ-кредиты и часть функций ограничены в зависимости от тарифа аккаунта.
 
 UniDoue не гарантирует поступление и не связан официально ни с одним университетом.
 ```
@@ -92,7 +94,7 @@ What you can do:
 
 About the data: university information comes from official websites. Unverified values are labelled "approximate" or not shown. Always confirm deadlines and requirements on the university's official page.
 
-Plans: Free and paid Pro. AI credits and some features are limited on the free plan.
+The app is free to use. AI credits and some features are limited depending on the account plan.
 
 UniDoue does not guarantee admission and is not officially affiliated with any university.
 ```
@@ -107,6 +109,9 @@ UniDoue does not guarantee admission and is not officially affiliated with any u
   - Xavfsizlik: ulanish shifrlangan (HTTPS); foydalanuvchi o‘chirishni so‘rashi mumkin (ilova ichida va `/delete-account` orqali).
   - Uchinchi tomonlar: hosting (Render), baza (Neon), AI xizmati (Groq/Anthropic), email (Brevo), Telegram (mentor so‘rovlari). Google’ning “xizmat ko‘rsatuvchi” (service provider) qoidalarini o‘qib, “sharing” belgisini to‘g‘ri tanlang.
 - **Hisobni o‘chirish URL’i:** `https://unidoue.uz/delete-account`.
+- **AI kontent siyosati:** AI mentor va esse yordamchisi — generativ AI. Google talabi: foydalanuvchi ilovadan chiqmasdan AI javobini shikoyat qila olishi kerak. Ilovada har bir AI javobi ostida “AI javobi haqida xabar berish” tugmasi bor; xabar admin panelida “Soʻrovlar”ga tushadi (javob matni bilan). Shikoyatlarni muntazam ko‘rib, tizim ko‘rsatmalarini yaxshilab boring.
+- **To‘lov siyosati (muhim):** Google Play ilovasi ichida raqamli tarif (Pro/Plus) uchun Payme/Click kabi tashqi to‘lovga yo‘naltirish mumkin emas (Play Billing talab qilinadi). Shu sababli Play ilovasi ichida (TWA aniqlanganda) narx, to‘lov va “so‘rov yuborish” tugmalari **yashirilgan**; tarif sahifasida faqat imkoniyatlar ro‘yxati ko‘rinadi. Veb-sayt va oddiy PWA o‘zgarmagan. Aniqlash: `public/js/play.js` (`android-app://` referrer yoki `?src=twa`). Tekshirib ko‘rish: brauzerda `https://unidoue.uz/app?src=twa#/pricing`. Do‘kon matni va ilova ichida saytdagi to‘lovga havola yoki “saytda arzonroq” kabi gap yozmang. Agar Google baribir e’tiroz bildirsa, variantlar: (a) Play Billing (Digital Goods API) ulash; (b) Play ilovasida faqat bepul tarif.
+- **Push bildirishnomalar:** ilova Web Push ishlatadi; qurilma obunasi (endpoint) serverda saqlanadi — Data safety’da “Device or other IDs” ni hisobga oling va foydalanuvchi o‘chira olishini yozing (profil → Bildirishnomalar).
 - **Ilova kirishi:** ilova hisob talab qiladi → Play “App access” bo‘limida **test hisobi** (email + parol) ko‘rsatish kerak. Sinov uchun alohida hisob oching va Pro bering.
 
 ## 5. Fayllar

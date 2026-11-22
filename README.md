@@ -29,6 +29,7 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 | `RESEND_API_KEY`, `MAIL_FROM`, `APP_URL` | Parolni tiklash xati. Kalitsiz "ulanmagan" xabari chiqadi |
 | `TG_BOT_TOKEN`, `TG_CHAT_ID` | Mentor va tarif soʻrovlari Telegramga kelishi uchun |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | (ixtiyoriy) Push bildirishnomalar kaliti. Qoʻyilmasa server oʻzi yaratib, ma'lumotlar bazasiga (Neon ulangan boʻlsa u yerga ham) saqlaydi. `VAPID_SUBJECT` — aloqa manzili (`mailto:` yoki `https://`); qoʻyilmasa `APP_URL` olinadi |
+| `TWA_SHA256`, `TWA_PACKAGE` | (ixtiyoriy) Google Play ilovasi (TWA): imzo SHA-256 barmoq izlari (vergul bilan) `/.well-known/assetlinks.json` ga qoʻshiladi; `TWA_PACKAGE` — paket nomi (standart `uz.unidoue.app`). Batafsil: `store/PLAY_MARKET.md`. |
 | `USD_UZS_RATE` | Onlayn toʻlov uchun kurs: 1 USD = necha soʻm (masalan `12700`). Soʻm narxi = dollar narxi × kurs, 1000 soʻmgacha yaxlitlanadi. Kurs boʻlmasa toʻlov **yoqilmaydi** |
 | `PAYME_MERCHANT_ID`, `PAYME_KEY`, `PAYME_TEST` | Payme kassasi. `PAYME_TEST=1` — sinov muhiti (`test.paycom.uz`), shunda `PAYME_KEY` oʻrniga **TEST kalitni** qoʻying |
 | `CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID`, `CLICK_SECRET_KEY` | Click (SHOP-API) |

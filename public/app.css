@@ -479,3 +479,6 @@ html.vt::view-transition-new(root){z-index:2}
 .pts.petal i{border-radius:150% 0 150% 0;background:linear-gradient(135deg,#ffe0ea,#ff9dbb);box-shadow:0 1px 3px rgba(190,60,100,.3);opacity:.8;animation-name:fx-sway-r}
 
 }
+
+/* AI javobi haqida xabar berish (Google Play AI-kontent siyosati) */
+.ai-flag{margin:4px 2px 10px;font-size:12.5px;align-self:flex-start}.ai-flag .link-btn{font-weight:500;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:inherit}.ai-flag .link-btn:hover{color:var(--brand-600)}

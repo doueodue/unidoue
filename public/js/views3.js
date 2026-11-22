@@ -1,4 +1,4 @@
-import { $, $$, S, api, ls, esc, toast, svg, catalog, upsell, credits, applyCredits, refreshCredits } from './core.js';
+import { $, $$, S, api, ls, esc, toast, svg, catalog, upsell, credits, applyCredits, refreshCredits, aiFlag } from './core.js';
 import { md } from './markdown.js';
 import { t as tr, lang } from './i18n.js';
 
@@ -81,7 +81,7 @@ export async function essay(el) {
     if (!S.account.config.ai) { out.innerHTML = aiOff(); return; }
     if (deep && !S.account.features.includes('essay_adv')) return upsell('essay_adv', 'Chuqur esse tahlili Pro tarifida.');
     const btns = $$('#e-ai,#e-deep,#e-b', el); btns.forEach(b => (b.disabled = true)); out.innerHTML = '<div class="sk" style="height:140px"></div>';
-    try { const r = await streamAI({ tool: 'essay', text: ta.value, deep }, txt => { out.innerHTML = `<div class="pre">${md(txt)}</div>`; }); out.innerHTML = `<div class="pre">${md(r.reply)}</div><p class="hint">AI xato qilishi mumkin; maslahatlarni o‘z ovozingizga moslang. Esse sizniki bo‘lib qolsin.</p>`; }
+    try { const r = await streamAI({ tool: 'essay', text: ta.value, deep }, txt => { out.innerHTML = `<div class="pre">${md(txt)}</div>`; }); out.innerHTML = `<div class="pre">${md(r.reply)}</div><p class="hint">AI xato qilishi mumkin; maslahatlarni o‘z ovozingizga moslang. Esse sizniki bo‘lib qolsin.</p>`;  aiFlag($('.pre', out), 'essay', r.reply); }
     catch (e) { out.innerHTML = e.code === 'AI_NOT_CONFIGURED' ? aiOff() : `<p class="msg err">${esc(e.message)}</p>`; }
     btns.forEach(b => (b.disabled = false));
   };
@@ -104,7 +104,7 @@ export async function mentor(el) {
     ev.preventDefault(); const inp = $('#m-i', el), q = inp.value.trim(); if (!q) return;
     if (!acc.config.ai) { toast('AI hozircha ulanmagan.', 'err'); return; }
     inp.value = ''; hist.push({ role: 'user', content: q }); add('u', q); const wait = add('a', ''); wait.innerHTML = '<span class="dots"><i></i><i></i><i></i></span>'; $('#m-s', el).disabled = true;
-    try { const r = await streamAI({ tool: 'mentor', messages: hist }, t => { wait.innerHTML = md(t); wait.scrollIntoView({ block: 'nearest' }); }); hist.push({ role: 'assistant', content: r.reply }); wait.innerHTML = md(r.reply); }
+    try { const r = await streamAI({ tool: 'mentor', messages: hist }, t => { wait.innerHTML = md(t); wait.scrollIntoView({ block: 'nearest' }); }); hist.push({ role: 'assistant', content: r.reply }); wait.innerHTML = md(r.reply); aiFlag(wait, 'mentor', r.reply); }
     catch (e) { hist.pop(); wait.textContent = e.message; wait.style.color = 'var(--bad)'; }
     $('#m-s', el).disabled = false; inp.focus();
   };
@@ -115,7 +115,7 @@ export async function mentor(el) {
     if (!sel.length) { m.textContent = 'Kamida bitta universitet tanlang.'; return; }
     o.hidden = false; o.innerHTML = '<div class="sk" style="height:140px"></div>';
     const head = `<h3>${name === 'strategy' ? 'Qabul strategiyasi' : 'Universitet hisoboti'}</h3>`;
-    try { const r = await streamAI({ tool: name, universities: sel }, txt => { o.innerHTML = `${head}<div class="pre">${md(txt)}</div>`; }); o.innerHTML = `${head}<div class="pre">${md(r.reply)}</div><p class="hint">Raqam va muddatlarni universitetning rasmiy saytida tekshiring.</p>`; }
+    try { const r = await streamAI({ tool: name, universities: sel }, txt => { o.innerHTML = `${head}<div class="pre">${md(txt)}</div>`; }); o.innerHTML = `${head}<div class="pre">${md(r.reply)}</div><p class="hint">Raqam va muddatlarni universitetning rasmiy saytida tekshiring.</p>`;  aiFlag($('.pre', o), name, r.reply); }
     catch (e) { o.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; }
   };
   $('#rq-b', el).onclick = async () => { const m = $('#rq-m', el), g = id => $('#' + id, el).value.trim(); m.className = 'msg err'; if (g('rq-n').length < 2 || g('rq-c').length < 5) { m.textContent = 'Ism va aloqa ma’lumotini kiriting.'; return; } try { await api('/api/request', 'POST', { name: g('rq-n'), contact: g('rq-c'), service: g('rq-s'), message: g('rq-t') }); m.className = 'msg ok'; m.textContent = 'So‘rov yuborildi. Siz bilan bog‘lanamiz.'; } catch (e) { m.textContent = e.message; } };
