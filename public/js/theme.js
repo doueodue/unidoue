@@ -1,7 +1,7 @@
 /* Kunduzgi / tungi rejim. Tanlov brauzerda saqlanadi (qabul:theme); tanlanmagan boʻlsa qurilma sozlamasiga (prefers-color-scheme) ergashadi.
    <head> ichida season.js dan keyin yuklanadi — sahifa chizilishidan oldin rejim qoʻyiladi, shuning uchun “chaqnash” boʻlmaydi. */
 (function () {
-  var KEY = 'qabul:theme', root = document.documentElement, mt = document.querySelector('meta[name=theme-color]'), light = mt ? mt.getAttribute('content') : '', mq = null, timer = 0;
+  var KEY = 'qabul:theme', root = document.documentElement, mt = document.querySelector('meta[name=theme-color]'), light = mt ? mt.getAttribute('content') : '', mq = null, timer = 0, goT = 0;
   try { mq = matchMedia('(prefers-color-scheme: dark)'); } catch (e) {}
   function saved() { try { var v = localStorage.getItem(KEY); return v === 'dark' || v === 'light' ? v : ''; } catch (e) { return ''; } }
   function get() { return root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; }
@@ -29,6 +29,8 @@
     if (m !== 'dark' && m !== 'light') return;
     if (remember) { try { localStorage.setItem(KEY, m); } catch (e) {} }
     if (m === get()) return;
+    /* almashtirish lahzasi animatsiyasi (css: .tsw-go) — faqat foydalanuvchi bosganda */
+    if (remember) { root.classList.add('tsw-go'); clearTimeout(goT); goT = setTimeout(function () { root.classList.remove('tsw-go'); }, 950); }
     var vt = from && document.startViewTransition && !reduced();
     if (vt) { try { reveal(m, from); } catch (e) { vt = false; root.classList.remove('vt'); } }
     if (!vt) {

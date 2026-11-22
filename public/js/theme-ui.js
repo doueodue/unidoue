@@ -4,5 +4,5 @@ const SUN = '<svg class="ts-sun" viewBox="0 0 24 24" aria-hidden="true"><circle 
 const MOON = '<svg class="ts-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 14.6A8.4 8.4 0 0 1 9.4 3.8a8.4 8.4 0 1 0 10.8 10.8Z"/></svg>';
 export function themeSwitch() {
   const dark = !!window.UniTheme && window.UniTheme.get() === 'dark', label = t('Tungi rejim');
-  return `<button type="button" class="theme-sw" role="switch" aria-checked="${dark}" aria-label="${label}" title="${label}" data-theme-toggle><span class="ts-knob">${SUN}${MOON}</span></button>`;
+  return `<button type="button" class="theme-sw" role="switch" aria-checked="${dark}" aria-label="${label}" title="${label}" data-theme-toggle><span class="ts-bg" aria-hidden="true"><i class="ts-ct"></i><i class="ts-st"></i><i class="ts-cl"></i></span><span class="ts-knob">${SUN}${MOON}</span></button>`;
 }
