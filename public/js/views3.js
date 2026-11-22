@@ -1,4 +1,4 @@
-import { $, $$, S, api, ls, esc, toast, svg, catalog, upsell, credits, applyCredits, refreshCredits, aiFlag, hasFeature, MENTOR, mentorAvatar } from './core.js';
+import { $, $$, S, api, ls, esc, toast, svg, allUnis, upsell, credits, applyCredits, refreshCredits, aiFlag, hasFeature, MENTOR, mentorAvatar } from './core.js';
 import { md } from './markdown.js';
 import { t as tr, lang } from './i18n.js';
 
@@ -111,7 +111,7 @@ let THREAD = []; // suhbat sahifadan sahifaga oʻtganda (Esse murabbiyi ↔ Suhb
 export const aiHead = label => `<div class="mc-oh">${mentorAvatar('sm')}<div><b>${MENTOR}</b><span>${esc(tr(label))}</span></div></div>`;
 
 export async function mentor(el) {
-  const cat = await catalog(), apps = ls.get('qabul:apps', []), acc = S.account, first = String(S.user.name || '').trim().split(/\s+/)[0] || '';
+  const cat = await allUnis(), apps = ls.get('qabul:apps', []), acc = S.account, first = String(S.user.name || '').trim().split(/\s+/)[0] || '';
   const MAX_UNI = 8, mem = !!acc.consent.mentorMemory;
   const tool2 = [['strategy', 'strategy', 'target', 'Qabul strategiyasi', 'Safety, target, reach va oylik reja', costOf.strategy], ['report', 'reports', 'doc', 'Universitet hisoboti', 'Moslik, tayyorgarlik va xavflar', costOf.report]];
   const hello = () => `<div class="mc-hello">${mentorAvatar('xl live')}<h3>${tr('Salom,')} ${esc(first)}</h3><p>${tr('Men Doue — qabul yo‘lingizdagi AI mentoringizman. Universitet tanlash, test rejasi, esse va ariza muddatlari bo‘yicha yonma-yon boraman.')}</p>

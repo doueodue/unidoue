@@ -1,4 +1,4 @@
-import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, refreshAccount, upsell, push, wipeLocal, errorBox, credits, inPlay, mentorAvatar } from './core.js';
+import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, allUnis, uniOptions, refreshAccount, upsell, push, wipeLocal, errorBox, credits, inPlay, mentorAvatar } from './core.js';
 import { tierMedal, tierPill, crownHTML, liveGlass, TIER_TAG } from './tiers.js';
 import { t, dateL, lang } from './i18n.js';
 import * as pn from './push.js';
@@ -148,10 +148,10 @@ function downloadIcs(list, name) {
 
 /* ================= ARIZALAR ================= */
 export async function tracker(el) {
-  const cat = await catalog(); let apps = ls.get('qabul:apps', []); const lim = S.account.limits.apps;
+  const cat = await allUnis(); let apps = ls.get('qabul:apps', []); const lim = S.account.limits.apps;
   const draw = () => {
     el.innerHTML = `<div class="page-h"><div><h2>Arizalarim</h2><p>Muddatlar, hujjatlar va holatni bir joyda kuzating.</p></div><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="badge ${apps.length >= lim ? 'warn' : ''}">${apps.length} / ${lim >= 1000 ? '∞' : lim} ariza</span>${apps.length ? '<button class="btn sm" id="t-ics" type="button">📅 Kalendarga qo‘shish</button>' : ''}</span></div>
-    <div class="card" style="margin-bottom:18px"><div class="row" style="align-items:end"><div><label class="f" for="t-u">Universitet</label><select id="t-u">${cat.map(c => `<option value="${esc(c.id)}">${esc(c.n)}</option>`).join('')}</select></div><div><label class="f" for="t-d">Muddat</label><input id="t-d" type="date"></div><div><button class="btn primary" id="t-add" style="width:100%">Qo‘shish</button></div></div><div class="field" style="margin:12px 0 0"><label class="f" for="t-cn">Ro‘yxatda yo‘q universitet? Nomini o‘zingiz yozing (ixtiyoriy)</label><input id="t-cn" type="text" maxlength="80" placeholder="Masalan: University of Toronto"></div><div class="msg" id="t-m"></div></div>
+    <div class="card" style="margin-bottom:18px"><div class="row" style="align-items:end"><div><label class="f" for="t-u">Universitet</label><select id="t-u">${uniOptions(cat)}</select></div><div><label class="f" for="t-d">Muddat</label><input id="t-d" type="date"></div><div><button class="btn primary" id="t-add" style="width:100%">Qo‘shish</button></div></div><div class="field" style="margin:12px 0 0"><label class="f" for="t-cn">Ro‘yxatda yo‘q universitet? Nomini o‘zingiz yozing (ixtiyoriy)</label><input id="t-cn" type="text" maxlength="80" placeholder="Masalan: University of Toronto"></div><div class="msg" id="t-m"></div></div>
     <div class="grid g2">${apps.length ? apps.map((x, i) => { const d = daysLeft(x.d), done = x.docs.filter(Boolean).length; return `<div class="card ap ap-${d < 0 ? 'mute' : d <= 14 ? 'bad' : d <= 45 ? 'warn' : 'ok'}"><div style="display:flex;justify-content:space-between;gap:10px"><h3>${esc(x.n)}</h3><span class="badge ${d < 0 ? 'mute' : d <= 14 ? 'bad' : d <= 45 ? 'warn' : ''}">${d < 0 ? 'muddat o‘tgan' : d + ' kun'}</span></div>
       <div class="row" style="margin:12px 0"><div><label class="f">Muddat</label><input type="date" data-i="${i}" data-date value="${esc(x.d)}"></div><div><label class="f">Holat</label><select data-i="${i}" data-st>${ST.map((s, j) => `<option value="${j}" ${+x.s === j ? 'selected' : ''}>${s}</option>`).join('')}</select></div></div>
       <div class="bar" style="margin-bottom:10px"><i style="width:${pct(done, DOCS.length)}%"></i></div><div class="docs">${DOCS.map((dn, j) => `<label><input type="checkbox" data-i="${i}" data-doc="${j}" ${x.docs[j] ? 'checked' : ''}> ${dn}</label>`).join('')}</div>
@@ -376,7 +376,9 @@ export async function profile(el) {
 const stepsFor = (c, Q, horizon = 0) => {
   const S = [], add = (o, t) => S.push({ o, t }), sat = Q.sat ? +Q.sat : null, ie = Q.ielts ? +Q.ielts : null;
   add(150, 'Universitet saytida talablar va hujjatlar ro‘yxatini o‘qib chiqing, ariza akkauntini oching');
-  if (sat != null) add(120, c && sat < c.sat[0] ? 'SAT natijasini qayta topshirish rejasini tuzing' : 'SAT natijalarini universitet talabiga ko‘ra yuboring');
+  const intl = !!(c && c.kind === 'intl');
+  if (sat != null && !intl) add(120, c && c.sat && sat < c.sat[0] ? 'SAT natijasini qayta topshirish rejasini tuzing' : 'SAT natijalarini universitet talabiga ko‘ra yuboring');
+  if (intl) { add(120, 'Tanlagan yo‘nalishingiz o‘qitiladigan tilni va til sertifikati (IELTS/TOEFL) talabini rasmiy saytdan aniqlang'); add(35, 'Viza, yashash joyi va moliyaviy kafolat hujjatlari talabini o‘rganing'); }
   if (ie != null && c && c.ielts != null && ie < c.ielts) add(110, 'IELTS natijasini universitetning rasmiy talabiga moslang');
   add(90, 'Ikki o‘qituvchidan tavsiya xati (recommendation) so‘rang');
   add(75, 'Asosiy esse (Personal Statement) birinchi variantini yozing');
@@ -408,7 +410,7 @@ function targetDeadline(d, P) {
   return { d: want + d.slice(4), moved: true, entry };
 }
 export async function roadmap(el) {
-  const cat = await catalog(), apps = ls.get('qabul:apps', []), { P, Q } = getProfile();
+  const cat = await allUnis(), apps = ls.get('qabul:apps', []), { P, Q } = getProfile();
   el.innerHTML = `<div class="page-h"><div><h2>Yo‘l xaritasi</h2><p>Ariza muddatidan orqaga hisoblangan qadamlar. Belgilaringiz hisobingizda saqlanadi.</p></div></div>`;
   if (!apps.length) { el.insertAdjacentHTML('beforeend', '<div class="card empty"><b>Avval ariza qo‘shing</b>Yo‘l xaritasi arizalaringiz muddatiga qarab tuziladi.<br><a class="btn primary" style="margin-top:14px" href="#/tracker">Arizalarga o‘tish</a></div>'); return; }
   el.insertAdjacentHTML('beforeend', `<div class="card" style="margin-bottom:16px"><label class="f" for="r-u">Universitet</label><select id="r-u">${apps.map((a, i) => `<option value="${i}">${esc(a.n)}</option>`).join('')}</select></div><div id="r-o"></div>`);

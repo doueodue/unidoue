@@ -84,6 +84,11 @@ class Client {
     r = await a.call('POST', '/api/finder', { profile: PROFILE }); ok(r.s === 200 && r.j.shown === r.j.total && r.j.total === JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'data', 'universities.json'), 'utf8')).length && !!r.j.items[0].why, 'Free finder: 10 ta, tushuntirishsiz', [r.s, r.j && r.j.shown]);
     ok(new Set(r.j.items.map(x => x.tier)).size === 3, 'Free finder: uchala daraja');
     r = await a.call('POST', '/api/predict', { id: 'mit', profile: PROFILE }); ok(r.s === 200 && r.j.full === true && r.j.parts.length >= 3, 'Free predict: toʻliq');
+    // Boshqa davlat universitetlari: solishtirish va talablarga moslik
+    r = await a.call('POST', '/api/compare', { ids: ['mit', 'imperial-college-london', 'university-of-cambridge'] }); ok(r.s === 200 && r.j.items.length === 3 && r.j.items.map(x => x.kind).join() === 'us,intl,intl', 'Compare: AQSh + xorijiy aralash', r.j);
+    r = await a.call('POST', '/api/predict', { id: 'university-of-cambridge', profile: { ...PROFILE, ielts: '7.0' } }); ok(r.s === 200 && r.j.kind === 'intl' && ['yes', 'part', 'no', 'unknown'].includes(r.j.status) && Array.isArray(r.j.parts) && r.j.parts.some(x => x.k === 'IELTS' && x.tone === 'warn'), 'Predict (intl): IELTS 7.0 < 7.5 → diqqat', r.j);
+    r = await a.call('POST', '/api/predict', { id: 'university-of-cambridge', profile: { ...PROFILE, ielts: '8' } }); ok(r.s === 200 && r.j.parts.some(x => x.k === 'IELTS' && x.tone === 'good') && !('score' in r.j) && !('tier' in r.j), 'Predict (intl): IELTS 8 mos, qabul ehtimoli/tier yoʻq', r.j);
+    r = await a.call('POST', '/api/predict', { id: 'yoq-universitet', profile: PROFILE }); ok(r.s === 404, 'Predict: nomaʼlum id 404', r.s);
     r = await a.call('POST', '/api/finder', { profile: {} }); ok(r.s === 400, 'boʻsh profil → 400');
     r = await a.call('POST', '/api/plan/request', { plan: 'pro' }); ok(r.s === 201, 'tarif soʻrovi');
     ok(r.j.account.plan === 'free' && /^UD-[0-9A-F]{6}$/.test(r.j.account.pay.ref) && !!r.j.account.pay.requested && r.j.account.pay.info === null, 'soʻrov tarifni oʻzgartirmaydi, toʻlov kodi bor, karta sozlanmagan', r.j.account);
@@ -329,7 +334,7 @@ class Client {
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
     const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
-    ok(/href="\/tiers\.css/.test(html) && /unidoue-v55/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v55');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v56/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v56');
     const ac = await fetch(B + '/atlas.css?v=50'), act = await ac.text(), cv = await fetch(B + '/contour.svg'), cvt = await cv.text();
     ok(ac.status === 200 && /text\/css/.test(ac.headers.get('content-type') || '') && /\.rt-done/.test(act) && /href="\/atlas\.css/.test(html), 'atlas.css (Yo‘l daftari dizayni) toʻgʻri MIME bilan beriladi va /app ga ulangan');
     ok(cv.status === 200 && /image\/svg\+xml/.test(cv.headers.get('content-type') || '') && /^<svg/.test(cvt) && !/<script/i.test(cvt), 'contour.svg (xarita foni) image/svg+xml bilan beriladi');

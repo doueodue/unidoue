@@ -1,0 +1,58 @@
+/* Boshqa davlatlar: moslik, solishtirish, arizalar uchun tarjimalar. Format: [uz, ru, en]; RULES — raqamli jumlalar. */
+const P = [
+  ["Faqat ingliz tilida", "Только на английском", "English-taught only"],
+  ["Faqat muddati ochiq", "Только с открытым сроком", "Open deadline only"],
+  ["Faqat IELTS yetarli", "Только если IELTS достаточно", "Only if my IELTS is enough"],
+  ["Talablarga mos", "Соответствует требованиям", "Meets requirements"],
+  ["Qisman mos", "Частично соответствует", "Partly meets requirements"],
+  ["Talablarga hozircha mos emas", "Пока не соответствует требованиям", "Does not meet requirements yet"],
+  ["Ma’lumot yetarli emas", "Недостаточно данных", "Not enough data"],
+  ["Mos (IELTS talabi noma’lum)", "Подходит (требование IELTS неизвестно)", "Fits (IELTS requirement unknown)"],
+  ["Bu universitetlar uchun qabul ehtimoli (Safety/Target/Reach) hisoblanmaydi: ularning qabul statistikasi AQSh universitetlaridagidek ochiq emas. Buning o‘rniga profilingiz rasmiy talablarga (IELTS, o‘qish tili, muddat) qanchalik mosligi ko‘rsatiladi.", "Для этих университетов вероятность поступления (Safety/Target/Reach) не считается: их статистика приёма не так открыта, как у университетов США. Вместо этого показано, насколько ваш профиль соответствует официальным требованиям (IELTS, язык обучения, срок).", "Admission chance (Safety/Target/Reach) is not calculated for these universities: their admission statistics are not as open as those of US universities. Instead you see how well your profile meets the official requirements (IELTS, teaching language, deadline)."],
+  ["O‘qish tili", "Язык обучения", "Teaching language"],
+  ["Narx", "Стоимость", "Cost"],
+  ["Qabul talabi", "Требования к поступлению", "Admission requirement"],
+  ["Profilingizga moslik", "Соответствие вашему профилю", "Fit with your profile"],
+  ["Ariza topshirishdan oldin muddat, talab va narxni universitetning rasmiy sahifasida tekshiring.", "Перед подачей заявки проверьте срок, требования и стоимость на официальной странице университета.", "Before applying, check the deadline, requirements and cost on the university's official page."],
+  ["Katalogdagi muddat o‘tib ketgan. Rasmiy saytdan keyingi muddatni tekshirib kiriting.", "Срок в каталоге уже прошёл. Проверьте следующий срок на официальном сайте и введите его.", "The deadline in the catalogue has passed. Check the next deadline on the official site and enter it."],
+  ["Muddat rasmiy sahifada topilmadi. Rasmiy saytdan keyingi muddatni tekshirib kiriting.", "Срок не найден на официальной странице. Проверьте его на официальном сайте и введите.", "The deadline was not found on the official page. Check the official site and enter it."],
+  ["Talablarga moslik (qabul ehtimoli emas)", "Соответствие требованиям (не вероятность поступления)", "Fit with requirements (not an admission chance)"],
+  ["Talablar bo‘yicha tekshiruv", "Проверка по требованиям", "Requirements check"],
+  ["IELTS, o‘qish tili, muddat va narx rasmiy ma’lumotlar bilan solishtirildi.", "IELTS, язык обучения, срок и стоимость сверены с официальными данными.", "IELTS, teaching language, deadline and cost were compared with official data."],
+  ["mos", "подходит", "fits"],
+  ["diqqat", "внимание", "attention"],
+  ["mos emas", "не подходит", "does not fit"],
+  ["ma’lumot", "данные", "info"],
+  ["Nimani qilish kerak", "Что нужно сделать", "What to do"],
+  ["Batafsil tahlil", "Подробный анализ", "Detailed analysis"],
+  ["Barcha mezonlar va nimani yaxshilash kerakligi haqida tavsiyalar.", "Все критерии и рекомендации, что улучшить.", "All criteria and recommendations on what to improve."],
+  ["Bu faqat rasmiy talablar (IELTS, o‘qish tili, muddat) bilan solishtirish. Qabul ehtimoli emas: bu universitetlarning qabul statistikasi ochiq emas.", "Это лишь сравнение с официальными требованиями (IELTS, язык обучения, срок), а не вероятность поступления: статистика приёма этих университетов закрыта.", "This only compares you with official requirements (IELTS, teaching language, deadline). It is not an admission chance: these universities do not publish admission statistics."],
+  ["Boshqa davlatlar universitetlarida SAT va qabul darajasi ochiq e’lon qilinmaydi, shuning uchun ular uchun bu ustunlar bo‘sh. Reyting va stipendiyalar ustunlari rasmiy ma’lumot yig‘ilgach qo‘shiladi. Ko‘rsatkichlarni universitetning rasmiy saytida tekshiring.", "Университеты других стран не публикуют SAT и уровень приёма, поэтому для них эти столбцы пусты. Столбцы рейтинга и стипендий появятся после сбора официальных данных. Проверяйте показатели на официальном сайте университета.", "Universities in other countries do not publish SAT or acceptance rates, so these rows are empty for them. Ranking and scholarship rows will be added once official data is collected. Check the figures on the university's official site."],
+  ["Tanlagan yo‘nalishingiz o‘qitiladigan tilni va til sertifikati (IELTS/TOEFL) talabini rasmiy saytdan aniqlang", "Узнайте на официальном сайте язык обучения вашего направления и требования к языковому сертификату (IELTS/TOEFL)", "Find out on the official site the teaching language of your programme and the language certificate (IELTS/TOEFL) requirement"],
+  ["Viza, yashash joyi va moliyaviy kafolat hujjatlari talabini o‘rganing", "Изучите требования к визе, жилью и документам о финансовом обеспечении", "Study the visa, housing and proof-of-funds requirements"],
+  ["Muddatni kiriting.", "Введите срок.", "Enter the deadline."],
+  /* server: moslik sabablari va tavsiyalari */
+  ["Minimal IELTS rasmiy sahifada topilmadi: universitetdan so‘rang", "Минимальный IELTS не найден на официальной странице: уточните у университета", "Minimum IELTS was not found on the official page: ask the university"],
+  ["Ingliz tilida o‘qish imkoniyati bor", "Есть возможность учиться на английском", "English-taught study is available"],
+  ["Faqat ba’zi dasturlar ingliz tilida: kerakli dastur tilini tekshiring", "Только некоторые программы на английском: проверьте язык нужной программы", "Only some programmes are in English: check the language of your programme"],
+  ["O‘qish tili haqida ma’lumot yo‘q", "Нет данных о языке обучения", "No information on the teaching language"],
+  ["Ko‘rsatilgan muddat o‘tgan: keyingi qabul sanasini rasmiy saytdan tekshiring", "Указанный срок прошёл: проверьте дату следующего набора на официальном сайте", "The listed deadline has passed: check the next intake date on the official site"],
+  ["Muddat rasmiy sahifada topilmadi", "Срок не найден на официальной странице", "Deadline not found on the official page"],
+  ["IELTS natijangizni profilga kiriting.", "Введите результат IELTS в профиль.", "Enter your IELTS result in your profile."],
+  ["Tanlagan yo‘nalishingiz ingliz tilida o‘qitilishini rasmiy saytda tekshiring.", "Проверьте на официальном сайте, преподаётся ли ваше направление на английском.", "Check on the official site that your programme is taught in English."],
+  ["O‘qish tilidan til sertifikati talab qilinishi mumkin: rasmiy saytda tekshiring.", "Может потребоваться сертификат языка обучения: проверьте на официальном сайте.", "A certificate in the teaching language may be required: check the official site."],
+  ["Keyingi qabul davri muddatini rasmiy saytdan aniqlang.", "Узнайте срок следующего набора на официальном сайте.", "Find the next intake deadline on the official site."],
+  ["Talablar mos: hujjatlar ro‘yxati va muddatni rasmiy sahifada tasdiqlang.", "Требования подходят: подтвердите список документов и срок на официальной странице.", "Requirements fit: confirm the document list and deadline on the official page."]
+];
+export const IRU = Object.fromEntries(P.map(x => [x[0], x[1]]));
+export const IEN = Object.fromEntries(P.map(x => [x[0], x[2]]));
+export const IRULES = [
+  [/^Solishtirishga qo‘shildi \((\d+)\/(\d+)\)\.$/, m => `Добавлено к сравнению (${m[1]}/${m[2]}).`, m => `Added to comparison (${m[1]}/${m[2]}).`],
+  [/^(.+) allaqachon arizalar ro‘yxatida\.$/, m => `${m[1]} уже в списке заявок.`, m => `${m[1]} is already in your applications.`],
+  [/^Universitet talabi: IELTS ([\d.]+)\. Natijangizni kiriting\.$/, m => `Требование университета: IELTS ${m[1]}. Введите свой результат.`, m => `University requirement: IELTS ${m[1]}. Enter your result.`],
+  [/^IELTS ([\d.]+) talab qilingan ([\d.]+) dan kam emas$/, m => `IELTS ${m[1]} не ниже требуемого ${m[2]}`, m => `IELTS ${m[1]} is not below the required ${m[2]}`],
+  [/^IELTS ([\d.]+); talab ([\d.]+) \(([\d.]+) ball yetishmaydi\)$/, m => `IELTS ${m[1]}; требуется ${m[2]} (не хватает ${m[3]} балла)`, m => `IELTS ${m[1]}; required ${m[2]} (${m[3]} points short)`],
+  [/^Asosiy o‘qish tili ingliz tili emas: (.+)$/, m => `Основной язык обучения не английский: ${m[1]}`, m => `The main teaching language is not English: ${m[1]}`],
+  [/^Ariza muddatiga (\d+) kun qoldi$/, m => `До срока подачи заявки осталось дней: ${m[1]}`, m => `${m[1]} days left until the application deadline`],
+  [/^([\d,]+) ([A-Z]{3}) \/ yil \(chet ellik talaba\)$/, m => `${m[1]} ${m[2]} / год (иностранный студент)`, m => `${m[1]} ${m[2]} / year (international student)`]
+];

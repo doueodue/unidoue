@@ -429,6 +429,10 @@ function notifyOwner(r) {
 /* ---------------- AI soʻrovlarini tayyorlash ---------------- */
 let CATALOG = null;
 function catalog() { if (!CATALOG) { try { CATALOG = JSON.parse(fs.readFileSync(path.join(PUBLIC_DIR, 'data', 'universities.json'), 'utf8')); } catch (e) { CATALOG = []; } } return CATALOG; }
+let INTL_CAT = null;
+function intlCatalog() { if (!INTL_CAT) { try { INTL_CAT = JSON.parse(fs.readFileSync(path.join(PUBLIC_DIR, 'data', 'intl.json'), 'utf8')); } catch (e) { INTL_CAT = []; } } return INTL_CAT; }
+/** id yoki nom bo‘yicha: AQSh katalogi, topilmasa boshqa davlatlar. kind: 'us' | 'intl' */
+function uniAny(by, v) { const f = x => x[by] === v; let c = catalog().find(f); if (c) return { kind: 'us', c }; c = intlCatalog().find(f); return c ? { kind: 'intl', c } : null; }
 const SYS = 'You are Doue, the AI admissions mentor of UniDoue, for students from Uzbekistan and Central Asia who plan to study abroad. ' +
   'Reply in the same language the student writes in (default: Uzbek, Latin script). Students often write informally, with typos, without apostrophes (o\'/g\' written as o, g, o\', o`), or mixing Uzbek, Russian and English words: read charitably and infer the most likely meaning. If a message is still unclear, do not guess: ask ONE short clarifying question in Uzbek. Use simple, short sentences and common Uzbek words; keep English terms (SAT, GPA, IELTS, Common App) as they are. Be warm, concrete and concise. ' +
   'Rules: never promise or guarantee admission; never invent statistics, tuition, rankings, deadlines or scholarships — if a fact is not given to you, say it must be checked on the university\'s official website. ' +
@@ -484,7 +488,7 @@ function buildAi(u, tool, b, deep) {
   if (tool === 'coach') return buildCoach(u, b, cl, ctx);
   if (tool === 'portfolio') return buildPortfolio(u, b, cl, b.mode === 'review' ? ctx : ctx0);
   const names = (Array.isArray(b.universities) ? b.universities : []).slice(0, 8).map(x => cl(x, 80));
-  const todayISO = tashkentISO(), cat = catalog(), facts = names.map(n => { const c = cat.find(x => x.n === n); return c ? `${n}: SAT mid-50% ${c.sat[0]}-${c.sat[1]}${c.satV ? ' (verified)' : ' (UNVERIFIED sample)'}, deadline ${c.rd}${c.rd < todayISO ? ' (ALREADY PASSED: refers to a past cycle, next date unknown)' : ''}${c.rdV ? ' (verified)' : ' (UNVERIFIED)'}` : n; });
+  const todayISO = tashkentISO(), facts = names.map(n => { const h = uniAny('n', n), c = h && h.c; if (h && h.kind === 'intl') return `${n} (${c.country}, outside the US; no SAT/GPA/acceptance-rate data exists for it): IELTS ${c.ielts == null ? 'minimum not found' : c.ielts}, teaching language ${c.lang || 'unknown'}, ${c.tuition ? 'tuition ' + c.tuition.amount + ' ' + c.tuition.cur + '/year (international)' : 'tuition not found'}, deadline ${c.rd ? c.rd + (c.rd < todayISO ? ' (ALREADY PASSED: refers to a past cycle, next date unknown)' : '') : 'not found: student must check the official site'}`; return c ? `${n}: SAT mid-50% ${c.sat[0]}-${c.sat[1]}${c.satV ? ' (verified)' : ' (UNVERIFIED sample)'}, deadline ${c.rd}${c.rd < todayISO ? ' (ALREADY PASSED: refers to a past cycle, next date unknown)' : ''}${c.rdV ? ' (verified)' : ' (UNVERIFIED)'}` : n; });
   if (!names.length) return { error: 'Kamida bitta universitet tanlang.' };
   const ask = tool === 'strategy'
     ? 'Create a personalised admission strategy: how to split the list into safety/target/reach, a month-by-month plan from the current month (see the current date above) until the earliest upcoming deadline, and what to improve first. Use only deadlines that are still in the future; if a listed deadline has already passed, say it refers to the next cycle and must be re-checked.'
@@ -932,9 +936,13 @@ async function api(req, res, pathname) {
     const u = sessionUser(req);
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
     if (limited('calc:' + u.id, 60, 60 * 1000)) return fail(res, 429, 'Juda tez soʻrayapsiz.');
-    const b = await readJson(req), p = Scoring.normProfile(b.profile), c = catalog().find(x => x.id === b.id);
+    const b = await readJson(req), p = Scoring.normProfile(b.profile), hit = uniAny('id', clean(b.id, 80)), c = hit && hit.c;
     if (!c) return fail(res, 404, 'Universitet topilmadi.');
     if (!Scoring.hasInput(p)) return fail(res, 400, 'Kamida GPA, SAT yoki IELTS ni kiriting.');
+    if (hit.kind === 'intl') { // boshqa davlatlar: qabul ehtimoli emas, faqat rasmiy talablarga moslik
+      const f = Scoring.intlFit(c, p, tashkentISO()), full = can(u, 'predictor');
+      return send(res, 200, { kind: 'intl', id: c.id, n: c.n, country: c.country, status: f.status, label: f.label, full, parts: full ? f.parts : f.parts.filter(x => x.k === 'IELTS'), advice: full ? f.advice : [], disclaimer: 'Bu faqat rasmiy talablar (IELTS, o‘qish tili, muddat) bilan solishtirish. Qabul ehtimoli emas: bu universitetlarning qabul statistikasi ochiq emas.' });
+    }
     const v = Scoring.score(c, p), full = can(u, 'predictor');
     const out = { id: c.id, n: c.n, score: v, verdict: Scoring.verdict(v), full, disclaimer: 'Bu taxminiy baho, qabul kafolati emas. Haqiqiy qaror esse, tavsiyanoma, faoliyat va arizachilar raqobatiga ham bogʻliq.' };
     if (full) { out.level = Scoring.level(v); out.tier = Scoring.tier(c, v); out.parts = Scoring.parts(c, p).map(x => ({ k: x.k, v: Math.round(x.v), w: Math.round(x.w * 100), t: x.t, tone: x.tone })); out.advice = Scoring.advice(c, p); out.verified = { sat: !!c.satV, acceptance: !!c.accV, deadline: !!c.rdV }; }
@@ -946,7 +954,7 @@ async function api(req, res, pathname) {
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
     const b = await readJson(req), pl = effPlan(u), ids = (Array.isArray(b.ids) ? b.ids : []).slice(0, 8);
     if (ids.length > pl.compare) return send(res, 402, { error: `${pl.name} tarifida bir vaqtda ${pl.compare} ta universitet solishtiriladi.`, code: 'PLAN_LIMIT', feature: 'compare', limit: pl.compare });
-    const cat = catalog(), items = ids.map(id => cat.find(x => x.id === id)).filter(Boolean);
+    const items = ids.map(id => uniAny('id', clean(id, 80))).filter(Boolean).map(h => ({ ...h.c, kind: h.kind }));
     return send(res, 200, { items, limit: pl.compare });
   }
 

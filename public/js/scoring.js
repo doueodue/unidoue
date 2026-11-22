@@ -75,5 +75,44 @@
     return a;
   }
 
-  return { normProfile, hasInput, parts, score, level, tier, verdict, advice };
+
+  /** Boshqa davlat universitetlari: SAT/GPA/qabul foizi ochiq emas, shuning uchun ehtimol hisoblanmaydi.
+      Faqat rasmiy talablarga (IELTS, o‘qish tili, muddat) moslik tekshiriladi. today — 'YYYY-MM-DD'. */
+  function langKind(lang) {
+    if (!lang) return null;
+    if (/only in master|ended/i.test(lang)) return 'part';
+    if (/some (programs|courses|modules)/i.test(lang)) return 'part';
+    return /english/i.test(lang) ? 'yes' : 'no';
+  }
+  function intlFit(u, p, today) {
+    const parts = [], advice = [];
+    const push = (k, t, tone) => parts.push({ k, t, tone });
+    if (u.ielts != null) {
+      if (p.ielts == null) { push('IELTS', `Universitet talabi: IELTS ${u.ielts}. Natijangizni kiriting.`, 'info'); advice.push('IELTS natijangizni profilga kiriting.'); }
+      else if (p.ielts >= u.ielts) push('IELTS', `IELTS ${p.ielts} talab qilingan ${u.ielts} dan kam emas`, 'good');
+      else {
+        const gap = Math.round((u.ielts - p.ielts) * 10) / 10;
+        push('IELTS', `IELTS ${p.ielts}; talab ${u.ielts} (${gap} ball yetishmaydi)`, gap <= 0.5 ? 'warn' : 'bad');
+        advice.push(`IELTS ni ${u.ielts} ga yetkazing.`);
+      }
+    } else push('IELTS', 'Minimal IELTS rasmiy sahifada topilmadi: universitetdan so‘rang', 'info');
+    const lk = langKind(u.lang);
+    if (lk === 'yes') push('Til', 'Ingliz tilida o‘qish imkoniyati bor', 'good');
+    else if (lk === 'part') { push('Til', 'Faqat ba’zi dasturlar ingliz tilida: kerakli dastur tilini tekshiring', 'warn'); advice.push('Tanlagan yo‘nalishingiz ingliz tilida o‘qitilishini rasmiy saytda tekshiring.'); }
+    else if (lk === 'no') { push('Til', 'Asosiy o‘qish tili ingliz tili emas: ' + u.lang, 'bad'); advice.push('O‘qish tilidan til sertifikati talab qilinishi mumkin: rasmiy saytda tekshiring.'); }
+    else push('Til', 'O‘qish tili haqida ma’lumot yo‘q', 'info');
+    if (u.rd) {
+      const left = Math.ceil((new Date(u.rd + 'T23:59:59') - new Date(today + 'T12:00:00')) / 864e5);
+      if (left >= 0) push('Muddat', `Ariza muddatiga ${left} kun qoldi`, left < 30 ? 'warn' : 'good');
+      else { push('Muddat', 'Ko‘rsatilgan muddat o‘tgan: keyingi qabul sanasini rasmiy saytdan tekshiring', 'warn'); advice.push('Keyingi qabul davri muddatini rasmiy saytdan aniqlang.'); }
+    } else push('Muddat', 'Muddat rasmiy sahifada topilmadi', 'info');
+    if (u.tuition) push('Narx', `${u.tuition.amount.toLocaleString('en-US')} ${u.tuition.cur} / yil (chet ellik talaba)`, 'info');
+    const bad = parts.some(x => x.tone === 'bad'), warn = parts.some(x => x.tone === 'warn'), good = parts.some(x => x.tone === 'good');
+    const status = bad ? 'no' : warn ? 'part' : good ? 'yes' : 'unknown';
+    const label = status === 'yes' && u.ielts == null ? 'Mos (IELTS talabi noma’lum)' : { yes: 'Talablarga mos', part: 'Qisman mos', no: 'Talablarga hozircha mos emas', unknown: 'Ma’lumot yetarli emas' }[status];
+    if (!advice.length && status === 'yes') advice.push('Talablar mos: hujjatlar ro‘yxati va muddatni rasmiy sahifada tasdiqlang.');
+    return { status, label, parts, advice };
+  }
+
+  return { normProfile, hasInput, parts, score, level, tier, verdict, advice, intlFit, langKind };
 });

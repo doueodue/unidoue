@@ -1,4 +1,5 @@
 import { tierMedal, crownHTML } from './tiers.js';
+import { t } from './i18n.js';
 /* Umumiy yordamchilar: DOM, API, sinxronlash, toast, modal. Tashqi kutubxonasiz. */
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -177,6 +178,24 @@ export async function catalog() {
   const r = await fetch('/data/universities.json'); if (!r.ok) throw new Error('Universitetlar ro‘yxatini yuklab bo‘lmadi.');
   S.cat = await r.json(); return S.cat;
 }
+
+/** Boshqa davlatlar universitetlari (intl.json) — bir marta yuklanadi. */
+export async function intlCatalog() {
+  if (S.intl) return S.intl;
+  const r = await fetch('/data/intl.json'); if (!r.ok) throw new Error('Xalqaro universitetlar ro‘yxatini yuklab bo‘lmadi.');
+  S.intl = (await r.json()).map(u => ({ ...u, kind: 'intl', rdV: !!(u.rd && u.rdUrl) })); return S.intl;
+}
+/** Hamma davlat: avval AQSh, keyin boshqalar. Boshqa davlatlar yuklanmasa AQSh ro‘yxati baribir ishlaydi. */
+export async function allUnis() {
+  const us = (await catalog()).map(u => (u.kind ? u : { ...u, kind: 'us' }));
+  let intl = []; try { intl = await intlCatalog(); } catch (e) { /* AQSh ro‘yxati bilan davom etamiz */ }
+  return [...us, ...intl];
+}
+/** <select> uchun: AQSh va boshqa davlatlar alohida guruhda. */
+export const uniOptions = (list, pick = () => true, sel = '') => {
+  const grp = (k, label) => { const a = list.filter(c => c.kind === k && pick(c)); return a.length ? `<optgroup label="${esc(label)}">${a.map(c => `<option value="${esc(c.id)}" ${c.id === sel ? 'selected' : ''}>${esc(c.n)}${k === 'intl' && c.country ? ' — ' + esc(t(c.country)) : ''}</option>`).join('')}</optgroup>` : ''; };
+  return grp('us', t('AQSh')) + grp('intl', t('Boshqa davlatlar'));
+};
 
 /** Qaysi imkoniyat qaysi tarifdan boshlanadi (mijoz tomoni; haqiqiy tekshiruv serverda). */
 export const NEED_PLAN = { coach: 'Plus' };

@@ -205,7 +205,7 @@ const adh = readFileSync(new URL('../public/admin.html', import.meta.url), 'utf8
 ok(v1.includes('function promoBox(') && v1.includes('function promoBind(') && v1.includes("'/api/promo/redeem'") && (v1.match(/\$\{promoBox\(\)\}/g) || []).length === 2 && (v1.match(/promoBind\(el\)/g) || []).length === 3 && v1.includes('id="promo-i"'), 'tariflar: promo kod qatori ikkala ko‘rinishda ham bor va ulangan');
 ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=54'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
 ok(adh.includes('data-v="promos"') && adh.includes('id="v-promos"') && ['mk', 'mp', 'md', 'mx', 'mu', 'mn', 'mb', 'ml'].every(i => adh.includes(`id="${i}"`)) && /promos: 'Promo kodlar'/.test(adj) && ['/api/admin/promos', '/api/admin/promo', '/api/admin/promo/set', '/api/admin/promo/delete'].every(u => adj.includes(`'${u}'`)) && (adc.match(/{/g) || []).length === (adc.match(/}/g) || []).length && adc.includes('.pm-form{'), 'admin: Promo kodlar bo‘limi (forma, ro‘yxat, to‘xtatish, limit, o‘chirish)');
-ok(swj.includes("'unidoue-v55'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v55; admin.html: inline skript yo‘q');
+ok(swj.includes("'unidoue-v56'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v56; admin.html: inline skript yo‘q');
 const cssFiles = ['app.css', 'atlas.css', 'coach.css', 'portfolio.css', 'tiers.css', 'landing.css', 'admin.css', 'controls.css'].map(f => [f, readFileSync(new URL('../public/' + f, import.meta.url), 'utf8')]);
 const sbBad = cssFiles.filter(([f, c]) => /scrollbar-(width|color)/.test(f === 'app.css' ? c.replace(/@supports not selector\(::-webkit-scrollbar\)\{[^}]*\}[^}]*\}/, '') : c)).map(x => x[0]);
 ok(sbBad.length === 0 && acss.includes('*::-webkit-scrollbar-thumb{') && acss.includes('@supports not selector(::-webkit-scrollbar)'), 'scrollbar: yagona uslub (app.css); boshqa joyda scrollbar-width/color yo‘q — Chrome ::-webkit-scrollbar uslubini o‘chirib qo‘yadi' + (sbBad.length ? ': ' + sbBad : ''));
@@ -234,11 +234,24 @@ ok(['.pp-avb{', '.av-crop{', '.av-ring{', '.sf-av img,.pp-av img{'].every(k => a
   ok(/export (async )?function intlPanel\b/.test(v4) && /export const intlCount\b/.test(v4), 'views4 exports intlPanel + intlCount');
   ok(!/export (async )?function intl\b/.test(v4), 'old intl route export removed');
   ok(/import \{[^}]*intlPanel[^}]*\} from '\.\/views4\.js'/.test(v2), 'finder imports intlPanel');
-  ok(/data-sc="intl"/.test(v2) && /intlPanel\(body, \{ onAdd: addApp \}\)/.test(v2), 'finder has intl scope tab wired to addApp');
+  ok(/data-sc="intl"/.test(v2) && /intlPanel\(body, \{ onAdd: addApp, onCmp: addCmp, onAbout: aboutUni \}\)/.test(v2), 'finder has intl scope tab wired to addApp');
   ok(!/id: 'intl'/.test(mn), 'intl is no longer a nav route');
   ok(/\^#\\\/\?intl/.test(mn) && /#\/finder\?c=intl/.test(mn), 'old #/intl link redirects to finder?c=intl');
   ok(!/filtrlar rasmiy ma’lumot yig‘ilgach/.test(v2), 'outdated “filters will be added” note removed');
   ok(!/import[^\n]*views2/.test(v4), 'views4 does not import views2 (no cycle)');
+}
+
+/* ---- Boshqa davlatlar: hamma funksiyalar (moslik, solishtirish, arizalar) ---- */
+{
+  const rd = f => readFileSync(new URL('../public/js/' + f, import.meta.url), 'utf8');
+  const v1 = rd('views1.js'), v2 = rd('views2.js'), v3 = rd('views3.js'), core = rd('core.js'), sc = readFileSync(new URL('../public/js/scoring.js', import.meta.url), 'utf8');
+  ok(/export async function allUnis/.test(core) && /export async function intlCatalog/.test(core) && /export const uniOptions/.test(core), 'core: allUnis/intlCatalog/uniOptions');
+  ok(/await allUnis\(\)/.test(v2) && v2.split('await allUnis()').length >= 4, 'views2: predictor/compare/about hamma davlat katalogidan');
+  ok(/uniOptions\(cat\)/.test(v1) && /allUnis/.test(v1), 'tracker: hamma davlat ro‘yxati');
+  ok(/allUnis/.test(v3) && !/catalog\(\)/.test(v3), 'mentor ro‘yxati: hamma davlat');
+  ok(/c\.kind === 'intl'/.test(v1) && /c && c\.sat && sat < c\.sat\[0\]/.test(v1), 'roadmap: xorijiy universitet uchun SAT qadami xatosiz');
+  ok(/intlFit/.test(sc) && /langKind/.test(sc), 'scoring: intlFit');
+  ok(!/\$\{c\.acc\}%/.test(v2), 'aboutUni: qabul darajasi foizga o‘tkazilgan (0.044 → 4.4%)');
 }
 
 console.log(`pf: ${n} checks, ${process.exitCode ? 'FAILED' : 'ok'}`);
