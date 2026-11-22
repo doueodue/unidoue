@@ -122,6 +122,14 @@ AI mentorning oʻz shaxsi bor: **Doue** (nomi `core.js` dagi `MENTOR`, avatari `
 - **Chuqur vositalar**: universitetlarni qidirib tanlash (eng koʻpi 8 ta), Qabul strategiyasi va Universitet hisoboti (Pro). Natija kartasi Doue sarlavhasi bilan chiqadi; esse tahlili ham shu sarlavhadan foydalanadi.
 - **Jonli (inson) mentor soʻrovi olib tashlangan**: forma ham, `POST /api/request` ham yoʻq. Admin “Soʻrovlar” boʻlimida tarif soʻrovlari, AI javobi haqidagi xabarlar va maʼlumot xatolari qoladi.
 
+## Dizayn tizimi: «Yo‘l daftari»
+Butun ilova yagona vizual tilga ega: **`public/atlas.css`** (`app.css` dan keyin, `tiers.css` dan oldin ulanadi) va **`public/contour.svg`** (topografik xarita chiziqlari; faqat CSS `mask` sifatida, `--brand` rangida chiziladi).
+- Bosh panel — 5 bekatli «yo‘l» (Profil → Testlar → Ro‘yxat → Arizalar → Natija), keyingi qadam kartasi, mobil qurilmada vertikal ro‘yxat.
+- Universitet qidiruvi — Safety/Target/Reach rangli halqa-ball, SAT oralig‘i o‘lchagichi va «Siz» belgisi, 12 tadan ko‘rsatish.
+- Yon panel (nuqtali yo‘l, kursiv bo‘lim nomlari, foydalanuvchi kartasi), kirish ekrani, arizalar, yo‘l xaritasi, hujjatlar, profil «pasport»i.
+- Mavsum (`data-season`) va qorong‘i rejim ranglari o‘zgaruvchilar orqali ishlaydi; animatsiyalar faqat `prefers-reduced-motion: no-preference` da.
+- Sarlavhalar `<em>` bilan bo‘linmaydi — tarjima kaliti butun jumla bo‘lishi kerak.
+
 ## Tarif dizayni (shisha uslubi)
 Har bir tarifning oʻz shisha (glass) koʻrinishi bor: **Free — muz** (koʻkimtir shaffof), **Plus — kumush** (jilolangan metall, nozik chiziqli), **Pro — oltin** (oltin shisha va yaltiroq **toj**, ustiga sekin yaltirash yuguradi). Ranglar `[data-tier=free|plus|pro]` (yoki `.tier-*`) orqali CSS oʻzgaruvchilari boʻlib beriladi, yorugʻ va qorongʻi tema alohida sozlangan.
 - Fayllar: `public/tiers.css` (uslublar), `public/js/tiers.js` (belgilar: `tierPill`, `tierMedal`, `crownHTML`, `liveGlass`; SVG sprite sahifaga bir marta qoʻshiladi).

@@ -34,30 +34,49 @@ export async function aboutUni(id) {
 }
 
 /* ================= UNIVERSITET QIDIRUVI ================= */
+/** SAT o‘lchagich: universitetning o‘rta 50% oralig‘i (rangli yo‘lak) va foydalanuvchining SAT balli (nuqta). */
+const SAT_LO = 900, SAT_HI = 1600, PAGE = 12;
+const satPos = v => Math.max(0, Math.min(100, ((v - SAT_LO) / (SAT_HI - SAT_LO)) * 100));
+function satMeter(c, mine) {
+  if (!c || !Array.isArray(c.sat) || c.sat.length < 2) return '';
+  const a = satPos(c.sat[0]), b = satPos(c.sat[1]), me = +mine >= 400 && +mine <= 1600 ? satPos(+mine) : null;
+  return `<div class="satm" role="img" aria-label="${t('SAT oralig‘i')}: ${c.sat[0]}–${c.sat[1]}${me != null ? ', ' + t('Siz') + ' ' + mine : ''}"><div class="satm-t"><i class="satm-b" style="left:${a.toFixed(1)}%;width:${Math.max(2, b - a).toFixed(1)}%"></i>${me != null ? `<i class="satm-me" style="left:${me.toFixed(1)}%"><em>${t('Siz')} ${esc(mine)}</em></i>` : ''}</div>
+    <div class="satm-h"><span>${t('SAT oralig‘i')}</span><b>${c.sat[0]}–${c.sat[1]}</b></div></div>`;
+}
 export async function finder(el) {
   if (!hasInput()) return browse(el);
-  const cat = await catalog(), verifiedN = cat.filter(c => c.satV).length; let q = '', tier = '', vOnly = false, timer = 0, seq = 0;
-  el.innerHTML = `<div class="page-h"><div><h2>Universitet <em>qidiruvi</em></h2><p>Profilingizga mos universitetlar Safety, Target va Reach bo‘yicha guruhlanadi.</p></div></div>
-  <div class="notice info" style="margin-bottom:16px">${svg('info')}<div>Hozir bazada <b>${cat.length}</b> ta AQSh universiteti bor, shundan <b>${verifiedN}</b> tasining ko‘rsatkichlari rasmiy manbadan tekshirilgan. Qolganlari “taxminiy” deb belgilangan. Mamlakat, o‘qish narxi va reyting bo‘yicha filtrlar rasmiy ma’lumot yig‘ilgach qo‘shiladi.</div></div>
-  <div class="card" style="margin-bottom:16px"><div class="row" style="align-items:end"><div><label class="f" for="f-q">Qidirish</label><input id="f-q" type="text" placeholder="Universitet nomi" maxlength="60"></div><label style="display:flex;gap:8px;align-items:center;padding-bottom:10px;cursor:pointer"><input type="checkbox" id="f-v"> Faqat tekshirilgan ma’lumot</label></div>
-  <div class="tabs" id="f-t" role="tablist" style="margin:14px 0 0">${[['', 'Hammasi'], ['safety', 'Safety'], ['target', 'Target'], ['reach', 'Reach']].map(([v, t]) => `<button role="tab" data-t="${v}" aria-selected="${v === ''}">${t}<span class="c"></span></button>`).join('')}</div></div>
-  <div id="f-r"></div>`;
-  const out = $('#f-r', el);
+  const cat = await catalog(), verifiedN = cat.filter(c => c.satV).length, mySat = getProfile().Q.sat; let q = '', tier = '', vOnly = false, timer = 0, seq = 0, items = [], shown = PAGE;
+  el.innerHTML = `<div class="page-h"><div><h2>Universitet qidiruvi</h2><p>Profilingizga mos universitetlar Safety, Target va Reach bo‘yicha guruhlanadi.</p></div></div>
+  <div class="card ftool"><label class="fsearch">${svg('search')}<input id="f-q" type="text" placeholder="Universitet nomi" aria-label="Qidirish" maxlength="60"></label><label class="sw"><input type="checkbox" id="f-v"> Faqat tekshirilgan ma’lumot</label>
+  <div class="tabs" id="f-t" role="tablist">${[['', 'Hammasi'], ['safety', 'Safety'], ['target', 'Target'], ['reach', 'Reach']].map(([v, t]) => `<button role="tab" data-t="${v}" aria-selected="${v === ''}">${t}<span class="c"></span></button>`).join('')}</div></div>
+  <div id="f-r"></div>
+  <p class="fnote">Hozir bazada <b>${cat.length}</b> ta AQSh universiteti bor, shundan <b>${verifiedN}</b> tasining ko‘rsatkichlari rasmiy manbadan tekshirilgan. Qolganlari “taxminiy” deb belgilangan. Mamlakat, o‘qish narxi va reyting bo‘yicha filtrlar rasmiy ma’lumot yig‘ilgach qo‘shiladi.</p>`;
+  const out = $('#f-r', el), card = (u, c) => `<article class="card hover uc tk-${u.tier}"><div class="uc-top"><div class="score" style="--p:${u.score}">${u.score}</div><div class="uc-id">${ctry(u.country)}<h3>${esc(u.n)}</h3></div><span class="badge ${u.tier}">${TIER[u.tier]}</span></div>
+      <div class="uc-meta">${vb(u.verified, 'SAT tekshirilgan')}${u.deadline ? `<span class="badge mute">${fmtDate(u.deadline)}${u.deadlineVerified ? '' : ' (taxminiy)'}</span>` : ''}</div>${satMeter(c, mySat)}
+      ${u.why ? `<p class="uc-lvl">${esc(u.level)}</p><ul class="uc-why">${u.why.map(w => `<li>${esc(w.t)}</li>`).join('')}</ul><p class="hint">${esc(u.basis)}${u.confident ? '' : ' · bu daraja taxminiy'}</p>`
+        : `<div class="lock" style="border-radius:12px"><div class="lock-in"><p>Nima uchun mos ekani: SAT, GPA va IELTS bo‘yicha tushuntirish shu yerda ko‘rinadi.</p><p>Universitet ko‘rsatkichlari bilan solishtirish batafsil yoziladi.</p></div><div class="lock-cta"><button class="btn primary sm" data-up>Tushuntirishni ochish (Plus)</button></div></div>`}
+      <div class="uc-act"><button class="btn sm" data-about="${esc(u.id)}">Haqida</button><button class="btn sm" data-add="${esc(u.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(u.id)}">Solishtirish</button><a class="btn sm" href="#/predictor?u=${encodeURIComponent(u.id)}">Moslik</a></div></article>`;
+  const paint = r => {
+    out.innerHTML = `<div class="grid g2">${items.slice(0, shown).map(u => card(u, cat.find(c => c.id === u.id))).join('')}</div>
+      ${shown < items.length ? `<div class="fmore"><button class="btn" data-more type="button">Yana ko‘rsatish <span class="c">+${Math.min(PAGE, items.length - shown)}</span></button></div>` : ''}
+      ${r.shown < r.total ? `<div class="card" style="margin-top:18px;text-align:center"><b>${r.shown} / ${r.total} natija ko‘rsatilmoqda.</b><p class="sub" style="margin:6px 0 12px">Eng mos ${r.limit} ta universitet ko‘rinadi.</p><a class="btn primary" href="#/pricing">Hammasini ko‘rish</a></div>` : ''}`;
+  };
+  let last = null;
+  out.onclick = e => {
+    const g = n => e.target.closest(n); let b;
+    if ((b = g('[data-more]'))) { shown += PAGE; paint(last); return; }
+    if (g('[data-up]')) return upsell('finder_adv', 'Har bir universitet nima uchun mos ekanini ko‘rish Pro tarifida.');
+    if ((b = g('[data-about]'))) return aboutUni(b.dataset.about);
+    if ((b = g('[data-add]'))) return addApp(cat.find(c => c.id === b.dataset.add));
+    if ((b = g('[data-cmp]'))) return addCmp(b.dataset.cmp);
+  };
   const load = async () => {
     const my = ++seq; out.innerHTML = '<div class="grid g2">' + '<div class="card"><div class="sk" style="height:90px"></div></div>'.repeat(4) + '</div>';
     try {
       const r = await api('/api/finder', 'POST', { profile: profBody(), q, tier, verifiedOnly: vOnly }); if (my !== seq) return;
       $$('#f-t button', el).forEach(b => { const k = b.dataset.t; b.querySelector('.c').textContent = k ? ' ' + r.counts[k] : ''; });
       if (!r.items.length) { out.innerHTML = '<div class="card empty"><b>Hech narsa topilmadi</b>Filtrni o‘zgartirib ko‘ring.</div>'; return; }
-      out.innerHTML = `<div class="grid g2">${r.items.map(u => `<article class="card hover"><div style="display:flex;gap:14px;align-items:flex-start"><div class="score">${u.score}</div><div style="flex:1;min-width:0">${ctry(u.country)}<h3 style="margin:0">${esc(u.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><span class="badge ${u.tier}">${TIER[u.tier]}</span>${vb(u.verified, 'SAT tekshirilgan')}${u.deadline ? `<span class="badge mute">${fmtDate(u.deadline)}${u.deadlineVerified ? '' : ' (taxminiy)'}</span>` : ''}</div></div></div>
-        ${u.why ? `<p style="margin:14px 0 6px;font-weight:600">${esc(u.level)}</p><ul style="margin:0;padding-left:18px;color:var(--ink-2);font-size:13.5px;display:grid;gap:4px">${u.why.map(w => `<li>${esc(w.t)}</li>`).join('')}</ul><p class="hint">${esc(u.basis)}${u.confident ? '' : ' · bu daraja taxminiy'}</p>`
-          : `<div class="lock" style="margin-top:12px;border-radius:12px"><div class="lock-in"><p>Nima uchun mos ekani: SAT, GPA va IELTS bo‘yicha tushuntirish shu yerda ko‘rinadi.</p><p>Universitet ko‘rsatkichlari bilan solishtirish batafsil yoziladi.</p></div><div class="lock-cta"><button class="btn primary sm" data-up>Tushuntirishni ochish (Plus)</button></div></div>`}
-        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn sm" data-about="${esc(u.id)}">Haqida</button><button class="btn sm" data-add="${esc(u.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(u.id)}">Solishtirish</button><a class="btn sm" href="#/predictor?u=${encodeURIComponent(u.id)}">Moslik</a></div></article>`).join('')}</div>
-        ${r.shown < r.total ? `<div class="card" style="margin-top:18px;text-align:center"><b>${r.shown} / ${r.total} natija ko‘rsatilmoqda.</b><p class="sub" style="margin:6px 0 12px">Eng mos ${r.limit} ta universitet ko‘rinadi.</p><a class="btn primary" href="#/pricing">Hammasini ko‘rish</a></div>` : ''}`;
-      $$('[data-up]', out).forEach(b => (b.onclick = () => upsell('finder_adv', 'Har bir universitet nima uchun mos ekanini ko‘rish Pro tarifida.')));
-      $$('[data-about]', out).forEach(b => (b.onclick = () => aboutUni(b.dataset.about)));
-      $$('[data-add]', out).forEach(b => (b.onclick = () => addApp(cat.find(c => c.id === b.dataset.add))));
-      $$('[data-cmp]', out).forEach(b => (b.onclick = () => addCmp(b.dataset.cmp)));
+      items = r.items; shown = PAGE; last = r; paint(r);
     } catch (e) { if (my === seq) { out.innerHTML = errorBox(e.message, true); const b = $('[data-retry]', out); if (b) b.onclick = load; } }
   };
   $('#f-q', el).oninput = e => { clearTimeout(timer); timer = setTimeout(() => { q = e.target.value.trim(); load(); }, 350); };
@@ -80,7 +99,7 @@ function addCmp(id) {
 
 /* ================= STIPENDIYALAR ================= */
 export async function scholarships(el) {
-  el.innerHTML = `<div class="page-h"><div><h2><em>Stipendiya</em> qidiruvi</h2><p>Tasdiqlangan stipendiyalar: talablar, muddat va moliyalashtirish turi.</p></div></div>`;
+  el.innerHTML = `<div class="page-h"><div><h2>Stipendiya qidiruvi</h2><p>Tasdiqlangan stipendiyalar: talablar, muddat va moliyalashtirish turi.</p></div></div>`;
   if (!S.account.features.includes('scholarships')) {
     el.innerHTML += `<div class="card lock"><div class="lock-in"><h3>Stipendiyalar ro‘yxati</h3><p>Talablar, muddatlar, summa va ariza havolalari shu yerda.</p><p>Filtrlar: mamlakat, moliyalashtirish turi.</p></div><div class="lock-cta"><b>Stipendiya qidiruvi Pro tarifida</b><a class="btn primary" href="#/pricing">Tariflarni ko‘rish</a></div></div>`; return;
   }
@@ -101,7 +120,7 @@ export async function scholarships(el) {
 
 /* ================= MOSLIK TAHLILI ================= */
 export async function predictor(el) {
-  el.innerHTML = `<div class="page-h"><div><h2>Mosligingizni <em>tekshiring</em></h2><p>Bu sizning raqamlaringizni universitet o‘rta ko‘rsatkichlari bilan solishtiradi. Qabul ehtimoli emas.</p></div></div>`;
+  el.innerHTML = `<div class="page-h"><div><h2>Mosligingizni tekshiring</h2><p>Bu sizning raqamlaringizni universitet o‘rta ko‘rsatkichlari bilan solishtiradi. Qabul ehtimoli emas.</p></div></div>`;
   if (!hasInput()) { el.insertAdjacentHTML('beforeend', needProfile()); return; }
   const cat = await catalog(), pre = decodeURIComponent((location.hash.split('?u=')[1] || '')), start = cat.some(c => c.id === pre) ? pre : cat[0].id;
   el.insertAdjacentHTML('beforeend', `<div class="card" style="margin-bottom:16px"><div class="row" style="align-items:end"><div><label class="f" for="pr-u">Universitet</label><select id="pr-u">${cat.map(c => `<option value="${esc(c.id)}" ${c.id === start ? 'selected' : ''}>${esc(c.n)}</option>`).join('')}</select></div><button class="btn primary" id="pr-go">Baholash</button></div></div><div id="pr-r"></div>`);
@@ -110,7 +129,7 @@ export async function predictor(el) {
     out.innerHTML = '<div class="card"><div class="sk" style="height:120px"></div></div>';
     try {
       const r = await api('/api/predict', 'POST', { id: $('#pr-u', el).value, profile: profBody() });
-      out.innerHTML = `<div class="grid g-dash"><section class="card s5" style="text-align:center"><div class="stat" style="align-items:center"><b style="font-size:56px">${r.score}<small style="font-size:20px;color:var(--muted)"> ball</small></b><span>Moslik balli · ${esc(r.n)}</span></div><div class="bar" style="margin:14px 0"><i style="width:${r.score}%"></i></div><p><b>${esc(r.full ? r.level : r.verdict)}</b></p>${r.full ? `<p style="margin-top:8px"><span class="badge ${r.tier.tier}">${TIER[r.tier.tier]}</span></p><p class="hint">${esc(r.tier.basis)}</p>` : ''}</section>
+      out.innerHTML = `<div class="grid g-dash"><section class="card s5" style="text-align:center"><div class="score big ${r.full ? 'tk-' + r.tier.tier : ''}" style="--p:${r.score}">${r.score}</div><p class="dial-l">Moslik balli · ${esc(r.n)}</p><p><b>${esc(r.full ? r.level : r.verdict)}</b></p>${r.full ? `<p style="margin-top:8px"><span class="badge ${r.tier.tier}">${TIER[r.tier.tier]}</span></p><p class="hint">${esc(r.tier.basis)}</p>` : ''}</section>
       <section class="card s7">${r.full ? `<h3>Moslik balli qanday hisoblandi</h3><p class="sub">Har bir mezon uchun hissa.</p>${r.parts.map(x => `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between"><b>${esc(x.k)}</b><span>${x.v}/100 · ulushi ${x.w}%</span></div><div class="bar" style="margin:6px 0"><i style="width:${x.v}%"></i></div><small style="color:var(--muted)">${esc(x.t)}</small></div>`).join('')}
         <h3 style="margin-top:14px">Nimani yaxshilash kerak</h3>${r.advice.length ? `<ul style="padding-left:18px;color:var(--ink-2)">${r.advice.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : '<p class="sub">Qo‘shimcha tavsiya yo‘q.</p>'}
         <div style="display:flex;gap:6px;flex-wrap:wrap">${vb(r.verified.sat, 'SAT oralig‘i tekshirilgan')}${vb(r.verified.acceptance, 'qabul darajasi tekshirilgan')}${vb(r.verified.deadline, 'muddat tekshirilgan')}</div>`
@@ -125,7 +144,7 @@ export async function predictor(el) {
 export async function compare(el) {
   const cat = await catalog(), lim = S.account.limits.compare; let ids = ls.get('qabul:cmp', []).slice(0, lim);
   const draw = async () => {
-    el.innerHTML = `<div class="page-h"><div><h2>Universitetlarni <em>solishtirish</em></h2><p>Bir vaqtda ${lim} tagacha universitet (${S.account.plan.toUpperCase()} tarifi).</p></div></div>
+    el.innerHTML = `<div class="page-h"><div><h2>Universitetlarni solishtirish</h2><p>Bir vaqtda ${lim} tagacha universitet (${S.account.plan.toUpperCase()} tarifi).</p></div></div>
     <div class="card" style="margin-bottom:16px"><div class="row" style="align-items:end"><div><label class="f" for="c-u">Universitet qo‘shish</label><select id="c-u">${cat.filter(c => !ids.includes(c.id)).map(c => `<option value="${esc(c.id)}">${esc(c.n)}</option>`).join('')}</select></div><button class="btn primary" id="c-add">Qo‘shish</button></div></div><div id="c-r"></div>`;
     $('#c-add', el).onclick = () => { const v = $('#c-u', el).value; if (ids.length >= lim) return upsell('compare', `${S.account.plan.toUpperCase()} tarifida ${lim} ta universitet solishtiriladi.`); ids.push(v); ls.set('qabul:cmp', ids); draw(); };
     const out = $('#c-r', el);
@@ -145,7 +164,7 @@ export async function compare(el) {
 /** Natija kiritilmagan bo'lsa: oddiy ro'yxat (moslik balisiz). */
 async function browse(el) {
   const cat = await catalog();
-  el.innerHTML = `<div class="page-h"><div><h2>Universitet <em>qidiruvi</em></h2><p>Barcha universitetlar ro‘yxati. Moslik bali va Safety / Target / Reach darajasini ko‘rish uchun natijalaringizni kiriting.</p></div><a class="btn primary" href="#/profile">Natijalarni kiritish</a></div>
+  el.innerHTML = `<div class="page-h"><div><h2>Universitet qidiruvi</h2><p>Barcha universitetlar ro‘yxati. Moslik bali va Safety / Target / Reach darajasini ko‘rish uchun natijalaringizni kiriting.</p></div><a class="btn primary" href="#/profile">Natijalarni kiritish</a></div>
   <div class="card" style="margin-bottom:16px"><label class="f" for="b-q">Qidirish</label><input id="b-q" type="text" maxlength="60" placeholder="Universitet nomi"></div><div id="b-r"></div>`;
   const out = $('#b-r', el), draw = q => {
     const rows = cat.filter(c => c.n.toLowerCase().includes(q.toLowerCase()));

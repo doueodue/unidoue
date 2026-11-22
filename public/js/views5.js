@@ -10,7 +10,7 @@ const G = [
 ];
 
 export async function guide(el) {
-  el.innerHTML = `<div class="page-h"><div><h2>Hujjatlar <em>yo‘riqnomasi</em></h2><p>Arizada kerak bo‘ladigan hujjatlar haqida qisqa tushuntirish.</p></div></div>
+  el.innerHTML = `<div class="page-h"><div><h2>Hujjatlar yo‘riqnomasi</h2><p>Arizada kerak bo‘ladigan hujjatlar haqida qisqa tushuntirish.</p></div></div>
   <div class="notice info" style="margin-bottom:16px"><div>Bu umumiy ma’lumot. Aniq talab, shakl va muddat uchun har universitetning rasmiy saytidagi “International applicants” bo‘limini tekshiring.</div></div>
   <div class="grid">${G.map(([t, ps], i) => `<details class="card guide" ${i === 0 ? 'open' : ''}><summary><b>${esc(t)}</b></summary>${ps.map(p => `<p style="margin-top:10px;color:var(--ink-2)">${esc(p)}</p>`).join('')}</details>`).join('')}</div>
   <a class="card tg-card" style="margin-top:16px" href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer"><span class="tg-ic">✈</span><span><b>Savolingiz bormi?</b><small>Telegramda yozing: @unidoue_yordam</small></span><span class="btn sm">Yozish</span></a>`;

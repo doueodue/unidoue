@@ -1,4 +1,4 @@
-import { $, $$, S, api, adopt, wipeLocal, esc, svg, skeleton, errorBox, toast, push, refreshCredits, refreshAccount, hasFeature, NEED_PLAN } from './core.js';
+import { $, $$, S, api, adopt, wipeLocal, esc, svg, skeleton, errorBox, toast, push, refreshCredits, refreshAccount, hasFeature, NEED_PLAN, STAR } from './core.js';
 import { t, langSelect, bindLang } from './i18n.js';
 import { themeSwitch } from './theme-ui.js';
 import * as fx from './fx.js';
@@ -28,10 +28,11 @@ let token = 0;
 /* ---------- autentifikatsiya ekrani ---------- */
 function authScreen(mode = 'login') {
   const reg = mode === 'register', fg = mode === 'forgot';
-  root.innerHTML = `<div class="auth"><aside class="auth-art"><div class="brand" style="padding:0"><i>U</i>UniDoue</div>
+  root.innerHTML = `<div class="auth"><aside class="auth-art"><div class="brand" style="padding:0"><i>${STAR}</i><span>UniDoue</span></div>
   <div><h2>${t('Xorijda o‘qishga yo‘l, <em>aniq reja</em> bilan.')}</h2><p>${t('Universitetlarni profilingizga solishtiring, muddatlarni kuzating va qabul rejangizni bir joyda yuriting.')}</p></div>
-  <ul><li>${t('Safety, Target va Reach bo‘yicha universitetlar')}</li><li>${t('Har bir universitet uchun tushuntirish')}</li><li>${t('Arizalar va muddatlar kuzatuvi')}</li></ul></aside>
+  <ul class="auth-route"><li>${t('Safety, Target va Reach bo‘yicha universitetlar')}</li><li>${t('Har bir universitet uchun tushuntirish')}</li><li>${t('Arizalar va muddatlar kuzatuvi')}</li></ul></aside>
   <main class="auth-form"><div class="auth-tools">${themeSwitch()}${langSelect('lang')}</div><form class="auth-box" id="af" novalidate>
+  <div class="auth-brand"><i>${STAR}</i><span>UniDoue</span></div>
   <h1>${t(fg ? 'Parolni tiklash' : reg ? 'Hisob ochish' : 'Xush kelibsiz')}</h1>
   <p class="sub">${t(fg ? 'Emailingizni kiriting, tiklash havolasini yuboramiz.' : reg ? 'Bir daqiqada hisob oching, bepul boshlaysiz.' : 'Hisobingizga kiring.')}</p>
   ${reg ? `<div class="field"><label class="f" for="an">${t('Ismingiz')}</label><input id="an" type="text" maxlength="40" autocomplete="name"></div>` : ''}
@@ -67,6 +68,7 @@ function authScreen(mode = 'login') {
 function verifyScreen(me) {
   S.user = me.user;
   root.innerHTML = `<main class="auth-form" style="min-height:100dvh"><form class="auth-box" id="vf" novalidate>
+  <div class="auth-brand"><i>${STAR}</i><span>UniDoue</span></div>
   <h1>${t('Emailingizni tasdiqlang')}</h1><p class="sub">${t('6 xonali kodni')} <b>${esc(me.user.email)}</b> ${t('manziliga yubordik. Pochtangizni (Spam papkasini ham) tekshiring.')}</p>
   <div class="field"><label class="f" for="vc">${t('Tasdiqlash kodi')}</label><input id="vc" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
   <div class="msg" id="vm" role="alert"></div>
@@ -95,10 +97,12 @@ document.addEventListener('unidoue:unverified', () => { if (S.user) verifyScreen
 function shell() {
   let sec = '';
   const nav = ROUTES.filter(r => !r.hide).map(r => { const h = r.sec && r.sec !== sec ? `<div class="nav-sec">${t(sec = r.sec)}</div>` : ''; return `${h}<a href="#/${r.id}" data-r="${r.id}">${svg(r.i)}<span>${t(r.t)}</span>${r.need ? `<span class="tag${hasFeature(r.need) ? '' : ' lk'}" data-need="${r.need}">${hasFeature(r.need) ? r.tag || '' : NEED_PLAN[r.need]}</span>` : r.tag ? `<span class="tag">${r.tag}</span>` : ''}</a>`; }).join('');
-  root.innerHTML = `<div class="shell"><aside class="side" id="side"><a class="brand" href="#/dashboard"><i>U</i>UniDoue</a><nav class="nav" aria-label="${t('Asosiy menyu')}">${nav}</nav>
+  root.innerHTML = `<div class="shell"><aside class="side" id="side"><a class="brand" href="#/dashboard"><i>${STAR}</i><span>UniDoue</span></a><nav class="nav" aria-label="${t('Asosiy menyu')}">${nav}</nav>
+  <div class="nav-links">
   <a class="nav-tg" href="https://t.me/unidoue" target="_blank" rel="noopener noreferrer">✈ ${t('Telegram kanal')}</a>
   <a class="nav-tg" href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">💬 ${t('Yordam')}</a>
-  <div class="side-foot tg" id="sf" data-tier="free" data-live><div class="sf-row"><b id="sf-u"></b><span id="sf-t"></span></div><small id="sf-p"></small><button class="btn sm" id="lo" type="button">${t('Chiqish')}</button></div></aside>
+  </div>
+  <div class="side-foot tg" id="sf" data-tier="free" data-live><div class="sf-row"><span class="sf-av" id="sf-av" aria-hidden="true"></span><div class="sf-who"><b id="sf-u"></b><small id="sf-p"></small></div><span id="sf-t"></span></div><button class="btn sm" id="lo" type="button">${t('Chiqish')}</button></div></aside>
   <div class="scrim" id="scrim"></div>
   <div class="main"><header class="top"><button class="burger" id="bg" aria-label="Menyu" type="button">${svg('menu')}</button><h1 id="ttl"></h1><span class="top-tools">${themeSwitch()}${langSelect('lang')}</span><span id="pb"></span></header>
   <main class="content" id="view" tabindex="-1"></main></div></div>`;
@@ -110,7 +114,7 @@ function shell() {
 }
 export function updatePlanUI() {
   if (!$('#sf-u') || !S.user) return;
-  const a = S.account || {}; $('#sf-u').textContent = S.user.name || S.user.email; $('#sf-p').textContent = S.user.email;
+  const a = S.account || {}; $('#sf-u').textContent = S.user.name || S.user.email; $('#sf-p').textContent = S.user.email; $('#sf-av').textContent = ((S.user.name || S.user.email || '?').trim()[0] || '?').toUpperCase();
   ROUTES.filter(r => r.need).forEach(r => { const tg = $(`.nav .tag[data-need="${r.need}"]`); if (!tg) return; const ok = hasFeature(r.need); tg.textContent = ok ? r.tag || '' : NEED_PLAN[r.need]; tg.classList.toggle('lk', !ok); tg.hidden = ok && !r.tag; });
   const pl = ['plus', 'pro'].includes(a.plan) ? a.plan : 'free'; // tarif belgisi: Free muz, Plus kumush, Pro oltin
   $('#pb').innerHTML = tierPill(pl); $('#sf-t').innerHTML = tierPill(pl); $('#sf').dataset.tier = pl;

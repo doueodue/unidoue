@@ -23,6 +23,7 @@ const SAMPLES = [
   'Universitet hisoboti (6)', 'Qabul strategiyasi (6)',
   'SAT ni kamida 1300 ga ko‘tarish moslikni sezilarli oshiradi.', 'IELTS ni 6.5 ga yetkazing.', '5/10 · ulushi 35%', 'Tiklandi: 4 ta yozuv.',
   'MIT: nima noto‘g‘ri? Iloji bo‘lsa, to‘g‘ri qiymat va rasmiy sahifa havolasini yozing.',
+  'Universitetlarni solishtirish', 'Stipendiya qidiruvi', 'Oddiy va shaffof tariflar', 'Mening profilim', 'Keyingi qadam', 'Testlar', 'Ro‘yxat', 'bosqich bajarildi', 'Siz', 'Yana ko‘rsatish', 'Universitetlar ro‘yxatini tuzing', 'SAT yoki IELTS natijangizni kiriting', 'Birinchi arizani qo‘shing', 'Barcha bosqichlar bajarildi',
   'Bekor', 'Arizani o‘chirasizmi?', 'Tarifni pasaytirasizmi?', 'Hisobni o‘chirasizmi?', 'Hisob ochish bilan', 'maxfiylik siyosati', 'Graduategacha', 'kun qoldi',
   'Raqobatbardosh', 'Kuchli moslik', 'Qiyin', 'Juda qiyin', 'Mosligingizni', 'Erta muddatlar', 'Olib tashlash', 'muddat o‘tgan', 'Sanani o‘zgartirish',
   'Hali vaqt bor: testlarga tayyorlaning va universitetlar ro‘yxatini shakllantiring.', 'Profilni kuchaytirish kerak', 'Nimani yaxshilash kerak',

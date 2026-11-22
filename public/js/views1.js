@@ -1,6 +1,6 @@
 import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, refreshAccount, upsell, push, wipeLocal, errorBox, credits, inPlay, mentorAvatar } from './core.js';
 import { tierMedal, tierPill, crownHTML, liveGlass, TIER_TAG } from './tiers.js';
-import { t, dateL } from './i18n.js';
+import { t, dateL, lang } from './i18n.js';
 import * as pn from './push.js';
 
 export const ST = ['Rejalashtirilgan', 'Hujjat tayyorlanmoqda', 'Topshirildi', 'Natija kutilmoqda', 'Qabul qilindi', 'Rad etildi'];
@@ -37,46 +37,85 @@ function gradTip(n) {
   return 'So‘nggi sprint: muddatlar va topshirilmagan hujjatlarni tekshiring.';
 }
 function gradCard(P) {
-  if (!P.pgd || !gradOk(P.pgd)) return `<section class="card s12 grad-card grad-empty"><div class="grad-l"><span class="grad-ic">🎓</span><div><h3>Graduategacha necha kun qoldi?</h3><p class="sub">Bitiruv sanangizni kiriting, hisoblagich shu yerda turadi.</p></div></div>
-    <form class="grad-f" id="gd-f"><input id="gd-in" type="date" aria-label="Bitiruv sanasi" min="${gradMin()}" max="${gradMax()}"><button class="btn primary" type="submit">Saqlash</button></form></section>`;
+  if (!P.pgd || !gradOk(P.pgd)) return `<section class="card gd gd-empty s8"><div class="gd-r"><h3>Graduategacha necha kun qoldi?</h3><p class="sub">Bitiruv sanangizni kiriting, hisoblagich shu yerda turadi.</p></div>
+    <form class="gd-f" id="gd-f"><input id="gd-in" type="date" aria-label="Bitiruv sanasi" min="${gradMin()}" max="${gradMax()}"><button class="btn primary" type="submit">Saqlash</button></form></section>`;
   const n = daysLeft(P.pgd);
-  if (n < 0) return `<section class="card s12 grad-card"><div class="grad-l"><span class="grad-ic">🎓</span><div><h3>Siz bitirgansiz!</h3><p class="sub">Bitiruv sanasi: ${fmtDate(P.pgd)}. Keyingi qadam — arizalar va muddatlar.</p></div></div><a class="btn sm" href="#/profile">Sanani o‘zgartirish</a></section>`;
+  if (n < 0) return `<section class="card gd gd-empty s8"><div class="gd-r"><h3>Siz bitirgansiz!</h3><p class="sub">Bitiruv sanasi: ${fmtDate(P.pgd)}. Keyingi qadam — arizalar va muddatlar.</p></div><a class="btn sm" href="#/profile">Sanani o‘zgartirish</a></section>`;
   const wk = Math.floor(n / 7), mo = Math.floor(n / 30.44);
-  return `<section class="card s12 grad-card"><div class="grad-l"><span class="grad-ic">🎓</span><div><h3>Graduategacha</h3><p class="sub">${fmtDate(P.pgd)}</p></div></div>
-    <div class="grad-n"><b>${n}</b><span>${n === 1 ? 'kun' : 'kun'} qoldi</span></div>
-    <div class="grad-r"><div class="grad-chips"><span>${wk} hafta</span><span>≈ ${mo} oy</span></div><p>${gradTip(n)}</p><a class="link-btn" href="#/profile">Sanani o‘zgartirish</a></div></section>`;
+  return `<section class="card gd s8"><div class="gd-n"><b>${n}</b><span>kun qoldi</span></div>
+    <div class="gd-r"><h3>Graduategacha</h3><p class="sub">${fmtDate(P.pgd)}</p><div class="gd-chips"><span>${wk} hafta</span><span>≈ ${mo} oy</span></div><p class="tip">${gradTip(n)}</p><a class="link-btn" href="#/profile">Sanani o‘zgartirish</a></div></section>`;
 }
+
+/* ===== Safar yo‘li: profil → testlar → ro‘yxat → arizalar → natija (marshrut chizig‘i) ===== */
+const RTP = [[40, 196], [170, 128], [292, 186], [410, 96], [516, 52]], RTW = 560, RTH = 250, RTL = ['Profil', 'Testlar', 'Ro‘yxat', 'Arizalar', 'Natija'];
+const rtSeg = i => { // Catmull-Rom → kubik Bezye bo‘lagi (i-nuqtadan i+1-nuqtagacha)
+  const p0 = RTP[Math.max(0, i - 1)], p1 = RTP[i], p2 = RTP[i + 1], p3 = RTP[Math.min(RTP.length - 1, i + 2)], f = v => v.toFixed(1);
+  return `C${f(p1[0] + (p2[0] - p0[0]) / 6)} ${f(p1[1] + (p2[1] - p0[1]) / 6)} ${f(p2[0] - (p3[0] - p1[0]) / 6)} ${f(p2[1] - (p3[1] - p1[1]) / 6)} ${p2[0]} ${p2[1]}`;
+};
+const rtPath = to => 'M' + RTP[0].join(' ') + Array.from({ length: to }, (_, i) => rtSeg(i)).join('');
+function journey(c, Q, apps) {
+  const cmp = ls.get('qabul:cmp', []);
+  const done = [c.pct >= 100, !!(+Q.sat || +Q.ielts), apps.length > 0 || cmp.length > 0, apps.some(x => +x.s >= 2), apps.some(x => +x.s === 4)], now = done.indexOf(false);
+  const upto = now < 0 ? RTP.length - 1 : now;
+  return {
+    now, n: done.filter(Boolean).length, full: rtPath(RTP.length - 1), part: upto > 0 ? rtPath(upto) : '',
+    pts: RTP.map(([x, y], i) => `<li class="rt-pt${done[i] ? ' done' : i === now ? ' now' : ''}${y < 140 ? ' up' : ''}" style="--x:${(x / RTW * 100).toFixed(2)}%;--y:${(y / RTH * 100).toFixed(2)}%;--k:${i}"><i></i><span>${t(RTL[i])}</span></li>`).join('')
+  };
+}
+function nextStep(now, c, apps, docsDone, docsAll) {
+  if (now < 0) return { t: 'Barcha bosqichlar bajarildi', d: 'Yangi muddatlar va stipendiyalarni kuzatishda davom eting.', href: '#/scholarships', i: 'gift' };
+  return [
+    { t: 'Profilni to‘ldirish', d: c.missing.length ? `Yetishmaydi: ${c.missing.slice(0, 4).join(', ')}` : '', href: '#/profile', i: 'user' },
+    { t: 'SAT yoki IELTS natijangizni kiriting', d: 'Moslik hisobi shu natijalarga tayanadi.', href: '#/profile', i: 'chart' },
+    { t: 'Universitetlar ro‘yxatini tuzing', d: 'Profilingizga mos Safety, Target va Reach universitetlarni toping.', href: '#/finder', i: 'search' },
+    apps.length ? { t: 'Arizalarni topshirishga tayyorlang', d: `Hujjatlar: ${docsDone}/${docsAll}`, href: '#/tracker', i: 'list' } : { t: 'Birinchi arizani qo‘shing', d: 'Muddat va hujjatlarni shu yerda kuzatasiz.', href: '#/tracker', i: 'list' },
+    { t: 'Natijalarni kuzating', d: 'Ariza holatini yangilab boring.', href: '#/tracker', i: 'flag' }
+  ][now];
+}
+/* Sana: o‘zbekcha uchun o‘z jadvalimiz (brauzerlarda uz locale ma’lumoti yo‘q bo‘lishi mumkin), RU/EN uchun Intl. */
+const UZ_WD = ['yakshanba', 'dushanba', 'seshanba', 'chorshanba', 'payshanba', 'juma', 'shanba'], UZ_MO = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'], UZ_MS = ['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avg', 'sen', 'okt', 'noy', 'dek'];
+const intl = (opt, d = new Date()) => {
+  if (lang() === 'uz') return opt.month === 'short' ? UZ_MS[d.getMonth()] : `${UZ_WD[d.getDay()]}, ${d.getDate()}-${UZ_MO[d.getMonth()]}`;
+  try { return new Intl.DateTimeFormat(lang() === 'ru' ? 'ru' : 'en-US', opt).format(d); } catch (e) { return ''; }
+};
 
 /* ================= BOSH PANEL ================= */
 export async function dashboard(el) {
   const { P, Q } = getProfile(), apps = ls.get('qabul:apps', []), a = S.account, c = completion(), cr = credits();
   const up = apps.filter(x => daysLeft(x.d) >= 0).sort((x, y) => x.d.localeCompare(y.d));
   const docsDone = apps.reduce((s, x) => s + x.docs.filter(Boolean).length, 0), docsAll = apps.length * DOCS.length;
-  const name = (P.pn || S.user.name || '').split(' ')[0];
+  const name = (P.pn || S.user.name || '').split(' ')[0], j = journey(c, Q, apps), ns = nextStep(j.now, c, apps, docsDone, docsAll), pl = ['plus', 'pro'].includes(a.plan) ? a.plan : 'free';
   el.innerHTML = `<div class="grid g-dash">
-  <section class="card hero-card s12"><h2>Salom, <em>${esc(name)}</em></h2>
-    <p>${c.pct < 100 ? `Profilingiz ${c.pct}% to‘liq. To‘liq profil universitet tavsiyalarini aniqroq qiladi.` : 'Profilingiz to‘liq. Universitetlar va muddatlarni kuzatishda davom eting.'}</p>
-    <div class="acts"><a class="btn light" href="#/${c.pct < 100 ? 'profile' : 'finder'}">${c.pct < 100 ? 'Profilni to‘ldirish' : 'Universitetlarni ko‘rish'}</a><a class="btn ghost" href="#/mentor">AI mentordan so‘rash</a></div></section>
+  <section class="card dh s12"><div class="dh-l"><p class="dh-date">${esc(intl({ weekday: 'long', day: 'numeric', month: 'long' }))}</p><h2>Salom, <em>${esc(name)}</em></h2>
+    <p class="dh-sub">${c.pct < 100 ? `Profilingiz ${c.pct}% to‘liq. To‘liq profil universitet tavsiyalarini aniqroq qiladi.` : 'Profilingiz to‘liq. Universitetlar va muddatlarni kuzatishda davom eting.'}</p>
+    <a class="nx" href="${ns.href}"><span class="nx-ic">${svg(ns.i)}</span><span class="nx-t"><small>Keyingi qadam</small><b>${ns.t}</b>${ns.d ? `<span>${ns.d}</span>` : ''}</span><span class="nx-go">${svg('arrow')}</span></a>
+    <div class="dh-acts"><a class="btn" href="#/mentor">AI mentordan so‘rash</a></div></div>
+    <div class="route"><svg class="rt-svg" viewBox="0 0 ${RTW} ${RTH}" aria-hidden="true"><path class="rt-base" d="${j.full}"/>${j.part ? `<path class="rt-done" pathLength="1" d="${j.part}"/>` : ''}</svg><ol class="rt-pts">${j.pts}</ol><div class="rt-cap"><b>${j.n}/5</b>${t('bosqich bajarildi')}</div></div></section>
+  <section class="card dstrip s12">
+    <div class="ds"><b>${c.pct}%</b><span>Profil to‘liqligi</span><div class="bar"><i style="width:${c.pct}%"></i></div>${c.missing.length ? `<p class="hint">Yetishmaydi: ${esc(c.missing.slice(0, 4).join(', '))}</p>` : ''}</div>
+    <div class="ds"><b>${apps.length}</b><span>Arizalar</span><div class="bar"><i style="width:${pct(docsDone, docsAll)}%"></i></div><p class="hint">Hujjatlar: ${docsDone}/${docsAll || 0}</p></div>
+    <div class="ds"><b>${up[0] ? daysLeft(up[0].d) + ' kun' : '—'}</b><span>${up[0] ? esc(up[0].n) + ' muddatigacha' : 'Yaqin muddat yo‘q'}</span></div></section>
   ${gradCard(P)}
-  <a class="card tg-card s12" href="https://t.me/unidoue" target="_blank" rel="noopener noreferrer"><span class="tg-ic">✈</span><span><b>Telegram kanalimizga qo‘shiling</b><small>Yangi universitetlar, muddatlar va foydali maslahatlar</small></span><span class="btn sm">Qo‘shilish</span></a>
-  <div class="card s4"><div class="stat"><b>${c.pct}%</b><span>Profil to‘liqligi</span></div><div class="bar" style="margin-top:12px"><i style="width:${c.pct}%"></i></div>${c.missing.length ? `<p class="hint">Yetishmaydi: ${esc(c.missing.slice(0, 4).join(', '))}</p>` : ''}</div>
-  <div class="card s4"><div class="stat"><b>${apps.length}</b><span>Arizalar</span></div><div class="bar" style="margin-top:12px"><i style="width:${pct(docsDone, docsAll)}%"></i></div><p class="hint">Hujjatlar: ${docsDone}/${docsAll || 0}</p></div>
-  <div class="card s4"><div class="stat"><b>${up[0] ? daysLeft(up[0].d) + ' kun' : '—'}</b><span>${up[0] ? esc(up[0].n) + ' muddatigacha' : 'Yaqin muddat yo‘q'}</span></div></div>
+  <a class="card tg-card s4" href="https://t.me/unidoue" target="_blank" rel="noopener noreferrer"><span class="tg-ic">✈</span><span><b>Telegram kanalimizga qo‘shiling</b><small>Yangi universitetlar, muddatlar va foydali maslahatlar</small></span><span class="btn sm">Qo‘shilish</span></a>
 
   <section class="card s7"><h3>Sizga mos universitetlar</h3><p class="sub">Profilingiz bo‘yicha taxminiy moslik. Bu qabul kafolati emas.</p><div id="d-match"><div class="sk" style="height:150px"></div></div></section>
-  <section class="card s5"><h3>Obuna holati</h3>
-    <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px"><span class="badge ${a.plan !== 'free' ? 'ok' : ''}" style="font-size:14px;padding:5px 14px">${a.plan.toUpperCase()}</span>${a.planUntil ? `<small style="color:var(--muted)">${fmtDate(new Date(a.planUntil).toISOString().slice(0, 10))} gacha</small>` : ''}</div>
+  <div class="stack s5">
+  <section class="card"><h3>Obuna holati</h3>
+    <div class="sub-plan">${tierPill(pl)}${a.planUntil ? `<small style="color:var(--muted)">${fmtDate(new Date(a.planUntil).toISOString().slice(0, 10))} gacha</small>` : ''}</div>
     <div class="stat"><span>AI kredit (shu oy)</span></div><div class="bar ${cr.pct > 85 ? 'warn' : ''}" style="margin:8px 0 6px"><i data-cr="bar" style="width:${cr.pct}%"></i></div><p class="hint" data-cr="badge">${cr.left} / ${cr.limit} kredit qoldi</p>
     <a class="btn ${a.plan === 'free' ? 'primary' : ''} sm" style="margin-top:14px" href="#/pricing">${inPlay ? 'Tariflar' : a.plan === 'free' ? 'Tarifni yaxshilash' : 'Tarifni boshqarish'}</a></section>
 
-  <section class="card s6"><h3>Yaqin muddatlar</h3><p class="sub">Arizalar kuzatuvchisidan.</p>${up.length ? `<div class="list">${up.slice(0, 5).map(x => { const d = daysLeft(x.d); return `<div class="li"><div class="grow"><b>${esc(x.n)}</b><small>${fmtDate(x.d)}</small></div><span class="badge ${d <= 14 ? 'bad' : d <= 45 ? 'warn' : 'mute'}">${d} kun</span></div>`; }).join('')}</div>` : '<div class="empty"><b>Muddat yo‘q</b>Arizalar bo‘limida universitet qo‘shing.<br><a class="btn sm" style="margin-top:12px" href="#/tracker">Ariza qo‘shish</a></div>'}</section>
-  <section class="card s6"><h3>Ariza jarayoni</h3><p class="sub">Holatlar bo‘yicha.</p>${apps.length ? ST.map((s, i) => { const n = apps.filter(x => +x.s === i).length; return n ? `<div class="li"><div class="grow">${s}</div><b style="flex:none">${n}</b></div>` : ''; }).join('') : '<div class="empty"><b>Hali ariza yo‘q</b>Universitet tanlab, jarayonni kuzating.</div>'}</section>
-
-  <section class="card s6" id="d-sch"><h3>Stipendiyalar</h3><div class="sk" style="height:80px;margin-top:10px"></div></section>
-  <section class="card s6 mc-dash"><div class="mc-dh">${mentorAvatar('sm')}<div><h3>AI mentor</h3><p class="sub">Universitet, ariza va esse bo‘yicha savollar.</p></div></div>
+  <section class="card mc-dash"><div class="mc-dh">${mentorAvatar('sm')}<div><h3>AI mentor</h3><p class="sub">Universitet, ariza va esse bo‘yicha savollar.</p></div></div>
     ${a.config.ai ? `<p>Savolingizni yozing, mentor profilingizni (ruxsat bergan bo‘lsangiz) hisobga oladi.</p><a class="btn primary" style="margin-top:14px" href="#/mentor">Suhbatni boshlash</a>`
-      : `<div class="notice">${svg('info')}<div>AI mentor hozircha ulanmagan: sayt egasi serverda AI kalitini sozlagach, shu yerda ishlaydi.</div></div>`}</section></div>`;
+      : `<div class="notice">${svg('info')}<div>AI mentor hozircha ulanmagan: sayt egasi serverda AI kalitini sozlagach, shu yerda ishlaydi.</div></div>`}</section>
+  </div>
 
+  <section class="card s7"><h3>Yaqin muddatlar</h3><p class="sub">Arizalar kuzatuvchisidan.</p>${up.length ? `<div class="list">${up.slice(0, 5).map(x => { const d = daysLeft(x.d), dd = new Date(x.d + 'T12:00:00'), k = d <= 14 ? 'bad' : d <= 45 ? 'warn' : ''; return `<div class="li"><div class="stamp ${k}"><b>${dd.getDate()}</b><span>${esc(intl({ month: 'short' }, dd))}</span></div><div class="grow"><b>${esc(x.n)}</b><small>${fmtDate(x.d)}</small></div><span class="badge ${k || 'mute'}">${d} kun</span></div>`; }).join('')}</div>` : '<div class="empty"><b>Muddat yo‘q</b>Arizalar bo‘limida universitet qo‘shing.<br><a class="btn sm" style="margin-top:12px" href="#/tracker">Ariza qo‘shish</a></div>'}</section>
+  <div class="stack s5">
+  <section class="card"><h3>Ariza jarayoni</h3><p class="sub">Holatlar bo‘yicha.</p>${apps.length ? ST.map((s, i) => { const n = apps.filter(x => +x.s === i).length; return n ? `<div class="li"><div class="grow">${s}</div><b style="flex:none">${n}</b></div>` : ''; }).join('') : '<div class="empty"><b>Hali ariza yo‘q</b>Universitet tanlab, jarayonni kuzating.</div>'}</section>
+
+  <section class="card" id="d-sch"><h3>Stipendiyalar</h3><div class="sk" style="height:80px;margin-top:10px"></div></section>
+  </div></div>`;
   const gf = $('#gd-f', el);
   if (gf) gf.onsubmit = ev => { ev.preventDefault(); const v = $('#gd-in', el).value; if (!gradOk(v)) { toast('Sanani to‘g‘ri tanlang.', 'err'); return; } ls.set('qabul:profile', { ...ls.get('qabul:profile', {}), pgd: v, updatedAt: new Date().toISOString() }); toast('Saqlandi ✓'); el.innerHTML = ''; dashboard(el); };
 
@@ -84,13 +123,13 @@ export async function dashboard(el) {
   const m = $('#d-match', el), prof = { gpa: Q.gpa, sc: Q.sc, sat: Q.sat, ielts: Q.ielts, ex: Q.ex, ach: Q.ach };
   if (!(Q.gpa || Q.sat || Q.ielts)) m.innerHTML = '<div class="empty"><b>Natijalaringizni kiriting</b>GPA, SAT yoki IELTS bo‘yicha tavsiya olasiz.<br><a class="btn primary sm" style="margin-top:12px" href="#/profile">Profilga o‘tish</a></div>';
   else api('/api/finder', 'POST', { profile: prof }).then(r => {
-    m.innerHTML = `<div class="list">${r.items.slice(0, 5).map(u => `<div class="li"><div class="score">${u.score}</div><div class="grow"><b>${esc(u.n)}</b><small>${u.verified ? 'tekshirilgan ma’lumot' : 'taxminiy ma’lumot'}</small></div><span class="badge ${u.tier}">${TIER[u.tier]}</span></div>`).join('')}</div><a class="btn sm" style="margin-top:12px" href="#/finder">Hammasini ko‘rish</a>`;
+    m.innerHTML = `<div class="list">${r.items.slice(0, 5).map(u => `<div class="li tk-${u.tier}"><div class="score" style="--p:${u.score}">${u.score}</div><div class="grow"><b>${esc(u.n)}</b><small>${u.verified ? 'tekshirilgan ma’lumot' : 'taxminiy ma’lumot'}</small></div><span class="badge ${u.tier}">${TIER[u.tier]}</span></div>`).join('')}</div><a class="btn sm" style="margin-top:12px" href="#/finder">Hammasini ko‘rish</a>`;
   }).catch(e => (m.innerHTML = errorBox(e.message)));
 
   // stipendiyalar (serverda tekshiriladi)
   const sc = $('#d-sch', el);
   if (!a.features.includes('scholarships')) sc.innerHTML = `<h3>Stipendiyalar</h3><p class="sub">Stipendiya qidiruvi hozir mavjud emas.</p><a class="btn sm" href="#/pricing">Tariflarni ko‘rish</a>`;
-  else api('/api/scholarships').then(r => { sc.innerHTML = `<h3>Stipendiyalar</h3>` + (r.items.length ? `<div class="list" style="margin-top:8px">${r.items.slice(0, 3).map(x => `<div class="li"><div class="grow"><b>${esc(x.name)}</b><small>${esc(x.provider || '')}</small></div></div>`).join('')}</div><a class="btn sm" style="margin-top:10px" href="#/scholarships">Hammasi</a>` : '<p class="sub">Tasdiqlangan stipendiyalar bazasi hozircha to‘ldirilmoqda.</p>'); }).catch(() => (sc.innerHTML = '<h3>Stipendiyalar</h3><p class="sub">Yuklab bo‘lmadi.</p>'));
+  else api('/api/scholarships').then(r => { sc.innerHTML = `<h3>Stipendiyalar</h3>` + (r.items.length ? `<div class="list" style="margin-top:8px">${r.items.slice(0, 2).map(x => `<div class="li"><div class="grow"><b>${esc(x.name)}</b><small>${esc(x.provider || '')}</small></div></div>`).join('')}</div><a class="btn sm" style="margin-top:10px" href="#/scholarships">Hammasi</a>` : '<p class="sub">Tasdiqlangan stipendiyalar bazasi hozircha to‘ldirilmoqda.</p>'); }).catch(() => (sc.innerHTML = '<h3>Stipendiyalar</h3><p class="sub">Yuklab bo‘lmadi.</p>'));
 }
 
 
@@ -112,9 +151,9 @@ export async function tracker(el) {
   const draw = () => {
     el.innerHTML = `<div class="page-h"><div><h2>Arizalarim</h2><p>Muddatlar, hujjatlar va holatni bir joyda kuzating.</p></div><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="badge ${apps.length >= lim ? 'warn' : ''}">${apps.length} / ${lim >= 1000 ? '∞' : lim} ariza</span>${apps.length ? '<button class="btn sm" id="t-ics" type="button">📅 Kalendarga qo‘shish</button>' : ''}</span></div>
     <div class="card" style="margin-bottom:18px"><div class="row" style="align-items:end"><div><label class="f" for="t-u">Universitet</label><select id="t-u">${cat.map(c => `<option value="${esc(c.id)}">${esc(c.n)}</option>`).join('')}</select></div><div><label class="f" for="t-d">Muddat</label><input id="t-d" type="date"></div><div><button class="btn primary" id="t-add" style="width:100%">Qo‘shish</button></div></div><div class="field" style="margin:12px 0 0"><label class="f" for="t-cn">Ro‘yxatda yo‘q universitet? Nomini o‘zingiz yozing (ixtiyoriy)</label><input id="t-cn" type="text" maxlength="80" placeholder="Masalan: University of Toronto"></div><div class="msg" id="t-m"></div></div>
-    <div class="grid g2">${apps.length ? apps.map((x, i) => { const d = daysLeft(x.d), done = x.docs.filter(Boolean).length; return `<div class="card"><div style="display:flex;justify-content:space-between;gap:10px"><h3>${esc(x.n)}</h3><span class="badge ${d < 0 ? 'mute' : d <= 14 ? 'bad' : d <= 45 ? 'warn' : ''}">${d < 0 ? 'muddat o‘tgan' : d + ' kun'}</span></div>
+    <div class="grid g2">${apps.length ? apps.map((x, i) => { const d = daysLeft(x.d), done = x.docs.filter(Boolean).length; return `<div class="card ap ap-${d < 0 ? 'mute' : d <= 14 ? 'bad' : d <= 45 ? 'warn' : 'ok'}"><div style="display:flex;justify-content:space-between;gap:10px"><h3>${esc(x.n)}</h3><span class="badge ${d < 0 ? 'mute' : d <= 14 ? 'bad' : d <= 45 ? 'warn' : ''}">${d < 0 ? 'muddat o‘tgan' : d + ' kun'}</span></div>
       <div class="row" style="margin:12px 0"><div><label class="f">Muddat</label><input type="date" data-i="${i}" data-date value="${esc(x.d)}"></div><div><label class="f">Holat</label><select data-i="${i}" data-st>${ST.map((s, j) => `<option value="${j}" ${+x.s === j ? 'selected' : ''}>${s}</option>`).join('')}</select></div></div>
-      <div class="bar" style="margin-bottom:10px"><i style="width:${pct(done, DOCS.length)}%"></i></div>${DOCS.map((dn, j) => `<label style="display:flex;gap:9px;padding:5px 0;cursor:pointer"><input type="checkbox" data-i="${i}" data-doc="${j}" ${x.docs[j] ? 'checked' : ''}> ${dn}</label>`).join('')}
+      <div class="bar" style="margin-bottom:10px"><i style="width:${pct(done, DOCS.length)}%"></i></div><div class="docs">${DOCS.map((dn, j) => `<label><input type="checkbox" data-i="${i}" data-doc="${j}" ${x.docs[j] ? 'checked' : ''}> ${dn}</label>`).join('')}</div>
       <button class="btn danger sm" style="margin-top:12px" data-i="${i}" data-del>O‘chirish</button></div>`; }).join('') : '<div class="card s12 empty" style="grid-column:1/-1"><b>Hali ariza qo‘shilmagan</b>Yuqoridan universitet tanlang.</div>'}</div>`;
     const sel = $('#t-u', el), dt = $('#t-d', el), fillD = () => { const c = cat.find(k => k.id === sel.value); dt.value = c ? c.rd : ''; }; sel.onchange = fillD; fillD();
     $('#t-add', el).onclick = () => {
@@ -187,7 +226,7 @@ export async function pricing(el) {
   const online = config.payments && config.online ? config.online : null;
   const payButtons = (p, renew) => `<div class="paybtns"><div class="hint">${renew ? 'Muddatni 30 kunga uzaytirish' : '30 kunlik tarif'}</div>
     ${online.payme ? `<button class="btn tier-${p.id}" style="width:100%" data-pay="${p.id}" data-prov="payme">Payme orqali to‘lash</button>` : ''}${online.click ? `<button class="btn" style="width:100%" data-pay="${p.id}" data-prov="click">Click orqali to‘lash</button>` : ''}</div>`;
-  el.innerHTML = `<div class="page-h"><div><h2>Oddiy va <em>shaffof</em> tariflar</h2><p>Hisobingiz: ${tierPill(cur)}. Bu oy AI kredit: <b data-cr="frac">${credits().left} / ${credits().limit}</b> qoldi.</p></div></div>
+  el.innerHTML = `<div class="page-h"><div><h2>Oddiy va shaffof tariflar</h2><p>Hisobingiz: ${tierPill(cur)}. Bu oy AI kredit: <b data-cr="frac">${credits().left} / ${credits().limit}</b> qoldi.</p></div></div>
   ${payBox(S.account, cur, !!online)}
   ${config.payments ? `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>Karta bilan to‘lash.</b> To‘lov Payme yoki Click sahifasida amalga oshadi, karta ma’lumotlari UniDoue’ga berilmaydi. Tarif to‘lovdan keyin darhol yoqiladi va 30 kun amal qiladi, avtomatik yechilmaydi. Yuqoriroq tarifga o‘tsangiz, yangi 30 kun to‘lovdan boshlab hisoblanadi.</div></div>` : `<div class="notice info" style="margin-bottom:18px">${svg('info')}<div><b>To‘lov qo‘lda qabul qilinadi.</b> So‘rov yuboring, to‘lov ko‘rsatmasini olasiz. Administrator to‘lovni tekshirib, tarifni qo‘lda yoqadi. Tarif so‘rov yuborish bilan o‘zgarmaydi.</div></div>`}
   <div class="grid g3 tier-stage">${plans.map(p => planCard(p, cur, `<div class="price">$${p.price === 0 ? '0' : p.price.toFixed(2)}<small>${p.price ? ' / oy' : ''}</small></div>${online && p.uzs ? `<div class="uzs"><b>${p.uzs.toLocaleString('en-US').replace(/,/g, ' ')}</b> <span>so‘m / oy</span></div>` : ''}
@@ -217,8 +256,10 @@ export async function pricing(el) {
 
 /* ================= PROFIL ================= */
 export async function profile(el) {
-  const { P, Q } = getProfile(), a = S.account, opt = (arr, v) => arr.map(([val, t]) => `<option value="${val}" ${String(v) === String(val) ? 'selected' : ''}>${t}</option>`).join('');
-  el.innerHTML = `<div class="page-h"><div><h2>Mening <em>profilim</em></h2><p>Ma’lumotlaringiz hisobingizda saqlanadi va barcha qurilmalarda sinxron bo‘ladi.</p></div></div>
+  const { P, Q } = getProfile(), comp = completion(), a = S.account, opt = (arr, v) => arr.map(([val, t]) => `<option value="${val}" ${String(v) === String(val) ? 'selected' : ''}>${t}</option>`).join('');
+  el.innerHTML = `<div class="page-h"><div><h2>Mening profilim</h2><p>Ma’lumotlaringiz hisobingizda saqlanadi va barcha qurilmalarda sinxron bo‘ladi.</p></div></div>
+  <section class="card passport"><div class="pp-av" aria-hidden="true">${esc(((P.pn || S.user.name || '?').trim()[0] || '?').toUpperCase())}</div><div class="pp-id"><h3>${esc(P.pn || S.user.name)}</h3><p>${esc([P.pg, P.pc, P.py].filter(Boolean).join(' · '))}</p></div>
+    <div class="pp-ring"><div class="score" style="--p:${comp.pct}">${comp.pct}%</div><span>Profil to‘liqligi</span></div></section>
   <div class="grid g2"><form class="card" id="p-f" novalidate><h3>Shaxsiy ma’lumot</h3><p class="sub">Tavsiyalar shunga tayanadi.</p>
     <div class="field"><label class="f" for="pn">Ism</label><input id="pn" type="text" maxlength="40" value="${esc(P.pn || S.user.name)}"></div>
     <div class="row"><div class="field"><label class="f" for="pc">Shahar</label><input id="pc" type="text" maxlength="40" value="${esc(P.pc)}"></div><div class="field"><label class="f" for="pm">Qiziqqan yo‘nalish</label><input id="pm" type="text" maxlength="60" value="${esc(P.pm)}" placeholder="Informatika, biznes…"></div></div>
@@ -328,14 +369,14 @@ function targetDeadline(d, P) {
 }
 export async function roadmap(el) {
   const cat = await catalog(), apps = ls.get('qabul:apps', []), { P, Q } = getProfile();
-  el.innerHTML = `<div class="page-h"><div><h2>Yo‘l <em>xaritasi</em></h2><p>Ariza muddatidan orqaga hisoblangan qadamlar. Belgilaringiz hisobingizda saqlanadi.</p></div></div>`;
+  el.innerHTML = `<div class="page-h"><div><h2>Yo‘l xaritasi</h2><p>Ariza muddatidan orqaga hisoblangan qadamlar. Belgilaringiz hisobingizda saqlanadi.</p></div></div>`;
   if (!apps.length) { el.insertAdjacentHTML('beforeend', '<div class="card empty"><b>Avval ariza qo‘shing</b>Yo‘l xaritasi arizalaringiz muddatiga qarab tuziladi.<br><a class="btn primary" style="margin-top:14px" href="#/tracker">Arizalarga o‘tish</a></div>'); return; }
   el.insertAdjacentHTML('beforeend', `<div class="card" style="margin-bottom:16px"><label class="f" for="r-u">Universitet</label><select id="r-u">${apps.map((a, i) => `<option value="${i}">${esc(a.n)}</option>`).join('')}</select></div><div id="r-o"></div>`);
   const out = $('#r-o', el), draw = () => {
     const a0 = apps[+$('#r-u', el).value], c = cat.find(x => x.n === a0.n), tg = targetDeadline(a0.d, P), a = { ...a0, d: tg.d }, dd = new Date(a.d + 'T12:00:00'), steps = stepsFor(c, Q, (dd - Date.now()) / 864e5), key = 'qabul:s:' + a.n, saved = ls.get(key, {});
     const done = () => steps.filter((s, k) => saved[k]).length;
     out.innerHTML = `<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3>${esc(a.n)}</h3><span class="badge">${fmtDate(a.d)}${(c && !c.rdV) || tg.moved ? ' · muddat taxminiy' : ''}</span></div>${tg.moved ? `<p class="hint" style="margin:6px 0 12px">Siz ${tg.entry}-yilda o‘qishni boshlaysiz, shuning uchun reja ${fmtDate(a.d)} sanasiga moslandi (katalogdagi ${fmtDate(a0.d)} o‘tgan davr sanasi). Yangi davr muddatini universitetning rasmiy sahifasida tekshiring.</p>` : ''}<p class="sub" id="r-p"></p><div class="bar" style="margin-bottom:16px"><i id="r-b"></i></div>
-    ${steps.map((s, k) => ({ s, k })).sort((x, y) => y.s.o - x.s.o).map(({ s, k }) => { const d = new Date(dd - s.o * 864e5), left = Math.ceil((d - Date.now()) / 864e5); return `<label class="li" style="cursor:pointer"><input type="checkbox" data-k="${k}" ${saved[k] ? 'checked' : ''}><span class="grow" ${saved[k] ? 'style="text-decoration:line-through;color:var(--muted)"' : ''}>${esc(s.t)}</span><span class="badge ${left < 0 && !saved[k] ? 'bad' : 'mute'}">${d.getDate()}-${MON[d.getMonth()]}${d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : ''}</span></label>`; }).join('')}
+    <div class="rm">${steps.map((s, k) => ({ s, k })).sort((x, y) => y.s.o - x.s.o).map(({ s, k }) => { const d = new Date(dd - s.o * 864e5), left = Math.ceil((d - Date.now()) / 864e5); return `<label class="li" style="cursor:pointer"><input type="checkbox" data-k="${k}" ${saved[k] ? 'checked' : ''}><span class="grow" ${saved[k] ? 'style="text-decoration:line-through;color:var(--muted)"' : ''}>${esc(s.t)}</span><span class="badge ${left < 0 && !saved[k] ? 'bad' : 'mute'}">${d.getDate()}-${MON[d.getMonth()]}${d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : ''}</span></label>`; }).join('')}</div>
     <button class="btn sm" id="r-cp" style="margin-top:14px">Rejani nusxalash</button><span class="hint" id="r-cm"></span></div>`;
     const upd = () => { $('#r-p', out).textContent = `${done()} / ${steps.length} qadam bajarildi`; $('#r-b', out).style.width = pct(done(), steps.length) + '%'; }; upd();
     $$('[data-k]', out).forEach(i => (i.onchange = () => { saved[i.dataset.k] = i.checked; ls.set(key, saved); draw(); }));

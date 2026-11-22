@@ -78,7 +78,7 @@ function analyze(text) {
 
 export async function essay(el) {
   const draft = ls.get('qabul:essay', '');
-  el.innerHTML = `<div class="page-h"><div><h2>Esse <em>yordamchisi</em></h2><p>Shaxsiy bayonotingizni tuzilma, aniqlik, grammatika va hikoya jihatidan tahlil qiling.</p></div></div>
+  el.innerHTML = `<div class="page-h"><div><h2>Esse yordamchisi</h2><p>Shaxsiy bayonotingizni tuzilma, aniqlik, grammatika va hikoya jihatidan tahlil qiling.</p></div></div>
   <div class="notice info" style="margin-bottom:16px">${svg('info')}<div><b>Esseni hali yozmadingizmi?</b> <a href="#/coach">Esse murabbiyi</a> qadam-baqadam o‘rgatadi: hikoya, nega bu soha, nega bu universitet va maqsadlar.</div></div>
   <div class="grid g-dash"><section class="card s7"><label class="f" for="e-t">Esse matni</label><textarea id="e-t" rows="16" maxlength="6000" placeholder="Esseni shu yerga joylang (kamida 200 belgi)">${esc(draft)}</textarea><div class="hint" id="e-c"></div>
     <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button class="btn" id="e-b">Tezkor tahlil (bepul)</button><button class="btn primary" id="e-ai">AI tahlil (${costOf.essay} kredit)</button><button class="btn dark" id="e-deep">Chuqur tahlil (${costOf.essay_deep} kredit, Pro)</button></div><div class="msg" id="e-m"></div></section>
@@ -117,7 +117,7 @@ export async function mentor(el) {
   const hello = () => `<div class="mc-hello">${mentorAvatar('xl live')}<h3>${tr('Salom,')} ${esc(first)}</h3><p>${tr('Men Doue — qabul yo‘lingizdagi AI mentoringizman. Universitet tanlash, test rejasi, esse va ariza muddatlari bo‘yicha yonma-yon boraman.')}</p>
     <div class="mc-sug">${SUG.map(([ic, q], i) => `<button type="button" data-q="${i}"><span class="mc-si">${svg(ic)}</span><span>${tr(q)}</span></button>`).join('')}</div>
     <p class="mc-mem ${mem ? 'on' : ''}">${mem ? `${svg('tick')}<span>${tr('Profilingiz ma’lumotlaridan foydalanaman (profil sahifasida o‘chirishingiz mumkin).')}</span>` : `<span>${tr('Profilingizni ko‘rishim uchun profil sahifasida ruxsat bering.')}</span> <a href="#/profile">${tr('Ruxsat berish')}</a>`}</p></div>`;
-  el.innerHTML = `<div class="page-h"><div><h2>AI <em>mentor</em></h2><p>Universitet tanlash, ariza va esse bo‘yicha savollar. Javoblar umumiy maslahat, rasmiy talablarni universitet saytida tekshiring.</p></div><span class="badge" data-cr="badge">${credits().left} / ${credits().limit} kredit qoldi</span></div>
+  el.innerHTML = `<div class="page-h"><div><h2>AI mentor</h2><p>Universitet tanlash, ariza va esse bo‘yicha savollar. Javoblar umumiy maslahat, rasmiy talablarni universitet saytida tekshiring.</p></div><span class="badge" data-cr="badge">${credits().left} / ${credits().limit} kredit qoldi</span></div>
   ${mentorTabs('chat')}${acc.config.ai ? '' : aiOff()}
   <div class="grid g-dash" style="margin-top:16px">
     <section class="mc s8" aria-label="${MENTOR}">

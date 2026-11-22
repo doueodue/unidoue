@@ -1163,7 +1163,7 @@ async function notifyTelegram(r) {
 /* ---------------- statik fayllar (faqat ruxsat etilgan roʻyxat) ---------------- */
 const PAGES = { '/': 'app.html', '/privacy': 'privacy.html', '/delete-account': 'delete-account.html', '/app': 'app.html', '/reset': 'reset.html', '/admin': 'admin.html' };
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.png': 'image/png',
-  '.webmanifest': 'application/manifest+json; charset=utf-8', '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8' };
+  '.webmanifest': 'application/manifest+json; charset=utf-8', '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml' };
 /** Digital Asset Links (Google Play TWA): fayldagi barmoq izlariga TWA_SHA256 (vergul bilan) qoʻshiladi — Play App Signing izini kodsiz ulash uchun. TWA_PACKAGE paket nomini almashtiradi. */
 const FP_RE = /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/;
 function assetLinks() {
@@ -1183,7 +1183,7 @@ function serveStatic(req, res, pathname) {
   let rel = PAGES[pathname];
   if (!rel) {
     try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch (e) { return false; }
-    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
+    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'atlas.css' || rel === 'contour.svg' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
     if (!ok) return false;
   }
   const file = path.resolve(PUBLIC_DIR, rel);
@@ -1212,7 +1212,7 @@ async function tgInit() {
 const server = http.createServer(async (req, res) => {
   try {
     const pathname = new URL(req.url, 'http://x').pathname;
-    secHeaders(res, pathname === '/' || pathname === '/app' || pathname === '/reset' || pathname === '/admin' || pathname.startsWith('/js/') || pathname === '/app.css' || pathname === '/tiers.css');
+    secHeaders(res, pathname === '/' || pathname === '/app' || pathname === '/reset' || pathname === '/admin' || pathname.startsWith('/js/') || pathname === '/app.css' || pathname === '/atlas.css' || pathname === '/tiers.css');
     // Eski *.onrender.com manzilidan asosiy domenga (APP_URL) yoʻnaltirish — faqat sahifalar uchun (API, healthz, .well-known tegilmaydi)
     if (APP_HOST && (req.method === 'GET' || req.method === 'HEAD') && /\.onrender\.com$/i.test(String(req.headers.host || '').split(':')[0]) && !pathname.startsWith('/api/') && pathname !== '/healthz' && !pathname.startsWith('/.well-known/')) {
       res.statusCode = 301; res.setHeader('Location', APP_ORIGIN + req.url); return res.end();
