@@ -5,6 +5,7 @@ import { MRU, MEN, MRULES } from './i18n_more.js';
 import { PRU, PEN } from './i18n_pf.js';
 import { LRU, LEN } from './i18n_land.js';
 import { QRU, QEN } from './i18n_promo.js';
+import { NRU, NEN } from './i18n_notes.js';
 let cur = 'uz';
 try { const v = localStorage.getItem('qabul:lang'); if (LANGS.some(l => l[0] === v)) cur = v; } catch (e) {}
 export const lang = () => cur;
@@ -51,7 +52,7 @@ const D = {
     'Xalqaro universitetlar ro‘yxatini yuklab bo‘lmadi.': 'Could not load the international universities list.', 'Til': 'Language', 'Tungi rejim': 'Dark mode'
   }
 };
-Object.assign(D.ru, XRU, MRU, PRU, LRU, QRU); Object.assign(D.en, XEN, MEN, PEN, LEN, QEN);
+Object.assign(D.ru, XRU, MRU, PRU, LRU, QRU, NRU); Object.assign(D.en, XEN, MEN, PEN, LEN, QEN, NEN);
 RULES.push(...MRULES);
 const viaRules = (k, i) => { for (const r of RULES) { const m = r[0].exec(k); if (m) { const o = r[i](m); if (o) return o; } } return null; };
 const look = (d, k) => (Object.hasOwn(d, k) && d[k] !== k ? d[k] : viaRules(k, cur === 'ru' ? 1 : 2));

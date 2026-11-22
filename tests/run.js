@@ -30,7 +30,7 @@ class Client {
   const ai = await mock((q, b, r) => { aiLast = JSON.parse(b); if (aiMode === 'fail') { r.statusCode = 500; return r.end('{"error":{"type":"x"}}'); } r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ content: [{ type: 'text', text: 'Test javobi' }] })); });
   const mail = await mock((q, b, r) => { mails.push(JSON.parse(b)); r.setHeader('content-type', 'application/json'); r.end('{"id":"1"}'); });
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-'));
-  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', REG_RATE_MAX: '30', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, REQUIRE_EMAIL_VERIFY: '0', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
+  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', REG_RATE_MAX: '30', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, REQUIRE_EMAIL_VERIFY: '0', MAIL_BULK_MAX: '3', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
   for (let i = 0; i < 40; i++) { try { if ((await fetch(B + '/healthz')).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
   const PROFILE = { gpa: 4.6, sc: 5, sat: 1480, ielts: 7, ex: 2 };
   try {
@@ -211,8 +211,77 @@ class Client {
     r = await new Client().call('POST', '/api/login', { email: 'reset@gmail.com', password: 'eski-parol1' }); ok(r.s === 401, 'eski parol ishlamaydi');
     r = await new Client().call('POST', '/api/login', { email: 'reset@gmail.com', password: 'yangi-parol1' }); ok(r.s === 200, 'yangi parol bilan kirish');
 
+    console.log('Bildirishnomalar (sayt ichida + email)');
+    {
+      const ADMH = { Authorization: 'Bearer adm-secret' }, anon = new Client(), NF = b => anon.call('POST', '/api/admin/notify', b, ADMH), NM = require('../notes');
+      const n1 = new Client(), n2 = new Client(), mk = async (c, e) => { const q = await c.call('POST', '/api/register', { email: e, password: 'parol12345', name: e.split('@')[0] }); ok(q.s === 201, 'xabar sinovi: hisob ochildi ' + e, q.s); };
+      await mk(n1, 'note1@gmail.com'); await mk(n2, 'note2@gmail.com');
+      r = await n2.call('POST', '/api/admin/plan', { email: 'note2@gmail.com', plan: 'plus', days: 30 }, ADMH); ok(r.s === 200, 'xabar sinovi: n2 Plus oldi');
+      r = await n1.call('GET', '/api/notes'); ok(r.s === 200 && r.j.notes.length === 0 && r.j.unread === 0 && r.j.mailNews === true, 'yangi hisobda xabar yoʻq, email xabarlar yoqilgan', r.j);
+      r = await new Client().call('GET', '/api/notes'); ok(r.s === 401, 'bildirishnomalar: kirmagan → 401', r.s);
+      r = await anon.call('POST', '/api/admin/notify', { title: 'Salom', body: 'Matn', channels: { app: true } }); ok(r.s === 401, 'admin notify: tokensiz → 401', r.s);
+      for (const [b, why] of [[{ title: 'S', body: '', channels: { app: true } }, 'boʻsh matn'], [{ title: 'Salom', body: 'Matn', url: 'https://evil.com', channels: { app: true } }, 'begona havola'], [{ title: 'Salom', body: 'Matn', url: '//evil.com', channels: { app: true } }, '//host havolasi'],
+        [{ title: 'Salom', body: 'Matn', audience: 'xxx', channels: { app: true } }, 'notoʻgʻri auditoriya'], [{ title: 'Salom', body: 'Matn', channels: {} }, 'kanal tanlanmagan'], [{ title: 'Salom', body: 'Matn', audience: 'admin', channels: { app: true } }, 'admin + sayt ichida']]) {
+        r = await NF(b); ok(r.s === 400, 'admin notify: ' + why + ' rad etiladi', r.j);
+      }
+      r = await NF({ title: 'Salom', body: 'Matn', audience: 'email', email: 'yoq@x.uz', channels: { app: true } }); ok(r.s === 404, 'admin notify: yoʻq foydalanuvchi → 404', r.s);
+      r = await NF({ title: 'Yangi universitetlar', body: 'Katalogga 8 ta universitet qoʻshildi', url: '/app#/finder', audience: 'all', channels: { app: true } });
+      ok(r.s === 200 && r.j.ok && r.j.st.app >= 2 && !r.j.st.push && !r.j.st.mail, 'admin notify: hammaga, faqat sayt ichida', r.j);
+      r = await n1.call('GET', '/api/me'); ok(r.j.account.notes === 1 && r.j.account.mailNews === true, '/api/me: 1 ta oʻqilmagan xabar', r.j.account.notes);
+      r = await n1.call('GET', '/api/notes'); ok(r.j.notes.length === 1 && r.j.notes[0].title === 'Yangi universitetlar' && r.j.notes[0].url === '/app#/finder' && r.j.notes[0].new === true && r.j.unread === 1, 'foydalanuvchi xabarni koʻradi (yangi)', r.j);
+      r = await n2.call('GET', '/api/notes'); ok(r.j.unread === 2 && r.j.notes[0].title === 'Yangi universitetlar' && r.j.notes[1].title === 'Tarifingiz yangilandi' && /Plus/.test(r.j.notes[1].body), 'tarif berilganda tizim xabari tushadi (yangisi tepada)', r.j.notes.map(x => x.title));
+      r = await n1.call('POST', '/api/notes/read', {}); ok(r.s === 200 && r.j.account.notes === 0, 'oʻqilgan deb belgilash: hisoblagich 0', r.j);
+      r = await n1.call('GET', '/api/notes'); ok(r.j.notes.length === 1 && r.j.notes[0].new === false && r.j.unread === 0, 'xabar oʻqilgan holatda qoladi');
+      r = await NF({ title: 'Plus uchun', body: 'Faqat Plus foydalanuvchilariga', audience: 'plus', channels: { app: true } }); ok(r.s === 200 && r.j.ok, 'admin notify: Plus auditoriyasi', r.j);
+      r = await n1.call('GET', '/api/notes'); ok(r.j.unread === 0 && !r.j.notes.some(x => x.title === 'Plus uchun'), 'Free foydalanuvchi Plus xabarini koʻrmaydi');
+      r = await n2.call('GET', '/api/notes'); ok(r.j.unread === 3 && r.j.notes[0].title === 'Plus uchun', 'Plus foydalanuvchi koʻradi', r.j.unread);
+      const n3 = new Client(); await mk(n3, 'note3@gmail.com'); r = await n3.call('GET', '/api/notes'); ok(r.j.notes.length === 0 && r.j.unread === 0, 'hisob ochilgunga qadar yuborilgan xabarlar yangi foydalanuvchiga koʻrinmaydi');
+      r = await NF({ title: 'Faqat sizga', body: 'Shaxsiy xabar', audience: 'email', email: 'NOTE1@gmail.com', channels: { app: true } }); ok(r.s === 200 && r.j.st.app === 1, 'admin notify: bitta foydalanuvchiga (email, katta-kichik harf)', r.j);
+      r = await n1.call('GET', '/api/notes'); ok(r.j.unread === 1 && r.j.notes[0].title === 'Faqat sizga', 'shaxsiy xabar egasiga tushdi');
+      r = await n2.call('GET', '/api/notes'); ok(!r.j.notes.some(x => x.title === 'Faqat sizga'), 'shaxsiy xabar boshqaga koʻrinmaydi');
+
+      // email kanali
+      mails.length = 0;
+      r = await NF({ title: 'Email sinovi', body: 'Salom <b>dunyo</b> & hamma', url: '/app#/pricing', audience: 'email', email: 'note1@gmail.com', channels: { mail: true } });
+      ok(r.s === 200 && r.j.ok && r.j.st.mail.ok === 1 && r.j.st.mail.targets === 1 && r.j.st.mail.failed === 0, 'admin notify: bitta email yuborildi', r.j);
+      const ml = mails[mails.length - 1] || {};
+      ok(ml.to && ml.to[0] === 'note1@gmail.com' && ml.subject === 'Email sinovi' && /&lt;b&gt;dunyo&lt;\/b&gt; &amp; hamma/.test(ml.html) && !/<b>dunyo/.test(ml.html), 'xat: sarlavha, toʻgʻri manzil, HTML ekranlangan', ml.subject);
+      ok(/href="http:\/\/app\.test\/app#\/pricing"/.test(ml.html || '') && /http:\/\/app\.test\/unsub\?u=[0-9a-f]+&amp;s=[0-9a-f]{32}/.test(ml.html || ''), 'xatda “ochish” havolasi va obunani bekor qilish havolasi bor');
+      const uq = /unsub\?u=([0-9a-f]+)&amp;s=([0-9a-f]{32})/.exec(ml.html || '') || [], U = uq[1], SG = uq[2];
+      r = await anon.call('POST', '/api/mail/unsub', { u: U, s: '0'.repeat(32) }); ok(r.s === 400, 'obuna bekor qilish: notoʻgʻri imzo rad etiladi', r.s);
+      r = await anon.call('POST', '/api/mail/unsub', { u: '__proto__', s: SG }); ok(r.s === 400, 'obuna bekor qilish: begona id rad etiladi', r.s);
+      r = await anon.call('POST', '/api/mail/unsub', { u: U, s: SG }); ok(r.s === 200 && r.j.on === false, 'obuna bekor qilindi (kirmasdan, imzo bilan)', r.j);
+      r = await n1.call('GET', '/api/notes'); ok(r.j.mailNews === false, 'panelda “email xabarlar” oʻchgan koʻrinadi');
+      mails.length = 0; r = await NF({ title: 'Yana xat', body: 'Matn', audience: 'email', email: 'note1@gmail.com', channels: { mail: true } });
+      ok(r.s === 200 && r.j.ok === false && r.j.st.mail === undefined && mails.length === 0, 'xat olishni oʻchirgan foydalanuvchiga xat ketmaydi', r.j);
+      r = await NF({ title: 'Ikki kanal', body: 'Matn', audience: 'email', email: 'note1@gmail.com', channels: { app: true, mail: true } });
+      ok(r.s === 200 && r.j.ok && r.j.st.app === 1 && r.j.st.mail.targets === 0 && r.j.st.mail.skipped === 1 && mails.length === 0, 'sayt ichida yetadi, email “oʻtkazib yuborildi” deb sanaladi', r.j);
+      r = await n1.call('POST', '/api/notes/mail', { on: true }); ok(r.s === 200 && r.j.account.mailNews === true, 'foydalanuvchi panelidan emailni qayta yoqdi');
+      mails.length = 0; r = await NF({ title: 'Qayta yoqildi', body: 'Matn', audience: 'email', email: 'note1@gmail.com', channels: { mail: true } }); ok(r.j.ok && mails.length === 1, 'qayta yoqilgach xat yetadi', r.j);
+      r = await NF({ title: 'Hammaga xat', body: 'Matn', audience: 'all', channels: { mail: true } }); ok(r.s === 400 && /koʻpi bilan 3/.test(r.j.error) && mails.length === 1, 'email: bir yuborishda chegaradan oshsa — hech narsa yuborilmaydi (MAIL_BULK_MAX=3)', r.j);
+
+      // admin tarixi va oʻchirish
+      r = await anon.call('GET', '/api/admin/notes', null, ADMH); const hist = r.j.notes || [];
+      ok(r.s === 200 && r.j.mail === true && r.j.mailMax === 3 && hist.length >= 5 && hist[0].title === 'Qayta yoqildi' && !hist.some(x => x.title === 'Tarifingiz yangilandi') && hist.find(x => x.title === 'Faqat sizga').who === 'note1@gmail.com', 'admin tarixi: yangilari tepada, tizim xabarlari yoʻq, email egasi koʻrinadi', hist.map(x => x.title));
+      const del = hist.find(x => x.title === 'Faqat sizga');
+      r = await anon.call('POST', '/api/admin/note/delete', { id: del.id }, ADMH); ok(r.s === 200, 'admin xabarni oʻchirdi', r.s);
+      r = await anon.call('POST', '/api/admin/note/delete', { id: del.id }, ADMH); ok(r.s === 404, 'oʻchirilgan xabar qayta topilmaydi', r.s);
+      r = await n1.call('GET', '/api/notes'); ok(!r.j.notes.some(x => x.title === 'Faqat sizga'), 'oʻchirilgan xabar foydalanuvchi panelidan yoʻqoldi');
+      r = await anon.call('GET', '/api/admin/notes'); ok(r.s === 401, 'admin tarixi: tokensiz → 401', r.s);
+      r = await anon.call('GET', '/api/admin/users', null, ADMH); ok(r.j.users.find(x => x.email === 'note1@gmail.com').noMail === false, 'admin foydalanuvchilar roʻyxatida noMail bayrogʻi bor');
+      r = await n1.call('GET', '/api/me'); ok(!JSON.stringify(r.j).includes('noteSeen'), '/api/me ichki maydonlarni oshkor qilmaydi');
+      // sof mantiq (notes.js)
+      ok(NM.check({ title: 'ab', body: 'cd', channels: { push: true } }).aud === 'all' && NM.check({ title: 'ab', body: 'cd', channels: { push: true } }).url === '/app' && NM.check({ title: '  Salom\n\tdunyo  ', body: 'cd  ef', channels: { app: true } }).title === 'Salom dunyo', 'notes.js: standart auditoriya/havola, boʻshliqlar tozalanadi');
+      ok(NM.check({ title: 'ab', body: 'cd', audience: 'admin', channels: { push: false } }).ch.push === true, 'notes.js: admin auditoriyasi har doim push');
+      const ndb = { notes: [] }; for (let i = 0; i < 160; i++) NM.add(ndb, { title: 't' + i, body: 'b', aud: 'all', app: true }, 1000); for (let i = 0; i < 310; i++) NM.add(ndb, { title: 's' + i, body: 'b', aud: 'email', to: ['x'], app: true, sys: true }, 1000);
+      ok(ndb.notes.filter(x => !x.sys).length === 150 && ndb.notes.filter(x => x.sys).length === 300 && ndb.notes.filter(x => !x.sys)[0].title === 't10' && ndb.notes.every((x, i, a) => !i || x.t > a[i - 1].t), 'notes.js: admin xabarlari 150 ta, tizim xabarlari 300 ta bilan cheklanadi (eskilari ketadi)');
+      ok(NM.sigOk('sir', 'u1', NM.sig('sir', 'u1')) && !NM.sigOk('sir', 'u2', NM.sig('sir', 'u1')) && !NM.sigOk('boshqa', 'u1', NM.sig('sir', 'u1')) && !NM.sigOk('sir', 'u1', ''), 'notes.js: obuna imzosi faqat oʻz hisobi va oʻz kaliti uchun');
+      ok(!/<script|<img|<b>/i.test(NM.mailHtml({ title: '<script>x</script>', body: '"><img onerror=x>', link: 'http://a/"><b>', unsub: 'http://u' })), 'notes.js: email shabloni HTMLni ekranlaydi');
+      mails.length = 0;
+    }
+
     console.log('Statik fayllar va sarlavhalar');
-    for (const [u, code] of [['/', 200], ['/app', 200], ['/index.html', 301], ['/js/main.js', 200], ['/data/universities.json', 200], ['/data/intl.json', 200], ['/js/views4.js', 200], ['/js/i18n.js', 200], ['/admin', 200], ['/js/admin.js', 200], ['/catalog/verified_intl/eth-zurich.json', 404], ['/server.js', 404], ['/package.json', 404], ['/data/db.json', 404], ['/catalog/scholarships.json', 404], ['/js/../server.js', 404], ['/%2e%2e/server.js', 404], ['/.git/config', 404]]) {
+    for (const [u, code] of [['/', 200], ['/app', 200], ['/index.html', 301], ['/js/main.js', 200], ['/data/universities.json', 200], ['/data/intl.json', 200], ['/js/views4.js', 200], ['/js/i18n.js', 200], ['/admin', 200], ['/js/admin.js', 200], ['/js/ui.js', 200], ['/js/notes.js', 200], ['/js/unsub.js', 200], ['/unsub', 200], ['/controls.css', 200], ['/js/i18n_notes.js', 200], ['/notes.js', 404], ['/catalog/verified_intl/eth-zurich.json', 404], ['/server.js', 404], ['/package.json', 404], ['/data/db.json', 404], ['/catalog/scholarships.json', 404], ['/js/../server.js', 404], ['/%2e%2e/server.js', 404], ['/.git/config', 404]]) {
       const x = await fetch(B + u, { redirect: 'manual' }); ok(x.status === code, `GET ${u} → ${code}`, x.status);
     }
     const hm = await fetch(B + '/'); const ht = await hm.text(); ok(/class="lp-h1"/.test(ht) && /href="\/landing\.css/.test(ht) && /href="\/app\?m=register"/.test(ht) && /script-src 'self';/.test(hm.headers.get('content-security-policy') || ''), 'bosh sahifa (/) — tanishtiruv (landing), qattiq CSP bilan');
@@ -221,7 +290,7 @@ class Client {
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
     const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
-    ok(/href="\/tiers\.css/.test(html) && /unidoue-v52/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v52');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v53/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v53');
     const ac = await fetch(B + '/atlas.css?v=50'), act = await ac.text(), cv = await fetch(B + '/contour.svg'), cvt = await cv.text();
     ok(ac.status === 200 && /text\/css/.test(ac.headers.get('content-type') || '') && /\.rt-done/.test(act) && /href="\/atlas\.css/.test(html), 'atlas.css (Yo‘l daftari dizayni) toʻgʻri MIME bilan beriladi va /app ga ulangan');
     ok(cv.status === 200 && /image\/svg\+xml/.test(cv.headers.get('content-type') || '') && /^<svg/.test(cvt) && !/<script/i.test(cvt), 'contour.svg (xarita foni) image/svg+xml bilan beriladi');
@@ -698,6 +767,17 @@ class Client {
       q = await SEND({ title: 'Plus uchun', body: 'Matn', audience: 'plus' }); ok(q.s === 200 && q.j.targets === 0, 'admin push: Plus auditoriyasi hozircha boʻsh', q.j);
       q = await SEND({ title: 'Bitta', body: 'Matn', audience: 'email', email: 'PUSH2@gmail.com' }); ok(q.s === 200 && q.j.targets === 1 && q.j.ok === 1, 'admin push: bitta foydalanuvchiga (email)', q.j);
       q = await SEND({ title: 'Sinov', body: 'Matn', audience: 'admin' }); ok(q.s === 200 && q.j.targets === 0, 'admin push: admin qurilmasi hali yoʻq', q.j);
+      // yagona shakl (/api/admin/notify): sayt ichida + push birga; email serverda sozlanmagan
+      const NFY = b => anon('POST', '/api/admin/notify', b, ADM);
+      got.length = 0; q = await NFY({ title: 'Ikki kanal', body: 'Sayt ichida va push', url: '/app#/pricing', audience: 'all', channels: { app: true, push: true } });
+      ok(q.s === 200 && q.j.ok && q.j.st.app === 2 && q.j.st.push.targets === 2 && q.j.st.push.ok === 2 && q.j.st.push.devices === 2, 'notify: sayt ichida + push (2 foydalanuvchi)', q.j);
+      pm = msgOf(got.find(x => x.url === '/ok/9'), dv9); ok(pm.title === 'Ikki kanal' && pm.url === '/app#/pricing', 'notify: push qurilmada deshifrlanadi', pm);
+      q = await u('GET', '/api/notes'); ok(q.j.notes[0].title === 'Ikki kanal' && q.j.unread === 1, 'notify: bir xabar panelda ham bor', q.j);
+      q = await NFY({ title: 'Faqat push', body: 'Matn', audience: 'all', channels: { push: true } }); ok(q.j.ok && q.j.st.app === undefined && q.j.st.push.ok === 2, 'notify: faqat push', q.j);
+      q = await u('GET', '/api/notes'); ok(!q.j.notes.some(x => x.title === 'Faqat push'), 'faqat push xabari panelda koʻrinmaydi');
+      q = await NFY({ title: 'Email', body: 'Matn', audience: 'all', channels: { mail: true } }); ok(q.s === 400 && /sozlanmagan/.test(q.j.error), 'notify: email sozlanmagan serverda aniq xato', q.j);
+      q = await NFY({ title: 'Plus push', body: 'Matn', audience: 'plus', channels: { app: true, push: true } }); ok(q.s === 200 && q.j.ok === false && q.j.st.app === undefined, 'notify: qabul qiluvchi yoʻq → hech narsa yaratilmaydi', q.j);
+      q = await NFY({ title: 'Sinov', body: 'Matn', audience: 'admin', channels: { push: true } }); ok(q.s === 200 && q.j.ok === false && q.j.st.push.targets === 0, 'notify: admin qurilmasi yoʻq', q.j);
 
       // tarif berilganda foydalanuvchiga xabar
       got.length = 0; q = await anon('POST', '/api/admin/plan', { email: 'push2@gmail.com', plan: 'plus', days: 30 }, ADM); ok(q.s === 200, 'admin Plus berdi');

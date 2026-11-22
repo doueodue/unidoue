@@ -1,6 +1,7 @@
 /* Admin panel. Qat'iy CSP: inline skript yo‘q, barcha hodisalar shu yerda ulanadi. */
 import * as fx from '/js/fx.js';
 import * as wp from '/js/webpush.js';
+import '/js/ui.js';
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 let TOKEN = '';
@@ -64,7 +65,7 @@ let USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all
 const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
 
 /* ---------- yo‘naltirish ---------- */
-const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Bildirishnomalar', promos: 'Promo kodlar' };
+const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar' };
 function route() {
   const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
   $$('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
@@ -263,40 +264,81 @@ async function createPromo() {
   btn.disabled = false;
 }
 
-/* ---------- Bildirishnomalar ---------- */
-const AUD = [['all', 'Hamma (bildirishnoma yoqqanlar)'], ['free', 'Faqat Free'], ['plus', 'Faqat Plus'], ['pro', 'Faqat Pro'], ['email', 'Bitta foydalanuvchi (email)'], ['admin', 'Faqat admin qurilmalari (sinov)']];
-const AUD_N = { all: 'barcha', free: 'Free', plus: 'Plus', pro: 'Pro', email: 'tanlangan', admin: 'admin' };
-function audienceUi() { $('#nq-w').hidden = $('#na').value !== 'email'; estimate(); }
+/* ---------- Xabar yuborish: sayt ichida / push / email ---------- */
+const AUD = [['all', 'Hammaga'], ['free', 'Faqat Free'], ['plus', 'Faqat Plus'], ['pro', 'Faqat Pro'], ['email', 'Bitta foydalanuvchi'], ['admin', 'Admin qurilmalari (sinov)']];
+const AUD_N = { all: 'barcha foydalanuvchilarga', free: 'Free foydalanuvchilarga', plus: 'Plus foydalanuvchilarga', pro: 'Pro foydalanuvchilarga', email: 'tanlangan foydalanuvchiga', admin: 'admin qurilmalariga' };
+const AUD_S = { all: 'Hamma', free: 'Free', plus: 'Plus', pro: 'Pro', admin: 'Admin' };
+let NH = { notes: [], mail: false, mailMax: 300 }, wasAdm = false;
+const chans = () => ({ app: $('#c-app').checked, push: $('#c-push').checked, mail: $('#c-mail').checked });
+function audUsers() {
+  const a = $('#na').value;
+  if (a === 'all') return USERS;
+  if (['free', 'plus', 'pro'].includes(a)) return USERS.filter(u => eff(u) === a);
+  if (a === 'email') { const u = USERS.find(x => x.email === $('#nq').value.trim().toLowerCase()); return u ? [u] : null; }
+  return [];
+}
+function audienceUi() {
+  const a = $('#na').value, adm = a === 'admin';
+  $('#nq-w').hidden = a !== 'email';
+  if (adm) { $('#c-app').checked = false; $('#c-mail').checked = false; $('#c-push').checked = true; }
+  else if (wasAdm) { $('#c-app').checked = true; $('#c-push').checked = true; }
+  wasAdm = adm;
+  $('#c-app').disabled = adm; $('#c-mail').disabled = adm || !NH.mail; $('#c-push').disabled = false;
+  if (!NH.mail) $('#c-mail').checked = false;
+  estimate();
+}
+const mailable = u => u.verified && !u.noMail;
 function estimate() {
-  const a = $('#na').value, us = USERS.filter(u => u.push > 0);
-  let n = null;
-  if (a === 'all') n = us.length; else if (['free', 'plus', 'pro'].includes(a)) n = us.filter(u => eff(u) === a).length; else if (a === 'admin') n = STATS ? STATS.push.admin : 0;
-  else { const u = USERS.find(x => x.email === $('#nq').value.trim().toLowerCase()); n = u ? (u.push > 0 ? 1 : 0) : null; }
-  $('#nh').textContent = n == null ? '' : a === 'admin' ? `${n} ta admin qurilmasi` : `Taxminan ${n} ta foydalanuvchiga`;
-  return n;
+  const a = $('#na').value, us = audUsers(), say = (id, t) => { $(id).textContent = t; };
+  const pn = a === 'admin' ? (STATS ? STATS.push.admin : 0) : us ? us.filter(u => u.push > 0).length : null;
+  say('#c-app-h', a === 'admin' ? 'Admin qurilmalariga yuborilmaydi' : us ? `${us.length} ta foydalanuvchi` : 'Qo‘ng‘iroqcha ichida');
+  say('#c-push-h', pn == null ? 'Telefon va brauzer' : a === 'admin' ? `${pn} ta admin qurilmasi` : `${pn} ta foydalanuvchida yoqilgan`);
+  const mn = us && a !== 'admin' ? us.filter(mailable).length : null;
+  say('#c-mail-h', a === 'admin' ? 'Admin qurilmalariga yuborilmaydi' : !NH.mail ? 'Sozlanmagan (RESEND yoki BREVO kaliti kerak)' : mn == null ? 'Pochta orqali' : mn > NH.mailMax && $('#c-mail').checked ? `${mn} ta — bir yuborishda ko‘pi bilan ${NH.mailMax} ta` : `${mn} ta manzilga`);
+  return { app: a === 'admin' ? 0 : us ? us.length : null, push: pn, mail: mn };
 }
 function preview() {
-  $('#nt-n').textContent = $('#nt').value.length + '/60'; $('#nb-n').textContent = $('#nb').value.length + '/200';
-  $('#pv-t').textContent = $('#nt').value.trim() || 'Sarlavha'; $('#pv-b').textContent = $('#nb').value.trim() || 'Xabar matni shu yerda ko‘rinadi.';
+  $('#nt-n').textContent = $('#nt').value.length + '/60'; $('#nb-n').textContent = $('#nb').value.length + '/300';
+  $('#pv-t').textContent = $('#nt').value.trim() || 'Sarlavha'; $('#pv-b').textContent = $('#nb').value.trim().slice(0, 240) || 'Xabar matni shu yerda ko‘rinadi.';
 }
-async function sendPush() {
-  const m = $('#nm'), title = $('#nt').value.trim(), body = $('#nb').value.trim(), url = $('#nu').value.trim() || '/app', audience = $('#na').value, email = $('#nq').value.trim().toLowerCase();
+const chipN = (ok, tg) => `${ok}/${tg}`;
+function renderNotes() {
+  const l = NH.notes || []; $('#nh-c').textContent = l.length;
+  $('#nh-l').innerHTML = l.length ? `<ul class="nh">${l.map(n => {
+    const st = n.st || {}, who = n.aud === 'email' ? (n.who || 'o‘chirilgan hisob') : AUD_S[n.aud] || n.aud;
+    const chips = [n.app ? `<span class="badge">${svg(IC.inbox, 'mini')}Sayt ichida · ${st.app || 0}</span>` : '', n.push && st.push ? `<span class="badge">${svg(IC.bell, 'mini')}Push · ${chipN(st.push.ok, st.push.targets)}</span>` : '', n.mail && st.mail ? `<span class="badge${st.mail.failed ? ' warn' : ''}">${svg(IC.mail, 'mini')}Email · ${chipN(st.mail.ok, st.mail.targets)}</span>` : ''].join('');
+    return `<li><div class="nh-t"><b>${esc(n.title)}</b><span>${esc(n.body)}</span></div><div class="nh-m"><span class="mut">${esc(when(n.t))} · ${esc(who)}</span><span class="nh-c">${chips}</span>${n.app ? `<button class="btn sm danger" type="button" data-nd="${esc(n.id)}" title="Foydalanuvchilar panelidan olib tashlash">O‘chirish</button>` : ''}</div></li>`;
+  }).join('')}</ul>` : '<p class="mut" style="margin-top:12px">Hali xabar yuborilmagan.</p>';
+  $$('#nh-l [data-nd]').forEach(b => (b.onclick = async () => {
+    if (!await ask({ title: 'Xabar o‘chirilsinmi?', text: 'U foydalanuvchilar bildirishnomalar panelidan yo‘qoladi. Allaqachon yuborilgan push va email qaytmaydi.', ok: 'O‘chirish', danger: true })) return;
+    try { await call('POST', '/api/admin/note/delete', { id: b.dataset.nd }); toast('Xabar o‘chirildi.'); loadNotes(); } catch (e) { toast(e.message, 'err'); }
+  }));
+}
+async function loadNotes() { try { NH = await call('GET', '/api/admin/notes'); } catch (e) { if (e.status === 401) { load(); return; } toast(e.message, 'err'); } renderNotes(); audienceUi(); }
+async function sendNote() {
+  const m = $('#nm'), title = $('#nt').value.trim(), body = $('#nb').value.trim(), url = $('#nu').value.trim() || '/app', audience = $('#na').value, email = $('#nq').value.trim().toLowerCase(), ch = chans();
   m.className = 'msg err'; m.textContent = ''; $('#nr').innerHTML = '';
   if (title.length < 2 || body.length < 2) { m.textContent = 'Sarlavha va matnni kiriting.'; return; }
   if (!/^\/(?!\/)[\w\-./#?=&%]*$/.test(url)) { m.textContent = 'Havola sayt ichidagi yo‘l bo‘lsin, masalan /app#/pricing.'; return; }
-  if (audience === 'email' && !email) { m.textContent = 'Foydalanuvchi emailini kiriting.'; return; }
-  if (audience === 'email') { const u = USERS.find(x => x.email === email); if (!u) { m.textContent = 'Bunday email bilan foydalanuvchi topilmadi.'; return; } if (!u.push) { m.textContent = 'Bu foydalanuvchida bildirishnoma yoqilmagan.'; return; } }
-  const n = estimate();
-  if (n === 0) { m.textContent = audience === 'admin' ? 'Admin qurilmasi yoqilmagan. O‘ngdagi “Admin qurilmasi” kartasidan yoqing.' : 'Bu guruhda bildirishnoma yoqqan qurilma topilmadi.'; return; }
-  if (!await ask({ title: 'Xabar yuborilsinmi?', text: `“${title}” — ${audience === 'email' ? email : AUD_N[audience]} ${audience === 'admin' ? 'qurilmalarga' : 'foydalanuvchilarga'}${n != null ? ` (taxminan ${n} ta)` : ''}. Yuborilgan xabarni qaytarib bo‘lmaydi.`, ok: 'Yuborish' })) return;
-  const btn = $('#ns'); btn.disabled = true; m.className = 'msg'; m.textContent = 'Yuborilmoqda…';
+  if (!ch.app && !ch.push && !ch.mail) { m.textContent = 'Kamida bitta yuborish usulini tanlang.'; return; }
+  if (audience === 'email') { if (!email) { m.textContent = 'Foydalanuvchi emailini kiriting.'; return; } if (!USERS.find(x => x.email === email)) { m.textContent = 'Bunday email bilan foydalanuvchi topilmadi.'; return; } }
+  const n = estimate(), parts = [];
+  if (ch.app && n.app) parts.push(`sayt ichida ${n.app} ta`);
+  if (ch.push && n.push) parts.push(`push ${n.push} ta`);
+  if (ch.mail && n.mail) parts.push(`email ${n.mail} ta`);
+  if (ch.mail && n.mail > NH.mailMax) { m.textContent = `Bir yuborishda ko‘pi bilan ${NH.mailMax} ta email yuborish mumkin. Auditoriyani toraytiring.`; return; }
+  if (!parts.length) { m.textContent = ch.push && !ch.app && !ch.mail ? (audience === 'admin' ? 'Admin qurilmasi yoqilmagan. O‘ngdagi “Admin qurilmasi” kartasidan yoqing.' : 'Bu guruhda bildirishnoma yoqqan qurilma topilmadi.') : 'Tanlangan usullar bo‘yicha qabul qiluvchi topilmadi.'; return; }
+  if (!await ask({ title: 'Xabar yuborilsinmi?', text: `“${title}” — ${audience === 'email' ? email : AUD_N[audience]} (${parts.join(', ')}). Yuborilgan xabarni qaytarib bo‘lmaydi.`, ok: 'Yuborish' })) return;
+  const btn = $('#ns'); btn.disabled = true; m.className = 'msg'; m.textContent = ch.mail ? 'Yuborilmoqda… (email biroz vaqt olishi mumkin)' : 'Yuborilmoqda…';
   try {
-    const r = await call('POST', '/api/admin/push/send', { title, body, url, audience, ...(audience === 'email' ? { email } : {}) });
+    const r = await call('POST', '/api/admin/notify', { title, body, url, audience, channels: ch, ...(audience === 'email' ? { email } : {}) }), st = r.st || {}, ln = [];
     m.textContent = '';
-    const bad = !r.ok;
-    $('#nr').innerHTML = `<div class="res${bad ? ' bad' : ''}"><b>${bad ? 'Hech qaysi qurilmaga yetkazilmadi' : 'Yuborildi ✓'}</b><div class="res-n"><span>Foydalanuvchi: <strong>${r.targets}</strong></span><span>Qurilma: <strong>${r.devices}</strong></span><span>Yetkazildi: <strong>${r.ok}</strong></span>${r.gone ? `<span>Eskirgan (o‘chirildi): <strong>${r.gone}</strong></span>` : ''}${r.failed ? `<span>Xato: <strong>${r.failed}</strong></span>` : ''}</div></div>`;
-    toast(bad ? 'Xabar yetkazilmadi' : `Xabar yuborildi: ${r.ok} ta qurilmaga`, bad ? 'err' : '');
-    load(true);
+    if (st.app != null) ln.push(`<span>Sayt ichida: <strong>${st.app}</strong> ta foydalanuvchi</span>`);
+    if (st.push) ln.push(`<span>Push: <strong>${st.push.ok}</strong> / ${st.push.targets} foydalanuvchi (${st.push.devices} qurilma)</span>${st.push.gone ? `<span>Eskirgan (o‘chirildi): <strong>${st.push.gone}</strong></span>` : ''}${st.push.failed ? `<span>Push xatosi: <strong>${st.push.failed}</strong></span>` : ''}`);
+    if (st.mail) ln.push(`<span>Email: <strong>${st.mail.ok}</strong> / ${st.mail.targets} yuborildi</span>${st.mail.failed ? `<span>Email xatosi: <strong>${st.mail.failed}</strong></span>` : ''}${st.mail.skipped ? `<span>O‘tkazib yuborildi (tasdiqlanmagan yoki xat olishni o‘chirgan): <strong>${st.mail.skipped}</strong></span>` : ''}`);
+    $('#nr').innerHTML = `<div class="res${r.ok ? '' : ' bad'}"><b>${r.ok ? 'Yuborildi ✓' : 'Hech kimga yetkazilmadi'}</b><div class="res-n">${ln.join('')}</div></div>`;
+    toast(r.ok ? 'Xabar yuborildi' : 'Xabar yetkazilmadi', r.ok ? '' : 'err');
+    load(true); loadNotes();
   } catch (e) { m.className = 'msg err'; m.textContent = e.message; }
   btn.disabled = false;
 }
@@ -338,12 +380,13 @@ async function load(silent) {
   if (busy) return; busy = true;
   const rf = $('#rf'); rf.classList.add('spin'); if (!silent) $('#st').textContent = 'Yuklanmoqda…';
   try {
-    const [rq, us, st, od, pr] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
+    const [rq, us, st, od, pr, nh] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
       call('GET', '/api/admin/orders').catch(e => { if (e.status === 401) throw e; return null; }),
-      call('GET', '/api/admin/promos').catch(e => { if (e.status === 401) throw e; return null; })]);
-    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; loadedAt = Date.now();
+      call('GET', '/api/admin/promos').catch(e => { if (e.status === 401) throw e; return null; }),
+      call('GET', '/api/admin/notes').catch(e => { if (e.status === 401) throw e; return null; })]);
+    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; if (nh) NH = nh; loadedAt = Date.now();
     const first = $('#shell').hidden; $('#lg').hidden = true; $('#shell').hidden = false;
-    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); estimate();
+    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderNotes(); audienceUi();
     $('#st').textContent = 'Yangilandi: ' + when(Date.now()).split(', ')[1].split(' ').pop();
     if (first) route(); else fx.scan($('#kpis'));
   } catch (e) {
@@ -367,7 +410,7 @@ $('#mb').onclick = createPromo; $('#mk-r').onclick = () => { $('#mk').value = pm
 $('#md').oninput = () => $$('#md-p [data-d]').forEach(x => x.setAttribute('aria-pressed', x.dataset.d === $('#md').value));
 $('#mk').onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); createPromo(); } };
 $('#na').innerHTML = AUD.map(([k, l]) => `<option value="${k}">${l}</option>`).join('');
-$('#na').onchange = audienceUi; $('#nq').oninput = estimate; $('#nt').oninput = preview; $('#nb').oninput = preview; $('#ns').onclick = sendPush;
+$('#na').onchange = audienceUi; $('#nq').oninput = estimate; $('#nt').oninput = preview; $('#nb').oninput = preview; $('#ns').onclick = sendNote; $$('#nch input').forEach(i => (i.onchange = estimate));
 preview();
 setInterval(() => { if (TOKEN && !document.hidden && !$('#shell').hidden && Date.now() - loadedAt > 55000) load(true); }, 30000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && TOKEN && !$('#shell').hidden && Date.now() - loadedAt > 30000) load(true); });

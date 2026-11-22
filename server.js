@@ -38,7 +38,7 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {} });
+const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [] });
 let db = normDb({});
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
@@ -111,6 +111,7 @@ for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, async () => { try { flu
 const Scoring = require('./public/js/scoring.js');
 const PUSH = require('./push');
 const PROMO = require('./promo');
+const NOTES = require('./notes');
 
 /* ---------------- tariflar va sozlamalar ---------------- */
 // AI provayderi: ANTHROPIC_API_KEY (Claude) yoki AI_API_KEY + AI_BASE_URL (OpenAI-mos: Groq, Gemini, OpenRouter...)
@@ -343,6 +344,7 @@ function accountInfo(u) {
     config: { ai: !!AI_PROVIDER, vision: !!(AI_PROVIDER && AI_VISION), email: !!MAIL_PROVIDER, payments: PAY.enabled, online: PAY.info() },
     tg: { on: !!(TG_TOKEN && TG_USER), linked: !!u.tgChat, bot: TG_USER },
     push: { key: vapid().pub, devices: (u.push || []).length },
+    notes: NOTES.unread(db, u, pl.id), mailNews: !u.noMail,
     pay: { ref: payRef(u), info: PAY_INFO, requested: u.planReq || null, plan: u.planReqPlan || 'pro', price: (PLANS[u.planReqPlan] || PLANS.pro).price }
   };
 }
@@ -395,6 +397,26 @@ async function pushMany(users, m, opt) {
   return tot;
 }
 const pushDevices = () => Object.values(db.users).reduce((n, u) => n + (u.push ? u.push.length : 0), 0);
+
+/* ---------------- Bildirishnomalar: sayt ichida + push + email (notes.js) ---------------- */
+const MAIL_BULK_MAX = Math.max(1, parseInt(process.env.MAIL_BULK_MAX, 10) || 300); // bir yuborishda ko'pi bilan nechta email (Brevo/Resend bepul limitlari uchun)
+const baseUrl = () => String(process.env.APP_URL || 'https://unidoue.uz').replace(/\/+$/, '');
+const unsubLink = u => `${baseUrl()}/unsub?u=${u.id}&s=${NOTES.sig(vapid().priv, u.id)}`;
+const canMail = u => !!u.email && u.verified !== false && !u.noMail;
+/** Tizim xabari (tarif yoqildi, promo qabul qilindi): faqat shu foydalanuvchining paneliga tushadi */
+const sysNote = (u, title, body, url) => NOTES.add(db, { title, body, url: url || '/app#/pricing', aud: 'email', to: [u.id], app: true, push: false, mail: false, sys: true });
+async function mailMany(users, m) {
+  const out = { ok: 0, failed: 0 }; let i = 0;
+  const worker = async () => {
+    for (;;) {
+      const u = users[i++]; if (!u) return;
+      try { await sendMail(u.email, m.title, NOTES.mailHtml({ title: m.title, body: m.body, link: baseUrl() + m.url, unsub: unsubLink(u) })); out.ok++; }
+      catch (e) { out.failed++; console.error('Xat yuborilmadi:', String(e.message).slice(0, 120)); }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(6, users.length) }, worker));
+  return out;
+}
 /** Sayt egasiga: yangi soʻrov yoki toʻlov (Telegram + administrator qurilmalariga push) */
 function notifyOwner(r) {
   notifyTelegram(r);
@@ -613,7 +635,7 @@ async function api(req, res, pathname) {
   if (pathname === '/api/credits' && method === 'GET') {
     const u = sessionUser(req);
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
-    return send(res, 200, { credits: creditsOf(u), plan: effPlan(u).id });
+    return send(res, 200, { credits: creditsOf(u), plan: effPlan(u).id, notes: NOTES.unread(db, u, effPlan(u).id) });
   }
 
   if (pathname === '/api/me' && method === 'GET') {
@@ -735,6 +757,37 @@ async function api(req, res, pathname) {
     if (u.push && !u.push.length) delete u.push;
     return send(res, 200, { ...r, account: accountInfo(u) });
   }
+  /* ---- Bildirishnomalar paneli (sayt ichida) ---- */
+  if (pathname === '/api/notes' && method === 'GET') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (limited('nl:' + u.id, 120, 60 * 1000)) return fail(res, 429, 'Juda koʻp soʻrov. Birozdan keyin urinib koʻring.');
+    const pl = effPlan(u).id;
+    return send(res, 200, { notes: NOTES.list(db, u, pl), unread: NOTES.unread(db, u, pl), mailNews: !u.noMail });
+  }
+  if (pathname === '/api/notes/read' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (limited('nr:' + u.id, 60, 60 * 1000)) return fail(res, 429, 'Juda koʻp soʻrov. Birozdan keyin urinib koʻring.');
+    u.noteSeen = Math.max(Date.now(), db.notes.length ? db.notes[db.notes.length - 1].t : 0); save();
+    return send(res, 200, { ok: true, account: accountInfo(u) });
+  }
+  if (pathname === '/api/notes/mail' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    const b = await readJson(req);
+    if (b.on === false) u.noMail = true; else delete u.noMail;
+    save();
+    return send(res, 200, { ok: true, account: accountInfo(u) });
+  }
+  if (pathname === '/api/mail/unsub' && method === 'POST') { // xatdagi havola: kirmasdan ham ishlaydi, HMAC imzo bilan himoyalangan
+    if (limited('unsub:' + ip, 30, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Keyinroq urinib koʻring.');
+    const b = await readJson(req), id = clean(b.u, 40), u = Object.hasOwn(db.users, id) ? db.users[id] : null;
+    if (!u || !NOTES.sigOk(vapid().priv, u.id, clean(b.s, 64))) return fail(res, 400, 'Havola notoʻgʻri yoki eskirgan.');
+    if (b.on === true) delete u.noMail; else u.noMail = true;
+    save();
+    return send(res, 200, { ok: true, on: !u.noMail });
+  }
   if (pathname === '/api/admin/push/subscribe' && method === 'POST') {
     if (!admGate(req, res, ip, 'push-subscribe', 60)) return;
     const sub = parseSub(await readJson(req));
@@ -768,9 +821,50 @@ async function api(req, res, pathname) {
     return send(res, 200, { audience: aud, targets: users.length, devices: r.ok + r.gone + r.failed, ...r });
   }
 
+  /* ---- Admin: xabar yuborish — sayt ichida / push / email (bitta shakldan) ---- */
+  if (pathname === '/api/admin/notify' && method === 'POST') {
+    if (!admGate(req, res, ip, 'notify', 20)) return;
+    const v = NOTES.check(await readJson(req));
+    if (v.error) return fail(res, 400, v.error);
+    const { title, body, url, aud, ch } = v, m = { title, body, url, tag: 'news' };
+    if (aud === 'admin') {
+      const n = db.adminPush.length, r = await pushTo(db.adminPush, m);
+      return send(res, 200, { ok: r.ok > 0, audience: aud, st: { push: { targets: n, devices: r.ok + r.gone + r.failed, ...r } } });
+    }
+    let users;
+    if (aud === 'email') { const id = emailIdx.get(v.email); if (!id) return fail(res, 404, 'Foydalanuvchi topilmadi.'); users = [db.users[id]]; }
+    else users = Object.values(db.users).filter(x => aud === 'all' || effPlan(x).id === aud);
+    if (ch.mail && !MAIL_PROVIDER) return fail(res, 400, 'Email yuborish sozlanmagan: serverda RESEND_API_KEY yoki BREVO_API_KEY kerak.');
+    const mailTo = ch.mail ? users.filter(canMail) : [], pushTo_ = ch.push ? users.filter(x => x.push && x.push.length) : [];
+    if (mailTo.length > MAIL_BULK_MAX) return fail(res, 400, `Bir yuborishda koʻpi bilan ${MAIL_BULK_MAX} ta email yuborish mumkin (hozir ${mailTo.length} ta). Auditoriyani toraytiring.`);
+    if (!(ch.app && users.length) && !pushTo_.length && !mailTo.length) return send(res, 200, { ok: false, audience: aud, st: {} });
+    const rec = NOTES.add(db, { title, body, url, aud, ...(aud === 'email' ? { to: [users[0].id] } : {}), app: ch.app, push: ch.push, mail: ch.mail, st: {} });
+    if (ch.app) rec.st.app = users.length;
+    if (ch.push) {
+      const r = await pushMany(pushTo_, m); for (const x of pushTo_) if (x.push && !x.push.length) delete x.push;
+      rec.st.push = { targets: pushTo_.length, devices: r.ok + r.gone + r.failed, ...r };
+    }
+    if (ch.mail) { const r = await mailMany(mailTo, m); rec.st.mail = { targets: mailTo.length, ...r, skipped: users.length - mailTo.length }; }
+    save();
+    const st = rec.st;
+    return send(res, 200, { ok: !!(st.app > 0 || (st.push && st.push.ok > 0) || (st.mail && st.mail.ok > 0)), id: rec.id, audience: aud, st });
+  }
+  if (pathname === '/api/admin/notes' && method === 'GET') {
+    if (!admGate(req, res, ip, 'notes', 300)) return;
+    const notes = db.notes.filter(n => !n.sys).slice(-30).reverse().map(n => ({ id: n.id, t: n.t, title: n.title, body: n.body, url: n.url, aud: n.aud, who: n.to && db.users[n.to[0]] ? db.users[n.to[0]].email : '', app: !!n.app, push: !!n.push, mail: !!n.mail, st: n.st || {} }));
+    return send(res, 200, { notes, mail: !!MAIL_PROVIDER, mailMax: MAIL_BULK_MAX });
+  }
+  if (pathname === '/api/admin/note/delete' && method === 'POST') { // faqat foydalanuvchilar panelidan olib tashlaydi; yuborilgan push/emailni qaytarib boʻlmaydi
+    if (!admGate(req, res, ip, 'note-del', 60)) return;
+    const b = await readJson(req);
+    if (!NOTES.remove(db, clean(b.id, 40))) return fail(res, 404, 'Xabar topilmadi.');
+    save();
+    return send(res, 200, { ok: true });
+  }
+
   if (pathname === '/api/admin/users' && method === 'GET') {
     if (!admGate(req, res, ip, 'users', 300)) return;
-    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null, seen: x.seenDay || null, verified: x.verified !== false, push: (x.push || []).length, ai: x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0 })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
+    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null, seen: x.seenDay || null, verified: x.verified !== false, noMail: !!x.noMail, push: (x.push || []).length, ai: x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0 })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
     return send(res, 200, { users });
   }
 
@@ -842,6 +936,7 @@ async function api(req, res, pathname) {
     if (peek('pmu:' + u.id) >= 8 || peek('pmi:' + ip) >= 40) return fail(res, 429, 'Juda koʻp notoʻgʻri urinish. 15 daqiqadan keyin qayta urinib koʻring.');
     const b = await readJson(req), r = PROMO.redeem(db, u, clean(b.code, 60), Date.now(), { effPlan, order: PLAN_ORDER });
     if (!r.ok) { if (r.status === 404) { limited('pmu:' + u.id, 8, 15 * 60 * 1000); limited('pmi:' + ip, 40, 15 * 60 * 1000); } return send(res, r.status, { error: r.error, code: r.code }); }
+    sysNote(u, 'Promo kod qabul qilindi', PLANS[r.plan].name + ' tarifi yoqildi');
     save();
     return send(res, 200, { ok: true, plan: r.plan, days: r.days, until: r.until, account: accountInfo(u) });
   }
@@ -1008,6 +1103,7 @@ async function api(req, res, pathname) {
     if (!PLANS[b.plan]) return fail(res, 400, 'Notoʻgʻri tarif.');
     const days = Math.min(Math.max(+b.days || 30, 1), 3660);
     u.plan = b.plan; u.planUntil = b.plan === 'free' ? null : Date.now() + days * 864e5; delete u.planReq; delete u.planReqPlan; save();
+    if (u.plan !== 'free') sysNote(u, 'Tarifingiz yangilandi', PLANS[u.plan].name + ' tarifi yoqildi');
     if (u.plan !== 'free') pushUser(u, { title: 'Tarifingiz yangilandi', body: `${PLANS[u.plan].name} tarifi ${days} kunga yoqildi. Yangi imkoniyatlardan foydalaning.`, url: '/app#/pricing', tag: 'plan' }).catch(() => {});
     return send(res, 200, { ok: true, email: u.email, plan: u.plan, planUntil: u.planUntil });
   }
@@ -1208,7 +1304,7 @@ async function notifyTelegram(r) {
 
 
 /* ---------------- statik fayllar (faqat ruxsat etilgan roʻyxat) ---------------- */
-const PAGES = { '/': 'landing.html', '/privacy': 'privacy.html', '/delete-account': 'delete-account.html', '/app': 'app.html', '/reset': 'reset.html', '/admin': 'admin.html' };
+const PAGES = { '/': 'landing.html', '/privacy': 'privacy.html', '/delete-account': 'delete-account.html', '/app': 'app.html', '/reset': 'reset.html', '/unsub': 'unsub.html', '/admin': 'admin.html' };
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.png': 'image/png',
   '.webmanifest': 'application/manifest+json; charset=utf-8', '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml' };
 /** Digital Asset Links (Google Play TWA): fayldagi barmoq izlariga TWA_SHA256 (vergul bilan) qoʻshiladi — Play App Signing izini kodsiz ulash uchun. TWA_PACKAGE paket nomini almashtiradi. */
@@ -1230,7 +1326,7 @@ function serveStatic(req, res, pathname) {
   let rel = PAGES[pathname];
   if (!rel) {
     try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch (e) { return false; }
-    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'atlas.css' || rel === 'landing.css' || rel === 'contour.svg' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
+    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'atlas.css' || rel === 'landing.css' || rel === 'contour.svg' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'controls.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
     if (!ok) return false;
   }
   const file = path.resolve(PUBLIC_DIR, rel);
@@ -1259,7 +1355,7 @@ async function tgInit() {
 const server = http.createServer(async (req, res) => {
   try {
     const pathname = new URL(req.url, 'http://x').pathname;
-    secHeaders(res, pathname === '/' || pathname === '/app' || pathname === '/reset' || pathname === '/admin' || pathname.startsWith('/js/') || pathname === '/app.css' || pathname === '/atlas.css' || pathname === '/tiers.css');
+    secHeaders(res, pathname === '/' || pathname === '/app' || pathname === '/reset' || pathname === '/unsub' || pathname === '/admin' || pathname.startsWith('/js/') || pathname === '/app.css' || pathname === '/atlas.css' || pathname === '/tiers.css');
     // Eski *.onrender.com manzilidan asosiy domenga (APP_URL) yoʻnaltirish — faqat sahifalar uchun (API, healthz, .well-known tegilmaydi)
     if (APP_HOST && (req.method === 'GET' || req.method === 'HEAD') && /\.onrender\.com$/i.test(String(req.headers.host || '').split(':')[0]) && !pathname.startsWith('/api/') && pathname !== '/healthz' && !pathname.startsWith('/.well-known/')) {
       res.statusCode = 301; res.setHeader('Location', APP_ORIGIN + req.url); return res.end();

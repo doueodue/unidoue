@@ -1,9 +1,12 @@
 import { $, $$, S, api, adopt, wipeLocal, esc, svg, skeleton, errorBox, toast, push, refreshCredits, refreshAccount, hasFeature, NEED_PLAN, STAR } from './core.js';
-import { t, langSelect, bindLang } from './i18n.js';
+import { t, trText, langSelect, bindLang } from './i18n.js';
 import { themeSwitch } from './theme-ui.js';
 import * as fx from './fx.js';
 import * as pn from './push.js';
+import { bellHTML, bindBell } from './notes.js';
+import { setTipTranslator } from './ui.js';
 import { tierPill, liveGlass } from './tiers.js';
+setTipTranslator(s => trText(s) || s); // izohlar (title) joriy tilga tarjima qilinadi
 
 const ROUTES = [
   { id: 'dashboard', t: 'Bosh panel', i: 'home', sec: 'Asosiy', v: () => import('./views1.js').then(m => m.dashboard) },
@@ -104,13 +107,13 @@ function shell() {
   </div>
   <div class="side-foot tg" id="sf" data-tier="free" data-live><div class="sf-row"><span class="sf-av" id="sf-av" aria-hidden="true"></span><div class="sf-who"><b id="sf-u"></b><small id="sf-p"></small></div><span id="sf-t"></span></div><button class="btn sm" id="lo" type="button">${t('Chiqish')}</button></div></aside>
   <div class="scrim" id="scrim"></div>
-  <div class="main"><header class="top"><button class="burger" id="bg" aria-label="Menyu" type="button">${svg('menu')}</button><h1 id="ttl"></h1><span class="top-tools">${themeSwitch()}${langSelect('lang')}</span><span id="pb"></span></header>
+  <div class="main"><header class="top"><button class="burger" id="bg" aria-label="Menyu" type="button">${svg('menu')}</button><h1 id="ttl"></h1><span class="top-tools">${themeSwitch()}${langSelect('lang')}</span>${bellHTML()}<span id="pb"></span></header>
   <main class="content" id="view" tabindex="-1"></main></div></div>`;
   bindLang('lang', () => { shell(); route(); });
   $('#bg').onclick = () => document.body.classList.toggle('nav-open');
   $('#scrim').onclick = () => document.body.classList.remove('nav-open');
   $('#lo').onclick = async () => { try { if (localStorage.getItem('qabul:sync')) await push(); await pn.forget(); await api('/api/logout', 'POST', {}); } catch (e) {} wipeLocal(); location.hash = ''; location.reload(); };
-  liveGlass($('#sf')); updatePlanUI();
+  liveGlass($('#sf')); updatePlanUI(); bindBell();
 }
 export function updatePlanUI() {
   if (!$('#sf-u') || !S.user) return;

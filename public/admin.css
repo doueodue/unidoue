@@ -238,3 +238,25 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 @media(max-width:640px){.pm-c{grid-column:auto}}
 
 .pm-note+.pm-note{margin-top:2px}.adm .badge{white-space:nowrap}
+
+/* Xabar yuborish: kanallar va tarix */
+.chs{border:0;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:0}
+.chs legend.f{grid-column:1/-1;padding:0;margin-bottom:6px}
+.ch{display:flex;gap:10px;align-items:flex-start;min-width:0;padding:11px 12px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
+.ch:hover{border-color:color-mix(in srgb,var(--brand) 55%,var(--line-2))}
+.ch:has(input:checked){border-color:var(--brand);background:var(--brand-50);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 12%,transparent)}
+.ch:has(input:disabled){opacity:.5;cursor:not-allowed;box-shadow:none}
+.ch input{margin-top:1px;flex:none}
+.ch span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ch b{font-size:14px}
+.ch small{font-size:12px;line-height:1.35;color:var(--muted);overflow-wrap:anywhere}
+.nh-card{margin-top:18px}
+.nh{list-style:none;margin:8px 0 0;padding:0}
+.nh li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 18px;align-items:center;padding:13px 0;border-top:1px solid var(--line)}
+.nh li:first-child{border-top:0}
+.nh-t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.nh-t b{font-size:14.5px;overflow-wrap:anywhere}
+.nh-t span{font-size:13px;color:var(--ink-2);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.nh-m{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;font-size:12.5px}
+.nh-c{display:flex;gap:6px;flex-wrap:wrap}
+@media(max-width:700px){.chs{grid-template-columns:1fr}.nh li{grid-template-columns:1fr}.nh-m{justify-content:flex-start}}
