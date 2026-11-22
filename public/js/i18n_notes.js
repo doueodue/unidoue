@@ -8,7 +8,18 @@ const P = [
   ["Telefonda bildirishnoma yoqish", "Включить уведомления на телефоне", "Turn on phone notifications"],
   ["Tarifingiz yangilandi", "Ваш тариф обновлён", "Your plan was updated"],
   ["Promo kod qabul qilindi", "Промокод принят", "Promo code accepted"],
-  ["Juda koʻp soʻrov. Birozdan keyin urinib koʻring.", "Слишком много запросов. Повторите чуть позже.", "Too many requests. Try again in a moment."]
+  ["Juda koʻp soʻrov. Birozdan keyin urinib koʻring.", "Слишком много запросов. Повторите чуть позже.", "Too many requests. Try again in a moment."],
+  ["Rasm yuklash", "Загрузить фото", "Upload photo"],
+  ["Rasmni almashtirish", "Заменить фото", "Change photo"],
+  ["Rasm yangilandi ✓", "Фото обновлено ✓", "Photo updated ✓"],
+  ["Rasm olib tashlandi.", "Фото удалено.", "Photo removed."],
+  ["Rasmni sudrab, yuzni doira o‘rtasiga keltiring.", "Перетащите фото, чтобы лицо было в центре круга.", "Drag the photo to centre your face in the circle."],
+  ["Rasm JPEG formatida boʻlsin.", "Фото должно быть в формате JPEG.", "The photo must be a JPEG."],
+  ["Rasm juda katta. Kichikroq rasm tanlang.", "Фото слишком большое. Выберите поменьше.", "The photo is too large. Choose a smaller one."],
+  ["Rasm buzilgan. Boshqa rasm tanlang.", "Файл повреждён. Выберите другое фото.", "The file looks damaged. Choose another photo."],
+  ["Rasm oʻlchami mos emas.", "Недопустимый размер фото.", "The photo size is not supported."],
+  ["Rasm yoʻq.", "Фото нет.", "No photo."],
+  ["Juda koʻp urinish. Birozdan keyin urinib koʻring.", "Слишком много попыток. Повторите чуть позже.", "Too many attempts. Try again in a moment."]
 ];
 export const NRU = Object.fromEntries(P.map(x => [x[0], x[1]]));
 export const NEN = Object.fromEntries(P.map(x => [x[0], x[2]]));

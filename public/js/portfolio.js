@@ -291,7 +291,7 @@ export async function portfolio(el) {
   <div class="pf-grid"><div class="pf-main"><div id="pf-build"></div><div id="pf-design" hidden></div><div id="pf-score" hidden></div></div>
   <aside class="pf-aside"><div id="pf-sc"></div>${expHTML()}<div class="pf-pvw"><div class="pf-vt" role="group" aria-label="Ko‘rinish turi"><button type="button" data-pv="a4" aria-selected="true">A4 (PDF)</button><button type="button" data-pv="web" aria-selected="false">Veb-sayt</button><button type="button" class="pf-dzb" data-tab="design">Dizaynni sozlash</button></div><div class="pf-desk"><div class="pf-paper" id="pf-paper"></div></div><div class="pf-pg" id="pf-pg"></div></div>${langHTML()}</aside></div></div>`;
   renderBuild(); paintScore();
-  mountPreview(); $('#pf-paper', el).addEventListener('pf:pages', () => { const n = +$('#pf-paper', el).dataset.pages; $('#pf-pg', el).textContent = `≈ ${n} ${tr(n === 1 ? 'sahifa' : 'sahifalar')}`; });
+  mountPreview(); $('#pf-paper', el).addEventListener('pf:pages', () => { const pp = $('#pf-paper', el), pg = $('#pf-pg', el); if (!pp || !pg) return; const n = +pp.dataset.pages; pg.textContent = `≈ ${n} ${tr(n === 1 ? 'sahifa' : 'sahifalar')}`; });
   const onInput = e => {
     const cc = e.target.closest('[data-cc]'); if (cc) { if (!hasFeature('pf_studio')) return; if (cc.dataset.cc === 'accent') st.pf.accent = cc.value.toLowerCase(); else st.pf.dz.acc2 = cc.value.toLowerCase(); previewNow(); return; }
     const x = e.target.closest('[data-p]'); if (!x) return; const p = x.dataset.p;

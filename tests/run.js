@@ -280,8 +280,47 @@ class Client {
       mails.length = 0;
     }
 
+    console.log('Profil rasmi (avatar)');
+    {
+      const AV = require('../avatar'), JB = Buffer.from('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', 'base64'), url = b => 'data:image/jpeg;base64,' + b.toString('base64');
+      const setDims = (b, w, h) => { const c = Buffer.from(b); for (let i = 2; i < c.length - 9; i++) if (c[i] === 0xFF && c[i + 1] === 0xC0) { c.writeUInt16BE(h, i + 5); c.writeUInt16BE(w, i + 7); return c; } throw new Error('SOF0 topilmadi'); };
+      const a1 = new Client(), a2 = new Client();
+      for (const [c, e] of [[a1, 'avt1@gmail.com'], [a2, 'avt2@gmail.com']]) { const q = await c.call('POST', '/api/register', { email: e, password: 'parol12345', name: 'Avatar sinov' }); ok(q.s === 201, 'avatar sinovi: hisob ochildi ' + e, q.s); }
+      const raw = async c => { const x = await fetch(B + '/api/avatar', { headers: { Cookie: c.cookie } }); return { s: x.status, ct: x.headers.get('content-type'), cc: x.headers.get('cache-control'), b: Buffer.from(await x.arrayBuffer()) }; };
+      r = await new Client().call('POST', '/api/avatar', { img: url(JB) }); ok(r.s === 401, 'avatar: kirmagan foydalanuvchi yuklay olmaydi', r.s);
+      r = await fetch(B + '/api/avatar'); ok(r.status === 401, 'avatar: kirmagan foydalanuvchiga berilmaydi', r.status);
+      r = await a1.call('GET', '/api/me'); ok(r.j.user.av === 0, 'avatar: boshida yoʻq (av = 0)', r.j.user);
+      let g = await raw(a1); ok(g.s === 404, 'avatar: yoʻq boʻlsa 404', g.s);
+      r = await a1.call('POST', '/api/avatar', { img: url(JB) }); ok(r.s === 200 && r.j.ok && r.j.av > 0, 'avatar: toʻgʻri JPEG saqlandi', r.j);
+      const v1 = r.j.av; r = await a1.call('GET', '/api/me'); ok(r.j.user.av === v1, '/api/me da rasm versiyasi koʻrinadi', r.j.user);
+      g = await raw(a1); ok(g.s === 200 && g.ct === 'image/jpeg' && /private/.test(g.cc || '') && g.b.equals(JB), 'avatar: egasiga aynan saqlangan JPEG beriladi (private kesh)', [g.s, g.ct, g.cc]);
+      g = await raw(a2); ok(g.s === 404, 'avatar: boshqa foydalanuvchi uni koʻra olmaydi (har kim faqat oʻzinikini)', g.s);
+      r = await a1.call('POST', '/api/avatar', { img: url(JB) }); ok(r.j.av > v1, 'avatar: qayta yuklansa versiya oshadi (kesh yangilanadi)', [v1, r.j.av]);
+      const bad = async (img, label) => { const q = await a1.call('POST', '/api/avatar', { img }); ok(q.s === 400 && q.j.error, 'avatar rad etiladi: ' + label, [q.s, q.j]); };
+      await bad('data:image/png;base64,' + JB.toString('base64'), 'PNG');
+      await bad('data:image/jpeg;base64,@@@@', 'base64 emas');
+      await bad(JB.toString('base64'), 'data: URL emas');
+      await bad(null, 'rasm yoʻq'); await bad({ x: 1 }, 'obyekt');
+      await bad(url(JB.subarray(0, JB.length - 2)), 'oxiri kesilgan (EOI yoʻq)');
+      await bad(url(Buffer.from('<svg onload=alert(1)></svg>' + 'x'.repeat(300))), 'JPEG boʻlmagan fayl');
+      await bad(url(setDims(JB, 600, 600)), 'oʻlcham 512 dan katta');
+      await bad(url(setDims(JB, 8, 8)), 'oʻlcham 32 dan kichik');
+      await bad(url(Buffer.concat([JB.subarray(0, 2), Buffer.from([0xFF, 0xFE, 0x9C, 0x42]), Buffer.alloc(40000), JB.subarray(2)])), 'hajmi 30 KB dan katta');
+      g = await raw(a1); ok(g.s === 200 && g.b.equals(JB), 'rad etilgan soʻrovlar mavjud rasmni buzmaydi');
+      r = await a1.call('POST', '/api/avatar/delete', {}); ok(r.s === 200 && r.j.av === 0, 'avatar: olib tashlandi', r.j);
+      g = await raw(a1); r = await a1.call('GET', '/api/me'); ok(g.s === 404 && r.j.user.av === 0, 'avatar: olib tashlangach 404 va av = 0');
+      r = await new Client().call('POST', '/api/avatar/delete', {}); ok(r.s === 401, 'avatar: kirmagan foydalanuvchi oʻchira olmaydi', r.s);
+      // Tezlik chegarasi (soatiga 30 urinish)
+      const a3 = new Client(); await a3.call('POST', '/api/register', { email: 'avt3@gmail.com', password: 'parol12345', name: 'Avatar sinov' });
+      let last; for (let i = 0; i < 31; i++) last = await a3.call('POST', '/api/avatar', { img: 'x' }); ok(last.s === 429, 'avatar: urinishlar soatiga 30 ta bilan cheklangan', last.s);
+      // Birlik sinovlari
+      ok(AV.check(url(JB)).w === 48 && AV.jpegSize(JB).comps === 3 && AV.jpegSize(Buffer.from('nope')) === null, 'avatar.js: oʻlchamni toʻgʻri oʻqiydi, JPEG boʻlmasa null');
+      const ar = Buffer.from(JB); for (let i = 2; i < ar.length - 1; i++) if (ar[i] === 0xFF && ar[i + 1] === 0xC0) { ar[i + 1] = 0xC9; break; }
+      ok(AV.jpegSize(ar) === null && AV.check(url(ar)).error, 'avatar.js: arifmetik/nostandart JPEG rad etiladi');
+    }
+
     console.log('Statik fayllar va sarlavhalar');
-    for (const [u, code] of [['/', 200], ['/app', 200], ['/index.html', 301], ['/js/main.js', 200], ['/data/universities.json', 200], ['/data/intl.json', 200], ['/js/views4.js', 200], ['/js/i18n.js', 200], ['/admin', 200], ['/js/admin.js', 200], ['/js/ui.js', 200], ['/js/notes.js', 200], ['/js/unsub.js', 200], ['/unsub', 200], ['/controls.css', 200], ['/js/i18n_notes.js', 200], ['/notes.js', 404], ['/catalog/verified_intl/eth-zurich.json', 404], ['/server.js', 404], ['/package.json', 404], ['/data/db.json', 404], ['/catalog/scholarships.json', 404], ['/js/../server.js', 404], ['/%2e%2e/server.js', 404], ['/.git/config', 404]]) {
+    for (const [u, code] of [['/', 200], ['/app', 200], ['/index.html', 301], ['/js/main.js', 200], ['/data/universities.json', 200], ['/data/intl.json', 200], ['/js/views4.js', 200], ['/js/i18n.js', 200], ['/admin', 200], ['/js/admin.js', 200], ['/js/ui.js', 200], ['/js/notes.js', 200], ['/js/avatar.js', 200], ['/avatar.js', 404], ['/js/unsub.js', 200], ['/unsub', 200], ['/controls.css', 200], ['/js/i18n_notes.js', 200], ['/notes.js', 404], ['/catalog/verified_intl/eth-zurich.json', 404], ['/server.js', 404], ['/package.json', 404], ['/data/db.json', 404], ['/catalog/scholarships.json', 404], ['/js/../server.js', 404], ['/%2e%2e/server.js', 404], ['/.git/config', 404]]) {
       const x = await fetch(B + u, { redirect: 'manual' }); ok(x.status === code, `GET ${u} → ${code}`, x.status);
     }
     const hm = await fetch(B + '/'); const ht = await hm.text(); ok(/class="lp-h1"/.test(ht) && /href="\/landing\.css/.test(ht) && /href="\/app\?m=register"/.test(ht) && /script-src 'self';/.test(hm.headers.get('content-security-policy') || ''), 'bosh sahifa (/) — tanishtiruv (landing), qattiq CSP bilan');
@@ -290,7 +329,7 @@ class Client {
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
     const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
-    ok(/href="\/tiers\.css/.test(html) && /unidoue-v53/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v53');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v54/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v54');
     const ac = await fetch(B + '/atlas.css?v=50'), act = await ac.text(), cv = await fetch(B + '/contour.svg'), cvt = await cv.text();
     ok(ac.status === 200 && /text\/css/.test(ac.headers.get('content-type') || '') && /\.rt-done/.test(act) && /href="\/atlas\.css/.test(html), 'atlas.css (Yo‘l daftari dizayni) toʻgʻri MIME bilan beriladi va /app ga ulangan');
     ok(cv.status === 200 && /image\/svg\+xml/.test(cv.headers.get('content-type') || '') && /^<svg/.test(cvt) && !/<script/i.test(cvt), 'contour.svg (xarita foni) image/svg+xml bilan beriladi');

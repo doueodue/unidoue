@@ -5,6 +5,7 @@ import * as fx from './fx.js';
 import * as pn from './push.js';
 import { bellHTML, bindBell } from './notes.js';
 import { setTipTranslator } from './ui.js';
+import { paintAvatar } from './avatar.js';
 import { tierPill, liveGlass } from './tiers.js';
 setTipTranslator(s => trText(s) || s); // izohlar (title) joriy tilga tarjima qilinadi
 
@@ -117,11 +118,12 @@ function shell() {
 }
 export function updatePlanUI() {
   if (!$('#sf-u') || !S.user) return;
-  const a = S.account || {}; $('#sf-u').textContent = S.user.name || S.user.email; $('#sf-p').textContent = S.user.email; $('#sf-av').textContent = ((S.user.name || S.user.email || '?').trim()[0] || '?').toUpperCase();
+  const a = S.account || {}; $('#sf-u').textContent = S.user.name || S.user.email; $('#sf-p').textContent = S.user.email; paintAvatar($('#sf-av'));
   ROUTES.filter(r => r.need).forEach(r => { const tg = $(`.nav .tag[data-need="${r.need}"]`); if (!tg) return; const ok = hasFeature(r.need); tg.textContent = ok ? r.tag || '' : NEED_PLAN[r.need]; tg.classList.toggle('lk', !ok); tg.hidden = ok && !r.tag; });
   const pl = ['plus', 'pro'].includes(a.plan) ? a.plan : 'free'; // tarif belgisi: Free muz, Plus kumush, Pro oltin
   $('#pb').innerHTML = tierPill(pl); $('#sf-t').innerHTML = tierPill(pl); $('#sf').dataset.tier = pl;
 }
+document.addEventListener('unidoue:avatar', () => updatePlanUI());
 document.addEventListener('unidoue:account', updatePlanUI);
 
 async function route() {

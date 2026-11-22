@@ -112,6 +112,7 @@ const Scoring = require('./public/js/scoring.js');
 const PUSH = require('./push');
 const PROMO = require('./promo');
 const NOTES = require('./notes');
+const AVATAR = require('./avatar');
 
 /* ---------------- tariflar va sozlamalar ---------------- */
 // AI provayderi: ANTHROPIC_API_KEY (Claude) yoki AI_API_KEY + AI_BASE_URL (OpenAI-mos: Groq, Gemini, OpenRouter...)
@@ -334,7 +335,7 @@ function readJson(req, max = MAX_BODY) {
   });
 }
 
-const publicUser = u => ({ id: u.id, email: u.email, name: u.name, verified: u.verified !== false });
+const publicUser = u => ({ id: u.id, email: u.email, name: u.name, verified: u.verified !== false, av: u.avatar ? (u.avV || 1) : 0 });
 function accountInfo(u) {
   const pl = effPlan(u), us = usageOf(u);
   return {
@@ -641,6 +642,31 @@ async function api(req, res, pathname) {
   if (pathname === '/api/me' && method === 'GET') {
     const u = sessionUser(req);
     return send(res, 200, u ? meBody(u) : { user: null });
+  }
+
+  // Profil rasmi: faqat egasiga (cookie orqali) beriladi, serverda qat'iy tekshiriladi
+  if (pathname === '/api/avatar' && method === 'GET') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (!u.avatar) return fail(res, 404, 'Rasm yoʻq.');
+    res.statusCode = 200; res.setHeader('Content-Type', 'image/jpeg'); res.setHeader('Cache-Control', 'private, max-age=31536000, immutable');
+    return res.end(Buffer.from(u.avatar, 'base64'));
+  }
+  if (pathname === '/api/avatar' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (limited('av:' + u.id, 30, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Birozdan keyin urinib koʻring.');
+    const b = await readJson(req, 80 * 1024);
+    const r = AVATAR.check(b.img);
+    if (r.error) return fail(res, 400, r.error);
+    u.avatar = r.buf.toString('base64'); u.avV = Math.max(Date.now(), (u.avV || 0) + 1); touch(u); save();
+    return send(res, 200, { ok: true, av: u.avV });
+  }
+  if (pathname === '/api/avatar/delete' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    delete u.avatar; delete u.avV; touch(u); save();
+    return send(res, 200, { ok: true, av: 0 });
   }
 
   if (pathname === '/api/register' && method === 'POST') {

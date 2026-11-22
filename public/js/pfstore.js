@@ -47,4 +47,12 @@ export function cropPhoto(im, view) {
   while (url.length > 62000 && q > 0.3) { q -= 0.08; url = draw(im.src, 320, 400, sx, sy, sw, sh, q); }
   return url;
 }
+/** Profil avatari: kvadrat JPEG (size×size), doira ichiga joylashadi. view: { z, cx, cy } (cropPhoto bilan bir xil). */
+export function cropSquare(im, view, size = 192) {
+  const base = Math.max(size / im.w, size / im.h), s = base * Math.max(1, view.z || 1), sw = size / s, sh = size / s;
+  const sx = Math.min(Math.max(0, (view.cx ?? .5) * im.w - sw / 2), im.w - sw), sy = Math.min(Math.max(0, (view.cy ?? .5) * im.h - sh / 2), im.h - sh);
+  let q = 0.86, url = draw(im.src, size, size, sx, sy, sw, sh, q);
+  while (url.length > 26000 && q > 0.3) { q -= 0.08; url = draw(im.src, size, size, sx, sy, sw, sh, q); }
+  return url;
+}
 export const clearAll = () => { mem.clear(); try { indexedDB.deleteDatabase(DB); } catch (e) {} dbp = null; };

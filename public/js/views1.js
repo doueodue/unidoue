@@ -2,6 +2,7 @@ import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, 
 import { tierMedal, tierPill, crownHTML, liveGlass, TIER_TAG } from './tiers.js';
 import { t, dateL, lang } from './i18n.js';
 import * as pn from './push.js';
+import { paintAvatar, pickAvatar, removeAvatar } from './avatar.js';
 
 export const ST = ['Rejalashtirilgan', 'Hujjat tayyorlanmoqda', 'Topshirildi', 'Natija kutilmoqda', 'Qabul qilindi', 'Rad etildi'];
 export const DOCS = ['Attestat/transkript tarjimasi', 'SAT/IELTS natijalari yuborildi', 'Tavsiyanomalar', 'Esse', 'Moliyaviy hujjatlar'];
@@ -288,7 +289,7 @@ export async function pricing(el) {
 export async function profile(el) {
   const { P, Q } = getProfile(), comp = completion(), a = S.account, opt = (arr, v) => arr.map(([val, t]) => `<option value="${val}" ${String(v) === String(val) ? 'selected' : ''}>${t}</option>`).join('');
   el.innerHTML = `<div class="page-h"><div><h2>Mening profilim</h2><p>Ma’lumotlaringiz hisobingizda saqlanadi va barcha qurilmalarda sinxron bo‘ladi.</p></div></div>
-  <section class="card passport"><div class="pp-av" aria-hidden="true">${esc(((P.pn || S.user.name || '?').trim()[0] || '?').toUpperCase())}</div><div class="pp-id"><h3>${esc(P.pn || S.user.name)}</h3><p>${esc([P.pg, P.pc, P.py].filter(Boolean).join(' · '))}</p></div>
+  <section class="card passport"><div class="pp-avw"><span class="pp-av" id="pp-av" aria-hidden="true">${esc(((P.pn || S.user.name || '?').trim()[0] || '?').toUpperCase())}</span><button type="button" class="pp-avb" id="pp-up" aria-label="Rasm yuklash" data-tip="Rasm yuklash">${svg('camera')}</button></div><div class="pp-id"><h3>${esc(P.pn || S.user.name)}</h3><p>${esc([P.pg, P.pc, P.py].filter(Boolean).join(' · '))}</p><div class="pp-acts"><button type="button" class="btn sm" id="pp-pick">Rasm yuklash</button><button type="button" class="btn sm danger" id="pp-rm" hidden>Olib tashlash</button><input type="file" id="pp-file" accept="image/jpeg,image/png,image/webp" hidden></div></div>
     <div class="pp-ring"><div class="score" style="--p:${comp.pct}">${comp.pct}%</div><span>Profil to‘liqligi</span></div></section>
   <div class="grid g2"><form class="card" id="p-f" novalidate><h3>Shaxsiy ma’lumot</h3><p class="sub">Tavsiyalar shunga tayanadi.</p>
     <div class="field"><label class="f" for="pn">Ism</label><input id="pn" type="text" maxlength="40" value="${esc(P.pn || S.user.name)}"></div>
@@ -305,6 +306,15 @@ export async function profile(el) {
   ${a.tg && a.tg.on ? `<section class="card"><h3>Telegram eslatmalar</h3><p class="sub">Ariza muddati yaqinlashganda (14, 7, 3 va 1 kun oldin) botimiz Telegramga yozadi.</p>${a.tg.linked ? '<p class="msg ok" style="display:block">Telegram ulangan ✓</p><button class="btn sm" id="tg-off">Uzish</button>' : '<button class="btn primary sm" id="tg-on">Telegramni ulash</button>'}<div class="msg" id="tg-m" role="status"></div></section>` : ''}
   ${pn.supported() || pn.needsInstall() ? `<section class="card"><h3>Bildirishnomalar</h3><p class="sub">Ariza muddati yaqinlashganda va tarifingiz yangilanganda shu qurilmaga bildirishnoma keladi.</p><div id="pn-b"><div class="sk" style="height:38px;width:60%"></div></div></section>` : ''}
   <section class="card"><h3>Hisob</h3><p class="sub">${esc(S.user.email)}</p><button class="btn danger sm" id="p-del">Hisobni butunlay o‘chirish</button></section></div></div>`;
+  const ppAv = $('#pp-av', el), ppRm = $('#pp-rm', el), ppPick = $('#pp-pick', el), ppFile = $('#pp-file', el);
+  const ppSync = () => { paintAvatar(ppAv, P.pn || S.user.name); ppRm.hidden = !S.user.av; ppPick.textContent = t(S.user.av ? 'Rasmni almashtirish' : 'Rasm yuklash'); };
+  ppSync();
+  const ppOpen = () => ppFile.click();
+  $('#pp-up', el).onclick = ppPick.onclick = ppOpen;
+  ppFile.onchange = async () => { const f = ppFile.files[0]; ppFile.value = ''; if (f) { ppPick.disabled = true; await pickAvatar(f); ppPick.disabled = false; } };
+  ppRm.onclick = async () => { ppRm.disabled = true; await removeAvatar(); ppRm.disabled = false; };
+  const onAv = () => { if (!el.isConnected) return document.removeEventListener('unidoue:avatar', onAv); ppSync(); };
+  document.addEventListener('unidoue:avatar', onAv);
   $('#p-f', el).onsubmit = ev => {
     ev.preventDefault(); const g = id => $('#' + id, el).value.trim(), m = $('#p-m', el); m.className = 'msg err';
     if (g('pn').length < 2) { m.textContent = 'Ismingizni kiriting.'; return; }

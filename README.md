@@ -32,6 +32,7 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | (ixtiyoriy) Push bildirishnomalar kaliti. Qoʻyilmasa server oʻzi yaratib, ma'lumotlar bazasiga (Neon ulangan boʻlsa u yerga ham) saqlaydi. `VAPID_SUBJECT` — aloqa manzili (`mailto:` yoki `https://`); qoʻyilmasa `APP_URL` olinadi |
 | `TWA_SHA256`, `TWA_PACKAGE` | (ixtiyoriy) Google Play ilovasi (TWA): imzo SHA-256 barmoq izlari (vergul bilan) `/.well-known/assetlinks.json` ga qoʻshiladi; `TWA_PACKAGE` — paket nomi (standart `uz.unidoue.app`). Batafsil: `store/PLAY_MARKET.md`. |
 | `REG_RATE_MAX` | (faqat test uchun) bir IP dan soatiga ro‘yxatdan o‘tishlar chegarasi, standart 10 |
+| `MAIL_BULK_MAX` | Admin «Xabarlar» orqali **bir yuborishda** nechta emailga xat ketishi mumkin (standart 300). Oshsa yuborilmaydi — auditoriyani toraytiring |
 | `USD_UZS_RATE` | Onlayn toʻlov uchun kurs: 1 USD = necha soʻm (masalan `12700`). Soʻm narxi = dollar narxi × kurs, 1000 soʻmgacha yaxlitlanadi. Kurs boʻlmasa toʻlov **yoqilmaydi** |
 | `PAYME_MERCHANT_ID`, `PAYME_KEY`, `PAYME_TEST` | Payme kassasi. `PAYME_TEST=1` — sinov muhiti (`test.paycom.uz`), shunda `PAYME_KEY` oʻrniga **TEST kalitni** qoʻying |
 | `CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID`, `CLICK_SECRET_KEY` | Click (SHOP-API) |
@@ -72,7 +73,7 @@ Payme kassasida buyurtma kodi uchun **hisob (account) maydoni** boʻlishi kerak,
 Kutubxonasiz (faqat `node:crypto` va `fetch`): VAPID (RFC 8292), `aes128gcm` shifrlash (RFC 8291), yetkazish (RFC 8030). Kod: `push.js`, `public/js/webpush.js` va `push.js`, service worker — `public/sw.js`.
 
 - **Foydalanuvchi**: Profil → “Bildirishnomalar” → yoqish. Ariza muddati yaqinlashganda (14/7/3/1/0 kun, 09:00–21:00 Toshkent vaqti bilan; har biri bir martadan) va tarif yangilanganda/toʻlov qabul qilinganda xabar keladi. Telegram eslatmalari ham oldingidek ishlaydi.
-- **Admin**: `/admin` → “Bildirishnomalar” — barcha/Free/Plus/Pro/bitta foydalanuvchi (email) ga xabar yuborish; “Admin qurilmasi”ni yoqsangiz yangi soʻrov va toʻlov haqida telefoningizga xabar keladi. API: `POST /api/admin/push/send` (`{title, body, url?, audience: all|free|plus|pro|email|admin, email?}`).
+- **Admin**: `/admin` → «Xabarlar» (batafsil — pastdagi «Bildirishnomalar (sayt ichida, push va email)» bo‘limi); “Admin qurilmasi”ni yoqsangiz yangi soʻrov va toʻlov haqida telefoningizga xabar keladi. API: `POST /api/admin/push/send` (`{title, body, url?, audience: all|free|plus|pro|email|admin, email?}`).
 - iPhone/iPad: bildirishnoma faqat sayt “Bosh ekranga qoʻshilib”, ilova sifatida ochilganda ishlaydi (iOS 16.4+).
 - Eskirgan obunalar (404/410) avtomatik oʻchiriladi. Obuna manzili faqat FCM, Mozilla, Windows va Apple push xizmatlariga ruxsat etiladi (SSRF himoyasi).
 - Admin soʻrovlari tezligi: faqat **xato token** sanaladi (IP boʻyicha 20 ta / 15 daqiqa); toʻgʻri tokenli yangilashlar bir-biriga xalaqit bermaydi.
@@ -93,6 +94,30 @@ Admin yangi kod yaratadi, **nechta kishiga** berilishini va **necha kunlik** Plu
 - Foydalanuvchida shu tarif faol bo‘lsa muddat **uzayadi**; yuqoriroq tarif berilsa hozirdan boshlanadi; pastroq tarif (yoki cheksiz) bo‘lsa kod **rad etiladi va o‘rin sarflanmaydi**.
 - Faqat xato (topilmagan) urinishlar cheklanadi (foydalanuvchiga 8 ta, IP ga 40 ta / 15 daqiqa) — bir Wi‑Fi dagi butun sinf kodni ishlata oladi. Kodni o‘chirish yoki to‘xtatish **allaqachon berilgan tarifni qaytarib olmaydi**.
 - Testda ro‘yxatdan o‘tish cheklovi `REG_RATE_MAX` (standart 10/soat/IP) bilan oshiriladi; productionda qo‘ymang.
+
+## Bildirishnomalar (sayt ichida, push va email)
+Mantiq: `notes.js` (sof funksiyalar, testlanadi). Xabarlar `db.notes` da turadi.
+- **Foydalanuvchi**: sarlavhadagi qo‘ng‘iroqcha → ixcham panel (oxirgi xabarlar, o‘qilmaganlar belgisi). Panel ochilganda hammasi o‘qilgan hisoblanadi (bitta `noteSeen` belgisi). Pastida «Yangiliklarni emailga ham yuborish» tugmasi va push yoqilmagan bo‘lsa Profilga havola. Faqat **hisob ochilgandan keyingi** xabarlar ko‘rinadi.
+- **Admin**: `/admin` → **Xabarlar**. Sarlavha + matn (300 belgigacha), ixtiyoriy havola (faqat sayt ichidagi yo‘l), auditoriya (Hammaga / Free / Plus / Pro / bitta foydalanuvchi / admin qurilmalari — sinov uchun) va **kanallar**: sayt ichida, push, email. Yuborishdan oldin har kanal bo‘yicha nechta kishiga borishi ko‘rsatiladi; natija ham kanal bo‘yicha. Pastda tarix va o‘chirish (o‘chirilsa panelda ham yo‘qoladi).
+- **Email**: faqat email **tasdiqlangan** va xabarlardan **chiqmagan** foydalanuvchilarga ketadi (`MAIL_PROVIDER` — Resend/Brevo — sozlanmagan bo‘lsa kanal o‘chiq). Har xatda «obunani bekor qilish» havolasi bor: `/unsub?u=…&s=…` (HMAC imzo, kirish talab qilinmaydi; xuddi shu sahifadan qayta yoqish mumkin). Bir yuborishdagi chegarasi — `MAIL_BULK_MAX`.
+- **Tizim xabarlari**: tarif yoqilganda yoki promo kod qabul qilinganda foydalanuvchining o‘ziga xabar tushadi (adminning tarixida ko‘rinmaydi).
+- API: foydalanuvchi — `GET /api/notes`, `POST /api/notes/read`, `POST /api/notes/mail`, `POST /api/mail/unsub`; admin (Bearer) — `POST /api/admin/notify`, `GET /api/admin/notes`, `POST /api/admin/note/delete`.
+- Hech kim yo‘q bo‘lsa (`0` qabul qiluvchi) xabar yuborilmaydi va yozuv ham qolmaydi (`ok:false`).
+
+## Standart elementlar o‘rniga o‘z dizaynimiz
+Brauzerning oddiy `select`, sana, raqam, `datalist`, `range`, `color`, radio/checkbox va `title` izohlari **ko‘rinmasligi** kerak. `public/js/ui.js` (+ `public/controls.css`) hammasini avtomatik almashtiradi: sahifaga qo‘shilgan har bir element (`MutationObserver`) o‘z ko‘rinishiga o‘tadi.
+- Asl element DOM da qoladi (yashirin, `.cs-n`) va `value`, `selectedIndex`, `change`/`input` hodisalari avvalgidek ishlaydi — mavjud kod o‘zgarmaydi.
+- Ochiladigan oynalar (`.pop`) `body` ga chiqariladi, joy yetmasa tepaga ochiladi; Esc yopadi; klaviatura (strelkalar, Enter, PageUp/Down) va ARIA to‘liq. Kalendar: kun/oy/yil ko‘rinishi, o‘zbekcha oy va hafta kunlari (Intl `uz` qisqa oylarni bermaydi, shuning uchun aniq ro‘yxat).
+- **Yangi sahifa/komponent yozganda** oddiy `<select>`, `type=date|number|range` ishlatsangiz bo‘ldi — o‘zi almashadi. Istisno kerak bo‘lsa `data-native` qo‘ying. Yangi `<input type=file>` ni yashirib, tugma orqali oching.
+- `controls.css` da ham `scrollbar-width/color` yozmang (yuqoridagi «Scrollbarlar» qoidasi); `tests/pf.mjs` tekshiradi.
+- Brauzerning avtoto‘ldirish va imlo tekshiruvi oynalarini sayt uslublay olmaydi.
+
+## Profil rasmi (avatar)
+Profil → yuqoridagi karta: «Rasm yuklash» (yoki kamera belgisi). JPEG/PNG/WebP (12 MB gacha) tanlanadi, doira ichida sudrab-yaqinlashtirib kesiladi, brauzer **192×192 JPEG** (≈10–20 KB) qilib yuboradi. Yon paneldagi avatar ham shu rasmni ko‘rsatadi; olib tashlansa bosh harf qaytadi.
+- Server (`avatar.js`): faqat `data:image/jpeg;base64`, ≤ 30 KB, JPEG sarlavha va `EOI` oxiri, 32–512 px, faqat baseline/progressive; qolgani rad. Soatiga 30 urinish. Hech qanday rasm kutubxonasi kerak emas.
+- Saqlash: foydalanuvchi yozuvida (`avatar` — base64, `avV` — versiya). Rasmni **faqat egasi** ko‘radi: `GET /api/avatar` cookie bilan, `Cache-Control: private`, URL dagi `?v=` versiya almashsa kesh yangilanadi. Hisob o‘chirilsa rasm ham o‘chadi.
+- API: `POST /api/avatar` (`{img}`), `POST /api/avatar/delete`, `GET /api/avatar`; `/api/me` da `user.av` (0 — rasm yo‘q).
+- Portfoliodagi 4:5 «profil rasmi» alohida (hujjat uchun); ular bog‘liq emas.
 
 ## Stipendiyalar bazasi
 `DATA_DIR/scholarships.json` (yoki `catalog/scholarships.json`) fayli. Faqat **rasmiy manbadan tekshirilgan** yozuvlar qoʻshing:
