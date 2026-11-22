@@ -1,6 +1,7 @@
 import { $, $$, S, api, ls, esc, toast, svg, fmtDate, daysLeft, catalog, upsell, errorBox, modal, reportError } from './core.js';
 import { getProfile, DOCS } from './views1.js';
 import { t } from './i18n.js';
+import { intlPanel, intlCount } from './views4.js';
 const ctry = c => (c ? `<div class="ctry">${esc(t(c))}</div>` : '');
 
 const TIER = { safety: 'Safety', target: 'Target', reach: 'Reach' };
@@ -43,14 +44,12 @@ function satMeter(c, mine) {
   return `<div class="satm" role="img" aria-label="${t('SAT oralig‘i')}: ${c.sat[0]}–${c.sat[1]}${me != null ? ', ' + t('Siz') + ' ' + mine : ''}"><div class="satm-t"><i class="satm-b" style="left:${a.toFixed(1)}%;width:${Math.max(2, b - a).toFixed(1)}%"></i>${me != null ? `<i class="satm-me" style="left:${me.toFixed(1)}%"><em>${t('Siz')} ${esc(mine)}</em></i>` : ''}</div>
     <div class="satm-h"><span>${t('SAT oralig‘i')}</span><b>${c.sat[0]}–${c.sat[1]}</b></div></div>`;
 }
-export async function finder(el) {
-  if (!hasInput()) return browse(el);
+async function usFinder(el) {
   const cat = await catalog(), verifiedN = cat.filter(c => c.satV).length, mySat = getProfile().Q.sat; let q = '', tier = '', vOnly = false, timer = 0, seq = 0, items = [], shown = PAGE;
-  el.innerHTML = `<div class="page-h"><div><h2>Universitet qidiruvi</h2><p>Profilingizga mos universitetlar Safety, Target va Reach bo‘yicha guruhlanadi.</p></div></div>
-  <div class="card ftool"><label class="fsearch">${svg('search')}<input id="f-q" type="text" placeholder="Universitet nomi" aria-label="Qidirish" maxlength="60"></label><label class="sw"><input type="checkbox" id="f-v"> Faqat tekshirilgan ma’lumot</label>
+  el.innerHTML = `<div class="card ftool"><label class="fsearch">${svg('search')}<input id="f-q" type="text" placeholder="Universitet nomi" aria-label="Qidirish" maxlength="60"></label><label class="sw"><input type="checkbox" id="f-v"> Faqat tekshirilgan ma’lumot</label>
   <div class="tabs" id="f-t" role="tablist">${[['', 'Hammasi'], ['safety', 'Safety'], ['target', 'Target'], ['reach', 'Reach']].map(([v, t]) => `<button role="tab" data-t="${v}" aria-selected="${v === ''}">${t}<span class="c"></span></button>`).join('')}</div></div>
   <div id="f-r"></div>
-  <p class="fnote">Hozir bazada <b>${cat.length}</b> ta AQSh universiteti bor, shundan <b>${verifiedN}</b> tasining ko‘rsatkichlari rasmiy manbadan tekshirilgan. Qolganlari “taxminiy” deb belgilangan. Mamlakat, o‘qish narxi va reyting bo‘yicha filtrlar rasmiy ma’lumot yig‘ilgach qo‘shiladi.</p>`;
+  <p class="fnote">Hozir bazada <b>${cat.length}</b> ta AQSh universiteti bor, shundan <b>${verifiedN}</b> tasining ko‘rsatkichlari rasmiy manbadan tekshirilgan. Qolganlari “taxminiy” deb belgilangan. Boshqa davlatlar universitetlari tepadagi «Boshqa davlatlar» tabida.</p>`;
   const out = $('#f-r', el), card = (u, c) => `<article class="card hover uc tk-${u.tier}"><div class="uc-top"><div class="score" style="--p:${u.score}">${u.score}</div><div class="uc-id">${ctry(u.country)}<h3>${esc(u.n)}</h3></div><span class="badge ${u.tier}">${TIER[u.tier]}</span></div>
       <div class="uc-meta">${vb(u.verified, 'SAT tekshirilgan')}${u.deadline ? `<span class="badge mute">${fmtDate(u.deadline)}${u.deadlineVerified ? '' : ' (taxminiy)'}</span>` : ''}</div>${satMeter(c, mySat)}
       ${u.why ? `<p class="uc-lvl">${esc(u.level)}</p><ul class="uc-why">${u.why.map(w => `<li>${esc(w.t)}</li>`).join('')}</ul><p class="hint">${esc(u.basis)}${u.confident ? '' : ' · bu daraja taxminiy'}</p>`
@@ -83,6 +82,16 @@ export async function finder(el) {
   $('#f-v', el).onchange = e => { vOnly = e.target.checked; load(); };
   $$('#f-t button', el).forEach(b => (b.onclick = () => { tier = b.dataset.t; $$('#f-t button', el).forEach(x => x.setAttribute('aria-selected', x === b)); load(); }));
   load();
+}
+export async function finder(el) {
+  let sc = /[?&]c=intl\b/.test(location.hash) ? 'intl' : 'us';
+  el.innerHTML = `<div class="page-h"><div><h2>Universitet qidiruvi</h2><p>AQShda profilingizga mos universitetlar Safety, Target va Reach bo‘yicha guruhlanadi; boshqa davlatlar uchun talab, muddat va o‘qish narxi ko‘rsatiladi.</p></div></div>
+  <div class="tabs" id="f-sc" role="tablist" style="margin-bottom:16px"><button role="tab" data-sc="us" aria-selected="${sc === 'us'}">AQSh<span class="c"></span></button><button role="tab" data-sc="intl" aria-selected="${sc === 'intl'}">Boshqa davlatlar<span class="c"></span></button></div><div id="f-body"></div>`;
+  const body = $('#f-body', el), tabs = $$('#f-sc button', el), run = () => { tabs.forEach(b => b.setAttribute('aria-selected', b.dataset.sc === sc)); body.innerHTML = ''; return sc === 'intl' ? intlPanel(body, { onAdd: addApp }) : hasInput() ? usFinder(body) : browse(body); };
+  tabs.forEach(b => (b.onclick = () => { if (b.dataset.sc === sc) return; sc = b.dataset.sc; history.replaceState(null, '', sc === 'intl' ? '#/finder?c=intl' : '#/finder'); run(); }));
+  catalog().then(c => { const n = $('#f-sc [data-sc="us"] .c', el); if (n) n.textContent = ' ' + c.length; }).catch(() => {});
+  intlCount().then(n => { const x = $('#f-sc [data-sc="intl"] .c', el); if (x && n != null) x.textContent = ' ' + n; });
+  await run();
 }
 function addApp(c) {
   const apps = ls.get('qabul:apps', []), lim = S.account.limits.apps;
@@ -164,7 +173,7 @@ export async function compare(el) {
 /** Natija kiritilmagan bo'lsa: oddiy ro'yxat (moslik balisiz). */
 async function browse(el) {
   const cat = await catalog();
-  el.innerHTML = `<div class="page-h"><div><h2>Universitet qidiruvi</h2><p>Barcha universitetlar ro‘yxati. Moslik bali va Safety / Target / Reach darajasini ko‘rish uchun natijalaringizni kiriting.</p></div><a class="btn primary" href="#/profile">Natijalarni kiritish</a></div>
+  el.innerHTML = `<div class="notice info" style="margin-bottom:16px">${svg('info')}<div>Moslik bali va Safety / Target / Reach darajasini ko‘rish uchun natijalaringizni kiriting. <a href="#/profile"><b>Natijalarni kiritish</b></a></div></div>
   <div class="card" style="margin-bottom:16px"><label class="f" for="b-q">Qidirish</label><input id="b-q" type="text" maxlength="60" placeholder="Universitet nomi"></div><div id="b-r"></div>`;
   const out = $('#b-r', el), draw = q => {
     const rows = cat.filter(c => c.n.toLowerCase().includes(q.toLowerCase()));

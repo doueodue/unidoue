@@ -161,6 +161,7 @@ AI mentorning oʻz shaxsi bor: **Doue** (nomi `core.js` dagi `MENTOR`, avatari `
 Butun ilova yagona vizual tilga ega: **`public/atlas.css`** (`app.css` dan keyin, `tiers.css` dan oldin ulanadi) va **`public/contour.svg`** (topografik xarita chiziqlari; faqat CSS `mask` sifatida, `--brand` rangida chiziladi).
 - Bosh panel — 5 bekatli «yo‘l» (Profil → Testlar → Ro‘yxat → Arizalar → Natija), keyingi qadam kartasi, mobil qurilmada vertikal ro‘yxat.
 - Universitet qidiruvi — Safety/Target/Reach rangli halqa-ball, SAT oralig‘i o‘lchagichi va «Siz» belgisi, 12 tadan ko‘rsatish.
+- «Boshqa davlatlar» universitetlari alohida bo‘lim emas, Universitet qidiruvi ichidagi «AQSh | Boshqa davlatlar» tabida: qidiruv (nom/shahar/davlat), davlat filtri, 12 tadan sahifalash, muddati bor universitetni arizalarga qo‘shish. Eski `#/intl` havolasi `#/finder?c=intl` ga yo‘naltiriladi.
 - Yon panel (nuqtali yo‘l, kursiv bo‘lim nomlari, foydalanuvchi kartasi), kirish ekrani, arizalar, yo‘l xaritasi, hujjatlar, profil «pasport»i.
 - Mavsum (`data-season`) va qorong‘i rejim ranglari o‘zgaruvchilar orqali ishlaydi; animatsiyalar faqat `prefers-reduced-motion: no-preference` da.
 - Sarlavhalar `<em>` bilan bo‘linmaydi — tarjima kaliti butun jumla bo‘lishi kerak.

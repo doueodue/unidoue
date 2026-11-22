@@ -12,7 +12,6 @@ setTipTranslator(s => trText(s) || s); // izohlar (title) joriy tilga tarjima qi
 const ROUTES = [
   { id: 'dashboard', t: 'Bosh panel', i: 'home', sec: 'Asosiy', v: () => import('./views1.js').then(m => m.dashboard) },
   { id: 'finder', t: 'Universitet qidiruvi', i: 'search', v: () => import('./views2.js').then(m => m.finder) },
-  { id: 'intl', t: 'Boshqa davlatlar', i: 'search', v: () => import('./views4.js').then(m => m.intl) },
   { id: 'scholarships', t: 'Stipendiyalar', i: 'gift', v: () => import('./views2.js').then(m => m.scholarships) },
   { id: 'predictor', t: 'Mosligingizni tekshiring', i: 'chart', v: () => import('./views2.js').then(m => m.predictor) },
   { id: 'compare', t: 'Solishtirish', i: 'cmp', v: () => import('./views2.js').then(m => m.compare) },
@@ -128,6 +127,7 @@ document.addEventListener('unidoue:account', updatePlanUI);
 
 async function route() {
   if (!S.user) return;
+  if (/^#\/?intl(\?|$)/.test(location.hash)) { location.replace('#/finder?c=intl'); return; } // eski «Boshqa davlatlar» havolasi
   const id = (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'dashboard', r = ROUTES.find(x => x.id === id) || ROUTES[0], my = ++token;
   $$('.nav a').forEach(a => (a.getAttribute('data-r') === (r.nav || r.id) ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
   $('#ttl').textContent = t(r.t); document.title = t(r.t) + ' · UniDoue'; document.body.classList.remove('nav-open');

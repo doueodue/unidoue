@@ -19,7 +19,11 @@ const P = [
   ["Rasm buzilgan. Boshqa rasm tanlang.", "Файл повреждён. Выберите другое фото.", "The file looks damaged. Choose another photo."],
   ["Rasm oʻlchami mos emas.", "Недопустимый размер фото.", "The photo size is not supported."],
   ["Rasm yoʻq.", "Фото нет.", "No photo."],
-  ["Juda koʻp urinish. Birozdan keyin urinib koʻring.", "Слишком много попыток. Повторите чуть позже.", "Too many attempts. Try again in a moment."]
+  ["Juda koʻp urinish. Birozdan keyin urinib koʻring.", "Слишком много попыток. Повторите чуть позже.", "Too many attempts. Try again in a moment."],
+  ["Universitet, shahar yoki davlat", "Университет, город или страна", "University, city or country"],
+  ["AQShda profilingizga mos universitetlar Safety, Target va Reach bo‘yicha guruhlanadi; boshqa davlatlar uchun talab, muddat va o‘qish narxi ko‘rsatiladi.", "В США университеты, подходящие вашему профилю, делятся на Safety, Target и Reach; для других стран показаны требования, сроки и стоимость обучения.", "In the US, universities that fit your profile are grouped into Safety, Target and Reach; for other countries you see requirements, deadlines and tuition."],
+  ["tasining ko‘rsatkichlari rasmiy manbadan tekshirilgan. Qolganlari “taxminiy” deb belgilangan. Boshqa davlatlar universitetlari tepadagi «Boshqa davlatlar» tabida.", "проверены по официальному источнику. Остальные помечены как «примерно». Университеты других стран — на вкладке «Другие страны» выше.", "have figures verified against the official source. The rest are marked “approx.”. Universities in other countries are in the “Other countries” tab above."],
+  ["Moslik bali va Safety / Target / Reach darajasini ko‘rish uchun natijalaringizni kiriting.", "Чтобы увидеть балл соответствия и уровень Safety / Target / Reach, введите свои результаты.", "Enter your results to see your fit score and Safety / Target / Reach level."]
 ];
 export const NRU = Object.fromEntries(P.map(x => [x[0], x[1]]));
 export const NEN = Object.fromEntries(P.map(x => [x[0], x[2]]));
