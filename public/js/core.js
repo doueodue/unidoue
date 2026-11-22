@@ -109,13 +109,14 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) refr
 /* ---------- UI yordamchilari ---------- */
 export function toast(text, kind = '') {
   const el = document.createElement('div'); el.className = 'toast ' + kind; el.textContent = text;
-  $('#toasts').appendChild(el); setTimeout(() => el.remove(), 4500);
+  $('#toasts').appendChild(el); setTimeout(() => el.classList.add('out'), 4200); setTimeout(() => el.remove(), 4500);
 }
 export function modal({ title, body, actions = [], collect }) {
   return new Promise(res => {
     const bg = document.createElement('div'); bg.className = 'modal-bg';
     bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><h3>${esc(title)}</h3><div>${body}</div><div class="acts"></div></div>`;
-    const acts = $('.acts', bg), done = v => { modal.data = collect ? collect(bg) : null; bg.remove(); res(v); };
+    let closed = false;
+    const acts = $('.acts', bg), done = v => { if (closed) return; closed = true; modal.data = collect ? collect(bg) : null; bg.classList.add('out'); setTimeout(() => bg.remove(), 200); res(v); };
     actions.forEach(a => { const b = document.createElement('button'); b.className = 'btn ' + (a.cls || ''); b.textContent = a.label; b.onclick = () => done(a.value); acts.appendChild(b); });
     bg.onclick = e => { if (e.target === bg) done(null); };
     document.body.appendChild(bg); const f = $('button:last-child', acts); f && f.focus();

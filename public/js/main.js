@@ -1,6 +1,7 @@
 import { $, $$, S, api, adopt, wipeLocal, esc, svg, skeleton, errorBox, toast, push, refreshCredits } from './core.js';
 import { t, langSelect, bindLang } from './i18n.js';
 import { themeSwitch } from './theme-ui.js';
+import * as fx from './fx.js';
 
 const ROUTES = [
   { id: 'dashboard', t: 'Bosh panel', i: 'home', sec: 'Asosiy', v: () => import('./views1.js').then(m => m.dashboard) },
@@ -117,9 +118,10 @@ async function route() {
   $('#ttl').textContent = t(r.t); document.title = t(r.t) + ' · UniDoue'; document.body.classList.remove('nav-open');
   refreshCredits(); // har sahifaga oʻtganda kreditlarni serverdan yangilaymiz (boshqa qurilma/oyna, oy almashishi)
   const el = $('#view'); el.innerHTML = skeleton(3); el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
-  try { const fn = await r.v(); if (my !== token) return; el.innerHTML = ''; await fn(el); }
+  fx.start();
+  try { const fn = await r.v(); if (my !== token) return; el.innerHTML = ''; fx.watch(el); await fn(el); }
   catch (e) { if (my !== token) return; el.innerHTML = errorBox(e.message, true); const b = $('[data-retry]', el); if (b) b.onclick = route; }
-  if (my === token) { window.scrollTo(0, 0); }
+  if (my === token) { window.scrollTo(0, 0); fx.done(); }
 }
 
 function start() { shell(); addEventListener('hashchange', route); route(); }

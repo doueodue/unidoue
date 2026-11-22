@@ -11,19 +11,37 @@
     var b = document.querySelectorAll('[data-theme-toggle]');
     for (var i = 0; i < b.length; i++) b[i].setAttribute('aria-checked', m === 'dark' ? 'true' : 'false');
   }
-  function set(m, remember) {
+  function reduced() { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
+  /* Tugma bosilgan joydan “doira” boʻlib yangi rejim yoyiladi (View Transitions API); qoʻllab-quvvatlanmasa — oddiy rang oʻtishi. */
+  function reveal(m, from) {
+    var r = from.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2,
+        R = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    root.classList.add('vt');
+    var tr = document.startViewTransition(function () { paint(m); });
+    tr.ready.then(function () {
+      root.animate({ clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + R + 'px at ' + x + 'px ' + y + 'px)'] },
+        { duration: 600, easing: 'cubic-bezier(.4,0,.2,1)', pseudoElement: '::view-transition-new(root)' });
+    }).catch(function () {});
+    var end = function () { root.classList.remove('vt'); };
+    tr.finished.then(end, end);
+  }
+  function set(m, remember, from) {
     if (m !== 'dark' && m !== 'light') return;
     if (remember) { try { localStorage.setItem(KEY, m); } catch (e) {} }
     if (m === get()) return;
-    root.classList.add('theme-anim'); clearTimeout(timer); timer = setTimeout(function () { root.classList.remove('theme-anim'); }, 450);
-    paint(m);
+    var vt = from && document.startViewTransition && !reduced();
+    if (vt) { try { reveal(m, from); } catch (e) { vt = false; root.classList.remove('vt'); } }
+    if (!vt) {
+      root.classList.add('theme-anim'); clearTimeout(timer); timer = setTimeout(function () { root.classList.remove('theme-anim'); }, 450);
+      paint(m);
+    }
     document.dispatchEvent(new CustomEvent('unidoue:theme', { detail: m }));
   }
   paint(saved() || (mq && mq.matches ? 'dark' : 'light'));
   if (mq && mq.addEventListener) mq.addEventListener('change', function (e) { if (!saved()) set(e.matches ? 'dark' : 'light', false); });
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-theme-toggle]');
-    if (b) set(get() === 'dark' ? 'light' : 'dark', true);
+    if (b) set(get() === 'dark' ? 'light' : 'dark', true, b);
   });
   window.UniTheme = { get: get, set: function (m) { set(m, true); }, toggle: function () { set(get() === 'dark' ? 'light' : 'dark', true); } };
 })();

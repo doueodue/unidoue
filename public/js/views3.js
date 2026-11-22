@@ -68,7 +68,7 @@ export async function essay(el) {
     <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button class="btn" id="e-b">Tezkor tahlil (bepul)</button><button class="btn primary" id="e-ai">AI tahlil (${costOf.essay} kredit)</button><button class="btn dark" id="e-deep">Chuqur tahlil (${costOf.essay_deep} kredit, Pro)</button></div><div class="msg" id="e-m"></div></section>
   <section class="card s5"><h3>Natija</h3><div id="e-o"><p class="sub">Tezkor tahlil brauzeringizda ishlaydi va hech qayerga yuborilmaydi. AI tahlil matnni serverga yuboradi.</p></div></section></div>`;
   const ta = $('#e-t', el), out = $('#e-o', el), m = $('#e-m', el), cnt = () => { const c = credits(); $('#e-c', el).textContent = `${(ta.value.match(/[\p{L}’'ʻ-]+/gu) || []).length} so‘z · ${ta.value.length}/6000 belgi · kredit: ${c.left} / ${c.limit} qoldi`; }; cnt();
-  const onAcc = () => { if (el.isConnected) cnt(); else document.removeEventListener('unidoue:account', onAcc); }; document.addEventListener('unidoue:account', onAcc);
+  const onAcc = () => { if ($('#e-c', el)) cnt(); else document.removeEventListener('unidoue:account', onAcc); }; document.addEventListener('unidoue:account', onAcc);
   let t = 0; ta.oninput = () => { cnt(); clearTimeout(t); t = setTimeout(() => ls.set('qabul:essay', ta.value), 1200); };
   $('#e-b', el).onclick = () => {
     if (ta.value.trim().length < 200) { m.className = 'msg err'; m.textContent = 'Esse kamida 200 belgidan iborat bo‘lsin.'; return; } m.textContent = '';
@@ -103,7 +103,7 @@ export async function mentor(el) {
   $('#m-f', el).onsubmit = async ev => {
     ev.preventDefault(); const inp = $('#m-i', el), q = inp.value.trim(); if (!q) return;
     if (!acc.config.ai) { toast('AI hozircha ulanmagan.', 'err'); return; }
-    inp.value = ''; hist.push({ role: 'user', content: q }); add('u', q); const wait = add('a', '…'); $('#m-s', el).disabled = true;
+    inp.value = ''; hist.push({ role: 'user', content: q }); add('u', q); const wait = add('a', ''); wait.innerHTML = '<span class="dots"><i></i><i></i><i></i></span>'; $('#m-s', el).disabled = true;
     try { const r = await streamAI({ tool: 'mentor', messages: hist }, t => { wait.innerHTML = md(t); wait.scrollIntoView({ block: 'nearest' }); }); hist.push({ role: 'assistant', content: r.reply }); wait.innerHTML = md(r.reply); }
     catch (e) { hist.pop(); wait.textContent = e.message; wait.style.color = 'var(--bad)'; }
     $('#m-s', el).disabled = false; inp.focus();

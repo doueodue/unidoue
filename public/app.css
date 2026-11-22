@@ -43,7 +43,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .top h1{font-size:18px;font-weight:650;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .burger{display:none;width:40px;height:40px;border:1px solid var(--line-2);background:var(--surface);border-radius:10px;cursor:pointer;place-items:center}
 .burger svg{width:20px;height:20px;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round}
-.content{padding:28px;width:100%;max-width:1240px;margin:0 auto;animation:rise .35s ease both}
+.content{padding:28px;width:100%;max-width:1240px;margin:0 auto;animation:fade .25s ease both}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .scrim{display:none}
 
@@ -152,7 +152,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}.tbl th,.tbl td{pad
   .auth{grid-template-columns:1fr}.auth-art{display:none}
 }
 @media(max-width:560px){.g4{grid-template-columns:1fr}.card{padding:18px}.bub{max-width:94%}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.modal-bg.out,.toast.out{display:none}}
 .auth-form{position:relative}
 .ctry{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
 
@@ -362,3 +362,120 @@ html[data-theme=dark] .md pre{background:rgba(255,255,255,.07)}
 /* Onlayn toʻlov (Payme / Click) */
 .plan .uzs{margin-top:-8px;font-size:14px;color:var(--muted)}.plan .uzs b{color:var(--ink);font-weight:650;font-size:16px}
 .paybtns{display:grid;gap:8px}.paybtns .hint{margin:0;text-align:center}
+
+
+/* =====================================================================
+   HARAKAT VA EFFEKTLAR (js/fx.js bilan birga). Hammasi “harakatni kamaytirish” yoqilgan boʻlsa oʻchadi.
+   Hover/transformni buzmaslik uchun kirish animatsiyalarida fill-mode: backwards ishlatiladi (tugagach oddiy holatga qaytadi).
+   ===================================================================== */
+:root{--fx-ease:cubic-bezier(.22,1,.36,1);--fx-spring:cubic-bezier(.34,1.56,.64,1)}
+@media(prefers-reduced-motion:no-preference){
+
+/* ---------- sahifa yuklanish chizigʻi ---------- */
+#fx-bar{position:fixed;left:0;top:0;width:100%;height:3px;z-index:300;pointer-events:none;background:linear-gradient(90deg,var(--brand),#7c5cff 70%,#ff8ad8);box-shadow:0 0 12px var(--brand);transform-origin:0 50%;transform:scaleX(0);opacity:0}
+#fx-bar.on{opacity:1;transform:scaleX(.85);transition:transform 7s cubic-bezier(.08,.7,.2,1),opacity .15s}
+#fx-bar.end{opacity:0;transform:scaleX(1);transition:transform .25s ease-out,opacity .35s ease .2s}
+
+/* ---------- kirish: sahifa elementlari ketma-ket paydo boʻladi ---------- */
+@keyframes fx-rise{from{opacity:0;transform:translateY(16px) scale(.985)}}
+@keyframes fx-slide{from{opacity:0;transform:translateX(-14px)}}
+:is(#view>:not(.grid),#view .grid>*,#view .list>.li,.auth-box>*,.auth-art>*){animation:fx-rise .6s var(--fx-ease) calc(var(--i,0)*60ms) backwards}
+:is(#view>:not(.grid),#view .grid>*,#view .list>.li,.auth-box>*,.auth-art>*):nth-child(2){--i:1}
+:is(#view>:not(.grid),#view .grid>*,#view .list>.li,.auth-box>*,.auth-art>*):nth-child(3){--i:2}
+:is(#view>:not(.grid),#view .grid>*,#view .list>.li,.auth-box>*,.auth-art>*):nth-child(4){--i:3}
+:is(#view>:not(.grid),#view .grid>*,#view .list>.li,.auth-box>*,.auth-art>*):nth-child(5){--i:4}
+:is(#view>:not(.grid),#view .grid>*,#view .list>.li,.auth-box>*,.auth-art>*):nth-child(6){--i:5}
+:is(#view>:not(.grid),#view .grid>*,#view .list>.li,.auth-box>*,.auth-art>*):nth-child(7){--i:6}
+:is(#view>:not(.grid),#view .grid>*,#view .list>.li,.auth-box>*,.auth-art>*):nth-child(8){--i:7}
+:is(#view>:not(.grid),#view .grid>*,#view .list>.li,.auth-box>*,.auth-art>*):nth-child(n+9){--i:8}
+:is(#view .grid>*,#view .list>.li):nth-child(n+15){animation:none}
+/* yuklanish skeletlari alohida animatsiya qilinmaydi (aks holda “miltillash” boʻladi) */
+#view .grid>.card:has(>.sk){animation:none}
+
+/* ---------- kartochka: yumshoq koʻtarilish + sichqoncha izidan yoritgich ---------- */
+.card.hover{position:relative;isolation:isolate;transition:box-shadow .25s,transform .3s var(--fx-ease)}
+.card.hover::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:0;transition:opacity .35s;background:radial-gradient(280px circle at var(--mx,50%) var(--my,0%),var(--brand),transparent 70%)}
+.card.hover:hover::before{opacity:.13}
+html[data-theme=dark] .card.hover:hover::before{opacity:.22}
+.card.hover:hover{transform:translateY(-3px)}
+
+/* ---------- tugmalar: bosilish, toʻlqin, yaltirash ---------- */
+.btn{position:relative;overflow:hidden;transition:transform .2s var(--fx-ease),box-shadow .2s,background .2s,border-color .2s}
+.btn:active:not([disabled]){transform:scale(.96);transition-duration:.08s}
+.fx-rip{position:absolute;border-radius:50%;pointer-events:none;background:currentColor;opacity:.24;transform:scale(0);animation:fx-ripple .65s ease-out forwards}
+@keyframes fx-ripple{to{transform:scale(1);opacity:0}}
+.btn.primary::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.34) 50%,transparent 65%);transform:translateX(-130%)}
+.btn.primary:hover:not([disabled])::after{transform:translateX(130%);transition:transform .75s ease}
+
+/* ---------- yon menyu ---------- */
+.nav a{position:relative}
+.nav a svg{transition:transform .3s var(--fx-spring)}
+.nav a:hover svg{transform:scale(1.15) rotate(-7deg)}
+.nav a[aria-current=page]{animation:fx-navpop .5s var(--fx-spring)}
+.nav a[aria-current=page]::before{content:"";position:absolute;left:-14px;top:24%;bottom:24%;width:3px;border-radius:0 4px 4px 0;background:#fff;box-shadow:0 0 12px 1px var(--brand);animation:fx-navbar .45s var(--fx-ease) backwards}
+@keyframes fx-navpop{from{transform:scale(.95);opacity:.55}}
+@keyframes fx-navbar{from{transform:scaleY(0)}}
+body.nav-open .scrim{animation:fade .25s both}
+
+/* ---------- progress chiziqlari: chapdan oʻngga toʻlib boradi ---------- */
+@keyframes fx-fill{from{clip-path:inset(0 100% 0 0 round 99px)}}
+.bar i{animation:fx-fill 1s var(--fx-ease) .25s backwards}
+
+/* ---------- tab, katakcha, input ---------- */
+.tabs button{transition:background .25s,color .25s,box-shadow .25s}
+@keyframes fx-tick{40%{transform:scale(1.4)}}
+input[type=checkbox].fx-pop{animation:fx-tick .35s var(--fx-spring)}
+@keyframes fx-shake{15%{transform:translateX(-7px)}35%{transform:translateX(6px)}55%{transform:translateX(-4px)}75%{transform:translateX(2px)}}
+.msg.fx-shake{animation:fx-shake .45s ease}
+
+/* ---------- toast va modal ---------- */
+.toast{position:relative;overflow:hidden;animation:fx-toast-in .5s var(--fx-spring) both}
+.toast.out{animation:fx-toast-out .3s ease forwards}
+.toast::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:currentColor;opacity:.3;transform-origin:0 50%;animation:fx-toast-bar 4.5s linear forwards}
+@keyframes fx-toast-in{from{opacity:0;transform:translateX(40px) scale(.94)}}
+@keyframes fx-toast-out{to{opacity:0;transform:translateX(30px) scale(.96)}}
+@keyframes fx-toast-bar{to{transform:scaleX(0)}}
+.modal{animation:fx-pop .42s var(--fx-spring) both}
+.modal-bg.out{animation:fx-fadeout .2s ease forwards;pointer-events:none}
+.modal-bg.out .modal{animation:fx-popout .2s ease forwards}
+@keyframes fx-pop{from{opacity:0;transform:translateY(22px) scale(.93)}}
+@keyframes fx-popout{to{opacity:0;transform:translateY(10px) scale(.96)}}
+@keyframes fx-fadeout{to{opacity:0}}
+
+/* ---------- mentor suhbati ---------- */
+.bub{animation:fx-bub .4s var(--fx-spring) backwards}
+.bub.u{transform-origin:100% 100%}.bub.a{transform-origin:0 100%}
+@keyframes fx-bub{from{opacity:0;transform:translateY(12px) scale(.9)}}
+.dots{display:inline-flex;gap:5px;align-items:center;height:1.55em;padding:0 2px}
+.dots i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.35;animation:fx-dot 1.15s ease-in-out infinite}
+.dots i:nth-child(2){animation-delay:.16s}.dots i:nth-child(3){animation-delay:.32s}
+@keyframes fx-dot{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-6px);opacity:.95}}
+
+/* ---------- bosh karta va kirish ekrani: sekin suzuvchi nur ---------- */
+.hero-card::after{animation:fx-orb 9s ease-in-out infinite alternate}
+.auth-art::before{animation:fx-orb 13s ease-in-out infinite alternate-reverse}
+.auth-art::after{content:"";position:absolute;right:-90px;top:-70px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,var(--brand),transparent 65%);opacity:.42;pointer-events:none;animation:fx-orb 11s ease-in-out infinite alternate}
+@keyframes fx-orb{to{transform:translate(-46px,34px) scale(1.18)}}
+.grad-ic{display:inline-block;animation:fx-bob 3.6s ease-in-out infinite}
+@keyframes fx-bob{50%{transform:translateY(-5px) rotate(-4deg)}}
+
+/* ---------- tavsiya etilgan tarif: nur halqasi ---------- */
+.plan.feat::after{content:"";position:absolute;inset:-1px;border-radius:inherit;border:2px solid var(--brand);pointer-events:none;animation:fx-ping 2.8s ease-out infinite}
+@keyframes fx-ping{0%{opacity:.6;transform:scale(1)}70%,100%{opacity:0;transform:scale(1.04)}}
+
+/* ---------- kun/tun almashganda doira boʻlib yoyilish (js/theme.js) ---------- */
+html.vt::view-transition-old(root),html.vt::view-transition-new(root){animation:none;mix-blend-mode:normal}
+html.vt::view-transition-old(root){z-index:1}
+html.vt::view-transition-new(root){z-index:2}
+
+/* ---------- fasl zarralari: qor va gul barglari (js/season.js) ---------- */
+.pts{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
+.pts .pt{position:absolute;top:0;left:0;will-change:transform;animation:fx-fall linear infinite}
+.pts .pt i{display:block;width:100%;height:100%;animation:fx-sway ease-in-out infinite alternate}
+@keyframes fx-fall{from{transform:translate3d(0,-8vh,0)}to{transform:translate3d(var(--dx,24px),108vh,0)}}
+@keyframes fx-sway{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
+@keyframes fx-sway-r{from{transform:translateX(-18px) rotate(-30deg)}to{transform:translateX(18px) rotate(70deg)}}
+.pts.snow i{border-radius:50%;background:radial-gradient(circle,#fff 42%,rgba(210,225,255,.92) 72%);box-shadow:0 0 5px rgba(53,88,255,.6);opacity:.85}
+.pts.petal i{border-radius:150% 0 150% 0;background:linear-gradient(135deg,#ffe0ea,#ff9dbb);box-shadow:0 1px 3px rgba(190,60,100,.3);opacity:.8;animation-name:fx-sway-r}
+
+}

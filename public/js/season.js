@@ -39,3 +39,24 @@
   }
   if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
 })();
+/* Qishda qor, bahorda gul barglari: oz miqdorda va yengil (faqat transform animatsiyasi; "harakatni kamaytirish" yoqilgan boʻlsa koʻrsatilmaydi). */
+(function () {
+  var s = document.documentElement.getAttribute('data-season');
+  if (s !== 'qish' && s !== 'bahor') return;
+  try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) {}
+  function go() {
+    var snow = s === 'qish', box = document.createElement('div'), n = snow ? 12 : 6;
+    box.className = 'pts ' + (snow ? 'snow' : 'petal'); box.setAttribute('aria-hidden', 'true');
+    if (innerWidth < 700) n = Math.round(n * 0.6);
+    for (var i = 0; i < n; i++) {
+      var p = document.createElement('span'), q = document.createElement('i'), sz = snow ? 4 + Math.random() * 6 : 12 + Math.random() * 8;
+      p.className = 'pt'; p.style.left = (Math.random() * 100) + '%'; p.style.width = sz + 'px'; p.style.height = (snow ? sz : sz * 0.7) + 'px';
+      p.style.setProperty('--dx', (Math.random() * 80 - 40) + 'px');
+      p.style.animationDuration = (11 + Math.random() * 10) + 's'; p.style.animationDelay = (-Math.random() * 20) + 's';
+      q.style.animationDuration = (2.5 + Math.random() * 3) + 's'; q.style.animationDelay = (-Math.random() * 4) + 's';
+      p.appendChild(q); box.appendChild(p);
+    }
+    document.body.appendChild(box);
+  }
+  if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
+})();
