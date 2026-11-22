@@ -16,6 +16,7 @@
  *  AI_API_KEY, AI_BASE_URL, AI_MODEL — OpenAI-mos AI (masalan gpt-6-luna). AI_REASONING_EFFORT, AI_TOKENS_PER_CREDIT, AI_GLOBAL_CAP: README'ga qarang
  *  TG_BOT_TOKEN, TG_CHAT_ID        — mentor so'rovlari Telegramga tushishi uchun
  *  ADMIN_TOKEN                     — GET /api/admin/requests uchun (Authorization: Bearer ...)
+ *  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT — (ixtiyoriy) Web Push kaliti; qoʻyilmasa server yaratib saqlaydi. README'ga qarang
  *  USD_UZS_RATE, PAYME_*, CLICK_*     — (ixtiyoriy) onlayn toʻlov: Payme va Click. Batafsil: payments.js boshi va README
  */
 const http = require('node:http');
@@ -35,10 +36,11 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-let db = { users: {}, sessions: {}, requests: [], resets: {}, orders: {} };
+const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [] });
+let db = normDb({});
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-  db = { users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {} };
+  db = normDb(raw);
 } catch (e) {
   if (e.code !== 'ENOENT') {
     console.error('db.json oʻqib boʻlmadi — ustiga yozmaslik uchun toʻxtadim:', e.message);
@@ -80,7 +82,7 @@ async function remoteInit() {
   const rows = await sql("SELECT v FROM unidoue_kv WHERE k = 'db'");
   if (rows.length && rows[0].v) {
     const raw = typeof rows[0].v === 'string' ? JSON.parse(rows[0].v) : rows[0].v;
-    db = { users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {} };
+    db = normDb(raw);
     reindex();
     console.log('Maʼlumotlar Neon bazasidan tiklandi:', Object.keys(db.users).length, 'ta hisob');
   } else {
@@ -105,6 +107,7 @@ for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, async () => { try { flu
 
 
 const Scoring = require('./public/js/scoring.js');
+const PUSH = require('./push');
 
 /* ---------------- tariflar va sozlamalar ---------------- */
 // AI provayderi: ANTHROPIC_API_KEY (Claude) yoki AI_API_KEY + AI_BASE_URL (OpenAI-mos: Groq, Gemini, OpenRouter...)
@@ -325,6 +328,7 @@ function accountInfo(u) {
     usage: { ai: us.ai, period: us.p }, credits: creditsOf(u), consent: { mentorMemory: !!(u.consent && u.consent.mentorMemory) },
     config: { ai: !!AI_PROVIDER, email: !!MAIL_PROVIDER, payments: PAY.enabled, online: PAY.info() },
     tg: { on: !!(TG_TOKEN && TG_USER), linked: !!u.tgChat, bot: TG_USER },
+    push: { key: vapid().pub, devices: (u.push || []).length },
     pay: { ref: payRef(u), info: PAY_INFO, requested: u.planReq || null, plan: u.planReqPlan || 'pro', price: (PLANS[u.planReqPlan] || PLANS.pro).price }
   };
 }
@@ -333,10 +337,57 @@ const meBody = u => ({ user: publicUser(u), account: accountInfo(u), rev: u.rev 
 /* ---- onlayn toʻlov: Payme + Click (payments.js). Kalitlar boʻlmasa oʻchiq, sayt qoʻlda toʻlovga qaytadi ---- */
 const PAY = require('./payments')({
   getDb: () => db, save, PLANS, PLAN_ORDER, effPlan, sessionUser, send, fail, readJson, limited, clean,
-  notify: r => notifyTelegram(r),
+  notify: r => notifyOwner(r), pushUser: (u, m) => pushUser(u, m).catch(() => {}),
   appBase: req => process.env.APP_URL || (isHttps(req) ? 'https://' : 'http://') + req.headers.host
 });
 
+
+/* ---------------- Web Push (push.js: VAPID + RFC 8291). Kalitlar: VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY yoki bazada avtomatik ---------------- */
+function vapid() {
+  const pub = process.env.VAPID_PUBLIC_KEY, priv = process.env.VAPID_PRIVATE_KEY;
+  if (pub && priv && PUSH.validKeyPair({ pub, priv })) return { pub, priv };
+  if (!PUSH.validKeyPair(db.vapid)) { db.vapid = PUSH.generateKeys(); save(); }
+  return db.vapid;
+}
+const pushSubject = () => process.env.VAPID_SUBJECT || (/^https:\/\//.test(process.env.APP_URL || '') ? process.env.APP_URL : 'https://unidoue.uz');
+// Havola faqat sayt ichidagi yoʻl boʻlishi mumkin (/app#/pricing, /admin#requests)
+const pushUrl = v => (typeof v === 'string' && /^\/(?!\/)[\w\-./#?=&%]*$/.test(v) ? v.slice(0, 200) : '/app');
+const pushMsg = m => ({ title: clean(m.title, 80) || 'UniDoue', body: clean(m.body, 240), url: pushUrl(m.url), tag: clean(m.tag, 40) || undefined });
+const parseSub = b => { const ep = b && b.endpoint, k = b && b.keys; return PUSH.validEndpoint(ep) && PUSH.validKeys(k) ? { ep, p: k.p256dh, a: k.auth } : null; };
+const isAdmin = req => { const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, ''); return !!tok && crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok))); };
+// Admin: IP boʻyicha faqat XATO token sanaladi (20 ta / 15 daqiqa). Toʻgʻri tokenli soʻrovlar (yangilash, avto-yangilash, tarif berish) bir-biriga xalaqit bermaydi; har endpoint oʻz limitiga ega.
+function admGate(req, res, ip, name, max) {
+  if (peek('admf:' + ip) >= 20) { fail(res, 429, 'Juda koʻp urinish.'); return false; }
+  if (!isAdmin(req)) { limited('admf:' + ip, 20, 15 * 60 * 1000); fail(res, 401, 'Ruxsat yoʻq.'); return false; }
+  if (limited('adm:' + name + ':' + ip, max, 15 * 60 * 1000)) { fail(res, 429, 'Juda koʻp urinish.'); return false; }
+  return true;
+}
+/** list — obunalar massivi (oʻzgartiriladi: oʻchirilgan qurilmalar olib tashlanadi). Hech qachon xato tashlamaydi. */
+async function pushTo(list, m, opt) {
+  const out = { ok: 0, gone: 0, failed: 0 };
+  if (!list || !list.length) return out;
+  const keys = vapid(), msg = pushMsg(m), dead = new Set();
+  await Promise.all(list.slice().map(async s => {
+    let st = 0; try { st = await PUSH.send(s, msg, keys, pushSubject(), opt); } catch (e) { st = 410; } // saqlangan kalit buzilgan boʻlsa — oʻchiramiz
+    if (st >= 200 && st < 300) out.ok++; else if (st === 404 || st === 410 || st === 403) { dead.add(s); out.gone++; } else out.failed++;
+  }));
+  if (dead.size) { for (let i = list.length - 1; i >= 0; i--) if (dead.has(list[i])) list.splice(i, 1); save(); }
+  return out;
+}
+const pushUser = (u, m, opt) => pushTo(u.push, m, opt);
+async function pushMany(users, m, opt) {
+  const tot = { ok: 0, gone: 0, failed: 0 };
+  for (let i = 0; i < users.length; i += 25) for (const r of await Promise.all(users.slice(i, i + 25).map(u => pushUser(u, m, opt)))) { tot.ok += r.ok; tot.gone += r.gone; tot.failed += r.failed; }
+  return tot;
+}
+const pushDevices = () => Object.values(db.users).reduce((n, u) => n + (u.push ? u.push.length : 0), 0);
+/** Sayt egasiga: yangi soʻrov yoki toʻlov (Telegram + administrator qurilmalariga push) */
+function notifyOwner(r) {
+  notifyTelegram(r);
+  if (!db.adminPush.length) return;
+  const pay = /^TO.LOV/.test(String(r.service || ''));
+  pushTo(db.adminPush, { title: pay ? String(r.service) : 'Yangi soʻrov: ' + String(r.service || ''), body: `${r.name || ''} — ${r.contact || ''}${r.message ? '\n' + String(r.message).slice(0, 120) : ''}`, url: pay ? '/admin#payments' : '/admin#requests' }, { urgency: 'high' }).catch(() => {});
+}
 
 /* ---------------- AI soʻrovlarini tayyorlash ---------------- */
 let CATALOG = null;
@@ -553,24 +604,81 @@ async function api(req, res, pathname) {
     db.requests.push(r);
     if (db.requests.length > 5000) db.requests.shift();
     save();
-    notifyTelegram(r);
+    notifyOwner(r);
     return send(res, 201, { ok: true });
   }
 
+  /* ---- Web Push: obuna boshqaruvi ---- */
+  if (pathname === '/api/push/key' && method === 'GET') return send(res, 200, { key: vapid().pub });
+  if (pathname === '/api/push/subscribe' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (limited('pus:' + u.id, 20, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Keyinroq urinib koʻring.');
+    const sub = parseSub(await readJson(req));
+    if (!sub) return fail(res, 400, 'Bildirishnoma maʼlumoti notoʻgʻri yoki bu brauzer qoʻllab-quvvatlanmaydi.');
+    for (const x of Object.values(db.users)) if (x.push) x.push = x.push.filter(s => s.ep !== sub.ep); // bir qurilma — bitta hisob
+    db.adminPush = db.adminPush.filter(s => s.ep !== sub.ep);
+    (u.push || (u.push = [])).push({ ...sub, ts: Date.now() }); while (u.push.length > 5) u.push.shift();
+    save();
+    return send(res, 201, { ok: true, account: accountInfo(u) });
+  }
+  if (pathname === '/api/push/unsubscribe' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    const b = await readJson(req);
+    if (u.push && typeof b.endpoint === 'string') { u.push = u.push.filter(s => s.ep !== b.endpoint); if (!u.push.length) delete u.push; save(); }
+    return send(res, 200, { ok: true, account: accountInfo(u) });
+  }
+  if (pathname === '/api/push/test' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (limited('put:' + u.id, 5, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Keyinroq urinib koʻring.');
+    if (!u.push || !u.push.length) return fail(res, 400, 'Bu hisobda bildirishnoma yoqilgan qurilma yoʻq.');
+    const r = await pushUser(u, { title: 'UniDoue', body: 'Bildirishnomalar ishlayapti ✓ Ariza muddatlari yaqinlashganda shu yerda eslatamiz.', url: '/app#/profile', tag: 'test' });
+    if (u.push && !u.push.length) delete u.push;
+    return send(res, 200, { ...r, account: accountInfo(u) });
+  }
+  if (pathname === '/api/admin/push/subscribe' && method === 'POST') {
+    if (!admGate(req, res, ip, 'push-subscribe', 60)) return;
+    const sub = parseSub(await readJson(req));
+    if (!sub) return fail(res, 400, 'Bildirishnoma maʼlumoti notoʻgʻri yoki bu brauzer qoʻllab-quvvatlanmaydi.');
+    for (const x of Object.values(db.users)) if (x.push) x.push = x.push.filter(s => s.ep !== sub.ep);
+    db.adminPush = db.adminPush.filter(s => s.ep !== sub.ep); db.adminPush.push({ ...sub, ts: Date.now() }); while (db.adminPush.length > 10) db.adminPush.shift();
+    save();
+    return send(res, 201, { ok: true, devices: db.adminPush.length });
+  }
+  if (pathname === '/api/admin/push/unsubscribe' && method === 'POST') {
+    if (!admGate(req, res, ip, 'push-unsubscribe', 60)) return;
+    const b = await readJson(req); db.adminPush = db.adminPush.filter(s => s.ep !== b.endpoint); save();
+    return send(res, 200, { ok: true, devices: db.adminPush.length });
+  }
+  if (pathname === '/api/admin/push/send' && method === 'POST') {
+    if (!admGate(req, res, ip, 'push-send', 30)) return;
+    const b = await readJson(req), title = clean(b.title, 60), body = clean(b.body, 200), aud = String(b.audience || 'all');
+    if (title.length < 2 || body.length < 2) return fail(res, 400, 'Sarlavha va matnni kiriting.');
+    if (b.url && pushUrl(b.url) !== b.url) return fail(res, 400, 'Havola faqat sayt ichidagi yoʻl boʻlsin (masalan /app#/pricing).');
+    const m = { title, body, url: b.url || '/app', tag: 'news' };
+    let users = [];
+    if (aud === 'admin') { const r = await pushTo(db.adminPush, m); return send(res, 200, { audience: aud, targets: db.adminPush.length, devices: r.ok + r.gone + r.failed, ...r }); }
+    if (aud === 'email') {
+      const id = emailIdx.get(clean(b.email, 254).toLowerCase()); if (!id) return fail(res, 404, 'Foydalanuvchi topilmadi.');
+      users = [db.users[id]];
+    } else if (aud === 'all' || PLANS[aud]) users = Object.values(db.users).filter(u => u.push && u.push.length && (aud === 'all' || effPlan(u).id === aud));
+    else return fail(res, 400, 'Auditoriya notoʻgʻri.');
+    users = users.filter(u => u.push && u.push.length);
+    const r = await pushMany(users, m);
+    for (const u of users) if (u.push && !u.push.length) delete u.push;
+    return send(res, 200, { audience: aud, targets: users.length, devices: r.ok + r.gone + r.failed, ...r });
+  }
+
   if (pathname === '/api/admin/users' && method === 'GET') {
-    if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
-    const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-    if (!tok || !crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok)))) return fail(res, 401, 'Ruxsat yoʻq.');
-    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null, seen: x.seenDay || null, verified: x.verified !== false, ai: x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0 })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
+    if (!admGate(req, res, ip, 'users', 300)) return;
+    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null, seen: x.seenDay || null, verified: x.verified !== false, push: (x.push || []).length, ai: x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0 })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
     return send(res, 200, { users });
   }
 
   if (pathname === '/api/admin/requests' && method === 'GET') {
-    if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
-    const tok = process.env.ADMIN_TOKEN;
-    const got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-    const a = Buffer.from(sha256(got)), b2 = Buffer.from(sha256(tok || ''));
-    if (!tok || !crypto.timingSafeEqual(a, b2)) return fail(res, 401, 'Ruxsat yoʻq.');
+    if (!admGate(req, res, ip, 'requests', 300)) return;
     return send(res, 200, { requests: db.requests });
   }
 
@@ -646,7 +754,7 @@ async function api(req, res, pathname) {
     const b = await readJson(req), uni = clean(b.uni, 120), text = String(b.text || '').trim().slice(0, 500);
     if (!uni || text.length < 5) return fail(res, 400, 'Universitet va xato tavsifini yozing.');
     const r = { id: crypto.randomBytes(6).toString('hex'), ts: new Date().toISOString(), uid: u.id, email: u.email, name: u.name, contact: u.email, service: 'Maʼlumot xatosi', message: uni + ': ' + text };
-    db.requests.push(r); if (db.requests.length > 5000) db.requests.shift(); save(); notifyTelegram(r);
+    db.requests.push(r); if (db.requests.length > 5000) db.requests.shift(); save(); notifyOwner(r);
     return send(res, 201, { ok: true });
   }
 
@@ -661,7 +769,7 @@ async function api(req, res, pathname) {
     if (PLAN_ORDER[b.plan] <= PLAN_ORDER[effPlan(u).id]) return fail(res, 400, 'Siz allaqachon shu yoki yuqoriroq tarifdasiz.');
     const r = { id: crypto.randomBytes(6).toString('hex'), ts: new Date().toISOString(), uid: u.id, email: u.email, name: u.name, contact: u.email, service: 'Tarif: ' + PLANS[b.plan].name, message: PLANS[b.plan].name + ' ($' + PLANS[b.plan].price + ') yoqish soʻrovi. Toʻlov kodi: ' + payRef(u) + '. Toʻlov chekini tekshirib, /admin orqali qoʻlda yoqing.' };
     u.planReq = Date.now(); u.planReqPlan = b.plan;
-    db.requests.push(r); save(); notifyTelegram(r);
+    db.requests.push(r); save(); notifyOwner(r);
     return send(res, 201, { ok: true, account: accountInfo(u) });
   }
 
@@ -691,9 +799,7 @@ async function api(req, res, pathname) {
     return send(res, 200, { ok: true, account: accountInfo(u) });
   }
   if (pathname === '/api/admin/remind' && (method === 'POST' || method === 'GET')) {
-    if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
-    const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-    if (!tok || !crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok)))) return fail(res, 401, 'Ruxsat yoʻq.');
+    if (!admGate(req, res, ip, 'remind', 60)) return;
     const n = await runReminders(true);
     return send(res, 200, { ok: true, sent: n });
   }
@@ -720,9 +826,7 @@ async function api(req, res, pathname) {
   }
 
   if (pathname === '/api/admin/stats' && method === 'GET') {
-    if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
-    const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-    if (!tok || !crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok)))) return fail(res, 401, 'Ruxsat yoʻq.');
+    if (!admGate(req, res, ip, 'stats', 300)) return;
     const us = Object.values(db.users), now = Date.now(), today = tashkentISO();
     const days = Array.from({ length: 14 }, (_, i) => tashkentISO(now - (13 - i) * 864e5));
     const rows = days.map(d => ({ d, active: us.filter(u => (u.act || []).includes(d)).length, signups: us.filter(u => u.created && tashkentISO(u.created) === d).length }));
@@ -736,25 +840,22 @@ async function api(req, res, pathname) {
       active7: us.filter(u => (u.act || []).some(d => week.has(d))).length,
       aiMonth: us.reduce((n, u) => n + (u.usage && u.usage.p === month() ? u.usage.ai || 0 : 0), 0),
       aiTokensMonth: us.reduce((n, u) => n + (u.usage && u.usage.p === month() ? tokensUsed(u.usage) : 0), 0),
-      since: all[0] || null, rows, mail: !!MAIL_PROVIDER, ai: !!AI_PROVIDER, verifyOn: VERIFY_ON, payCard: !!PAY_INFO
+      since: all[0] || null, rows, push: { users: us.filter(u => u.push && u.push.length).length, devices: pushDevices(), admin: db.adminPush.length }, mail: !!MAIL_PROVIDER, ai: !!AI_PROVIDER, verifyOn: VERIFY_ON, payCard: !!PAY_INFO
     });
   }
 
   if (pathname === '/api/admin/orders' && method === 'GET') {
-    if (limited('adm:' + ip, 60, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
-    const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-    if (!tok || !crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok)))) return fail(res, 401, 'Ruxsat yoʻq.');
+    if (!admGate(req, res, ip, 'orders', 300)) return;
     return send(res, 200, { enabled: PAY.enabled, orders: PAY.adminList() });
   }
   if (pathname === '/api/admin/plan' && method === 'POST') {
-    if (limited('adm:' + ip, 20, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
-    const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-    if (!tok || !crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok)))) return fail(res, 401, 'Ruxsat yoʻq.');
+    if (!admGate(req, res, ip, 'plan', 30)) return;
     const b = await readJson(req), id = emailIdx.get(clean(b.email, 254).toLowerCase()), u = id && db.users[id];
     if (!u) return fail(res, 404, 'Foydalanuvchi topilmadi.');
     if (!PLANS[b.plan]) return fail(res, 400, 'Notoʻgʻri tarif.');
     const days = Math.min(Math.max(+b.days || 30, 1), 3660);
     u.plan = b.plan; u.planUntil = b.plan === 'free' ? null : Date.now() + days * 864e5; delete u.planReq; delete u.planReqPlan; save();
+    if (u.plan !== 'free') pushUser(u, { title: 'Tarifingiz yangilandi', body: `${PLANS[u.plan].name} tarifi ${days} kunga yoqildi. Yangi imkoniyatlardan foydalaning.`, url: '/app#/pricing', tag: 'plan' }).catch(() => {});
     return send(res, 200, { ok: true, email: u.email, plan: u.plan, planUntil: u.planUntil });
   }
 
@@ -905,22 +1006,30 @@ async function tgHandle(upd) {
 }
 let remindBusy = false;
 async function runReminders(force) {
-  if (!TG_TOKEN || remindBusy) return 0;
+  if (remindBusy) return 0;
   const hr = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Tashkent', hour: '2-digit', hour12: false }).format(new Date());
   if (!force && (hr < 9 || hr >= 21)) return 0;
   remindBusy = true; let sent = 0;
   try {
     for (const u of Object.values(db.users)) {
-      if (!u.tgChat) continue;
-      const sentMap = u.tgSent || (u.tgSent = {}), today = tashkentISO();
-      for (const k of Object.keys(sentMap)) if (sentMap[k] < today) delete sentMap[k];
+      let tgOn = !!(TG_TOKEN && u.tgChat);
+      if (!tgOn && !(u.push && u.push.length)) continue;
+      const today = tashkentISO(), tgMap = tgOn ? (u.tgSent || (u.tgSent = {})) : {}, pushMap = u.push && u.push.length ? (u.pushSent || (u.pushSent = {})) : {};
+      for (const m of [tgMap, pushMap]) for (const k of Object.keys(m)) if (m[k] < today) delete m[k];
       for (const x of upcomingFor(u, 14)) {
         if (![14, 7, 3, 1, 0].includes(x.days)) continue;
-        const key = x.n + '|' + x.d + '|' + x.days; if (sentMap[key]) continue;
+        const key = x.n + '|' + x.d + '|' + x.days; if (!((tgOn && !tgMap[key]) || (u.push && u.push.length && !pushMap[key]))) continue;
         const left = x.days === 0 ? 'BUGUN' : x.days === 1 ? 'ertaga' : x.days + ' kundan keyin';
-        const r = await tgSay(u.tgChat, `⏰ ${x.n}: ariza muddati ${left} (${x.d}).\nHujjatlar va esseni tekshirib chiqing. Aniq muddatni universitetning rasmiy saytidan tasdiqlang.`);
-        if (r && r.ok) { sentMap[key] = x.d; sent++; }
-        else if (r && r.error_code === 403) { delete u.tgChat; break; } // foydalanuvchi botni bloklagan
+        if (tgOn && !tgMap[key]) {
+          const r = await tgSay(u.tgChat, `⏰ ${x.n}: ariza muddati ${left} (${x.d}).\nHujjatlar va esseni tekshirib chiqing. Aniq muddatni universitetning rasmiy saytidan tasdiqlang.`);
+          if (r && r.ok) { tgMap[key] = x.d; sent++; }
+          else if (r && r.error_code === 403) { delete u.tgChat; tgOn = false; } // foydalanuvchi botni bloklagan
+        }
+        if (u.push && u.push.length && !pushMap[key]) {
+          const r = await pushUser(u, { title: 'Ariza muddati yaqinlashmoqda', body: `${x.n}: ${left} (${x.d}). Hujjatlar va esseni tekshirib chiqing.`, url: '/app#/tracker', tag: 'dl-' + x.d + '-' + x.n.slice(0, 20) });
+          if (r.ok) { pushMap[key] = x.d; sent++; }
+          if (u.push && !u.push.length) delete u.push;
+        }
       }
     }
   } finally { remindBusy = false; if (sent) save(); }
@@ -947,7 +1056,7 @@ function serveStatic(req, res, pathname) {
   let rel = PAGES[pathname];
   if (!rel) {
     try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch (e) { return false; }
-    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
+    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'admin.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
     if (!ok) return false;
   }
   const file = path.resolve(PUBLIC_DIR, rel);
@@ -995,5 +1104,5 @@ const server = http.createServer(async (req, res) => {
     fail(res, 500, 'Server xatosi. Keyinroq urinib koʻring.');
   }
 });
-remoteInit().then(() => server.listen(PORT, HOST, () => { console.log(`UniDoue http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  (data: ${DATA_DIR}${DATABASE_URL ? ', Neon' : ''})`); tgInit(); if (TG_TOKEN) setInterval(() => runReminders(false).catch(e => console.error('Eslatma xatosi', e.message)), 60 * 60 * 1000).unref(); }),
+remoteInit().then(() => server.listen(PORT, HOST, () => { console.log(`UniDoue http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  (data: ${DATA_DIR}${DATABASE_URL ? ', Neon' : ''})`); tgInit(); setInterval(() => runReminders(false).catch(e => console.error('Eslatma xatosi', e.message)), 60 * 60 * 1000).unref(); }),
   e => { console.error('Neon bazasiga ulanib boʻlmadi — ustiga yozmaslik uchun toʻxtadim:', e.message); process.exit(1); });

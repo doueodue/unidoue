@@ -2,37 +2,170 @@
 <html lang="uz">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Admin — UniDoue</title>
 <meta name="robots" content="noindex,nofollow">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<meta name="theme-color" content="#0a1236">
+<script src="/js/season.js"></script>
+<script src="/js/theme.js"></script>
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=kuz">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap">
 <link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/admin.css">
 </head>
-<body>
-<main style="max-width:980px;margin:0 auto;padding:24px 16px 80px" id="adm">
-  <h1 style="margin:0 0 4px">UniDoue admin</h1>
-  <p class="hint">Faqat sayt egasi uchun. Kirish uchun Render'dagi <code>ADMIN_TOKEN</code> kerak.</p>
-  <form id="lf" class="card" style="max-width:460px" novalidate>
-    <label class="f" for="tk">Admin token</label>
-    <input id="tk" type="password" autocomplete="off" maxlength="200">
-    <div class="msg" id="lm" role="alert"></div>
-    <button class="btn primary" type="submit" style="margin-top:10px">Kirish</button>
-  </form>
-  <div id="panel" hidden>
-    <div style="display:flex;gap:8px;align-items:center;margin:8px 0 16px"><button class="btn sm" id="rf" type="button">Yangilash</button><button class="btn sm" id="lo" type="button">Chiqish</button><span class="hint" id="st"></span></div>
-    <div id="stats"></div>
-    <div class="card" style="margin-bottom:16px">
-      <h3 style="margin-top:0">Tarif berish</h3>
-      <div class="row"><div><label class="f" for="pe">Foydalanuvchi emaili</label><input id="pe" type="email" maxlength="254" placeholder="ism@gmail.com"></div>
-      <div><label class="f" for="pp">Tarif</label><select id="pp"><option value="plus">Plus</option><option value="pro">Pro</option><option value="free">Free</option></select></div>
-      <div><label class="f" for="pd">Kun</label><input id="pd" type="number" min="1" max="3660" value="30"></div></div>
-      <div class="msg" id="pm" role="status"></div>
-      <button class="btn primary" id="pg" type="button" style="margin-top:10px">Berish</button>
+<body class="adm">
+
+<!-- ============ Kirish ============ -->
+<main class="lg" id="lg">
+  <aside class="lg-art" aria-hidden="true">
+    <div class="brand" style="padding:0"><i>U</i>UniDoue</div>
+    <div class="lg-copy">
+      <span class="lg-pill">Faqat sayt egasi uchun</span>
+      <h2>Boshqaruv <em>paneli</em></h2>
+      <ul>
+        <li><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Foydalanuvchilar va faollik statistikasi</li>
+        <li><svg viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h10"/></svg>So‘rovlar va tarif berish</li>
+        <li><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M13.7 20a2 2 0 0 1-3.4 0"/></svg>Push xabarlar yuborish</li>
+      </ul>
     </div>
-    <h3>So‘rovlar <span class="badge mute" id="rc"></span></h3><div id="rl"></div>
-    <h3 style="margin-top:28px">Foydalanuvchilar <span class="badge mute" id="uc"></span></h3><input id="uq" type="search" placeholder="Ism yoki email bo‘yicha qidirish" maxlength="100" style="max-width:360px;margin:8px 0"><div id="ul"></div>
-  </div>
+    <small>© UniDoue</small>
+  </aside>
+  <section class="lg-main">
+    <div class="lg-tools"><button type="button" class="theme-sw" role="switch" aria-checked="false" aria-label="Tungi rejim" title="Tungi rejim" data-theme-toggle><span class="ts-knob"><svg class="ts-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.3M12 19.2v2.3M2.5 12h2.3M19.2 12h2.3M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6" fill="none"/></svg><svg class="ts-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 14.6A8.4 8.4 0 0 1 9.4 3.8a8.4 8.4 0 1 0 10.8 10.8Z"/></svg></span></button></div>
+    <form id="lf" class="lg-card card" novalidate>
+      <div class="lg-ic"><svg viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></div>
+      <h1>Admin kirishi</h1>
+      <p class="sub">Render’dagi <code>ADMIN_TOKEN</code> qiymatini kiriting.</p>
+      <label class="f" for="tk">Admin token</label>
+      <div class="pw"><input id="tk" type="password" autocomplete="off" maxlength="200" placeholder="••••••••••••"><button type="button" id="tk-eye" class="pw-eye" aria-label="Tokenni ko‘rsatish" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <div class="msg" id="lm" role="alert"></div>
+      <button class="btn primary" type="submit" id="lb">Kirish</button>
+    </form>
+  </section>
 </main>
+
+<!-- ============ Panel ============ -->
+<div class="shell" id="shell" hidden>
+  <aside class="side" id="side">
+    <a class="brand" href="#overview"><i>U</i>UniDoue <span class="adm-tag">Admin</span></a>
+    <nav class="nav" id="nav" aria-label="Admin menyusi">
+      <div class="nav-sec">Boshqaruv</div>
+      <a href="#overview" data-v="overview"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="8" rx="2"/><rect x="13.5" y="3.5" width="7" height="5" rx="2"/><rect x="13.5" y="11.5" width="7" height="9" rx="2"/><rect x="3.5" y="14.5" width="7" height="6" rx="2"/></svg>Umumiy ko‘rinish</a>
+      <a href="#requests" data-v="requests"><svg viewBox="0 0 24 24"><path d="M3.5 13.5 6 5.5h12l2.5 8M3.5 13.5V18a1.5 1.5 0 0 0 1.5 1.5h14A1.5 1.5 0 0 0 20.5 18v-4.5M3.5 13.5H8a1 1 0 0 1 1 1 3 3 0 0 0 6 0 1 1 0 0 1 1-1h4.5"/></svg>So‘rovlar<span class="tag" id="tg-rq" hidden></span></a>
+      <a href="#users" data-v="users"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.8a3.5 3.5 0 0 1 0 6.4M18.5 14.2a6.5 6.5 0 0 1 3 5.8"/></svg>Foydalanuvchilar<span class="tag" id="tg-us" hidden></span></a>
+      <a href="#payments" data-v="payments"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6.5 15h4"/></svg>To‘lovlar</a>
+      <div class="nav-sec">Xabarlar</div>
+      <a href="#push" data-v="push"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M13.7 20a2 2 0 0 1-3.4 0"/></svg>Bildirishnomalar</a>
+    </nav>
+    <div class="side-foot">
+      <b>Admin</b><small id="st">Yuklanmoqda…</small>
+      <button class="btn ghost sm" id="lo" type="button">Chiqish</button>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+  <div class="main">
+    <header class="top">
+      <button class="burger" id="bg" aria-label="Menyu" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <h1 id="ttl">Umumiy ko‘rinish</h1>
+      <span class="top-tools">
+        <button type="button" class="ic-btn" id="rf" aria-label="Yangilash" title="Yangilash"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+        <button type="button" class="theme-sw" role="switch" aria-checked="false" aria-label="Tungi rejim" title="Tungi rejim" data-theme-toggle><span class="ts-knob"><svg class="ts-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.3M12 19.2v2.3M2.5 12h2.3M19.2 12h2.3M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6" fill="none"/></svg><svg class="ts-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 14.6A8.4 8.4 0 0 1 9.4 3.8a8.4 8.4 0 1 0 10.8 10.8Z"/></svg></span></button>
+      </span>
+    </header>
+
+    <div class="content" id="content">
+
+      <!-- Umumiy -->
+      <section class="view" id="v-overview" hidden>
+        <div id="alerts"></div>
+        <div class="kpis" id="kpis"></div>
+        <div class="ad-grid">
+          <section class="card chart-card">
+            <header class="card-h"><div><h3>Oxirgi 14 kun</h3><p class="sub" id="since"></p></div><div class="lgd" id="lgd"></div></header>
+            <div class="chart" id="chart"></div>
+            <details class="tv"><summary>Jadval ko‘rinishi</summary><div class="tbl-wrap" id="chart-t"></div></details>
+          </section>
+          <div class="stack">
+            <section class="card"><h3>Obunalar</h3><p class="sub">Hozir faol tariflar</p><div id="plans"></div></section>
+            <section class="card"><h3>Bildirishnomalar</h3><p class="sub">Push yoqqan foydalanuvchilar</p><div id="pstat"></div><a class="btn sm" href="#push" style="margin-top:12px">Xabar yuborish</a></section>
+          </div>
+        </div>
+      </section>
+
+      <!-- So'rovlar -->
+      <section class="view" id="v-requests" hidden>
+        <div class="sec-h"><h2>So‘rovlar</h2><span class="badge mute" id="rc"></span></div>
+        <div class="req-list" id="rl"></div>
+      </section>
+
+      <!-- Foydalanuvchilar -->
+      <section class="view" id="v-users" hidden>
+        <div class="sec-h"><h2>Foydalanuvchilar</h2><span class="badge mute" id="uc"></span></div>
+        <section class="card grant" id="grant">
+          <h3>Tarif berish</h3><p class="sub">Foydalanuvchiga qo‘lda Plus yoki Pro tarifini bering (yoki Free ga qaytaring).</p>
+          <div class="row">
+            <div><label class="f" for="pe">Foydalanuvchi emaili</label><input id="pe" type="email" maxlength="254" placeholder="ism@gmail.com" autocomplete="off"></div>
+            <div><label class="f" for="pp">Tarif</label><select id="pp"><option value="plus">Plus</option><option value="pro">Pro</option><option value="free">Free</option></select></div>
+            <div><label class="f" for="pd">Kun</label><input id="pd" type="number" min="1" max="3660" value="30"></div>
+          </div>
+          <div class="grant-f"><button class="btn primary" id="pg" type="button">Berish</button><div class="msg" id="pm" role="status"></div></div>
+        </section>
+        <div class="toolbar">
+          <div class="srch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg><input id="uq" type="search" placeholder="Ism yoki email bo‘yicha qidirish" maxlength="100" aria-label="Qidirish"></div>
+          <div class="chips" id="uf" role="group" aria-label="Filtr"></div>
+        </div>
+        <div id="ul"></div>
+      </section>
+
+      <!-- To'lovlar -->
+      <section class="view" id="v-payments" hidden>
+        <div class="sec-h"><h2>To‘lovlar</h2><span class="badge mute" id="oc"></span></div>
+        <div id="pw-note"></div>
+        <div class="kpis kpis-s" id="pk"></div>
+        <div id="pl"></div>
+      </section>
+
+      <!-- Bildirishnomalar -->
+      <section class="view" id="v-push" hidden>
+        <div class="sec-h"><h2>Bildirishnoma yuborish</h2></div>
+        <div class="ad-grid push-grid">
+          <section class="card">
+            <h3>Yangi xabar</h3><p class="sub">Xabar bildirishnomasi yoqqan foydalanuvchilarning qurilmalariga yetib boradi.</p>
+            <label class="f" for="nt">Sarlavha <span class="cnt" id="nt-n">0/60</span></label>
+            <input id="nt" type="text" maxlength="60" placeholder="Masalan: Yangi universitetlar qo‘shildi" autocomplete="off">
+            <label class="f" for="nb" style="margin-top:12px">Matn <span class="cnt" id="nb-n">0/200</span></label>
+            <textarea id="nb" rows="3" maxlength="200" placeholder="Qisqa va aniq yozing — bildirishnomada bir necha qator ko‘rinadi."></textarea>
+            <div class="row" style="margin-top:12px">
+              <div><label class="f" for="nu">Havola (sayt ichida)</label><input id="nu" type="text" maxlength="200" list="nu-l" value="/app" autocomplete="off"><datalist id="nu-l"><option value="/app"><option value="/app#/pricing"><option value="/app#/profile"></datalist></div>
+              <div><label class="f" for="na">Kimga</label><select id="na"></select></div>
+            </div>
+            <div id="nq-w" hidden style="margin-top:12px"><label class="f" for="nq">Foydalanuvchi emaili</label><input id="nq" type="email" maxlength="254" placeholder="ism@gmail.com" autocomplete="off"></div>
+            <div class="msg" id="nm" role="status"></div>
+            <div class="send-f"><button class="btn primary" id="ns" type="button">Yuborish</button><span class="hint" id="nh"></span></div>
+            <div id="nr"></div>
+          </section>
+          <div class="stack">
+            <section class="card pv-card">
+              <h3>Qanday ko‘rinadi</h3><p class="sub">Telefondagi bildirishnoma</p>
+              <div class="pv" aria-hidden="true"><img src="/icons/icon-192.png" alt="" width="40" height="40"><div><small>UniDoue · hozir</small><b id="pv-t">Sarlavha</b><span id="pv-b">Xabar matni shu yerda ko‘rinadi.</span></div></div>
+            </section>
+            <section class="card">
+              <h3>Admin qurilmasi</h3><p class="sub">Yangi so‘rov yoki to‘lov kelganda shu qurilmaga bildirishnoma keladi.</p>
+              <div id="ad-dev"><div class="sk" style="height:38px;width:60%"></div></div>
+            </section>
+            <section class="card"><h3>Qamrov</h3><p class="sub">Hozirgi obunalar</p><div id="pstat2"></div></section>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<noscript><p style="padding:24px">Admin sahifasi ishlashi uchun JavaScript yoqilgan bo‘lishi kerak.</p></noscript>
 <script src="/js/admin.js" type="module"></script>
 </body>
 </html>

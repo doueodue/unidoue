@@ -3,7 +3,7 @@
 Xorijda oʻqish platformasi: universitet qidiruvi (Safety/Target/Reach), moslik tahlili, solishtirish, arizalar kuzatuvchisi, esse yordamchisi, AI mentor, tariflar.
 
 - `/` va `/app` — UniDoue platformasi (hisob, dashboard, tariflar, AI vositalar). Eski bosh sahifa olib tashlangan
-- `/admin` — sayt egasi uchun admin sahifa (`ADMIN_TOKEN` bilan)
+- `/admin` — sayt egasi uchun boshqaruv paneli (`ADMIN_TOKEN` bilan): umumiy statistika va 14 kunlik grafik, soʻrovlar, foydalanuvchilar, toʻlovlar, push xabar yuborish. Kun/tun rejimi, telefonda ham ishlaydi
 
 ## Ishga tushirish
 ```bash
@@ -28,6 +28,7 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 | `AI_GLOBAL_CAP` | (tavsiya etiladi) Hamma foydalanuvchilarning oylik umumiy AI krediti. Oshsa AI vaqtincha toʻxtaydi. Qoʻyilmasa umumiy chegara yoʻq |
 | `RESEND_API_KEY`, `MAIL_FROM`, `APP_URL` | Parolni tiklash xati. Kalitsiz "ulanmagan" xabari chiqadi |
 | `TG_BOT_TOKEN`, `TG_CHAT_ID` | Mentor va tarif soʻrovlari Telegramga kelishi uchun |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | (ixtiyoriy) Push bildirishnomalar kaliti. Qoʻyilmasa server oʻzi yaratib, ma'lumotlar bazasiga (Neon ulangan boʻlsa u yerga ham) saqlaydi. `VAPID_SUBJECT` — aloqa manzili (`mailto:` yoki `https://`); qoʻyilmasa `APP_URL` olinadi |
 | `USD_UZS_RATE` | Onlayn toʻlov uchun kurs: 1 USD = necha soʻm (masalan `12700`). Soʻm narxi = dollar narxi × kurs, 1000 soʻmgacha yaxlitlanadi. Kurs boʻlmasa toʻlov **yoqilmaydi** |
 | `PAYME_MERCHANT_ID`, `PAYME_KEY`, `PAYME_TEST` | Payme kassasi. `PAYME_TEST=1` — sinov muhiti (`test.paycom.uz`), shunda `PAYME_KEY` oʻrniga **TEST kalitni** qoʻying |
 | `CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID`, `CLICK_SECRET_KEY` | Click (SHOP-API) |
@@ -63,6 +64,16 @@ Payme kassasida buyurtma kodi uchun **hisob (account) maydoni** boʻlishi kerak,
 - Buyurtmalar roʻyxati: `curl -H "Authorization: Bearer $ADMIN_TOKEN" https://SAYT/api/admin/orders`. Har bir muvaffaqiyatli toʻlov `TG_BOT_TOKEN` sozlangan boʻlsa Telegramga ham yuboriladi.
 - Imzo/kalit tekshiruvi: Payme — `Authorization: Basic Paycom:KALIT`, Click — MD5 `sign_string`. Notoʻgʻri soʻrovlar rad etiladi. Provayder xabarlari uchun cookie/CSRF talab qilinmaydi (faqat shu ikki manzil uchun).
 - Kod: `payments.js`; testlar: `node tests/run.js` (“Onlayn toʻlov” boʻlimi provayder chaqiruvlarini simulyatsiya qiladi).
+
+## Push bildirishnomalar
+Kutubxonasiz (faqat `node:crypto` va `fetch`): VAPID (RFC 8292), `aes128gcm` shifrlash (RFC 8291), yetkazish (RFC 8030). Kod: `push.js`, `public/js/webpush.js` va `push.js`, service worker — `public/sw.js`.
+
+- **Foydalanuvchi**: Profil → “Bildirishnomalar” → yoqish. Ariza muddati yaqinlashganda (14/7/3/1/0 kun, 09:00–21:00 Toshkent vaqti bilan; har biri bir martadan) va tarif yangilanganda/toʻlov qabul qilinganda xabar keladi. Telegram eslatmalari ham oldingidek ishlaydi.
+- **Admin**: `/admin` → “Bildirishnomalar” — barcha/Free/Plus/Pro/bitta foydalanuvchi (email) ga xabar yuborish; “Admin qurilmasi”ni yoqsangiz yangi soʻrov va toʻlov haqida telefoningizga xabar keladi. API: `POST /api/admin/push/send` (`{title, body, url?, audience: all|free|plus|pro|email|admin, email?}`).
+- iPhone/iPad: bildirishnoma faqat sayt “Bosh ekranga qoʻshilib”, ilova sifatida ochilganda ishlaydi (iOS 16.4+).
+- Eskirgan obunalar (404/410) avtomatik oʻchiriladi. Obuna manzili faqat FCM, Mozilla, Windows va Apple push xizmatlariga ruxsat etiladi (SSRF himoyasi).
+- Admin soʻrovlari tezligi: faqat **xato token** sanaladi (IP boʻyicha 20 ta / 15 daqiqa); toʻgʻri tokenli yangilashlar bir-biriga xalaqit bermaydi.
+- Testlar: `node tests/push.js` (RFC 8291 sinov vektori bilan bayt-ma-bayt tekshiruv) va `tests/run.js` ichidagi “Web Push” boʻlimi (soxta push xizmati bilan).
 
 ## Tarif berish (qoʻlda; onlayn toʻlov ulanmagan boʻlsa yoki istisno uchun)
 ```bash

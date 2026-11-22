@@ -1,5 +1,6 @@
 import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, refreshAccount, upsell, push, wipeLocal, errorBox, credits } from './core.js';
 import { t, dateL } from './i18n.js';
+import * as pn from './push.js';
 
 export const ST = ['Rejalashtirilgan', 'Hujjat tayyorlanmoqda', 'Topshirildi', 'Natija kutilmoqda', 'Qabul qilindi', 'Rad etildi'];
 export const DOCS = ['Attestat/transkript tarjimasi', 'SAT/IELTS natijalari yuborildi', 'Tavsiyanomalar', 'Esse', 'Moliyaviy hujjatlar'];
@@ -219,6 +220,7 @@ export async function profile(el) {
     <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="p-cons" ${a.consent.mentorMemory ? 'checked' : ''} style="margin-top:4px"><span>Mentor GPA, SAT, IELTS, sinf va yo‘nalishimdan foydalanishiga ruxsat beraman. Ism va email yuborilmaydi.</span></label><div class="msg" id="p-cm"></div></section>
   <section class="card"><h3>Zaxira nusxa</h3><p class="sub">Ma’lumotlaringizni matn sifatida saqlab qo‘ying.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" id="p-ex">Nusxa olish</button><button class="btn sm" id="p-im">Tiklash</button></div><textarea id="p-bt" rows="3" style="margin-top:10px;min-height:70px" placeholder="Zaxira matni shu yerga"></textarea><div class="msg" id="p-bm"></div></section>
   ${a.tg && a.tg.on ? `<section class="card"><h3>Telegram eslatmalar</h3><p class="sub">Ariza muddati yaqinlashganda (14, 7, 3 va 1 kun oldin) botimiz Telegramga yozadi.</p>${a.tg.linked ? '<p class="msg ok" style="display:block">Telegram ulangan ✓</p><button class="btn sm" id="tg-off">Uzish</button>' : '<button class="btn primary sm" id="tg-on">Telegramni ulash</button>'}<div class="msg" id="tg-m" role="status"></div></section>` : ''}
+  ${pn.supported() || pn.needsInstall() ? `<section class="card"><h3>Bildirishnomalar</h3><p class="sub">Ariza muddati yaqinlashganda va tarifingiz yangilanganda shu qurilmaga bildirishnoma keladi.</p><div id="pn-b"><div class="sk" style="height:38px;width:60%"></div></div></section>` : ''}
   <section class="card"><h3>Hisob</h3><p class="sub">${esc(S.user.email)}</p><button class="btn danger sm" id="p-del">Hisobni butunlay o‘chirish</button></section></div></div>`;
   $('#p-f', el).onsubmit = ev => {
     ev.preventDefault(); const g = id => $('#' + id, el).value.trim(), m = $('#p-m', el); m.className = 'msg err';
@@ -244,6 +246,31 @@ export async function profile(el) {
     } catch (e) { m.className = 'msg err'; m.textContent = e.message; tgOn.disabled = false; }
   };
   if (tgOff) tgOff.onclick = async () => { try { const r = await api('/api/tg/unlink', 'POST', {}); S.account = r.account; profile(el); } catch (e) { toast(e.message, 'err'); } };
+  if ($('#pn-b', el)) {
+    const HINT = { denied: 'Bildirishnomalar brauzer sozlamalarida bloklangan. Bu sayt uchun ruxsat bering va sahifani yangilang.', install: 'iPhone va iPad’da bildirishnoma olish uchun avval saytni Bosh ekranga qo‘shing (Ulashish → “Bosh ekranga qo‘shish”), so‘ng ilovani oching.', unsupported: 'Bu brauzer bildirishnomalarni qo‘llab-quvvatlamaydi.' };
+    const say = (txt, cls) => { const m = $('#pn-m', el); if (m) { m.className = 'msg ' + (cls || ''); m.textContent = txt; } };
+    const paint = async () => {
+      const st = await pn.status(), b = $('#pn-b', el); if (!b) return;
+      if (st === 'on') b.innerHTML = '<p class="msg ok" style="display:block;margin:0 0 10px">Bu qurilmada yoqilgan ✓</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" id="pn-t">Sinov yuborish</button><button class="btn sm" id="pn-x">O‘chirish</button></div><div class="msg" id="pn-m" role="status"></div>';
+      else if (st === 'off') b.innerHTML = '<button class="btn primary sm" id="pn-on">Bildirishnomani yoqish</button><div class="msg" id="pn-m" role="status"></div>';
+      else b.innerHTML = `<p class="hint" style="margin:0">${HINT[st]}</p>`;
+      const on = $('#pn-on', el), tt = $('#pn-t', el), xx = $('#pn-x', el);
+      if (st === 'on') pn.heal();
+      if (on) on.onclick = async () => {
+        on.disabled = true;
+        try { await pn.enable(); toast('Bildirishnoma yoqildi ✓'); paint(); }
+        catch (e) { on.disabled = false; say(e.code === 'denied' ? 'Bildirishnoma ruxsati berilmadi.' : e.message, 'err'); if (Notification.permission === 'denied') paint(); }
+      };
+      if (tt) tt.onclick = async () => {
+        tt.disabled = true; say('');
+        try { const r = await pn.test(); if (r.ok) say('Sinov xabari yuborildi — bir necha soniyada keladi.', 'ok'); else say('Xabar yetkazib bo‘lmadi. Bildirishnomani o‘chirib, qayta yoqing.', 'err'); }
+        catch (e) { say(e.message, 'err'); }
+        tt.disabled = false;
+      };
+      if (xx) xx.onclick = async () => { xx.disabled = true; try { await pn.disable(); toast('Bildirishnoma o‘chirildi.'); } catch (e) { toast(e.message, 'err'); } paint(); };
+    };
+    paint();
+  }
   $('#p-del', el).onclick = async () => {
     const v = await modal({ title: 'Hisobni o‘chirasizmi?', body: '<p>Profil, natijalar, arizalar va so‘rovlaringiz butunlay o‘chadi. Qaytarib bo‘lmaydi. Tasdiqlash uchun parolingizni kiriting.</p><div class="field" style="margin-top:12px"><input id="dpw" type="password" autocomplete="current-password" placeholder="Parol"></div>', actions: [{ label: 'Bekor', value: 0 }, { label: 'O‘chirish', value: 1, cls: 'danger' }], collect: bg => ($('#dpw', bg) || {}).value });
     if (v !== 1) return;

@@ -69,6 +69,7 @@ module.exports = function createPayments(ctx) {
     o.state = 'paid'; o.paidAt = Date.now(); o.ref = ref || null;
     if (u) { o.granted = grant(u, o.plan); o.until = u.planUntil; } else console.error('Toʻlov qabul qilindi, lekin hisob topilmadi:', o.id);
     ctx.save();
+    try { if (u && ctx.pushUser) ctx.pushUser(u, { title: 'Toʻlov qabul qilindi', body: `${ctx.PLANS[o.granted || o.plan].name} tarifi faollashdi. Rahmat!`, url: '/app#/pricing', tag: 'plan' }); } catch (e) {}
     try { ctx.notify({ service: 'TOʻLOV ' + prov, name: u ? u.name : '?', contact: u ? u.email : '?', email: u ? u.email : '', message: `${ctx.PLANS[o.plan].name}: ${o.uzs.toLocaleString('en-US')} soʻm ($${ctx.PLANS[o.plan].price}), buyurtma ${o.id}` }); } catch (e) {}
   }
   function refund(o) {

@@ -2,6 +2,7 @@ import { $, $$, S, api, adopt, wipeLocal, esc, svg, skeleton, errorBox, toast, p
 import { t, langSelect, bindLang } from './i18n.js';
 import { themeSwitch } from './theme-ui.js';
 import * as fx from './fx.js';
+import * as pn from './push.js';
 
 const ROUTES = [
   { id: 'dashboard', t: 'Bosh panel', i: 'home', sec: 'Asosiy', v: () => import('./views1.js').then(m => m.dashboard) },
@@ -101,7 +102,7 @@ function shell() {
   bindLang('lang', () => { shell(); route(); });
   $('#bg').onclick = () => document.body.classList.toggle('nav-open');
   $('#scrim').onclick = () => document.body.classList.remove('nav-open');
-  $('#lo').onclick = async () => { try { if (localStorage.getItem('qabul:sync')) await push(); await api('/api/logout', 'POST', {}); } catch (e) {} wipeLocal(); location.hash = ''; location.reload(); };
+  $('#lo').onclick = async () => { try { if (localStorage.getItem('qabul:sync')) await push(); await pn.forget(); await api('/api/logout', 'POST', {}); } catch (e) {} wipeLocal(); location.hash = ''; location.reload(); };
   updatePlanUI();
 }
 export function updatePlanUI() {

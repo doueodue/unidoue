@@ -1,62 +1,298 @@
-const $ = s => document.querySelector(s);
+/* Admin panel. Qat'iy CSP: inline skript yo‘q, barcha hodisalar shu yerda ulanadi. */
+import * as fx from '/js/fx.js';
+import * as wp from '/js/webpush.js';
+
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 let TOKEN = '';
 try { TOKEN = sessionStorage.getItem('unidoue:adm') || ''; } catch (e) {}
+const EP_KEY = 'unidoue:adm-ep'; // shu brauzer admin qurilmasi sifatida yozilgan obuna manzili
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const MON = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'], p2 = n => String(n).padStart(2, '0');
 const when = v => { const d = new Date(v); return isNaN(d) ? '' : `${d.getDate()}-${MON[d.getMonth()]}, ${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+const dm = d => d ? d.slice(8) + '.' + d.slice(5, 7) : '—';
+const dlong = d => d ? `${+d.slice(8)}-${MON[+d.slice(5, 7) - 1]}` : '';
+const fmt = n => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const rel = ts => { const s = (Date.now() - new Date(ts).getTime()) / 1000; if (!(s >= 0)) return ''; if (s < 60) return 'hozirgina'; if (s < 3600) return Math.floor(s / 60) + ' daqiqa oldin'; if (s < 86400) return Math.floor(s / 3600) + ' soat oldin'; if (s < 86400 * 30) return Math.floor(s / 86400) + ' kun oldin'; return when(ts); };
+const planName = p => ({ free: 'Free', plus: 'Plus', pro: 'Pro' }[p] || p);
+const hue = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+const avatar = s => { const h = hue(s), c = String(s || '?').trim(); return `<span class="av" style="--a:hsl(${h} 68% 54%);--b:hsl(${(h + 42) % 360} 70% 44%)" aria-hidden="true">${esc((c[0] || '?').toUpperCase())}</span>`; };
+const svg = (d, cls) => `<svg viewBox="0 0 24 24"${cls ? ` class="${cls}"` : ''} aria-hidden="true">${d}</svg>`;
+const IC = {
+  act: '<path d="M3 12h4l3-8 4 16 3-8h4"/>', userp: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M19 8v6M16 11h6"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.8a3.5 3.5 0 0 1 0 6.4M18.5 14.2a6.5 6.5 0 0 1 3 5.8"/>',
+  crown: '<path d="m3 8 4.5 4L12 5l4.5 7L21 8l-2 11H5L3 8Z"/>', star: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z"/>',
+  inbox: '<path d="M3.5 13.5 6 5.5h12l2.5 8M3.5 13.5V18a1.5 1.5 0 0 0 1.5 1.5h14A1.5 1.5 0 0 0 20.5 18v-4.5M3.5 13.5H8a1 1 0 0 1 1 1 3 3 0 0 0 6 0 1 1 0 0 1 1-1h4.5"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', mail: '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/>',
+  cpu: '<rect x="6" y="6" width="12" height="12" rx="2.5"/><path d="M9.5 9.5h5v5h-5zM9 2.5V6M15 2.5V6M9 18v3.5M15 18v3.5M2.5 9H6M2.5 15H6M18 9h3.5M18 15h3.5"/>',
+  coin: '<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2c-.5-.8-1.5-1.2-2.8-1.2-1.7 0-2.8.8-2.8 2s1 1.7 2.8 2 2.8.8 2.8 2-1.1 2-2.8 2c-1.3 0-2.3-.4-2.8-1.2M12 6v2M12 16v2"/>',
+  card: '<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6.5 15h4"/>', check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  bell: '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M13.7 20a2 2 0 0 1-3.4 0"/>', phone: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/>',
+  warn: '<path d="M12 9v4M12 17h.01M10.3 4.2 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0Z"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>', send: '<path d="m21 3-9.5 18-2.2-7.8L2 11 21 3ZM21 3 9.3 13.2"/>',
+};
 
+/* ---------- tarmoq ---------- */
 async function call(method, url, body) {
   const r = await fetch(url, { method, headers: { Authorization: 'Bearer ' + TOKEN, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { const e = new Error(j.error || 'Xato (' + r.status + ')'); e.status = r.status; throw e; }
   return j;
 }
+
+/* ---------- toast va tasdiqlash oynasi ---------- */
+function toast(msg, kind) {
+  const box = $('#toasts'), t = document.createElement('div');
+  t.className = 'toast' + (kind === 'err' ? ' err' : ''); t.textContent = msg; box.appendChild(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, 4500);
+}
+function ask({ title, text, ok = 'Tasdiqlash', danger = false }) {
+  return new Promise(res => {
+    const bg = document.createElement('div'); bg.className = 'modal-bg';
+    bg.innerHTML = `<div class="modal${danger ? ' dg' : ''}" role="dialog" aria-modal="true" aria-labelledby="mq-t"><h3 id="mq-t">${esc(title)}</h3><p>${esc(text)}</p><div class="acts"><button class="btn" type="button" data-x>Bekor</button><button class="btn ${danger ? 'danger' : 'primary'}" type="button" data-ok>${esc(ok)}</button></div></div>`;
+    const prev = document.activeElement;
+    const done = v => { document.removeEventListener('keydown', key); bg.classList.add('out'); setTimeout(() => bg.remove(), 220); if (prev && prev.focus) try { prev.focus(); } catch (e) {} res(v); };
+    const key = e => { if (e.key === 'Escape') done(false); };
+    bg.addEventListener('click', e => { if (e.target === bg) done(false); });
+    $('[data-x]', bg).onclick = () => done(false); $('[data-ok]', bg).onclick = () => done(true);
+    document.addEventListener('keydown', key); document.body.appendChild(bg); $('[data-ok]', bg).focus();
+  });
+}
+
+/* ---------- holat ---------- */
+let USERS = [], REQS = [], ORDERS = null, STATS = null, UF = 'all', ULIM = 100, loadedAt = 0;
+const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
+
+/* ---------- yo‘naltirish ---------- */
+const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Bildirishnomalar' };
+function route() {
+  const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
+  $$('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
+  $$('#nav a').forEach(a => { if (a.dataset.v === v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  $('#ttl').textContent = VIEWS[v]; document.title = VIEWS[v] + ' · Admin — UniDoue';
+  document.body.classList.remove('nav-open'); window.scrollTo(0, 0);
+  const sec = $('#v-' + v); if (sec) fx.scan(sec);
+  if (v === 'push') adminDevice();
+}
+addEventListener('hashchange', () => { if (!$('#shell').hidden) route(); });
+
+/* ---------- Umumiy ---------- */
+const kpi = (ic, n, label, tone, on) => `<div class="kpi ${tone || ''}${on ? ' on' : ''}"><i>${svg(IC[ic])}</i><div class="stat"><b>${n}</b><span>${label}</span></div></div>`;
+function renderOverview(st) {
+  const warn = [];
+  if (st.pending) warn.push(`<div class="notice">${svg(IC.warn)}<div><b>${st.pending} ta tarif so‘rovi kutmoqda.</b> <a href="#requests">Ko‘rish →</a></div></div>`);
+  if (st.proExpiring) warn.push(`<div class="notice">${svg(IC.clock)}<div><b>${st.proExpiring} ta pullik tarif 7 kun ichida tugaydi.</b> <a href="#users">Foydalanuvchilar →</a></div></div>`);
+  const cfg = [!st.mail && 'Xat yuborish ulanmagan (tasdiqlash va parol tiklash ishlamaydi)', !st.ai && 'AI ulanmagan', st.mail && !st.verifyOn && 'Email tasdiqlash o‘chiq', !st.payCard && 'PAY_CARD sozlanmagan (karta raqami ko‘rinmaydi)'].filter(Boolean);
+  if (cfg.length) warn.push(`<div class="notice info">${svg(IC.info)}<div><b>Sozlash kerak:</b><br>${cfg.map(esc).join('<br>')}</div></div>`);
+  $('#alerts').innerHTML = warn.length ? `<div class="al">${warn.join('')}</div>` : '';
+  const ps = st.push || { users: 0, devices: 0, admin: 0 };
+  $('#kpis').innerHTML = [
+    kpi('act', st.activeToday, 'bugun kirganlar'), kpi('userp', st.signupsToday, 'bugun yangi hisob'), kpi('users', st.active7, 'oxirgi 7 kunda faol'), kpi('users', st.total, 'jami foydalanuvchi', 'mut'),
+    kpi('crown', st.pro, 'Pro faol', 'vio'), kpi('star', st.plus || 0, 'Plus faol'), kpi('inbox', st.pending, 'tarif so‘rovi kutmoqda', 'warn', st.pending), kpi('clock', st.proExpiring, 'tarif 7 kunda tugaydi', 'warn', st.proExpiring),
+    kpi('mail', st.unverified, 'email tasdiqlanmagan', 'mut'), kpi('cpu', st.aiMonth, 'bu oy AI kredit'), kpi('cpu', Math.round((st.aiTokensMonth || 0) / 1000) + 'k', 'bu oy AI token', 'mut'), kpi('bell', ps.devices, 'push qurilmalar', 'ok'),
+  ].join('');
+  const free = Math.max(0, st.total - st.pro - (st.plus || 0)), tot = Math.max(1, st.total);
+  $('#plans').innerHTML = `<div class="pl">${[['Free', free, 'var(--muted)'], ['Plus', st.plus || 0, 'var(--brand)'], ['Pro', st.pro, 'var(--vio)']].map(([n, v, c]) => `<div class="pl-r"><div><span>${n}</span><b>${v} <span class="mut">· ${Math.round(v / tot * 100)}%</span></b></div><div class="pl-bar"><span style="--c:${c};width:${v / tot * 100}%"></span></div></div>`).join('')}</div>`;
+  const kvp = `<dl class="kv"><div><dt>Push yoqqan foydalanuvchi</dt><dd>${ps.users}</dd></div><div><dt>Foydalanuvchi qurilmalari</dt><dd>${ps.devices}</dd></div><div><dt>Admin qurilmalari</dt><dd>${ps.admin}</dd></div></dl>`;
+  $('#pstat').innerHTML = kvp; $('#pstat2').innerHTML = kvp;
+  $('#since').textContent = st.since ? 'Faollik hisobi ' + st.since + ' dan boshlab yuritiladi.' : 'Faollik hisobi endi boshlandi: bugundan keyin kirganlar sanaladi.';
+  renderChart(st.rows);
+  $('#tg-rq').hidden = !st.pending; $('#tg-rq').textContent = st.pending;
+}
+
+/* 14 kunlik grafik: ustunlar — yangi hisoblar, chiziq — faol foydalanuvchilar (bitta o‘q, bir xil birlik) */
+function renderChart(rows) {
+  const W = 680, H = 250, L = 34, R = 8, T = 12, B = 28, pw = W - L - R, ph = H - T - B, n = rows.length;
+  const mx = Math.max(1, ...rows.map(r => Math.max(r.active, r.signups))), step = mx <= 4 ? 1 : Math.ceil(mx / 4), top = mx <= 4 ? Math.max(2, mx) : step * 4;
+  const y = v => T + ph - v / top * ph, band = pw / n, cx = i => L + band * (i + .5), bw = Math.min(20, band * .5);
+  const bar = (x, w, y0, y1) => { const h = y0 - y1; if (h <= 0) return ''; const r = Math.min(4, h, w / 2); return `M${x},${y0}V${y1 + r}Q${x},${y1} ${x + r},${y1}H${x + w - r}Q${x + w},${y1} ${x + w},${y1 + r}V${y0}Z`; };
+  let g = '';
+  for (let v = 0; v <= top; v += step) g += `<line class="${v ? 'ch-grid' : 'ch-base'}" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="ch-t" x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  const pts = rows.map((r, i) => `${cx(i).toFixed(1)},${y(r.active).toFixed(1)}`);
+  const bars = rows.map((r, i) => `<path class="ch-bar" data-i="${i}" d="${bar(cx(i) - bw / 2, bw, y(0), y(r.signups))}"/>`).join('');
+  const xl = rows.map((r, i) => (i % 2 === (n - 1) % 2 ? `<text class="ch-t" x="${cx(i)}" y="${H - 8}" text-anchor="middle">${dm(r.d)}</text>` : '')).join('');
+  const last = rows[n - 1];
+  $('#chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Oxirgi 14 kundagi faol foydalanuvchilar va yangi hisoblar">${g}${xl}${bars}
+    <polygon class="ch-area" points="${L + band / 2},${y(0)} ${pts.join(' ')} ${cx(n - 1)},${y(0)}"/><polyline class="ch-line" points="${pts.join(' ')}"/>
+    ${rows.map((r, i) => `<circle class="ch-dot h" data-i="${i}" cx="${cx(i)}" cy="${y(r.active)}" r="4.5"/>`).join('')}
+    <circle class="ch-dot" cx="${cx(n - 1)}" cy="${y(last.active)}" r="4.5"/>
+    <line class="ch-cur" x1="0" x2="0" y1="${T}" y2="${y(0)}"/><rect x="${L}" y="${T}" width="${pw}" height="${ph + 10}" fill="transparent" id="ch-hit"/></svg><div class="ch-tip" id="ch-tip" role="status"></div>`;
+  $('#lgd').innerHTML = `<span><i class="ln" style="--c:var(--s1)"></i>Faol <b>${last.active}</b></span><span><i style="--c:var(--s2)"></i>Yangi hisob <b>${last.signups}</b></span>`;
+  $('#chart-t').innerHTML = `<table class="tbl"><thead><tr><th>Sana</th><th class="num">Faol</th><th class="num">Yangi hisob</th></tr></thead><tbody>${rows.slice().reverse().map(r => `<tr><td>${esc(dlong(r.d))}</td><td class="num">${r.active}</td><td class="num">${r.signups}</td></tr>`).join('')}</tbody></table>`;
+  const box = $('#chart'), tip = $('#ch-tip'), cur = $('.ch-cur', box), hit = $('#ch-hit', box);
+  const show = ev => {
+    const r = $('svg', box).getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * W;
+    const i = Math.max(0, Math.min(n - 1, Math.floor((x - L) / band))), d = rows[i];
+    box.classList.add('hv'); $$('.ch-bar', box).forEach(b => b.classList.toggle('on', +b.dataset.i === i)); $$('.ch-dot.h', box).forEach(b => b.classList.toggle('on', +b.dataset.i === i));
+    cur.setAttribute('x1', cx(i)); cur.setAttribute('x2', cx(i));
+    tip.innerHTML = `<b>${esc(dlong(d.d))}</b><div><span><i style="--c:var(--s1)"></i>Faol</span><strong>${d.active}</strong></div><div><span><i style="--c:var(--s2)"></i>Yangi hisob</span><strong>${d.signups}</strong></div>`;
+    const px = cx(i) / W * r.width, tw = tip.offsetWidth || 150; tip.style.transform = `translate(${px + tw + 16 > r.width ? px - tw - 12 : px + 12}px,${Math.max(0, y(Math.max(d.active, d.signups)) / H * r.height - 20)}px)`; tip.classList.add('on');
+  };
+  const hide = () => { box.classList.remove('hv'); tip.classList.remove('on'); $$('.ch-bar.on,.ch-dot.on', box).forEach(b => b.classList.remove('on')); };
+  hit.addEventListener('pointermove', show); hit.addEventListener('pointerdown', show); hit.addEventListener('pointerleave', hide);
+}
+
+/* ---------- So‘rovlar ---------- */
+const emptyBox = (ic, t, s) => `<div class="empty">${svg(IC[ic])}<b>${t}</b><span>${s || ''}</span></div>`;
+function renderRequests() {
+  const reqs = REQS.slice().reverse(); $('#rc').textContent = reqs.length;
+  const byEmail = new Map(USERS.map(u => [u.email, u]));
+  $('#rl').innerHTML = reqs.length ? reqs.map(r => { const u = r.email && byEmail.get(r.email); return `<article class="card req">
+    <div class="req-h">${avatar(r.name)}<div><b>${esc(r.name)}</b><small>${esc(rel(r.ts))} · ${esc(when(r.ts))}</small></div>${u ? `<span class="pb ${eff(u)}">${planName(eff(u))}</span>` : ''}</div>
+    <div class="req-meta"><span class="badge">${esc(r.service)}</span><span>${esc(r.contact)}</span>${r.email ? `<span>· hisob: ${esc(r.email)}</span>` : ''}</div>
+    ${r.message ? `<div class="req-m">${esc(r.message)}</div>` : ''}
+    ${r.email ? `<div class="req-a">${['plus', 'pro', 'free'].map(p => `<button class="btn sm${p === 'free' ? '' : ' primary'}" type="button" data-e="${esc(r.email)}" data-p="${p}">${p === 'free' ? 'Free ga qaytarish' : planName(p) + ' · 30 kun'}</button>`).join('')}</div>` : '<div class="hint">Hisob emaili ko‘rsatilmagan — tarifni qo‘lda bering.</div>'}</article>`; }).join('') : emptyBox('inbox', 'Hali so‘rov yo‘q', 'Yangi so‘rovlar shu yerda paydo bo‘ladi.');
+  $$('#rl [data-e]').forEach(b => (b.onclick = async () => {
+    const free = b.dataset.p === 'free';
+    if (await ask({ title: free ? 'Tarifni qaytarasizmi?' : `${planName(b.dataset.p)} berilsinmi?`, text: `${b.dataset.e} ${free ? 'Free tarifga o‘tadi.' : `uchun ${planName(b.dataset.p)} tarifi 30 kunga yoqiladi.`}`, ok: free ? 'Qaytarish' : 'Berish', danger: free })) give(b.dataset.e, b.dataset.p, 30);
+  }));
+}
 async function give(email, plan, days, out) {
-  out.className = 'msg'; out.textContent = 'Kuting…';
-  try { const j = await call('POST', '/api/admin/plan', { email, plan, days }); out.className = 'msg ok'; out.textContent = `Tayyor: ${j.email} → ${j.plan}` + (j.planUntil ? ` (${when(j.planUntil)} gacha)` : ''); load(); }
-  catch (e) { out.className = 'msg err'; out.textContent = e.message; }
-}
-let USERS = [];
-const dm = d => d ? d.slice(8) + '.' + d.slice(5, 7) : '—';
-function renderStats(st) {
-  const box = (n, l, tone) => `<div class="card" style="padding:14px;min-width:130px;flex:1"><div style="font-size:26px;font-weight:700${tone ? ';color:' + tone : ''}">${n}</div><div class="hint">${l}</div></div>`;
-  const max = Math.max(1, ...st.rows.map(r => Math.max(r.active, r.signups)));
-  const bars = st.rows.map(r => `<div style="flex:1;text-align:center;min-width:0"><div style="height:80px;display:flex;align-items:flex-end;justify-content:center;gap:2px"><div title="Faol: ${r.active}" style="width:40%;background:#a8501a;height:${Math.max(r.active ? 4 : 0, r.active / max * 80)}px"></div><div title="Yangi: ${r.signups}" style="width:40%;background:#e0b070;height:${Math.max(r.signups ? 4 : 0, r.signups / max * 80)}px"></div></div><div class="hint" style="font-size:10px">${dm(r.d)}</div></div>`).join('');
-  const warn = [!st.mail && 'Xat yuborish ulanmagan (tasdiqlash va parol tiklash ishlamaydi)', !st.ai && 'AI ulanmagan', st.mail && !st.verifyOn && 'Email tasdiqlash o‘chiq', !st.payCard && 'PAY_CARD sozlanmagan (karta raqami ko‘rinmaydi)'].filter(Boolean);
-  $('#stats').innerHTML = `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">${box(st.activeToday, 'bugun kirganlar')}${box(st.signupsToday, 'bugun yangi hisob')}${box(st.active7, 'oxirgi 7 kunda faol')}${box(st.total, 'jami foydalanuvchi')}${box(st.pro, 'Pro faol')}${box(st.plus || 0, 'Plus faol')}${box(st.pending, 'Pro so‘rovi kutmoqda', st.pending ? '#a8501a' : '')}${box(st.proExpiring, 'pullik tarif 7 kunda tugaydi', st.proExpiring ? '#a8501a' : '')}${box(st.unverified, 'email tasdiqlanmagan')}${box(st.aiMonth, 'bu oy AI kredit')}${box(Math.round((st.aiTokensMonth || 0) / 1000) + 'k', 'bu oy AI token')}</div>
-  <div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><b>Oxirgi 14 kun</b><span class="hint"><span style="color:#a8501a">■</span> faol · <span style="color:#e0b070">■</span> yangi hisob</span></div><div style="display:flex;gap:3px;margin-top:8px">${bars}</div>
-  <p class="hint" style="margin:8px 0 0">${st.since ? 'Faollik hisobi ' + esc(st.since) + ' dan boshlab yuritiladi, undan oldingi kirishlar saqlanmagan.' : 'Faollik hisobi endi boshlandi: bugundan keyin kirgan foydalanuvchilar sanaladi.'}</p></div>
-  ${warn.length ? `<div class="notice info" style="margin-bottom:12px"><div><b>Sozlash kerak:</b><br>${warn.map(esc).join('<br>')}</div></div>` : ''}`;
-}
-function renderUsers() {
-  const q = ($('#uq').value || '').trim().toLowerCase(), now = Date.now();
-  const list = USERS.filter(u => !q || (u.email + ' ' + u.name).toLowerCase().includes(q));
-  $('#uc').textContent = list.length === USERS.length ? USERS.length : list.length + ' / ' + USERS.length;
-  $('#ul').innerHTML = list.length ? `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Ism</th><th>Email</th><th>Tarif</th><th>Muddati</th><th>Oxirgi kirish</th><th>AI</th><th>Kod</th><th></th></tr></thead><tbody>${list.map(u => `<tr><td>${esc(u.name)}</td><td>${esc(u.email)}${u.verified ? '' : ' <span class="badge mute">tasdiqlanmagan</span>'}</td><td>${esc(u.plan || 'free')}</td><td>${u.planUntil ? esc(when(u.planUntil)) + (u.plan !== 'free' && u.planUntil < now ? ' (tugagan)' : u.planUntil - now < 7 * 864e5 && u.plan !== 'free' ? ' ⚠' : '') : '—'}</td><td>${u.seen ? esc(dm(u.seen)) : '—'}</td><td>${u.ai || 0}</td><td>${esc(u.ref || '')}${u.requested ? ' <span class="badge">so‘rov</span>' : ''}</td><td>${u.plan !== 'free' ? `<button class="btn sm" data-rv="${esc(u.email)}">Tarifni bekor qilish</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<p class="hint">Foydalanuvchi topilmadi.</p>';
-  document.querySelectorAll('#ul [data-rv]').forEach(b => (b.onclick = () => { if (confirm(`${b.dataset.rv} uchun tarif bekor qilinsinmi? U Free tarifga o‘tadi.`)) give(b.dataset.rv, 'free', 1, $('#pm')); }));
-}
-async function load() {
-  $('#st').textContent = 'Yuklanmoqda…';
+  if (out) { out.className = 'msg'; out.textContent = 'Kuting…'; }
   try {
-    const [rq, us, st] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats')]);
-    USERS = us.users; renderStats(st); renderUsers();
-    $('#lf').hidden = true; $('#panel').hidden = false;
-    const reqs = rq.requests.slice().reverse();
-    $('#rc').textContent = reqs.length;
-    $('#rl').innerHTML = reqs.length ? reqs.map(r => `<div class="card" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${esc(r.name)}</b><span class="hint">${esc(when(r.ts))}</span></div>
-      <div class="hint">${esc(r.service)} · ${esc(r.contact)}${r.email ? ' · hisob: ' + esc(r.email) : ''}</div>
-      ${r.message ? `<p style="white-space:pre-wrap;margin:8px 0">${esc(r.message)}</p>` : ''}
-      ${r.email ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${['plus', 'pro', 'free'].map(p => `<button class="btn sm" data-e="${esc(r.email)}" data-p="${p}">${p === 'free' ? 'Free' : p === 'plus' ? 'Plus 30 kun' : 'Pro 30 kun'}</button>`).join('')}</div>` : ''}</div>`).join('') : '<p class="hint">Hali so‘rov yo‘q.</p>';
-    $('#st').textContent = 'Yangilandi: ' + when(Date.now());
-    document.querySelectorAll('#rl [data-e]').forEach(b => (b.onclick = () => { if (confirm(`${b.dataset.e} ga ${b.dataset.p} berilsinmi?`)) give(b.dataset.e, b.dataset.p, 30, $('#pm')); }));
-  } catch (e) {
-    if (e.status === 401) { try { sessionStorage.removeItem('unidoue:adm'); } catch (x) {} TOKEN = ''; $('#panel').hidden = true; $('#lf').hidden = false; $('#lm').className = 'msg err'; $('#lm').textContent = 'Token noto‘g‘ri.'; }
-    else { $('#st').textContent = ''; $('#lf').hidden = false; $('#lm').className = 'msg err'; $('#lm').textContent = e.message; }
-  }
+    const j = await call('POST', '/api/admin/plan', { email, plan, days });
+    const m = `${j.email} → ${planName(j.plan)}` + (j.planUntil ? ` (${when(j.planUntil)} gacha)` : '');
+    if (out) { out.className = 'msg ok'; out.textContent = 'Tayyor: ' + m; } toast('Tayyor: ' + m); load(true);
+  } catch (e) { if (out) { out.className = 'msg err'; out.textContent = e.message; } toast(e.message, 'err'); }
 }
-$('#lf').onsubmit = ev => { ev.preventDefault(); TOKEN = $('#tk').value.trim(); if (!TOKEN) return; try { sessionStorage.setItem('unidoue:adm', TOKEN); } catch (e) {} $('#tk').value = ''; load(); };
-$('#rf').onclick = load;
-$('#uq').oninput = renderUsers;
-$('#lo').onclick = () => { try { sessionStorage.removeItem('unidoue:adm'); } catch (e) {} TOKEN = ''; $('#panel').hidden = true; $('#lf').hidden = false; };
+
+/* ---------- Foydalanuvchilar ---------- */
+const FILTERS = [['all', 'Hammasi', () => true], ['paid', 'Pullik', u => eff(u) !== 'free'], ['free', 'Free', u => eff(u) === 'free'], ['plus', 'Plus', u => eff(u) === 'plus'], ['pro', 'Pro', u => eff(u) === 'pro'], ['req', 'So‘rovli', u => !!u.requested], ['push', 'Push yoqqan', u => u.push > 0]];
+function renderUsers() {
+  const q = ($('#uq').value || '').trim().toLowerCase(), now = Date.now(), f = FILTERS.find(x => x[0] === UF) || FILTERS[0];
+  $('#uf').innerHTML = FILTERS.map(([k, l, fn]) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${k === UF}">${l}<small>${USERS.filter(fn).length}</small></button>`).join('');
+  $$('#uf [data-f]').forEach(b => (b.onclick = () => { UF = b.dataset.f; ULIM = 100; renderUsers(); }));
+  const list = USERS.filter(f[2]).filter(u => !q || (u.email + ' ' + u.name).toLowerCase().includes(q));
+  $('#uc').textContent = list.length === USERS.length ? USERS.length : list.length + ' / ' + USERS.length;
+  const shown = list.slice(0, ULIM);
+  $('#ul').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Foydalanuvchi</th><th>Tarif</th><th>Muddati</th><th>Oxirgi kirish</th><th class="num">AI</th><th>Push</th><th>Kod</th><th></th></tr></thead><tbody>${shown.map(u => {
+    const e = eff(u), exp = u.plan !== 'free' && u.planUntil;
+    return `<tr><td class="u-td" data-l="Foydalanuvchi"><div class="u-c">${avatar(u.name || u.email)}<div><b>${esc(u.name)}</b><small>${esc(u.email)}</small>${u.verified ? '' : ' <span class="badge mute">tasdiqlanmagan</span>'}</div></div></td>
+    <td data-l="Tarif"><span class="pb ${e}">${planName(e)}</span>${u.requested ? ` <span class="badge warn">so‘rov</span>` : ''}</td>
+    <td data-l="Muddati">${exp ? esc(when(u.planUntil)) + (u.planUntil < now ? ' <span class="badge bad">tugagan</span>' : u.planUntil - now < 7 * 864e5 ? ' <span class="badge warn">tugayapti</span>' : '') : '<span class="mut">—</span>'}</td>
+    <td data-l="Oxirgi kirish">${u.seen ? esc(dm(u.seen)) : '<span class="mut">—</span>'}</td><td class="num" data-l="AI">${u.ai || 0}</td>
+    <td data-l="Push">${u.push ? `<span class="pn">${svg(IC.bell)}${u.push}</span>` : '<span class="mut">—</span>'}</td><td data-l="Kod">${esc(u.ref || '') || '<span class="mut">—</span>'}</td>
+    <td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-g="${esc(u.email)}">Tarif</button>${u.push ? `<button class="btn sm" type="button" data-n="${esc(u.email)}">Xabar</button>` : ''}${e !== 'free' ? `<button class="btn sm danger" type="button" data-rv="${esc(u.email)}">Bekor qilish</button>` : ''}</div></td></tr>`; }).join('')}</tbody></table></div>${list.length > ULIM ? `<div class="more"><button class="btn" type="button" id="um">Yana ko‘rsatish (${list.length - ULIM})</button></div>` : ''}` : emptyBox('users', 'Foydalanuvchi topilmadi', 'Qidiruv yoki filtrni o‘zgartirib ko‘ring.');
+  const um = $('#um'); if (um) um.onclick = () => { ULIM += 100; renderUsers(); };
+  $$('#ul [data-rv]').forEach(b => (b.onclick = async () => { if (await ask({ title: 'Tarifni bekor qilasizmi?', text: `${b.dataset.rv} Free tarifga o‘tadi.`, ok: 'Bekor qilish', danger: true })) give(b.dataset.rv, 'free', 1, $('#pm')); }));
+  $$('#ul [data-g]').forEach(b => (b.onclick = () => { $('#pe').value = b.dataset.g; $('#grant').scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#pp').focus(); }));
+  $$('#ul [data-n]').forEach(b => (b.onclick = () => { location.hash = '#push'; $('#na').value = 'email'; $('#nq').value = b.dataset.n; audienceUi(); $('#nt').focus(); }));
+  $('#tg-us').hidden = true;
+}
+
+/* ---------- To‘lovlar ---------- */
+const PROV = { payme: 'Payme', click: 'Click' };
+function renderPayments() {
+  if (!ORDERS) { $('#pl').innerHTML = emptyBox('card', 'To‘lovlar yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#pk').innerHTML = ''; $('#oc').textContent = ''; return; }
+  const list = ORDERS.orders || [], paid = list.filter(o => o.state === 'paid'), sum = paid.reduce((a, o) => a + (o.uzs || 0), 0), wait = list.filter(o => o.state === 'new').length, day = list.filter(o => o.state === 'paid' && Date.now() - o.paidAt < 864e5).length;
+  $('#oc').textContent = list.length;
+  $('#pw-note').innerHTML = ORDERS.enabled ? '' : `<div class="al"><div class="notice info">${svg(IC.info)}<div><b>Karta orqali to‘lov hali ulanmagan.</b> Payme yoki Click kalitlarini Render sozlamalariga qo‘shing.</div></div></div>`;
+  $('#pk').innerHTML = kpi('check', paid.length, 'to‘langan buyurtma', 'ok') + kpi('coin', fmt(sum), 'jami tushum (so‘m)') + kpi('clock', wait, 'to‘lov kutilmoqda', 'warn', wait) + kpi('card', day, 'oxirgi 24 soatda to‘langan', 'mut');
+  $('#pl').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Sana</th><th>Foydalanuvchi</th><th>Tarif</th><th>Usul</th><th class="num">Summa</th><th>Holat</th></tr></thead><tbody>${list.map(o => `<tr><td data-l="Sana">${esc(when(o.paidAt || o.created))}</td><td data-l="Foydalanuvchi">${esc(o.email || '—')}</td><td data-l="Tarif"><span class="pb ${esc(o.plan)}">${esc(planName(o.plan))}</span></td><td data-l="Usul">${esc(PROV[o.prov] || o.prov)}</td><td class="num" data-l="Summa">${fmt(o.uzs)} so‘m</td><td data-l="Holat">${o.state === 'paid' ? '<span class="badge ok">To‘langan</span>' : o.state === 'new' ? '<span class="badge mute">Kutilmoqda</span>' : `<span class="badge bad">${esc(o.state)}</span>`}</td></tr>`).join('')}</tbody></table></div>` : emptyBox('card', 'Hali to‘lov yo‘q', 'Karta orqali to‘lovlar shu yerda ko‘rinadi.');
+  fx.scan($('#v-payments'));
+}
+
+/* ---------- Bildirishnomalar ---------- */
+const AUD = [['all', 'Hamma (bildirishnoma yoqqanlar)'], ['free', 'Faqat Free'], ['plus', 'Faqat Plus'], ['pro', 'Faqat Pro'], ['email', 'Bitta foydalanuvchi (email)'], ['admin', 'Faqat admin qurilmalari (sinov)']];
+const AUD_N = { all: 'barcha', free: 'Free', plus: 'Plus', pro: 'Pro', email: 'tanlangan', admin: 'admin' };
+function audienceUi() { $('#nq-w').hidden = $('#na').value !== 'email'; estimate(); }
+function estimate() {
+  const a = $('#na').value, us = USERS.filter(u => u.push > 0);
+  let n = null;
+  if (a === 'all') n = us.length; else if (['free', 'plus', 'pro'].includes(a)) n = us.filter(u => eff(u) === a).length; else if (a === 'admin') n = STATS ? STATS.push.admin : 0;
+  else { const u = USERS.find(x => x.email === $('#nq').value.trim().toLowerCase()); n = u ? (u.push > 0 ? 1 : 0) : null; }
+  $('#nh').textContent = n == null ? '' : a === 'admin' ? `${n} ta admin qurilmasi` : `Taxminan ${n} ta foydalanuvchiga`;
+  return n;
+}
+function preview() {
+  $('#nt-n').textContent = $('#nt').value.length + '/60'; $('#nb-n').textContent = $('#nb').value.length + '/200';
+  $('#pv-t').textContent = $('#nt').value.trim() || 'Sarlavha'; $('#pv-b').textContent = $('#nb').value.trim() || 'Xabar matni shu yerda ko‘rinadi.';
+}
+async function sendPush() {
+  const m = $('#nm'), title = $('#nt').value.trim(), body = $('#nb').value.trim(), url = $('#nu').value.trim() || '/app', audience = $('#na').value, email = $('#nq').value.trim().toLowerCase();
+  m.className = 'msg err'; m.textContent = ''; $('#nr').innerHTML = '';
+  if (title.length < 2 || body.length < 2) { m.textContent = 'Sarlavha va matnni kiriting.'; return; }
+  if (!/^\/(?!\/)[\w\-./#?=&%]*$/.test(url)) { m.textContent = 'Havola sayt ichidagi yo‘l bo‘lsin, masalan /app#/pricing.'; return; }
+  if (audience === 'email' && !email) { m.textContent = 'Foydalanuvchi emailini kiriting.'; return; }
+  if (audience === 'email') { const u = USERS.find(x => x.email === email); if (!u) { m.textContent = 'Bunday email bilan foydalanuvchi topilmadi.'; return; } if (!u.push) { m.textContent = 'Bu foydalanuvchida bildirishnoma yoqilmagan.'; return; } }
+  const n = estimate();
+  if (n === 0) { m.textContent = audience === 'admin' ? 'Admin qurilmasi yoqilmagan. O‘ngdagi “Admin qurilmasi” kartasidan yoqing.' : 'Bu guruhda bildirishnoma yoqqan qurilma topilmadi.'; return; }
+  if (!await ask({ title: 'Xabar yuborilsinmi?', text: `“${title}” — ${audience === 'email' ? email : AUD_N[audience]} ${audience === 'admin' ? 'qurilmalarga' : 'foydalanuvchilarga'}${n != null ? ` (taxminan ${n} ta)` : ''}. Yuborilgan xabarni qaytarib bo‘lmaydi.`, ok: 'Yuborish' })) return;
+  const btn = $('#ns'); btn.disabled = true; m.className = 'msg'; m.textContent = 'Yuborilmoqda…';
+  try {
+    const r = await call('POST', '/api/admin/push/send', { title, body, url, audience, ...(audience === 'email' ? { email } : {}) });
+    m.textContent = '';
+    const bad = !r.ok;
+    $('#nr').innerHTML = `<div class="res${bad ? ' bad' : ''}"><b>${bad ? 'Hech qaysi qurilmaga yetkazilmadi' : 'Yuborildi ✓'}</b><div class="res-n"><span>Foydalanuvchi: <strong>${r.targets}</strong></span><span>Qurilma: <strong>${r.devices}</strong></span><span>Yetkazildi: <strong>${r.ok}</strong></span>${r.gone ? `<span>Eskirgan (o‘chirildi): <strong>${r.gone}</strong></span>` : ''}${r.failed ? `<span>Xato: <strong>${r.failed}</strong></span>` : ''}</div></div>`;
+    toast(bad ? 'Xabar yetkazilmadi' : `Xabar yuborildi: ${r.ok} ta qurilmaga`, bad ? 'err' : '');
+    load(true);
+  } catch (e) { m.className = 'msg err'; m.textContent = e.message; }
+  btn.disabled = false;
+}
+
+/* admin qurilmasi: shu brauzerga yangi so‘rov va to‘lov haqida bildirishnoma */
+const getEp = () => { try { return localStorage.getItem(EP_KEY) || ''; } catch (e) { return ''; } };
+const setEp = v => { try { if (v) localStorage.setItem(EP_KEY, v); else localStorage.removeItem(EP_KEY); } catch (e) {} };
+let swReady = null;
+const ensureSw = () => swReady || (swReady = wp.supported() ? navigator.serviceWorker.register('/sw.js').catch(() => null) : Promise.resolve(null));
+async function devStatus() {
+  const st = await wp.status(); if (st !== 'on') return st;
+  const sub = await wp.current(); return sub && sub.endpoint === getEp() ? 'on' : 'off';
+}
+const HINT = { denied: 'Bildirishnomalar brauzer sozlamalarida bloklangan. Bu sayt uchun ruxsat bering va sahifani yangilang.', install: 'iPhone va iPad’da avval saytni Bosh ekranga qo‘shing (Ulashish → “Bosh ekranga qo‘shish”), so‘ng ilovani oching.', unsupported: 'Bu brauzer bildirishnomalarni qo‘llab-quvvatlamaydi.' };
+async function adminDevice() {
+  const box = $('#ad-dev'); if (!box) return;
+  await ensureSw(); const st = await devStatus();
+  const say = (t, c) => { const m = $('#ad-m'); if (m) { m.className = 'msg ' + (c || ''); m.textContent = t; } };
+  if (st === 'on') box.innerHTML = `<div class="dev"><span class="badge ok" style="width:max-content">${svg(IC.check, 'mini')}Bu qurilmada yoqilgan</span><div class="dev-b"><button class="btn sm" type="button" id="ad-t">Sinov yuborish</button><button class="btn sm danger" type="button" id="ad-x">O‘chirish</button></div><div class="msg" id="ad-m" role="status"></div></div>`;
+  else if (st === 'off') box.innerHTML = `<div class="dev"><button class="btn primary sm" type="button" id="ad-on" style="width:max-content">Shu qurilmada yoqish</button><p class="hint">Bitta brauzer faqat bitta rolda bildirishnoma oladi: admin sifatida yoqsangiz, shu brauzerda ilovadagi shaxsiy bildirishnoma o‘chadi.</p><div class="msg" id="ad-m" role="status"></div></div>`;
+  else box.innerHTML = `<div class="dev"><p>${esc(HINT[st] || HINT.unsupported)}</p></div>`;
+  const on = $('#ad-on'), t = $('#ad-t'), x = $('#ad-x');
+  if (on) on.onclick = async () => {
+    on.disabled = true; say('Kuting…');
+    try { const { key } = await (await fetch('/api/push/key')).json(); const sub = await wp.subscribe(key); await call('POST', '/api/admin/push/subscribe', sub); setEp(sub.endpoint); toast('Admin bildirishnomasi yoqildi ✓'); load(true); adminDevice(); }
+    catch (e) { on.disabled = false; say(e.code === 'denied' ? 'Bildirishnoma ruxsati berilmadi.' : e.message, 'err'); }
+  };
+  if (x) x.onclick = async () => { x.disabled = true; try { const ep = await wp.unsubscribe(); if (ep) await call('POST', '/api/admin/push/unsubscribe', { endpoint: ep }); setEp(''); toast('Admin bildirishnomasi o‘chirildi.'); load(true); } catch (e) { toast(e.message, 'err'); } adminDevice(); };
+  if (t) t.onclick = async () => { t.disabled = true; try { const r = await call('POST', '/api/admin/push/send', { title: 'UniDoue admin', body: 'Admin bildirishnomalari ishlayapti ✓', url: '/admin#overview', audience: 'admin' }); say(r.ok ? 'Sinov xabari yuborildi — bir necha soniyada keladi.' : 'Yetkazib bo‘lmadi. O‘chirib, qayta yoqing.', r.ok ? 'ok' : 'err'); } catch (e) { say(e.message, 'err'); } t.disabled = false; };
+}
+
+/* ---------- yuklash ---------- */
+function showLogin(msg) {
+  $('#shell').hidden = true; $('#lg').hidden = false; document.title = 'Admin — UniDoue';
+  const m = $('#lm'); m.className = 'msg err'; m.textContent = msg || ''; $('#lb').disabled = false; if (!msg) m.className = 'msg';
+}
+let busy = false;
+async function load(silent) {
+  if (busy) return; busy = true;
+  const rf = $('#rf'); rf.classList.add('spin'); if (!silent) $('#st').textContent = 'Yuklanmoqda…';
+  try {
+    const [rq, us, st, od] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
+      call('GET', '/api/admin/orders').catch(e => { if (e.status === 401) throw e; return null; })]);
+    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; loadedAt = Date.now();
+    const first = $('#shell').hidden; $('#lg').hidden = true; $('#shell').hidden = false;
+    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); estimate();
+    $('#st').textContent = 'Yangilandi: ' + when(Date.now()).split(', ')[1].split(' ').pop();
+    if (first) route(); else fx.scan($('#kpis'));
+  } catch (e) {
+    if (e.status === 401) { try { sessionStorage.removeItem('unidoue:adm'); } catch (x) {} TOKEN = ''; showLogin('Token noto‘g‘ri.'); }
+    else if ($('#shell').hidden) showLogin(e.message);
+    else { $('#st').textContent = 'Yangilab bo‘lmadi'; if (!silent) toast(e.message, 'err'); }
+  }
+  rf.classList.remove('spin'); busy = false;
+}
+
+/* ---------- hodisalar ---------- */
+$('#lf').onsubmit = ev => { ev.preventDefault(); const v = $('#tk').value.trim(); if (!v) return; TOKEN = v; try { sessionStorage.setItem('unidoue:adm', TOKEN); } catch (e) {} $('#tk').value = ''; $('#lb').disabled = true; load(); };
+$('#tk-eye').onclick = () => { const i = $('#tk'), s = i.type === 'password'; i.type = s ? 'text' : 'password'; $('#tk-eye').setAttribute('aria-pressed', s); };
+$('#rf').onclick = () => load();
+$('#lo').onclick = () => { try { sessionStorage.removeItem('unidoue:adm'); } catch (e) {} TOKEN = ''; USERS = []; showLogin(''); $('#tk').focus(); };
+$('#bg').onclick = () => document.body.classList.toggle('nav-open');
+$('#scrim').onclick = () => document.body.classList.remove('nav-open');
+$('#uq').oninput = () => { ULIM = 100; renderUsers(); };
 $('#pg').onclick = () => { const e = $('#pe').value.trim().toLowerCase(); if (!e) { $('#pm').className = 'msg err'; $('#pm').textContent = 'Emailni kiriting.'; return; } give(e, $('#pp').value, parseInt($('#pd').value, 10) || 30, $('#pm')); };
-if (TOKEN) load();
+$('#na').innerHTML = AUD.map(([k, l]) => `<option value="${k}">${l}</option>`).join('');
+$('#na').onchange = audienceUi; $('#nq').oninput = estimate; $('#nt').oninput = preview; $('#nb').oninput = preview; $('#ns').onclick = sendPush;
+preview();
+setInterval(() => { if (TOKEN && !document.hidden && !$('#shell').hidden && Date.now() - loadedAt > 55000) load(true); }, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && TOKEN && !$('#shell').hidden && Date.now() - loadedAt > 30000) load(true); });
+if (TOKEN) load(); else $('#tk').focus();

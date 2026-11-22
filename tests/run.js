@@ -433,5 +433,118 @@ class Client {
       await stop(sp, d);
     }
   }
+  /* ---------------- Web Push ---------------- */
+  console.log('Web Push');
+  {
+    const crypto = require('node:crypto'), PU = require('./pushutil');
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), port = PORT + 11, BU = `http://localhost:${port}`, sleep = ms => new Promise(r => setTimeout(r, ms));
+    const got = [], svc = http.createServer((q, r) => { const ch = []; q.on('data', c => ch.push(c)); q.on('end', () => { got.push({ url: q.url, h: q.headers, body: Buffer.concat(ch) }); r.statusCode = q.url.startsWith('/gone') ? 410 : q.url.startsWith('/err') ? 500 : 201; r.end(); }); });
+    await new Promise(res => svc.listen(0, res)); const sp = svc.address().port;
+    const boot = p2 => spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: p2, DATA_DIR: d, ANTHROPIC_API_KEY: '', ADMIN_TOKEN: 'adm-secret', PUSH_EXTRA_HOSTS: 'localhost:' + sp, REQUIRE_EMAIL_VERIFY: '0' }, stdio: 'ignore' });
+    const waitUp = async b => { for (let i = 0; i < 40; i++) { try { if ((await fetch(b + '/healthz')).ok) return; } catch (e) {} await sleep(100); } };
+    const down = p2 => new Promise(r => { p2.once('exit', r); p2.kill(); setTimeout(r, 2000); });
+    let proc = boot(port); await waitUp(BU);
+    const mk = (b = BU) => { let ck = ''; return async (m, u, bd, hd = {}) => { const r = await fetch(b + u, { method: m, headers: { ...(bd ? { 'Content-Type': 'application/json' } : {}), ...(ck ? { Cookie: ck } : {}), ...hd }, body: bd ? JSON.stringify(bd) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) ck = sc.split(';')[0]; let j = null; try { j = await r.json(); } catch (e) {} return { s: r.status, j }; }; };
+    const ADM = { Authorization: 'Bearer adm-secret' }, until = async f => { for (let i = 0; i < 60; i++) { if (f()) return true; await sleep(50); } return false; };
+    const sub = (dv, id) => ({ endpoint: `http://localhost:${sp}/${id}`, keys: { p256dh: dv.p, auth: dv.a } });
+    const msgOf = (g, dv) => JSON.parse(PU.decrypt(g.body, dv).text), tz = t => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent', year: 'numeric', month: '2-digit', day: '2-digit' }).format(t);
+    try {
+      const u = mk(), anon = mk(), dv = PU.device(), dv2 = PU.device(), dv9 = PU.device(), dva = PU.device();
+      let q = await u('POST', '/api/register', { email: 'push1@gmail.com', password: 'parol12345', name: 'Push Bir' }); ok(q.s === 201, 'push: hisob ochildi', q.s);
+      const key = (await anon('GET', '/api/push/key')).j.key; ok(Buffer.from(key, 'base64url').length === 65, 'VAPID ochiq kalit (65 bayt)', key);
+      ok(q.j.account.push.key === key && q.j.account.push.devices === 0, 'accountda push.key va 0 ta qurilma', q.j.account.push);
+
+      q = await anon('POST', '/api/push/subscribe', sub(dv, 'ok/1')); ok(q.s === 401, 'obuna: kirmagan foydalanuvchi → 401', q.s);
+      q = await u('POST', '/api/push/subscribe', { endpoint: 'https://evil.com/x', keys: { p256dh: dv.p, auth: dv.a } }); ok(q.s === 400, 'obuna: begona domen rad etiladi (SSRF)', q.s);
+      q = await u('POST', '/api/push/subscribe', { endpoint: 'https://169.254.169.254/latest', keys: { p256dh: dv.p, auth: dv.a } }); ok(q.s === 400, 'obuna: ichki IP rad etiladi', q.s);
+      q = await u('POST', '/api/push/subscribe', { endpoint: `http://localhost:${sp}/ok/1`, keys: { p256dh: 'AAAA', auth: dv.a } }); ok(q.s === 400, 'obuna: notoʻgʻri kalit rad etiladi', q.s);
+      q = await u('POST', '/api/push/subscribe', sub(dv, 'ok/1')); ok(q.s === 201 && q.j.account.push.devices === 1, 'obuna qoʻshildi', q.j);
+      q = await u('GET', '/api/me'); ok(!JSON.stringify(q.j).includes('/ok/1') && !JSON.stringify(q.j).includes(dv.a), '/api/me obuna kalitlarini oshkor qilmaydi');
+
+      // sinov xabari: shifrlangan va VAPID bilan imzolangan
+      got.length = 0; q = await u('POST', '/api/push/test'); ok(q.s === 200 && q.j.ok === 1 && q.j.account.push.devices === 1, 'sinov xabari yuborildi', q.j);
+      const g = got[got.length - 1];
+      ok(g && g.url === '/ok/1' && g.h['content-encoding'] === 'aes128gcm' && g.h.ttl === '86400' && g.h['content-type'] === 'application/octet-stream', 'push soʻrovi sarlavhalari', g && g.h);
+      const m = /^vapid t=([\w-]+)\.([\w-]+)\.([\w-]+), k=([\w-]+)$/.exec((g && g.h.authorization) || '');
+      ok(m && m[4] === key, 'VAPID: k = server ochiq kaliti', g && g.h.authorization);
+      if (m) {
+        const x = Buffer.from(key, 'base64url'), pk = crypto.createPublicKey({ key: { kty: 'EC', crv: 'P-256', x: x.subarray(1, 33).toString('base64url'), y: x.subarray(33).toString('base64url') }, format: 'jwk' });
+        ok(crypto.verify('sha256', Buffer.from(m[1] + '.' + m[2]), { key: pk, dsaEncoding: 'ieee-p1363' }, Buffer.from(m[3], 'base64url')), 'VAPID JWT imzosi server kaliti bilan tasdiqlanadi');
+        const cl = JSON.parse(Buffer.from(m[2], 'base64url')); ok(cl.aud === 'http://localhost:' + sp && /^https?:|^mailto:/.test(cl.sub) && cl.exp > Date.now() / 1000 && cl.exp < Date.now() / 1000 + 86400, 'VAPID daʼvolari', cl);
+      }
+      let pm = msgOf(g, dv); ok(pm.title === 'UniDoue' && /ishlayapti/.test(pm.body) && pm.url === '/app#/profile', 'xabar qurilmada deshifrlanadi', pm);
+
+      // oʻlik qurilma (410) bazadan olib tashlanadi, ishlayotgani qoladi; vaqtinchalik xato (500) da saqlanadi
+      q = await u('POST', '/api/push/subscribe', sub(dv2, 'gone/2')); ok(q.j.account.push.devices === 2, '2-qurilma qoʻshildi');
+      q = await u('POST', '/api/push/test'); ok(q.j.ok === 1 && q.j.gone === 1 && q.j.account.push.devices === 1, '410 → qurilma oʻchiriladi', q.j);
+      await u('POST', '/api/push/subscribe', sub(dv2, 'err/3')); q = await u('POST', '/api/push/test'); ok(q.j.ok === 1 && q.j.failed === 1 && q.j.account.push.devices === 2, '500 → qurilma saqlanadi (vaqtinchalik xato)', q.j);
+      q = await u('POST', '/api/push/unsubscribe', { endpoint: `http://localhost:${sp}/err/3` }); ok(q.j.account.push.devices === 1, 'obunani bekor qilish');
+
+      // bitta qurilma — bitta hisob
+      const w = mk(); await w('POST', '/api/register', { email: 'push2@gmail.com', password: 'parol12345', name: 'Push Ikki' });
+      q = await w('POST', '/api/push/subscribe', sub(dv, 'ok/1')); ok(q.j.account.push.devices === 1, 'qurilma 2-hisobga oʻtdi');
+      q = await u('GET', '/api/me'); ok(q.j.account.push.devices === 0, '… va 1-hisobdan olib tashlandi', q.j.account.push);
+      q = await u('POST', '/api/push/test'); ok(q.s === 400, 'qurilmasiz hisob sinov yubora olmaydi', q.s);
+      await u('POST', '/api/push/subscribe', sub(dv9, 'ok/9'));
+
+      // admin: e'lon yuborish
+      const SEND = b => anon('POST', '/api/admin/push/send', b, ADM);
+      q = await anon('POST', '/api/admin/push/send', { title: 'Yangilik', body: 'Matn', audience: 'all' }); ok(q.s === 401, 'admin push: tokensiz → 401', q.s);
+      q = await SEND({ title: 'Y', body: '', audience: 'all' }); ok(q.s === 400, 'admin push: boʻsh matn rad etiladi', q.s);
+      q = await SEND({ title: 'Yangilik', body: 'Matn', url: 'https://evil.com', audience: 'all' }); ok(q.s === 400, 'admin push: begona havola rad etiladi', q.s);
+      q = await SEND({ title: 'Yangilik', body: 'Matn', url: '//evil.com', audience: 'all' }); ok(q.s === 400, 'admin push: //host havolasi rad etiladi', q.s);
+      q = await SEND({ title: 'Yangilik', body: 'Matn', audience: 'xxx' }); ok(q.s === 400, 'admin push: notoʻgʻri auditoriya', q.s);
+      q = await SEND({ title: 'Yangilik', body: 'Matn', audience: 'email', email: 'yoq@x.uz' }); ok(q.s === 404, 'admin push: yoʻq foydalanuvchi → 404', q.s);
+      got.length = 0; q = await SEND({ title: 'Yangi universitetlar', body: 'Katalogga 8 ta universitet qoʻshildi', url: '/app#/finder', audience: 'all' });
+      ok(q.s === 200 && q.j.targets === 2 && q.j.ok === 2, 'admin push: hammaga (2 foydalanuvchi)', q.j);
+      pm = msgOf(got.find(x => x.url === '/ok/1'), dv); ok(pm.title === 'Yangi universitetlar' && pm.url === '/app#/finder', 'e’lon mazmuni qurilmada', pm);
+      q = await SEND({ title: 'Plus uchun', body: 'Matn', audience: 'plus' }); ok(q.s === 200 && q.j.targets === 0, 'admin push: Plus auditoriyasi hozircha boʻsh', q.j);
+      q = await SEND({ title: 'Bitta', body: 'Matn', audience: 'email', email: 'PUSH2@gmail.com' }); ok(q.s === 200 && q.j.targets === 1 && q.j.ok === 1, 'admin push: bitta foydalanuvchiga (email)', q.j);
+      q = await SEND({ title: 'Sinov', body: 'Matn', audience: 'admin' }); ok(q.s === 200 && q.j.targets === 0, 'admin push: admin qurilmasi hali yoʻq', q.j);
+
+      // tarif berilganda foydalanuvchiga xabar
+      got.length = 0; q = await anon('POST', '/api/admin/plan', { email: 'push2@gmail.com', plan: 'plus', days: 30 }, ADM); ok(q.s === 200, 'admin Plus berdi');
+      ok(await until(() => got.some(x => x.url === '/ok/1')), 'tarif berilganda push keldi');
+      pm = msgOf(got.find(x => x.url === '/ok/1'), dv); ok(/Plus/.test(pm.body) && /30 kun/.test(pm.body) && pm.url === '/app#/pricing', 'tarif xabari matni', pm);
+      q = await SEND({ title: 'Plus uchun', body: 'Matn', audience: 'plus' }); ok(q.j.targets === 1, 'admin push: Plus auditoriyasi = 1', q.j);
+
+      // ariza muddati eslatmasi (ertaga): bir marta yuboriladi, yopilgan ariza hisobga olinmaydi
+      q = await u('PUT', '/api/data', { data: { 'qabul:apps': JSON.stringify([{ n: 'MIT', d: tz(Date.now() + 864e5), s: 0 }, { n: 'Yopilgan', d: tz(Date.now() + 864e5), s: 3 }]) } }); ok(q.s === 200, 'arizalar saqlandi', q.s);
+      got.length = 0; q = await anon('POST', '/api/admin/remind', null, ADM); ok(q.s === 200 && q.j.sent === 1, 'eslatma: push yuborildi', q.j);
+      const rg = got.filter(x => x.url === '/ok/9'); ok(rg.length === 1, 'eslatma bitta qurilmaga bitta marta', rg.length);
+      if (rg.length) { pm = msgOf(rg[0], dv9); ok(/MIT/.test(pm.body) && /ertaga/.test(pm.body) && !/Yopilgan/.test(pm.body) && pm.url === '/app#/tracker', 'eslatma matni', pm); }
+      got.length = 0; q = await anon('POST', '/api/admin/remind', null, ADM); ok(q.j.sent === 0 && got.length === 0, 'eslatma qayta yuborilmaydi (takrorlanmaydi)', q.j);
+
+      // administrator qurilmasi: yangi soʻrov haqida xabar
+      q = await anon('POST', '/api/admin/push/subscribe', sub(dva, 'ok/adm')); ok(q.s === 401, 'admin obuna: tokensiz → 401', q.s);
+      q = await anon('POST', '/api/admin/push/subscribe', { endpoint: 'https://evil.com/x', keys: { p256dh: dva.p, auth: dva.a } }, ADM); ok(q.s === 400, 'admin obuna: begona domen rad etiladi', q.s);
+      q = await anon('POST', '/api/admin/push/subscribe', sub(dva, 'ok/adm'), ADM); ok(q.s === 201 && q.j.devices === 1, 'admin qurilmasi qoʻshildi', q.j);
+      got.length = 0; q = await u('POST', '/api/report', { uni: 'MIT', text: 'Ariza muddati notoʻgʻri koʻrsatilgan' }); ok(q.s === 201, 'xato xabari yuborildi');
+      ok(await until(() => got.some(x => x.url === '/ok/adm')), 'admin qurilmasiga yangi soʻrov xabari keldi');
+      const ag = got.find(x => x.url === '/ok/adm'); if (ag) { pm = msgOf(ag, dva); ok(/Yangi so/.test(pm.title) && /Push Bir/.test(pm.body) && pm.url === '/admin#requests' && ag.h.urgency === 'high', 'admin xabari mazmuni', pm); }
+      got.length = 0; q = await SEND({ title: 'Sinov', body: 'Admin qurilmasiga', audience: 'admin' }); ok(q.s === 200 && q.j.targets === 1 && q.j.ok === 1, 'admin push: oʻz qurilmasiga sinov', q.j);
+
+      // statistika va admin roʻyxati
+      q = await anon('GET', '/api/admin/stats', null, ADM); ok(q.j.push && q.j.push.users === 2 && q.j.push.devices === 2 && q.j.push.admin === 1, 'statistika: push foydalanuvchilar/qurilmalar/admin', q.j.push);
+      q = await anon('GET', '/api/admin/users', null, ADM); ok(q.j.users.find(x => x.email === 'push1@gmail.com').push === 1 && !JSON.stringify(q.j).includes('ok/9'), 'admin roʻyxatida qurilmalar soni bor, manzillar yoʻq');
+      q = await anon('POST', '/api/admin/push/unsubscribe', { endpoint: `http://localhost:${sp}/ok/adm` }, ADM); ok(q.j.devices === 0, 'admin qurilmasini oʻchirish');
+
+      // admin tezlik limiti: toʻgʻri tokenli koʻp soʻrovlar (avto-yangilash) “Tarif berish”ni bloklamaydi; xato tokenlar esa cheklanadi
+      let lockOk = true; for (let i = 0; i < 40; i++) { q = await anon('GET', '/api/admin/stats', null, ADM); if (q.s !== 200) lockOk = false; }
+      ok(lockOk, 'admin: 40 ta toʻgʻri soʻrov (avto-yangilash) bloklanmaydi');
+      q = await anon('POST', '/api/admin/plan', { email: 'push1@gmail.com', plan: 'plus', days: 5 }, ADM); ok(q.s === 200, 'admin: koʻp yangilashdan keyin ham tarif berish ishlaydi', q.s);
+      let lastBad; for (let i = 0; i < 22; i++) lastBad = await anon('GET', '/api/admin/users', null, { Authorization: 'Bearer xato' + i });
+      ok(lastBad.s === 429, 'admin: xato tokenlar 20 tadan keyin bloklanadi', lastBad.s);
+      q = await anon('GET', '/api/admin/stats', null, ADM); ok(q.s === 429, 'admin: bloklangan IP toʻgʻri token bilan ham kutadi', q.s);
+
+      // VAPID kaliti qayta ishga tushganda oʻzgarmaydi (obunalar yaroqli qoladi)
+      await down(proc); proc = boot(port); await waitUp(BU);
+      const key2 = (await mk()('GET', '/api/push/key')).j.key; ok(key2 === key, 'VAPID kaliti server qayta ishga tushganda saqlanadi');
+      const u2 = mk(); q = await u2('POST', '/api/login', { email: 'push1@gmail.com', password: 'parol12345' }); q = await u2('GET', '/api/me'); ok(q.j.account.push.devices === 1, 'obunalar qayta ishga tushgandan keyin ham saqlangan', q.j.account.push);
+      ok(!/vapid|"priv"/.test(JSON.stringify(q.j)), 'maxfiy VAPID kalit foydalanuvchiga chiqmaydi');
+    } catch (e) { failN++; console.log('XATO:', e); }
+    await down(proc); svc.close();
+    try { fs.rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); } catch (e) {}
+  }
   console.log(`\n${pass} ta oʻtdi, ${failN} ta yiqildi`); process.exit(failN ? 1 : 0);
 })();

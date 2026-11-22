@@ -4,6 +4,11 @@
   "private": true,
   "description": "UniDoue — universitetga yoʻl",
   "main": "server.js",
-  "scripts": { "start": "node server.js", "test": "node tests/run.js && node --no-warnings tests/i18n.mjs" },
-  "engines": { "node": ">=18" }
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/run.js && node tests/push.js && node --no-warnings tests/i18n.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }
