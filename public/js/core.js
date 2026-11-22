@@ -58,7 +58,7 @@ export async function push() {
   busy = false;
 }
 function applyRemote(d) { localKeys().forEach(k => localStorage.removeItem(k)); Object.entries(d).forEach(([k, v]) => isK(k) && typeof v === 'string' && localStorage.setItem(k, v)); }
-export function wipeLocal() { localKeys().forEach(k => localStorage.removeItem(k)); try { localStorage.removeItem(META); } catch (e) {} }
+export function wipeLocal() { localKeys().forEach(k => localStorage.removeItem(k)); try { localStorage.removeItem(META); } catch (e) {} try { indexedDB.deleteDatabase('unidoue-pf'); } catch (e) {} } // portfolio rasmlari ham qurilmadan o'chadi
 
 /** Kirgandan keyin mahalliy va server ma'lumotini moslashtiradi. true qaytsa, sahifani qayta chizish kerak. */
 export function adopt(me) {
@@ -152,7 +152,7 @@ export const ico = {
   home: 'M3 11l9-8 9 8M5 10v10h14V10', search: 'M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-4.3-4.3', gift: 'M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H8a2.5 2.5 0 010-5c2 0 4 2 4 5zM12 7h4a2.5 2.5 0 000-5c-2 0-4 2-4 5z',
   chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2', pen: 'M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z', cmp: 'M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h3M16 3h3a2 2 0 012 2v14a2 2 0 01-2 2h-3M12 2v20',
   list: 'M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01', bot: 'M12 8V4M8 4h8M5 8h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2zM9 14h.01M15 14h.01', card: 'M2 6h20v12H2zM2 10h20', user: 'M20 21a8 8 0 10-16 0M12 11a4 4 0 100-8 4 4 0 000 8z',
-  menu: 'M4 6h16M4 12h16M4 18h16', info: 'M12 22a10 10 0 100-20 10 10 0 000 20zM12 16v-4M12 8h.01'
+  menu: 'M4 6h16M4 12h16M4 18h16', folder: 'M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2zM3 11h18', info: 'M12 22a10 10 0 100-20 10 10 0 000 20zM12 16v-4M12 8h.01'
 };
 export const svg = n => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ico[n]}"/></svg>`;
 

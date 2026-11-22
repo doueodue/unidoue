@@ -27,6 +27,10 @@ const SAMPLES = [
   'Raqobatbardosh', 'Kuchli moslik', 'Qiyin', 'Juda qiyin', 'Mosligingizni', 'Erta muddatlar', 'Olib tashlash', 'muddat o‘tgan', 'Sanani o‘zgartirish',
   'Hali vaqt bor: testlarga tayyorlaning va universitetlar ro‘yxatini shakllantiring.', 'Profilni kuchaytirish kerak', 'Nimani yaxshilash kerak',
   '120 so‘z · 640/6000 belgi · kredit: 6 / 15 qoldi', '6 / 15 kredit qoldi', 'SAT yoki IELTS', 'Yetishmaydi: Ism, GPA, SAT yoki IELTS', 'Bu oy uchun AI sarfi chegarasiga yetdingiz. Keyingi oyda yangilanadi.', 'Xato topdingizmi?',
+  'Esse murabbiyi', 'Murabbiy fikrini olish', 'Boshlanmagan', 'Hajmi mos', 'Klishesiz', 'Reja uchun kamida ikkita bosqichni to‘ldiring (har biri kamida 30 belgi).',
+  'Avval javobingizni yozing (kamida 40 belgi).', 'Notoʻgʻri bosqich.', 'Tanlangan rasmlar:', 'Yozuvlar yangilandi:', 'Eng ko‘pi bilan 8 ta rasm.', 'sahifalar',
+  'Portfolio bahosi', 'AI baholasin (3 kredit)', 'Savollarni boshlash', 'Hujjat rasmlari faqat shu qurilmada saqlanadi. Matn va profil rasmi hisobingizda saqlanadi. “AI rasmdan o‘qisin” bosilgandagina tanlangan rasmlar AI xizmatiga yuboriladi.',
+  'Rasmdan oʻqish bu serverda yoqilmagan. Maʼlumotni qoʻlda kiriting.', 'Avval portfolioga maʼlumot kiriting.', 'Tanlanganlarni qo‘llash', 'Rasm juda katta (12 MB dan kichik bo‘lsin).',
   'Bildirishnomalar', 'Bildirishnomani yoqish', 'Bu qurilmada yoqilgan ✓', 'Sinov yuborish', 'Bildirishnoma yoqildi ✓', 'Bildirishnoma ruxsati berilmadi.', 'Sinov xabari yuborildi — bir necha soniyada keladi.',
   'Serverga ulanib bo‘lmadi. Internetni tekshiring.', 'Yuklab bo‘lmadi', 'Tariflarni ko‘rish', 'Payme orqali to‘lash', 'Click orqali to‘lash',
   'AI javobi haqida xabar berish', 'AI javobi haqida xabar', 'Nima noto‘g‘ri? (ixtiyoriy)', 'Qabul natijasi hech bir tarifda kafolatlanmaydi.', 'Javob noto‘g‘ri, zararli yoki nomaqbul bo‘lsa, bizga xabar bering. Javob matni ham adminga yuboriladi.'

@@ -16,6 +16,8 @@ const ROUTES = [
   { id: 'guide', t: 'Hujjatlar yo‘riqnomasi', i: 'list', v: () => import('./views5.js').then(m => m.guide) },
   { id: 'essay', t: 'Esse yordamchisi', i: 'pen', v: () => import('./views3.js').then(m => m.essay) },
   { id: 'mentor', t: 'AI mentor', i: 'bot', v: () => import('./views3.js').then(m => m.mentor) },
+  { id: 'coach', t: 'Esse murabbiyi', i: 'pen', hide: 1, nav: 'mentor', v: () => import('./coach.js').then(m => m.coach) },
+  { id: 'portfolio', t: 'Portfolio', i: 'folder', tag: 'NEW', v: () => import('./portfolio.js').then(m => m.portfolio) },
   { id: 'pricing', t: 'Tariflar', i: 'card', sec: 'Hisob', v: () => import('./views1.js').then(m => m.pricing) },
   { id: 'profile', t: 'Profil', i: 'user', v: () => import('./views1.js').then(m => m.profile) }
 ];
@@ -91,7 +93,7 @@ document.addEventListener('unidoue:unverified', () => { if (S.user) verifyScreen
 /* ---------- ilova qobig‘i ---------- */
 function shell() {
   let sec = '';
-  const nav = ROUTES.map(r => { const h = r.sec && r.sec !== sec ? `<div class="nav-sec">${t(sec = r.sec)}</div>` : ''; return `${h}<a href="#/${r.id}" data-r="${r.id}">${svg(r.i)}<span>${t(r.t)}</span>${r.tag ? `<span class="tag">${r.tag}</span>` : ''}</a>`; }).join('');
+  const nav = ROUTES.filter(r => !r.hide).map(r => { const h = r.sec && r.sec !== sec ? `<div class="nav-sec">${t(sec = r.sec)}</div>` : ''; return `${h}<a href="#/${r.id}" data-r="${r.id}">${svg(r.i)}<span>${t(r.t)}</span>${r.tag ? `<span class="tag">${r.tag}</span>` : ''}</a>`; }).join('');
   root.innerHTML = `<div class="shell"><aside class="side" id="side"><a class="brand" href="#/dashboard"><i>U</i>UniDoue</a><nav class="nav" aria-label="${t('Asosiy menyu')}">${nav}</nav>
   <a class="nav-tg" href="https://t.me/unidoue" target="_blank" rel="noopener noreferrer">✈ ${t('Telegram kanal')}</a>
   <a class="nav-tg" href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">💬 ${t('Yordam')}</a>
@@ -115,7 +117,7 @@ document.addEventListener('unidoue:account', updatePlanUI);
 async function route() {
   if (!S.user) return;
   const id = (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'dashboard', r = ROUTES.find(x => x.id === id) || ROUTES[0], my = ++token;
-  $$('.nav a').forEach(a => (a.getAttribute('data-r') === r.id ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
+  $$('.nav a').forEach(a => (a.getAttribute('data-r') === (r.nav || r.id) ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
   $('#ttl').textContent = t(r.t); document.title = t(r.t) + ' · UniDoue'; document.body.classList.remove('nav-open');
   refreshCredits(); // har sahifaga oʻtganda kreditlarni serverdan yangilaymiz (boshqa qurilma/oyna, oy almashishi)
   const el = $('#view'); el.innerHTML = skeleton(3); el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';

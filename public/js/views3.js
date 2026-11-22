@@ -3,11 +3,15 @@ import { md } from './markdown.js';
 import { t as tr, lang } from './i18n.js';
 
 const costOf = { mentor: 1, essay: 2, essay_deep: 4, strategy: 6, report: 6 };
-const aiOff = () => `<div class="notice">${svg('info')}<div><b>AI hozircha ulanmagan.</b> Sayt egasi serverda AI kalitini sozlashi kerak. Kalit faqat serverda saqlanadi va brauzerga chiqmaydi.</div></div>`;
+export const aiOff = () => `<div class="notice">${svg('info')}<div><b>AI hozircha ulanmagan.</b> Sayt egasi serverda AI kalitini sozlashi kerak. Kalit faqat serverda saqlanadi va brauzerga chiqmaydi.</div></div>`;
+
+/** AI mentor sahifalari uchun umumiy tab: Suhbat | Esse murabbiyi */
+export const mentorTabs = on => `<div class="tabs mtabs" role="tablist" aria-label="AI mentor bo‘limlari"><button type="button" role="tab" aria-selected="${on === 'chat'}" data-go="mentor">Suhbat</button><button type="button" role="tab" aria-selected="${on === 'coach'}" data-go="coach">Esse murabbiyi</button></div>`;
+export const bindMentorTabs = el => $$('.mtabs [data-go]', el).forEach(b => (b.onclick = () => { location.hash = '#/' + b.dataset.go; }));
 
 
 /** Oqimli chaqiruv: matn kelib turganda onText(toʻliq matn) chaqiriladi. */
-async function streamAI(body, onText) {
+export async function streamAI(body, onText) {
   let r;
   try { r = await fetch('/api/ai', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, stream: true, lang: lang() }) }); }
   catch (e) { throw Object.assign(new Error('Serverga ulanib bo‘lmadi. Internetni tekshiring.'), { status: 0 }); }
@@ -38,6 +42,17 @@ async function streamAI(body, onText) {
   return { reply: text };
 }
 
+/** Oqimsiz chaqiruv (JSON javob): portfolio sayqali va rasmdan o'qish uchun. Kredit holatini yangilaydi. */
+export async function askAI(body) {
+  try { const j = await api('/api/ai', 'POST', { ...body, stream: false, lang: lang() }); if (j.credits) applyCredits(j.credits); return j; }
+  catch (e) {
+    if (e.data && e.data.credits) applyCredits(e.data.credits);
+    if (e.code === 'AI_LIMIT') upsell('essay_adv', tr(e.message) + ' ' + tr('Limitni oshirish uchun tarifni yaxshilang.'));
+    else if (e.code === 'PLAN_REQUIRED') upsell(e.data.feature);
+    throw e;
+  }
+}
+
 /* ================= ESSE YORDAMCHISI ================= */
 const STOP = new Set('va bu bir u men biz siz ular uchun bilan lekin ammo ham yoki the and a to of in is that it for was with as on i my me'.split(' '));
 function analyze(text) {
@@ -64,6 +79,7 @@ function analyze(text) {
 export async function essay(el) {
   const draft = ls.get('qabul:essay', '');
   el.innerHTML = `<div class="page-h"><div><h2>Esse <em>yordamchisi</em></h2><p>Shaxsiy bayonotingizni tuzilma, aniqlik, grammatika va hikoya jihatidan tahlil qiling.</p></div></div>
+  <div class="notice info" style="margin-bottom:16px">${svg('info')}<div><b>Esseni hali yozmadingizmi?</b> <a href="#/coach">Esse murabbiyi</a> qadam-baqadam o‘rgatadi: hikoya, nega bu soha, nega bu universitet va maqsadlar.</div></div>
   <div class="grid g-dash"><section class="card s7"><label class="f" for="e-t">Esse matni</label><textarea id="e-t" rows="16" maxlength="6000" placeholder="Esseni shu yerga joylang (kamida 200 belgi)">${esc(draft)}</textarea><div class="hint" id="e-c"></div>
     <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button class="btn" id="e-b">Tezkor tahlil (bepul)</button><button class="btn primary" id="e-ai">AI tahlil (${costOf.essay} kredit)</button><button class="btn dark" id="e-deep">Chuqur tahlil (${costOf.essay_deep} kredit, Pro)</button></div><div class="msg" id="e-m"></div></section>
   <section class="card s5"><h3>Natija</h3><div id="e-o"><p class="sub">Tezkor tahlil brauzeringizda ishlaydi va hech qayerga yuborilmaydi. AI tahlil matnni serverga yuboradi.</p></div></section></div>`;
@@ -92,13 +108,14 @@ export async function essay(el) {
 export async function mentor(el) {
   const cat = await catalog(), apps = ls.get('qabul:apps', []), acc = S.account; const hist = [];
   el.innerHTML = `<div class="page-h"><div><h2>AI <em>mentor</em></h2><p>Universitet tanlash, ariza va esse bo‘yicha savollar. Javoblar umumiy maslahat, rasmiy talablarni universitet saytida tekshiring.</p></div><span class="badge" data-cr="badge">${credits().left} / ${credits().limit} kredit qoldi</span></div>
-  ${acc.config.ai ? '' : aiOff()}
+  ${mentorTabs('chat')}${acc.config.ai ? '' : aiOff()}
   <div class="grid g-dash" style="margin-top:16px"><section class="card s7"><div class="chat" id="m-c" aria-live="polite"><div class="bub a">Salom! Men UniDoue mentoriman. ${acc.consent.mentorMemory ? 'Profilingiz ma’lumotlaridan foydalanaman (profil sahifasida o‘chirishingiz mumkin).' : 'Profilingizni ko‘rishim uchun profil sahifasida ruxsat bering.'} Nimani bilmoqchisiz?</div></div>
     <form id="m-f" style="display:flex;gap:10px;margin-top:8px"><input id="m-i" type="text" maxlength="2000" placeholder="Savolingizni yozing…" autocomplete="off" style="flex:1"><button class="btn primary" id="m-s" type="submit">Yuborish</button></form></section>
   <section class="card s5"><h3>Pro vositalar</h3><p class="sub">Tanlangan universitetlar bo‘yicha.</p><div class="field"><label class="f" for="m-u">Universitetlar (Ctrl bilan bir nechta)</label><select id="m-u" multiple size="6">${cat.map(c => `<option value="${esc(c.n)}" ${apps.some(a => a.n === c.n) ? 'selected' : ''}>${esc(c.n)}</option>`).join('')}</select></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn dark sm" id="m-st">Qabul strategiyasi (${costOf.strategy})</button><button class="btn sm" id="m-rp">Universitet hisoboti (${costOf.report})</button></div><div class="msg" id="m-m"></div></section></div>
   <section class="card" id="m-o" style="margin-top:18px" hidden></section>
   <section class="card" style="margin-top:18px"><h3>Jonli mentor bilan bog‘lanish</h3><p class="sub">Esse tahlili yoki universitet tanlashda inson mentordan yordam so‘rang. So‘rov administratorga yetkaziladi.</p><div class="row"><div class="field"><label class="f" for="rq-n">Ismingiz</label><input id="rq-n" type="text" maxlength="60" value="${esc(S.user.name)}"></div><div class="field"><label class="f" for="rq-c">Telegram yoki telefon</label><input id="rq-c" type="text" maxlength="60" placeholder="@username yoki +998…"></div><div class="field"><label class="f" for="rq-s">Xizmat</label><select id="rq-s"><option>Esse tahlili</option><option>Universitet tanlash</option><option>Ariza bo‘yicha maslahat</option><option>Boshqa</option></select></div></div><div class="field"><label class="f" for="rq-t">Izoh</label><textarea id="rq-t" maxlength="1500" style="min-height:80px"></textarea></div><button class="btn" id="rq-b">So‘rov yuborish</button><div class="msg" id="rq-m"></div></section>`;
+  bindMentorTabs(el);
   const chat = $('#m-c', el), add = (cls, txt) => { const d = document.createElement('div'); d.className = 'bub ' + cls; d.textContent = txt; chat.appendChild(d); chat.scrollTop = chat.scrollHeight; return d; };
   $('#m-f', el).onsubmit = async ev => {
     ev.preventDefault(); const inp = $('#m-i', el), q = inp.value.trim(); if (!q) return;

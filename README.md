@@ -24,6 +24,7 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 | `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL` | Anthropic oʻrniga OpenAI-mos provayder. Arzon variant: `AI_BASE_URL=https://api.openai.com/v1`, `AI_MODEL=gpt-6-luna` (≈ $0.10 / $0.50 per 1M token). gpt-5/gpt-6/o-seriya modellari uchun server `max_completion_tokens` va `reasoning_effort` yuboradi, `temperature` yuborilmaydi |
 | `AI_REASONING_EFFORT` | Faqat reasoning modellar: `low` (standart), `none`, `medium`, `high`, `omit` (parametr yuborilmaydi). Past qiymat arzonroq va tezroq |
 | `AI_REASONING=1/0` | Model nomi avtomatik taniy olmasa (masalan OpenRouter orqali), reasoning rejimini qoʻlda yoqish/oʻchirish |
+| `AI_VISION=1/0` | Sertifikat/diplom rasmini AI oʻqishi (portfolio). Anthropic'da standart **yoqilgan**; OpenAI-mos provayderda rasm qoʻllab-quvvatlasa `AI_VISION=1` qoʻying (model `gpt-4o`, `gpt-5`, `gpt-6` kabi koʻrish qobiliyatli boʻlishi kerak). `0` — oʻchirish; rasm kelsa server aniq xabar bilan 400 qaytaradi |
 | `AI_TOKENS_PER_CREDIT` | Xavfsizlik chegarasi: oylik token sarfi `tarif krediti × shu son` dan oshsa AI toʻxtaydi (standart 20000). Real xarajatni kredit hisobidan qatʼiy nazar cheklaydi |
 | `AI_GLOBAL_CAP` | (tavsiya etiladi) Hamma foydalanuvchilarning oylik umumiy AI krediti. Oshsa AI vaqtincha toʻxtaydi. Qoʻyilmasa umumiy chegara yoʻq |
 | `RESEND_API_KEY`, `MAIL_FROM`, `APP_URL` | Parolni tiklash xati. Kalitsiz "ulanmagan" xabari chiqadi |
@@ -88,6 +89,12 @@ Foydalanuvchi soʻrovlari: `GET /api/admin/requests`.
 ```json
 {"updated":"2026-11-07","items":[{"name":"…","provider":"…","countries":["AQSh"],"funding":"full","amount":"…","deadline":"2027-01-15","eligibility":"…","requirements":"…","url":"https://…","verifiedAt":"2026-11-07"}]}
 ```
+
+## Portfolio va esse murabbiyi
+- **Portfolio** (`#/portfolio`): foydalanuvchi suhbat-intervyu orqali maʼlumot kiritadi (taʼlim, testlar, faoliyat, mukofotlar, koʻnikmalar), rasm va sertifikat rasmlarini yuklaydi; sayt **avtomatik ball** (toʻliqlik va dalil kuchi boʻyicha evristika, qabul bashorati emas) beradi, AI (3 kredit) tahlil qiladi, yozuvlarni sayqallaydi (2 kredit) va sertifikat rasmidan maʼlumotni oʻqiydi (2 kredit). Chiqarish: PDF (brauzer "Saqlash — PDF" oynasi), Word (.docx, mijozda yigʻiladi) va mustaqil web-sahifa (.html). Kod: `public/js/portfolio.js`, `pfmodel.js`, `pfai.js`, `pfdoc.js`, `pfdocx.js`, `zip.js`.
+- **Maxfiylik**: sertifikat rasmlari faqat qurilmadagi IndexedDB (`unidoue-pf`)da turadi, hisobga sinxronlanmaydi; matn maʼlumoti `qabul:portfolio` kaliti bilan hisobga saqlanadi. Ommaviy ulashiladigan havola **ataylab yoʻq** (voyaga yetmaganlar maxfiyligi, moderatsiya). Rasmlar AI'ga faqat foydalanuvchi "AI oʻqisin" desa yuboriladi.
+- **Esse murabbiyi** (`#/coach`, AI mentor ichida "Esse murabbiyi" tabi): motivation letter / personal statement boʻyicha darslar, yaxshi va zaif misollar, mashqlar, bepul mahalliy tekshiruvlar (klishe, noaniq soʻzlar, aniq tafsilotlar, soʻz limiti), bosqichma-bosqich AI fikri (1 kredit) va reja/outline (2 kredit). Murabbiy esseni **yozib bermaydi** — faqat oʻrgatadi va savol beradi. Maʼlumot `qabul:coach` kaliti bilan saqlanadi.
+- Testlar: `tests/pf.mjs` (brauzerda portfolio), `tests/run.js` ichidagi “Esse murabbiyi va portfolio (AI)” va “AI_VISION” boʻlimlari.
 
 ## Universitet maʼlumotlari
 `public/data/universities.json`: har bir koʻrsatkichda `satV`, `accV`, `rdV` bayroqlari bor (`true` = rasmiy manbadan tekshirilgan). Hozir 9 ta universitetning SAT oraligʻi va 10 tasining muddati tekshirilgan, qolganlari "taxminiy" deb belgilanadi.
