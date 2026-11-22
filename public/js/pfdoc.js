@@ -1,70 +1,17 @@
 /* Portfolio hujjatlari (HTML): 3 ta A4 shablon (PDF uchun chop etiladi) va 1 ta adaptiv veb-sahifa. Mustaqil fayl sifatida ham yuklab olinadi.
  * Barcha foydalanuvchi matni esc() dan o'tadi; havolalar faqat http(s), rasmlar faqat data:image/jpeg. */
 import { normalize, actText, range, splitBullets } from './pfmodel.js';
+import { effective, fontPair, FF, GF, TPL } from './pfdesign.js';
+import { printCSS, pageBg } from './pfcss.js';
+import { webCSS } from './pfwebcss.js';
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const DL = {
-  en: { summary: 'Profile', edu: 'Education', tests: 'Test scores', acts: 'Activities', awards: 'Awards and honors', projects: 'Projects', skills: 'Skills', langs: 'Languages', targets: 'Target universities', gallery: 'Documents', present: 'present', native: 'native', hours: 'h/week', gpa: 'GPA', contact: 'Contact', levels: { school: 'School', regional: 'Regional', national: 'National', international: 'International' }, web: 'Built with UniDoue' },
-  uz: { summary: 'Profil', edu: 'Ta’lim', tests: 'Test natijalari', acts: 'Faoliyat', awards: 'Yutuqlar', projects: 'Loyihalar', skills: 'Ko‘nikmalar', langs: 'Tillar', targets: 'Maqsadli universitetlar', gallery: 'Hujjatlar', present: 'hozir', native: 'ona tili', hours: 'soat/hafta', gpa: 'GPA', contact: 'Aloqa', levels: { school: 'Maktab', regional: 'Viloyat', national: 'Respublika', international: 'Xalqaro' }, web: 'UniDoue bilan tuzilgan' },
-  ru: { summary: 'О себе', edu: 'Образование', tests: 'Результаты тестов', acts: 'Активности', awards: 'Достижения', projects: 'Проекты', skills: 'Навыки', langs: 'Языки', targets: 'Целевые университеты', gallery: 'Документы', present: 'сейчас', native: 'родной', hours: 'ч/нед.', gpa: 'GPA', contact: 'Контакты', levels: { school: 'Школа', regional: 'Регион', national: 'Страна', international: 'Международный' }, web: 'Создано в UniDoue' }
+  en: { summary: 'Profile', edu: 'Education', tests: 'Test scores', acts: 'Activities', awards: 'Awards and honors', projects: 'Projects', skills: 'Skills', langs: 'Languages', targets: 'Target universities', gallery: 'Documents', present: 'present', native: 'native', hours: 'h/week', gpa: 'GPA', contact: 'Contact', levels: { school: 'School', regional: 'Regional', national: 'National', international: 'International' }, web: 'Built with UniDoue', mail: 'Contact me', cta: 'Let’s work together', theme: 'Switch theme', menu: 'Sections', close: 'Close', prev: 'Previous', next: 'Next' },
+  uz: { summary: 'Profil', edu: 'Ta’lim', tests: 'Test natijalari', acts: 'Faoliyat', awards: 'Yutuqlar', projects: 'Loyihalar', skills: 'Ko‘nikmalar', langs: 'Tillar', targets: 'Maqsadli universitetlar', gallery: 'Hujjatlar', present: 'hozir', native: 'ona tili', hours: 'soat/hafta', gpa: 'GPA', contact: 'Aloqa', levels: { school: 'Maktab', regional: 'Viloyat', national: 'Respublika', international: 'Xalqaro' }, web: 'UniDoue bilan tuzilgan', mail: 'Bog‘lanish', cta: 'Hamkorlik qilamiz', theme: 'Mavzuni almashtirish', menu: 'Bo‘limlar', close: 'Yopish', prev: 'Oldingi', next: 'Keyingi' },
+  ru: { summary: 'О себе', edu: 'Образование', tests: 'Результаты тестов', acts: 'Активности', awards: 'Достижения', projects: 'Проекты', skills: 'Навыки', langs: 'Языки', targets: 'Целевые университеты', gallery: 'Документы', present: 'сейчас', native: 'родной', hours: 'ч/нед.', gpa: 'GPA', contact: 'Контакты', levels: { school: 'Школа', regional: 'Регион', national: 'Страна', international: 'Международный' }, web: 'Создано в UniDoue', mail: 'Связаться', cta: 'Давайте работать вместе', theme: 'Сменить тему', menu: 'Разделы', close: 'Закрыть', prev: 'Назад', next: 'Далее' }
 };
 const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } };
-const FONTS = 'https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap';
-
-/* ---------------- CSS ---------------- */
-const BASE = `*{box-sizing:border-box;margin:0;padding:0}html{-webkit-print-color-adjust:exact;print-color-adjust:exact;-webkit-text-size-adjust:100%}
-body{background:#fff;color:#15181e;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}img{display:block;max-width:100%}a{color:inherit;text-decoration:none}ul{list-style:none}
-.m span+span::before{content:"";display:inline-block;width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.55;margin:0 .55em;vertical-align:middle}
-.ct{display:flex;flex-wrap:wrap;gap:1pt 13pt}.ct span{white-space:nowrap}
-.e{break-inside:avoid}h2{break-after:avoid}figure{break-inside:avoid}`;
-
-const LEDGER = `@page{size:A4;margin:16mm 17mm}
-body{font:10pt/1.5 "Source Serif 4",Georgia,"Times New Roman",serif}.sheet{width:210mm;padding:16mm 17mm}
-.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:14pt;padding-bottom:11pt;border-bottom:2.2pt solid var(--a)}
-h1{font-size:27pt;line-height:1.05;font-weight:700;letter-spacing:-.015em}.hl{font-size:11.5pt;margin-top:5pt;color:#3d4452}.ct{margin-top:7pt;font-size:9pt;color:#5b6472}
-.ph{width:27mm;height:34mm;object-fit:cover;flex:none;border-radius:1.5pt}
-section{margin-top:13pt}h2{display:flex;align-items:center;gap:9pt;font-size:10.5pt;font-weight:700;color:var(--a);margin-bottom:6pt}h2::after{content:"";flex:1;border-top:.75pt solid #d9dee6}
-.e{display:grid;grid-template-columns:25mm 1fr;column-gap:11pt;margin-bottom:7pt}.d{text-align:right;font-size:9pt;color:#5b6472;font-variant-numeric:tabular-nums;padding-top:1pt}.t{font-weight:650;font-size:10.3pt}.o,.m{color:#5b6472;font-size:9.3pt}.b p,.b li{margin-top:1.5pt}
-.b li{position:relative;padding-left:10pt}.b li::before{content:"–";position:absolute;left:0;color:var(--a)}
-.sum{font-size:10.3pt;color:#262b34}.tg{display:flex;flex-wrap:wrap;gap:3pt 16pt}.tg b{font-weight:700}.tg i{font-style:normal;color:#5b6472}
-.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:9pt}.gal figure img{width:100%;height:36mm;object-fit:cover;border-radius:1.5pt;border:.5pt solid #d9dee6}.gal figcaption{font-size:8.3pt;color:#5b6472;margin-top:2.5pt;line-height:1.3}`;
-
-const RAIL = `@page{size:A4;margin:0}html{background:linear-gradient(90deg,color-mix(in srgb,var(--a) 80%,#0a0d14) 0 68mm,#fff 68mm 100%)}
-body{font:9.6pt/1.5 "DM Sans",system-ui,"Segoe UI",Arial,sans-serif;background:transparent}.sheet{width:210mm}.pg{display:grid;grid-template-columns:68mm 1fr}
-.rail,main{-webkit-box-decoration-break:clone;box-decoration-break:clone}.rail{color:#fff;padding:14mm 8mm}.rail .ph{width:36mm;height:36mm;border-radius:50%;object-fit:cover;margin:0 0 9mm;border:1.2pt solid rgba(255,255,255,.55)}
-.rail h3{font-size:9.5pt;font-weight:700;margin:8mm 0 2.5mm;padding-bottom:1.6mm;border-bottom:.6pt solid rgba(255,255,255,.35);color:#fff}.rail h3:first-of-type{margin-top:0}
-.rail p,.rail li{font-size:8.9pt;color:rgba(255,255,255,.9);word-break:break-word;margin-bottom:1.6mm}.rail .fig{margin-bottom:3.2mm}.rail .fig b{display:block;font-size:19pt;line-height:1;font-weight:700;letter-spacing:-.01em}.rail .fig span{font-size:8.5pt;color:rgba(255,255,255,.78)}
-main{padding:14mm 14mm 14mm 11mm}h1{font-size:25pt;line-height:1.05;font-weight:700;letter-spacing:-.02em;color:#101421}.hl{font-size:11pt;margin-top:4pt;color:var(--a);font-weight:500}
-section{margin-top:12pt}h2{font-size:11pt;font-weight:700;margin-bottom:5.5pt;padding-left:7pt;border-left:2.6pt solid var(--a);line-height:1.15}
-.e{margin-bottom:7.5pt}.t{font-weight:700;font-size:10pt}.d{font-size:8.6pt;color:#667085;float:right;margin-left:8pt;font-variant-numeric:tabular-nums}.o,.m{color:#667085;font-size:8.9pt}
-.b p,.b li{margin-top:1.5pt;color:#262b34}.b li{position:relative;padding-left:9pt}.b li::before{content:"";position:absolute;left:0;top:.58em;width:3.5pt;height:3.5pt;border-radius:50%;background:var(--a)}
-.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:8pt}.gal figure img{width:100%;height:30mm;object-fit:cover;border-radius:3pt}.gal figcaption{font-size:8pt;color:#667085;margin-top:2pt;line-height:1.3}`;
-
-const FOLIO = `@page{size:A4;margin:12mm 0}@page:first{margin:0 0 12mm}
-body{font:9.6pt/1.5 "DM Sans",system-ui,"Segoe UI",Arial,sans-serif}.sheet{width:210mm;min-height:297mm}
-.hero{display:flex;justify-content:space-between;gap:12mm;padding:16mm 16mm 11mm;background:color-mix(in srgb,var(--a) 9%,#fff)}
-h1{font:600 34pt/1 Fraunces,"Source Serif 4",Georgia,serif;letter-spacing:-.025em;color:#12151d}.hl{margin-top:7pt;font-size:12pt;font-weight:500;color:var(--a)}.ct{margin-top:9pt;font-size:8.9pt;color:#4a5262}.sm{margin-top:10pt;font-size:9.8pt;color:#262b34;max-width:112mm}
-.ph{width:36mm;height:45mm;object-fit:cover;flex:none;box-shadow:3.2mm 3.2mm 0 var(--a)}
-.strip{display:flex;border-top:1.4pt solid var(--a);border-bottom:.6pt solid #d9dee6;margin:0 16mm}.strip .fig{flex:1;padding:8pt 10pt 8pt 0}.strip .fig+.fig{padding-left:12pt;border-left:.6pt solid #d9dee6}.strip b{display:block;font:600 19pt/1 Fraunces,Georgia,serif;color:var(--a)}.strip span{font-size:8.3pt;color:#667085}
-.cols{display:grid;grid-template-columns:1.45fr 1fr;gap:0 11mm;padding:6mm 16mm 0}section{margin-bottom:11pt}h2{font:600 12.5pt/1.2 Fraunces,Georgia,serif;margin-bottom:5.5pt;color:#12151d}
-.e{margin-bottom:8pt}.t{font-weight:700;font-size:10pt}.d{font-size:8.5pt;color:#667085;margin-top:.5pt}.o,.m{color:#667085;font-size:8.8pt}.b p,.b li{margin-top:1.5pt;color:#262b34}.b li{position:relative;padding-left:9pt}.b li::before{content:"";position:absolute;left:0;top:.6em;width:4pt;height:1.4pt;background:var(--a)}
-.tg{display:flex;flex-wrap:wrap;gap:4pt}.tg span{font-size:8.8pt;padding:2pt 7pt;border-radius:99pt;background:color-mix(in srgb,var(--a) 10%,#fff);color:#2b3140}
-.wide{padding:2mm 16mm 12mm}.gal{display:grid;grid-template-columns:repeat(4,1fr);gap:8pt}.gal figure img{width:100%;height:28mm;object-fit:cover}.gal figcaption{font-size:8pt;color:#667085;margin-top:2pt;line-height:1.3}`;
-
-const WEB = `:root{--ink:#15181e;--mut:#5b6472;--line:#e3e7ee;--bg:#f6f7fa;--card:#fff}@media(prefers-color-scheme:dark){:root{--ink:#eef0f5;--mut:#a3acbd;--line:#2a3140;--bg:#0f131b;--card:#171c27}}
-body{font:16px/1.65 "DM Sans",system-ui,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink)}.w{max-width:980px;margin:0 auto;padding:0 20px 64px}
-.hero{display:grid;grid-template-columns:1fr auto;gap:36px;align-items:center;padding:64px 0 36px}h1{font:600 clamp(36px,7vw,64px)/1 Fraunces,Georgia,serif;letter-spacing:-.03em}.hl{margin-top:14px;font-size:clamp(17px,2.4vw,21px);color:var(--a);font-weight:500}.ct{margin-top:16px;display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--mut);font-size:14.5px}.ct a{border-bottom:1px solid var(--line)}.ct a:hover{color:var(--a);border-color:var(--a)}
-.sm{margin-top:18px;max-width:60ch;font-size:17px}.ph{width:min(240px,34vw);aspect-ratio:4/5;object-fit:cover;border-radius:22px;box-shadow:12px 12px 0 var(--a)}
-.strip{display:flex;flex-wrap:wrap;gap:0;border-block:1px solid var(--line);margin-bottom:34px}.strip .fig{flex:1 1 150px;padding:18px 20px 18px 0}.strip .fig+.fig{padding-left:20px;border-left:1px solid var(--line)}.strip b{display:block;font:600 34px/1 Fraunces,Georgia,serif;color:var(--a)}.strip span{color:var(--mut);font-size:13.5px}
-section{margin-top:44px}h2{font:600 26px/1.2 Fraunces,Georgia,serif;margin-bottom:16px;letter-spacing:-.01em}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px}
-.e{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 22px}.t{font-weight:700;font-size:17px}.d{color:var(--a);font-size:13.5px;font-weight:600;margin-top:2px}.o,.m{color:var(--mut);font-size:14.5px}.b p,.b li{margin-top:6px}.b li{position:relative;padding-left:16px}.b li::before{content:"";position:absolute;left:0;top:.72em;width:7px;height:2px;background:var(--a)}
-.tg{display:flex;flex-wrap:wrap;gap:8px}.tg span{padding:5px 14px;border-radius:99px;background:var(--card);border:1px solid var(--line);font-size:14.5px}
-.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}.gal figure{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}.gal figure img{width:100%;height:170px;object-fit:cover}.gal figcaption{padding:10px 14px;font-size:13.5px;color:var(--mut)}
-.lb{position:fixed;inset:0;display:none;background:rgba(8,10,16,.86);place-items:center;padding:20px;z-index:9}.lb:target{display:grid}.lb img{max-width:100%;max-height:88vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}.lb a{position:absolute;inset:0;cursor:zoom-out}
-footer{margin-top:60px;color:var(--mut);font-size:13px}footer a{color:inherit;border-bottom:1px solid var(--line)}
-@media(max-width:640px){.hero{grid-template-columns:1fr;padding-top:36px}.ph{order:-1;width:150px;box-shadow:8px 8px 0 var(--a)}.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr))}.strip .fig{padding:14px 10px 14px 0;flex:none}.strip .fig+.fig{padding-left:14px}.strip b{font-size:26px}}
-@media print{body{background:#fff;color:#15181e}.e,.tg span{border-color:#d9dee6;background:#fff}}`;
-
 /* ---------------- bo'laklar ---------------- */
 const imgOf = (imgs, id) => (imgs && imgs[id] && imgs[id].url) || '';
 const bullets = a => { const t = actText(a); if (!t) return ''; const p = splitBullets(t); return p.length > 1 ? `<ul>${p.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : `<p>${esc(t)}</p>`; };
@@ -77,13 +24,13 @@ const contact = (p, d, label) => {
   p.links.forEach(l => out.push(`<span><a href="${esc(l.u)}" target="_blank" rel="noopener noreferrer">${esc(l.l || host(l.u))}</a></span>`));
   return out.length ? `<p class="ct" aria-label="${esc(label)}">${out.join('')}</p>` : '';
 };
-function actBlock(a, d) {
+function actBlock(a, d, at = '') {
   const when = range(a, d.present), hrs = a.hours ? `${a.hours} ${d.hours}` : '';
   const title = a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">${esc(a.title)}</a>` : esc(a.title);
-  return `<div class="e"><div class="d">${esc([when, hrs].filter(Boolean).join(' · '))}</div><div class="b">${a.title ? `<div class="t">${title}</div>` : ''}${meta(a.org, a.role)}${bullets(a)}</div></div>`;
+  return `<div class="e"${at}><div class="d">${esc([when, hrs].filter(Boolean).join(' · '))}</div><div class="b">${a.title ? `<div class="t">${title}</div>` : ''}${meta(a.org, a.role)}${bullets(a)}</div></div>`;
 }
-const eduBlock = (e, d) => `<div class="e"><div class="d">${esc(range(e, d.present))}</div><div class="b"><div class="t">${esc(e.school || e.program)}</div>${meta(e.school ? e.program : '', e.gpa ? `${d.gpa} ${e.gpa}` : '')}${e.note ? `<p>${esc(e.note)}</p>` : ''}</div></div>`;
-const awardBlock = (a, d) => `<div class="e"><div class="d">${esc(a.year)}</div><div class="b"><div class="t">${esc(a.title)}</div>${meta(a.issuer, a.level ? d.levels[a.level] : '')}${a.note ? `<p>${esc(a.note)}</p>` : ''}</div></div>`;
+const eduBlock = (e, d, at = '') => `<div class="e"${at}><div class="d">${esc(range(e, d.present))}</div><div class="b"><div class="t">${esc(e.school || e.program)}</div>${meta(e.school ? e.program : '', e.gpa ? `${d.gpa} ${e.gpa}` : '')}${e.note ? `<p>${esc(e.note)}</p>` : ''}</div></div>`;
+const awardBlock = (a, d, at = '') => `<div class="e"${at}><div class="d">${esc(a.year)}</div><div class="b"><div class="t">${esc(a.title)}</div>${meta(a.issuer, a.level ? d.levels[a.level] : '')}${a.note ? `<p>${esc(a.note)}</p>` : ''}</div></div>`;
 const sec = (title, inner, cls = '') => (inner ? `<section${cls ? ` class="${cls}"` : ''}><h2>${esc(title)}</h2>${inner}</section>` : '');
 const gallery = (p, imgs, d, web) => {
   const f = p.att.filter(a => imgOf(imgs, a.id));
@@ -116,24 +63,89 @@ ${strip ? `<div class="strip">${strip}</div>` : ''}<div class="cols"><div>${sec(
 <div>${sec(d.edu, p.edu.map(e => eduBlock(e, d)).join(''))}${sec(d.awards, p.awards.map(a => awardBlock(a, d)).join(''))}${sec(d.skills, tagList(p.skills))}${sec(d.langs, tagList(langLine(p, d)))}${sec(d.targets, tagList(p.targets))}</div></div>
 ${p.att.length ? `<div class="wide">${sec(d.gallery, gallery(p, imgs, d))}</div>` : ''}</div>`;
 }
-function bodyWeb(p, imgs, d) {
-  const strip = gpaFig(p, d) + figs(p);
-  return `<div class="w" id="top"><header class="hero"><div><h1>${esc(p.name)}</h1>${p.headline ? `<p class="hl">${esc(p.headline)}</p>` : ''}${p.summary ? `<p class="sm">${esc(p.summary)}</p>` : ''}${contact(p, d, d.contact)}</div>${photo(p)}</header>
-${strip ? `<div class="strip">${strip}</div>` : ''}${sec(d.acts, p.acts.length ? `<div class="cards">${p.acts.map(a => actBlock(a, d)).join('')}</div>` : '')}${sec(d.awards, p.awards.length ? `<div class="cards">${p.awards.map(a => awardBlock(a, d)).join('')}</div>` : '')}
-${sec(d.projects, p.projects.length ? `<div class="cards">${p.projects.map(a => actBlock(a, d)).join('')}</div>` : '')}${sec(d.edu, p.edu.length ? `<div class="cards">${p.edu.map(e => eduBlock(e, d)).join('')}</div>` : '')}
-${sec(d.skills, tagList(p.skills))}${sec(d.langs, tagList(langLine(p, d)))}${sec(d.targets, tagList(p.targets))}${sec(d.gallery, gallery(p, imgs, d, true))}<footer><a href="https://unidoue.uz" target="_blank" rel="noopener noreferrer">${esc(d.web)}</a></footer></div>`;
+
+/* ---------------- veb-sayt (animatsiyali, mustaqil) ---------------- */
+const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg>';
+const SUN = '<svg class="su" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON = '<svg class="mo" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>';
+const initials = n => (String(n).trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('') || '·').toUpperCase();
+const rv = i => ` data-r style="--i:${i % 5}"`;
+const SECS = [['acts', 'acts'], ['projects', 'projects'], ['awards', 'awards'], ['edu', 'edu'], ['skills', 'skills'], ['targets', 'targets'], ['gallery', 'gallery']];
+
+function webGallery(p, imgs, d) {
+  const f = p.att.filter(a => imgOf(imgs, a.id));
+  if (!f.length) return '';
+  const n = f.length;
+  return `<div class="gal">${f.map((a, i) => `<figure${rv(i)}><a href="#lb${i}" aria-label="${esc(a.cap || d.gallery)}"><img src="${imgOf(imgs, a.id)}" alt="${esc(a.cap || d.gallery)}" loading="lazy"></a>${a.cap ? `<figcaption>${esc(a.cap)}</figcaption>` : ''}</figure>`).join('')}</div>`
+    + f.map((a, i) => `<div class="lb" id="lb${i}" role="dialog" aria-label="${esc(a.cap || d.gallery)}"><a class="x" href="#gallery" aria-label="${esc(d.close)}"></a><img src="${imgOf(imgs, a.id)}" alt="${esc(a.cap || '')}">${n > 1 ? `<a class="pv" href="#lb${(i + n - 1) % n}" aria-label="${esc(d.prev)}">‹</a><a class="nx" href="#lb${(i + 1) % n}" aria-label="${esc(d.next)}">›</a>` : ''}</div>`).join('');
 }
 
-/** To'liq HTML hujjat. mode: 'print' (A4 shablon) yoki 'web'. imgs: { [attId]: { url } } */
+function bodyWeb(p, imgs, d, e, o) {
+  const fx = new Set(e.dz.fx), tl = e.tpl === 'timeline', strip = [];
+  const eg = p.edu.find(x => x.gpa);
+  if (eg) strip.push([eg.gpa, d.gpa]);
+  p.tests.filter(t => t.score).slice(0, 4).forEach(t => strip.push([t.score, t.name]));
+  const stripHTML = strip.length ? `<div class="strip"${rv(0)}>${strip.map(([b, l]) => `<div class="fig"><b${fx.has('count') ? ' data-c' : ''}>${esc(b)}</b><span>${esc(l)}</span></div>`).join('')}</div>` : '';
+  const words = p.name.split(/\s+/).filter(Boolean);
+  const h1 = `<h1 data-h aria-label="${esc(p.name)}">${(words.length ? words : ['Portfolio']).map((w, i) => `<span class="w1" aria-hidden="true"><span style="--i:${i}">${esc(w)}</span></span>`).join(' ')}</h1>`;
+  const chips = [];
+  if (strip[0]) chips.push(`<div class="chip c1"><b>${esc(strip[0][0])}</b>${esc(strip[0][1])}</div>`);
+  const cnt = p.awards.length ? [p.awards.length, d.awards] : p.acts.length ? [p.acts.length, d.acts] : null;
+  if (cnt) chips.push(`<div class="chip c2"><b>${cnt[0]}</b>${esc(cnt[1])}</div>`);
+  const first = p.links[0];
+  const acts = `<div class="acts">${p.email ? `<a class="b1 p" href="mailto:${esc(p.email)}">${esc(d.mail)}</a>` : ''}${first ? `<a class="b1" href="${esc(first.u)}" target="_blank" rel="noopener noreferrer">${esc(first.l || host(first.u))}</a>` : ''}${p.city ? `<span class="inf">${esc(p.city)}</span>` : ''}</div>`;
+  const cards = (arr, fn, cls = '') => (arr.length ? `<div class="cards${cls}">${arr.map((x, i) => fn(x, d, rv(i))).join('')}</div>` : '');
+  const awardWeb = (a, dd, at) => `<div class="e aw"${at}><span class="md">${STAR}</span><div class="b"><span class="d">${esc(a.year)}</span><div class="t">${esc(a.title)}</div>${meta(a.issuer, a.level ? dd.levels[a.level] : '')}${a.note ? `<p>${esc(a.note)}</p>` : ''}</div></div>`;
+  const tags = a => (a.length ? `<div class="tg">${a.map((x, i) => `<span${rv(i)}>${esc(x)}</span>`).join('')}</div>` : '');
+  const marquee = a => {
+    const rep = Math.max(1, Math.ceil(12 / a.length)), half = Array(rep).fill(a).flat(), r2 = [...a.slice(Math.ceil(a.length / 2)), ...a.slice(0, Math.ceil(a.length / 2))];
+    const row = xs => { const h = Array(rep).fill(xs).flat().map(x => `<span>${esc(x)}</span>`).join(''); return `<div class="mq-r">${h}${h}</div>`; };
+    return half.length ? `<div class="mq" role="list" aria-label="${esc(d.skills)}">${row(a)}${a.length > 3 ? row(r2) : ''}</div>` : '';
+  };
+  const S = {
+    acts: cards(p.acts, actBlock, tl ? ' tl' : ''), projects: cards(p.projects, actBlock, tl ? ' tl' : ''), awards: cards(p.awards, awardWeb), edu: cards(p.edu, eduBlock, tl ? ' tl' : ''),
+    skills: p.skills.length ? (fx.has('marquee') && p.skills.length >= 3 ? marquee(p.skills) : tags(p.skills)) : '', targets: tags(p.targets), gallery: webGallery(p, imgs, d)
+  };
+  const sections = SECS.map(([k, t]) => (S[k] ? `<section id="${k}"><h2${rv(0)}>${esc(d[t === 'acts' ? 'acts' : t])}</h2>${S[k]}${k === 'skills' && p.langs.length ? `<div style="margin-top:18px">${tags(langLine(p, d))}</div>` : ''}</section>` : '')).join('');
+  const present = SECS.filter(([k]) => S[k]).slice(0, 5);
+  const links = present.map(([k, t]) => `<a href="#${k}">${esc(d[t])}</a>`).join('');
+  const dkMode = e.dz.mode === 'dark' || e.dz.mode === 'system';
+  const nav = `<nav class="nv${dkMode ? ' ht' : ''}" aria-label="${esc(d.menu)}"><a class="br" href="#top"><i>${esc(initials(p.name))}</i><span>${esc(words[0] || 'Portfolio')}</span></a><div class="nl">${links}</div>${dkMode ? `<button class="th" type="button" aria-label="${esc(d.theme)}">${SUN}${MOON}</button>` : ''}</nav>`;
+  const pw = `<div class="pw"><div class="in"><div class="ring"></div>${p.photo ? `<img class="ph" src="${p.photo}" alt="${esc(p.name)}">` : `<div class="mono" aria-hidden="true">${esc(initials(p.name))}</div>`}${chips.join('')}</div></div>`;
+  const cta = p.email || first ? `<section class="cta" id="contact"${rv(0)}><h2>${esc(d.cta)}</h2>${acts.replace(/<span class="inf">.*?<\/span>/, '')}</section>` : '';
+  const bg = `<div class="bgx" aria-hidden="true"><i></i><i></i><i></i><i></i></div>${fx.has('progress') ? '<div class="pgb" aria-hidden="true"></div>' : ''}${fx.has('glow') ? '<div class="cg" aria-hidden="true"></div>' : ''}`;
+  return `${bg}${nav}<div class="w"><header class="hero" id="top"><div class="hx">${h1}${p.headline ? `<p class="hl${fx.has('type') ? ' ty' : ''}">${esc(p.headline)}</p>` : ''}${p.summary ? `<p class="sm">${esc(p.summary)}</p>` : ''}${acts}<nav class="sl" aria-label="${esc(d.menu)}">${links}</nav></div>${pw}<span class="cue" aria-hidden="true"></span></header>
+<main>${stripHTML}${sections}${cta}<footer><a href="https://unidoue.uz" target="_blank" rel="noopener noreferrer">${esc(d.web)}</a></footer></main></div>`;
+}
+
+const fontsHref = (tpl, font) => {
+  const fp = fontPair(tpl, font), fam = [...new Set([GF[fp.h], GF[fp.b]].filter(Boolean))];
+  return `https://fonts.googleapis.com/css2?${fam.map(f => 'family=' + f).join('&')}&display=swap`;
+};
+const GUIDE = { ledger: ['265mm', '16mm'], rail: ['297mm', '0mm'], folio: ['273mm', '12mm'] };
+
+/** To'liq HTML hujjat.
+ * opts.mode: 'print' (A4, PDF) yoki 'web'. opts.plan: tarif (cheklov effective() orqali qo'llanadi; berilmasa 'free').
+ * opts.guides: A4 sahifa chegarasi chiziqlari (faqat ekranda). Veb: opts.js (ichiga joylanadigan skript matni) yoki opts.jsSrc (src; ko'rinish uchun), opts.still (animatsiyasiz).
+ * imgs: { [attId]: { url } } */
 export function docHTML(pf, imgs = {}, opts = {}) {
-  const p = normalize(pf), d = DL[p.lang] || DL.en, web = opts.mode === 'web', tpl = web ? 'web' : p.tpl;
-  const css = BASE + ({ ledger: LEDGER, rail: RAIL, folio: FOLIO, web: WEB }[tpl] || LEDGER);
-  const body = { ledger: bodyLedger, rail: bodyRail, folio: bodyFolio, web: bodyWeb }[tpl](p, imgs, d);
-  const printFix = web ? '' : `@media print{.sheet{width:auto;${tpl === 'folio' ? 'min-height:0' : 'padding:0'}}}`;
-  const G = { ledger: ['265mm', '16mm'], rail: ['297mm', '0mm'], folio: ['273mm', '12mm'] }[tpl] || ['297mm', '0mm'];
-  const screen = web || !opts.guides ? '' : `body{position:relative}body::after{content:"";position:absolute;inset:${G[1]} 0 0 0;pointer-events:none;background:linear-gradient(to bottom,transparent calc(100% - 1px),rgba(110,120,150,.55) 0) 0 0/100% ${G[0]} repeat-y}`;
-  return `<!DOCTYPE html><html lang="${esc(p.lang)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(p.name || 'Portfolio')}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="${FONTS}"><style>:root{--a:${esc(p.accent)}}${css}${printFix}${screen}</style></head><body>${body}</body></html>`;
+  const p = normalize(pf), d = DL[p.lang] || DL.en, web = opts.mode === 'web';
+  const e = effective(p, opts.plan || 'free'), t = TPL[e.tpl], fp = fontPair(e.tpl, e.dz.font);
+  const vars = `:root{--a:${e.accent};--a2:${e.dz.acc2};--hf:${FF[fp.h]};--bf:${FF[fp.b]}}`;
+  const bodyCls = [`t-${e.tpl}`, `b-${e.dz.bg}`, e.dz.shape !== 'soft' ? `r-${e.dz.shape}` : '', e.dz.dens === 'compact' ? 'dense' : '', web && opts.still ? 'nofx' : ''].filter(Boolean).join(' ');
+  const head = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(p.name || 'Portfolio')}</title>${p.headline ? `<meta name="description" content="${esc(p.headline)}">` : ''}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="${fontsHref(e.tpl, e.dz.font)}">`;
+  if (web) {
+    const dk = e.dz.mode === 'dark' || (e.dz.mode === 'tpl' && t.dark);
+    const hc = [dk ? 'dk' : '', e.dz.mode === 'system' ? 'sys' : '', ...e.dz.fx.map(x => 'fx-' + x)].filter(Boolean).join(' ');
+    const js = opts.js ? `<script>${String(opts.js).replace(/<\/(script)/gi, '<\\/$1')}</script>` : opts.jsSrc ? `<script src="${esc(opts.jsSrc)}" defer></script>` : '';
+    return `<!DOCTYPE html><html lang="${esc(p.lang)}" class="${hc}"><head>${head}<style>${vars}${webCSS(e)}</style></head><body class="${bodyCls}">${bodyWeb(p, imgs, d, e, opts)}${js}</body></html>`;
+  }
+  const fam = t.fam, css = printCSS(e.tpl, fam) + pageBg(e.tpl, fam, e.dz.bg, e.accent);
+  const body = { ledger: bodyLedger, rail: bodyRail, folio: bodyFolio }[fam](p, imgs, d);
+  const printFix = `@media print{.sheet{width:auto;${fam === 'folio' ? 'min-height:0' : 'padding:0'}}}`;
+  const G = GUIDE[fam];
+  const screen = opts.guides ? `body{position:relative}body::after{content:"";position:absolute;inset:${G[1]} 0 0 0;pointer-events:none;background:linear-gradient(to bottom,transparent calc(100% - 1px),rgba(110,120,150,.55) 0) 0 0/100% ${G[0]} repeat-y}` : '';
+  return `<!DOCTYPE html><html lang="${esc(p.lang)}"><head>${head}<style>${vars}${css}${printFix}${screen}</style></head><body class="${bodyCls}">${body}</body></html>`;
 }
 
 export const fileBase = pf => { const p = normalize(pf); return ((p.name || 'portfolio').toLowerCase().normalize('NFKD').replace(/[^\w]+/g, '-').replace(/^-+|-+$/g, '') || 'portfolio') + '-portfolio'; };

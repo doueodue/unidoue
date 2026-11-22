@@ -1,8 +1,8 @@
 /* Portfolio: ma'lumot modeli, tozalash (normalize), profildan to'ldirish va avtomatik baholash.
  * DOM'ga bog'liq emas — brauzerda ham, Node testlarida ham ishlaydi. */
 
-export const TPLS = ['ledger', 'rail', 'folio'];
-export const ACCENTS = [['#2745e8', 'Kobalt'], ['#0b7a5f', 'Zumrad'], ['#b5304a', 'Anor'], ['#c4561b', 'Kuz'], ['#2f3a4a', 'Grafit'], ['#6a3fd1', 'Binafsha']];
+import { TPLS, ACCENTS, PALETTES, cleanDz, defaultDz } from './pfdesign.js';
+export { TPLS, ACCENTS };
 export const LEVELS = ['school', 'regional', 'national', 'international'];
 export const LANGS = ['en', 'uz', 'ru'];
 export const MAX = { acts: 8, awards: 8, projects: 6, edu: 4, tests: 8, links: 4, skills: 20, langs: 8, att: 8, targets: 10 };
@@ -12,16 +12,16 @@ const str = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u0008\u000b\u
 const arr = (v, n) => (Array.isArray(v) ? v.slice(0, n) : []);
 export const safeUrl = u => { u = str(u, 200); if (u && !/^https?:\/\//i.test(u) && /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(u)) u = 'https://' + u; return /^https?:\/\/[^\s<>"'`]{3,190}$/i.test(u) ? u : ''; };
 export const safeEmail = e => { e = str(e, 120); return /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']{2,}$/.test(e) ? e : ''; };
-const safeColor = c => (/^#[0-9a-f]{6}$/i.test(c) ? c.toLowerCase() : ACCENTS[0][0]);
+const safeColor = c => (/^#[0-9a-f]{6}$/i.test(c) ? c.toLowerCase() : PALETTES[0][0]);
 const safePhoto = p => (typeof p === 'string' && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]{20,}$/.test(p) && p.length < 120000 ? p : '');
 
-export const emptyPf = () => ({ v: 1, lang: 'en', tpl: 'ledger', accent: ACCENTS[0][0], name: '', headline: '', city: '', email: '', phone: '', links: [], summary: '', photo: '', edu: [], tests: [], acts: [], awards: [], projects: [], skills: [], langs: [], targets: [], att: [] });
+export const emptyPf = () => ({ v: 1, lang: 'en', tpl: 'ledger', accent: PALETTES[0][0], dz: defaultDz(), name: '', headline: '', city: '', email: '', phone: '', links: [], summary: '', photo: '', edu: [], tests: [], acts: [], awards: [], projects: [], skills: [], langs: [], targets: [], att: [] });
 
 /** Har qanday kirishni (sinxrondan kelgan, eski, buzilgan) xavfsiz modelga aylantiradi. */
 export function normalize(p) {
   p = p && typeof p === 'object' ? p : {};
   const o = emptyPf();
-  o.lang = LANGS.includes(p.lang) ? p.lang : 'en'; o.tpl = TPLS.includes(p.tpl) ? p.tpl : 'ledger'; o.accent = safeColor(p.accent);
+  o.lang = LANGS.includes(p.lang) ? p.lang : 'en'; o.tpl = TPLS.includes(p.tpl) ? p.tpl : 'ledger'; o.accent = safeColor(p.accent); o.dz = cleanDz(p.dz);
   o.name = str(p.name, 80); o.headline = str(p.headline, 140); o.city = str(p.city, 80); o.email = safeEmail(p.email); o.phone = str(p.phone, 30); o.summary = str(p.summary, 700); o.photo = safePhoto(p.photo);
   o.links = arr(p.links, MAX.links).map(x => x && ({ l: str(x.l, 30), u: safeUrl(x.u) })).filter(x => x && x.u);
   o.edu = arr(p.edu, MAX.edu).map(x => x && ({ id: str(x.id, 12) || uid(), school: str(x.school, 100), program: str(x.program, 80), from: str(x.from, 12), to: str(x.to, 12), gpa: str(x.gpa, 20), note: str(x.note, 200) })).filter(x => x && (x.school || x.program));

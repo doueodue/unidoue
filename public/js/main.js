@@ -17,7 +17,7 @@ const ROUTES = [
   { id: 'essay', t: 'Esse yordamchisi', i: 'pen', v: () => import('./views3.js').then(m => m.essay) },
   { id: 'mentor', t: 'AI mentor', i: 'bot', v: () => import('./views3.js').then(m => m.mentor) },
   { id: 'coach', t: 'Esse murabbiyi', i: 'pen', hide: 1, nav: 'mentor', need: 'coach', v: () => import('./coach.js').then(m => m.coach) },
-  { id: 'portfolio', t: 'Portfolio', i: 'folder', tag: 'NEW', need: 'portfolio', v: () => import('./portfolio.js').then(m => m.portfolio) },
+  { id: 'portfolio', t: 'Portfolio', i: 'folder', tag: 'NEW', v: () => import('./portfolio.js').then(m => m.portfolio) },
   { id: 'pricing', t: 'Tariflar', i: 'card', sec: 'Hisob', v: () => import('./views1.js').then(m => m.pricing) },
   { id: 'profile', t: 'Profil', i: 'user', v: () => import('./views1.js').then(m => m.profile) }
 ];

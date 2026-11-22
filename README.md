@@ -90,10 +90,27 @@ Foydalanuvchi soʻrovlari: `GET /api/admin/requests`.
 {"updated":"2026-11-07","items":[{"name":"…","provider":"…","countries":["AQSh"],"funding":"full","amount":"…","deadline":"2027-01-15","eligibility":"…","requirements":"…","url":"https://…","verifiedAt":"2026-11-07"}]}
 ```
 
-## Portfolio va esse murabbiyi
-**Tarif:** Portfolio — faqat **Pro**; Esse murabbiyi — **Plus va Pro** (Free uchun qulf ekrani va “Tariflar”ga yoʻnaltirish). Serverda `features` ichida `coach` (Plus+) va `portfolio` (Pro) bayroqlari bor; `/api/ai` ularni tekshiradi (402 `PLAN_REQUIRED`, kredit yechilmaydi). Portfolio tuzish, ball va PDF/Word/veb-eksport mijozda ishlaydi, shuning uchun ularning qulfi faqat interfeys darajasida; AI qismi (tahlil, sayqal, rasmdan oʻqish, murabbiy fikri) serverda majburiy.
+## Portfolio, dizayn studiyasi va esse murabbiyi
+**Tarif:** Portfolio **hamma tarifda ochiq** (Free ham ishlatib koʻradi) — tarif **dizayn tanloviga** qarab farqlanadi. Esse murabbiyi — **Plus va Pro** (Free uchun qulf ekrani). Serverda `features` ichida `coach` (Plus+) va `pf_studio` (Pro) bayroqlari bor; `/api/ai` ularni tekshiradi (402 `PLAN_REQUIRED`, kredit yechilmaydi).
 
-- **Portfolio** (`#/portfolio`, Pro): foydalanuvchi suhbat-intervyu orqali maʼlumot kiritadi (taʼlim, testlar, faoliyat, mukofotlar, koʻnikmalar), rasm va sertifikat rasmlarini yuklaydi; sayt **avtomatik ball** (toʻliqlik va dalil kuchi boʻyicha evristika, qabul bashorati emas) beradi, AI (3 kredit) tahlil qiladi, yozuvlarni sayqallaydi (2 kredit) va sertifikat rasmidan maʼlumotni oʻqiydi (2 kredit). Chiqarish: PDF (brauzer "Saqlash — PDF" oynasi), Word (.docx, mijozda yigʻiladi) va mustaqil web-sahifa (.html). Kod: `public/js/portfolio.js`, `pfmodel.js`, `pfai.js`, `pfdoc.js`, `pfdocx.js`, `zip.js`.
+**Dizayn matritsasi** (`public/js/pfdesign.js` — yagona manba):
+
+| | Free | Plus | Pro |
+|---|---|---|---|
+| Andozalar | 2 (ledger, rail) | 5 (+atlas, folio, poster) | 8 (+noir, nova, timeline) |
+| Ranglar | 4 palitra | 10 palitra | 16 palitra + **oʻz rangi** (accent + ikkinchi rang) |
+| Shriftlar | avto | + serif, sans | + grotesk, display, editorial, mono |
+| Fon | yoʻq | qogʻoz, setka, nuqta, mesh | + aurora, toʻlqin, shovqin, yulduz, topo, chizma |
+| Effektlar | paydo boʻlish | + hisoblagich, progress, marquee | + spot, tilt, parallax, yozuv, glow |
+| Rejim | andoza / yorugʻ | + qorongʻi, tizim | hammasi |
+| Shakl / zichlik | yumshoq / qulay | + qirrali | + yumaloq, ixcham |
+| **AI dizayner** | — | — | ✅ (2 kredit; loyiha maʼlumotiga qarab dizaynni oʻzi tanlaydi, “Bekor qilish” bor) |
+
+- **Qanday amalga oshirilgan:** `effective(pf, plan)` har doim dizaynni tarif chegarasiga **qisadi** (render darajasida), shuning uchun eski/qoʻlda oʻzgartirilgan maʼlumot ham ruxsatsiz variantni chiqara olmaydi. Studiya (“Dizayn” tabi) qulflangan variantlarni koʻrsatadi va bosilganda Pro/Plus taklifini ochadi. Eksport (PDF/Word/veb) mijozda yigʻiladi, shuning uchun dizayn cheklovlari **interfeys/render darajasida**; AI dizayner (`mode: "design"`) esa **serverda majburiy** (Pro boʻlmasa 402 `pf_studio`). AI javobi `cleanDz` orqali tozalanadi (faqat roʻyxatdagi qiymatlar, hex format tekshiriladi).
+- **Veb-sayt eksporti:** bitta mustaqil `.html` — tanlangan dizaynga mos andoza, animatsiyali fonlar, effektlar (`public/js/pfweb.js` fayl ichiga joylanadi), qorongʻi/yorugʻ/tizim rejimi, `prefers-reduced-motion` va bosib chiqarish qoidalari. Oldindan koʻrishda A4 va Veb koʻrinish almashtirgichi bor (veb koʻrinish `sandbox="allow-scripts"` iframe ichida, CSP `script-src 'self'` tufayli `<script src="/js/pfweb.js">`).
+- Fayllar: `pfdesign.js` (matritsa, `effective`, `cleanDz`), `pfcss.js` (A4 bosma andozalar), `pfwebcss.js` (veb andozalar), `pfdoc.js` (HTML yigʻuvchi), `pfweb.js` (effektlar), `pfstudio.js` (studiya UI), `pfai.js` (AI chaqiruvlari).
+
+- **Portfolio** (`#/portfolio`, hamma tarif): foydalanuvchi suhbat-intervyu orqali maʼlumot kiritadi (taʼlim, testlar, faoliyat, mukofotlar, koʻnikmalar), rasm va sertifikat rasmlarini yuklaydi; sayt **avtomatik ball** (toʻliqlik va dalil kuchi boʻyicha evristika, qabul bashorati emas) beradi, AI (3 kredit) tahlil qiladi, yozuvlarni sayqallaydi (2 kredit) va sertifikat rasmidan maʼlumotni oʻqiydi (2 kredit). Chiqarish: PDF (brauzer "Saqlash — PDF" oynasi), Word (.docx, mijozda yigʻiladi; accent rangi tarifga qarab) va mustaqil web-sahifa (.html). Kod: `public/js/portfolio.js`, `pfmodel.js`, `pfai.js`, `pfdoc.js`, `pfdocx.js`, `zip.js`. AI kreditlari: bepul 15, Plus 175, Pro 300 — AI tahlil/sayqal/oʻqish Free uchun ham ishlaydi (kredit hisobidan).
 - **Maxfiylik**: sertifikat rasmlari faqat qurilmadagi IndexedDB (`unidoue-pf`)da turadi, hisobga sinxronlanmaydi; matn maʼlumoti `qabul:portfolio` kaliti bilan hisobga saqlanadi. Ommaviy ulashiladigan havola **ataylab yoʻq** (voyaga yetmaganlar maxfiyligi, moderatsiya). Rasmlar AI'ga faqat foydalanuvchi "AI oʻqisin" desa yuboriladi.
 - **Esse murabbiyi** (`#/coach`, Plus va Pro; AI mentor ichida "Esse murabbiyi" tabi): motivation letter / personal statement boʻyicha darslar, yaxshi va zaif misollar, mashqlar, bepul mahalliy tekshiruvlar (klishe, noaniq soʻzlar, aniq tafsilotlar, soʻz limiti), bosqichma-bosqich AI fikri (1 kredit) va reja/outline (2 kredit). Murabbiy esseni **yozib bermaydi** — faqat oʻrgatadi va savol beradi. Maʼlumot `qabul:coach` kaliti bilan saqlanadi.
 - Testlar: `tests/pf.mjs` (brauzerda portfolio), `tests/run.js` ichidagi “Esse murabbiyi va portfolio (AI)” va “AI_VISION” boʻlimlari.

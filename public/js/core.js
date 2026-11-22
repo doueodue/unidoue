@@ -168,13 +168,13 @@ export async function catalog() {
 }
 
 /** Qaysi imkoniyat qaysi tarifdan boshlanadi (mijoz tomoni; haqiqiy tekshiruv serverda). */
-export const NEED_PLAN = { coach: 'Plus', portfolio: 'Pro' };
-const UPSELL_TEXT = { coach: 'Esse murabbiyi Plus va Pro tarifida mavjud.', portfolio: 'Portfolio quruvchi faqat Pro tarifida mavjud.' };
+export const NEED_PLAN = { coach: 'Plus' };
+const UPSELL_TEXT = { coach: 'Esse murabbiyi Plus va Pro tarifida mavjud.', pf_studio: 'AI dizayner va to‘liq dizayn studiyasi (hamma shablon, fon, effekt va o‘z ranglaringiz) Pro tarifida mavjud.' };
 export const hasFeature = f => !!(S.account && S.account.features && S.account.features.includes(f));
 
 /** Plan yetishmasa chiroyli taklif oynasi. */
 export async function upsell(feature, text) {
-  const names = { scholarships: 'Stipendiya qidiruvi', predictor: 'To‘liq moslik tahlili', strategy: 'Shaxsiy qabul strategiyasi', reports: 'Universitet hisobotlari', essay_adv: 'Chuqur esse tahlili', tracker: 'Cheksiz arizalar', compare: 'Ko‘proq universitetni solishtirish', finder_adv: 'Kengaytirilgan qidiruv', coach: 'Esse murabbiyi', portfolio: 'Portfolio quruvchi' };
+  const names = { scholarships: 'Stipendiya qidiruvi', predictor: 'To‘liq moslik tahlili', strategy: 'Shaxsiy qabul strategiyasi', reports: 'Universitet hisobotlari', essay_adv: 'Chuqur esse tahlili', tracker: 'Cheksiz arizalar', compare: 'Ko‘proq universitetni solishtirish', finder_adv: 'Kengaytirilgan qidiruv', coach: 'Esse murabbiyi', pf_studio: 'AI dizayner', pf_design: 'Portfolio dizayni' };
   const v = await modal({ title: names[feature] || 'Yuqoriroq tarif kerak', body: `<p>${esc(text || UPSELL_TEXT[feature] || 'Bu imkoniyat Pro tarifida mavjud.')}</p>`, actions: [{ label: 'Keyinroq', value: 0 }, { label: 'Tariflarni ko‘rish', value: 1, cls: 'primary' }] });
   if (v === 1) location.hash = '#/pricing';
 }

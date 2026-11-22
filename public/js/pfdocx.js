@@ -1,6 +1,7 @@
 /* Portfolio → Word (.docx). Bogʻliqliksiz: OOXML matnlari + zip.js. Tahrirlash mumkin, sarlavhalar Heading uslubida (ATS va Word "Navigation" uchun). */
 import { zip, dataUrlBytes } from './zip.js';
 import { normalize, actText, range, splitBullets } from './pfmodel.js';
+import { effective } from './pfdesign.js';
 import { DL, langText } from './pfdoc.js';
 
 const x = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '');
@@ -19,8 +20,8 @@ const cell = (w, inner) => `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/></w:tc
 const table = (widths, rows) => `<w:tbl><w:tblPr><w:tblW w:w="${W}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="0" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${widths.map(w => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows.map(r => `<w:tr><w:trPr><w:cantSplit/></w:trPr>${r}</w:tr>`).join('')}</w:tbl>`;
 
 /** Portfolio → .docx baytlari (Uint8Array). imgs: { [attId]: { url, w, h } } */
-export function docxBytes(pf, imgs = {}) {
-  const p = normalize(pf), d = DL[p.lang] || DL.en, A = p.accent.replace('#', '').toUpperCase(), media = [], rels = [];
+export function docxBytes(pf, imgs = {}, plan = 'free') {
+  const p = normalize(pf), d = DL[p.lang] || DL.en, A = effective(p, plan).accent.replace('#', '').toUpperCase(), media = [], rels = [];
   let rid = 10, did = 1;
   const addImg = (url, cx, cy, name) => { const id = 'rId' + rid++; media.push({ name: `word/media/image${media.length + 1}.jpg`, data: dataUrlBytes(url) }); rels.push(`<Relationship Id="${id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image${media.length}.jpg"/>`); return image(id, did++, cx, cy, name); };
   const h2 = t => para(run(t), { style: 'Heading2', keep: true, before: 260, after: 80 });

@@ -1,13 +1,15 @@
 /* Portfolio quruvchi: intervyu, tahrirlash, avtomatik baho, jonli A4 ko'rinish va PDF / Word / veb eksport.
  * Ma'lumot: matn va profil rasmi `qabul:portfolio` da (hisob bilan sinxronlanadi); hujjat rasmlari faqat shu qurilmada (IndexedDB). */
-import { $, $$, S, ls, esc, toast, modal, credits, aiFlag } from './core.js';
+import { $, $$, S, ls, esc, toast, modal, credits, aiFlag, upsell, hasFeature } from './core.js';
 import { md } from './markdown.js';
 import { lang, t as tr } from './i18n.js';
-import { normalize, emptyPf, seedFromProfile, evaluate, canExport, uid, ACCENTS, TPLS, MAX, DIM_L, TIPS } from './pfmodel.js';
+import { normalize, emptyPf, seedFromProfile, evaluate, canExport, uid, MAX, DIM_L, TIPS } from './pfmodel.js';
+import { studioHTML, dzApply, aiRes } from './pfstudio.js';
+import { effective } from './pfdesign.js';
 import { docHTML, fileBase } from './pfdoc.js';
 import { docxBytes } from './pfdocx.js';
 import { store, compress, loadImage, cropPhoto } from './pfstore.js';
-import { polish, extract, review } from './pfai.js';
+import { polish, extract, review, design } from './pfai.js';
 
 const KEY = 'qabul:portfolio';
 const BLANK = {
@@ -19,14 +21,8 @@ const BLANK = {
 }; BLANK.projects = BLANK.acts;
 const LEVEL_OPTS = [['', 'Tanlang'], ['school', 'Maktab'], ['regional', 'Viloyat'], ['national', 'Respublika'], ['international', 'Xalqaro']];
 const CEFR = [['', 'Daraja'], ['native', 'Ona tili'], ['C2', 'C2'], ['C1', 'C1'], ['B2', 'B2'], ['B1', 'B1'], ['A2', 'A2'], ['A1', 'A1']];
-const TPL_N = { ledger: 'Klassik', rail: 'Yon panel', folio: 'Muqova' };
 const TIP_SEC = { gpa: 'edu', school: 'edu', english: 'edu', test: 'edu', actsFew: 'acts', role: 'acts', when: 'acts', numbers: 'acts', wording: 'acts', awardsFew: 'awards', level: 'awards', project: 'projects', projectProof: 'projects', photos: 'docs', links: 'about', headline: 'about' };
 const SECS = [['about', 'Siz haqingizda', 'Ism, rasm, aloqa va qisqa tavsif.'], ['edu', 'Ta’lim va testlar', 'Maktab, GPA va imtihon natijalari.'], ['acts', 'Faoliyat', 'Klub, volontyorlik, ish, sport. Har birini raqam bilan yozing.'], ['awards', 'Yutuqlar', 'Olimpiada, tanlov, sertifikat va kurslar.'], ['projects', 'Loyihalar', 'O‘zingiz boshlagan va natijasi bor ishlar.'], ['extra', 'Ko‘nikma, til va universitetlar', 'Hujjat oxirida qisqa ro‘yxat bo‘lib chiqadi.'], ['docs', 'Hujjat rasmlari', 'Sertifikat va diplom rasmlari portfolio oxiriga qo‘yiladi.']];
-const THUMB = {
-  ledger: '<rect x="6" y="7" width="19" height="4" rx="1" class="a"/><rect x="6" y="13" width="26" height="2" rx="1" class="g"/><rect x="31" y="6" width="7" height="9" rx="1" class="g"/><rect x="6" y="17.5" width="32" height="1.4" class="a"/><rect x="6" y="23" width="9" height="2" class="a"/><rect x="18" y="23" width="20" height="2" class="g"/><rect x="18" y="27" width="16" height="2" class="g"/><rect x="6" y="34" width="9" height="2" class="a"/><rect x="18" y="34" width="20" height="2" class="g"/><rect x="18" y="38" width="14" height="2" class="g"/><rect x="6" y="45" width="9" height="2" class="a"/><rect x="18" y="45" width="20" height="2" class="g"/>',
-  rail: '<rect x="0" y="0" width="15" height="60" class="a"/><circle cx="7.5" cy="10" r="4" fill="#fff" opacity=".85"/><rect x="3" y="20" width="9" height="1.6" fill="#fff" opacity=".7"/><rect x="3" y="25" width="9" height="1.6" fill="#fff" opacity=".7"/><rect x="3" y="30" width="7" height="1.6" fill="#fff" opacity=".7"/><rect x="19" y="7" width="20" height="4" rx="1" class="d"/><rect x="19" y="15" width="3" height="8" class="a"/><rect x="24" y="16" width="14" height="2" class="g"/><rect x="24" y="20" width="10" height="2" class="g"/><rect x="19" y="28" width="3" height="8" class="a"/><rect x="24" y="29" width="14" height="2" class="g"/><rect x="24" y="33" width="11" height="2" class="g"/><rect x="19" y="41" width="3" height="8" class="a"/><rect x="24" y="42" width="14" height="2" class="g"/>',
-  folio: '<rect x="0" y="0" width="44" height="22" class="t"/><rect x="5" y="6" width="18" height="5" rx="1" class="d"/><rect x="5" y="14" width="14" height="2" rx="1" class="a"/><rect x="29" y="5" width="9" height="12" class="a"/><rect x="5" y="25" width="34" height="1.4" class="a"/><rect x="5" y="30" width="16" height="2" class="g"/><rect x="5" y="34" width="14" height="2" class="g"/><rect x="5" y="40" width="16" height="2" class="g"/><rect x="25" y="30" width="14" height="2" class="g"/><rect x="25" y="35" width="9" height="3" rx="1.5" class="t"/><rect x="25" y="40" width="12" height="3" rx="1.5" class="t"/>'
-};
 const ASK_TIPS = {
   headline: 'Kim ekaningiz va nimaga intilayotganingizni yozing. Masalan: “Kompyuter fanlariga qiziqqan 11-sinf o‘quvchisi, kichik bizneslar uchun Telegram botlar yaratadi”.',
   act: 'Klub, to‘garak, volontyorlik, ish yoki sport. Eng muhimini tanlang, qolganlarini keyin qo‘shasiz.'
@@ -107,16 +103,27 @@ function makePaper(host, html) {
   const fit = () => { const k = Math.min(1.4, (host.clientWidth || 794) / 794); sheet.style.setProperty('--k', k); sheet.style.height = Math.round(H * k) + 'px'; f.style.height = H + 'px'; host.dataset.pages = Math.max(1, Math.ceil((H - 30) / 1123)); host.dispatchEvent(new CustomEvent('pf:pages')); };
   const measure = () => { try { f.style.height = '10px'; H = Math.max(1123, f.contentDocument.documentElement.scrollHeight); } catch (e) {} fit(); };
   f.addEventListener('load', () => { measure(); try { f.contentDocument.fonts.ready.then(measure); } catch (e) {} });
-  f.srcdoc = html; if (typeof ResizeObserver === 'function') new ResizeObserver(fit).observe(host);
-  return { measure, update(h) { try { const d = f.contentDocument, n = new DOMParser().parseFromString(h, 'text/html'); d.body.innerHTML = n.body.innerHTML; const a = d.querySelector('style'), b = n.querySelector('style'); if (a && b) a.textContent = b.textContent; d.documentElement.lang = n.documentElement.lang; setTimeout(measure, 40); } catch (e) { f.srcdoc = h; } } };
+  f.srcdoc = html; let ro; if (typeof ResizeObserver === 'function') { ro = new ResizeObserver(fit); ro.observe(host); }
+  return { stop() { if (ro) ro.disconnect(); }, measure, update(h) { try { const d = f.contentDocument, n = new DOMParser().parseFromString(h, 'text/html'); d.body.innerHTML = n.body.innerHTML; const a = d.querySelector('style'), b = n.querySelector('style'); if (a && b) a.textContent = b.textContent; d.documentElement.lang = n.documentElement.lang; setTimeout(measure, 40); } catch (e) { f.srcdoc = h; } } };
 }
-const html = guides => docHTML(st.pf, st.imgs, { guides });
+/* Veb-sayt ko'rinishi: haqiqiy 1280 px kenglikdagi sahifa (skriptlar ishlaydi, kursor effektlari sinab ko'riladi). big — modalda to'liq o'lchamda. */
+function makeWeb(host, h, big) {
+  host.innerHTML = `<div class="pf-web${big ? ' big' : ''}"><iframe sandbox="allow-scripts" title="Veb-sayt ko‘rinishi"></iframe></div>`;
+  const box = host.firstChild, f = box.firstChild; let ro;
+  const fit = () => { if (big) return; const k = Math.min(1, (host.clientWidth || 372) / 1280); box.style.setProperty('--k', k); box.style.height = Math.round(860 * k) + 'px'; };
+  f.srcdoc = h; fit(); if (!big && typeof ResizeObserver === 'function') { ro = new ResizeObserver(fit); ro.observe(host); }
+  return { stop() { if (ro) ro.disconnect(); }, measure: fit, update(x) { f.srcdoc = x; } };
+}
+const plan = () => (S.account && S.account.plan) || 'free';
+const html = guides => docHTML(st.pf, st.imgs, { guides, plan: plan() });
+const webHTML = (o = {}) => docHTML(st.pf, st.imgs, { mode: 'web', plan: plan(), ...o });
+const pvHTML = () => (st.view === 'web' ? webHTML({ jsSrc: '/js/pfweb.js' }) : html(true));
 
 /* ---------- saqlash va yangilash ---------- */
 let saveT = 0, prevT = 0, scT = 0, wired = false;
 const save = () => { clearTimeout(saveT); saveT = setTimeout(flush, 700); };
 function flush() { if (!saveT) return; clearTimeout(saveT); saveT = 0; const v = normalize(st.pf); const s = JSON.stringify(v); if (s !== st.last) { st.last = s; ls.set(KEY, v); } }
-function changed(structural) { save(); clearTimeout(prevT); prevT = setTimeout(() => st.paper && st.paper.update(html(true)), 260); clearTimeout(scT); scT = setTimeout(paintScore, 200); if (structural) paintScore(); }
+function changed(structural) { save(); clearTimeout(prevT); prevT = setTimeout(() => st.paper && st.paper.update(pvHTML()), st.view === 'web' ? 700 : 260); clearTimeout(scT); scT = setTimeout(paintScore, 200); if (structural) paintScore(); }
 function paintScore() {
   if (!st.el || !$('#pf-sc', st.el)) return;
   const ev = evaluate(st.pf); st.ev = ev;
@@ -129,6 +136,30 @@ function paintScore() {
 }
 function mountScore(ev) { const sb = $('#pf-score', st.el); sb.innerHTML = scoreHTML(ev || evaluate(st.pf)); const pre = $('#pf-rv .pre', sb); if (pre) aiFlag(pre, 'portfolio', st.rvText); }
 const chip = s => { const p = normalize(st.pf), n = { about: [p.name, p.headline, p.summary, p.photo].filter(Boolean).length + '/4', edu: p.edu.length + p.tests.length, acts: p.acts.length, awards: p.awards.length, projects: p.projects.length, extra: p.skills.length + p.langs.length + p.targets.length, docs: p.att.length }[s]; return String(n); };
+
+const previewNow = () => { clearTimeout(prevT); save(); if (st.paper) st.paper.update(pvHTML()); };
+function mountPreview() {
+  const host = $('#pf-paper', st.el); if (st.paper && st.paper.stop) st.paper.stop();
+  st.paper = st.view === 'web' ? makeWeb(host, pvHTML()) : makePaper(host, pvHTML());
+  host.classList.toggle('web', st.view === 'web'); $('#pf-pg', st.el).hidden = st.view === 'web';
+  $$('[data-pv]', st.el).forEach(b => b.setAttribute('aria-selected', String(b.dataset.pv === st.view)));
+}
+const setView = v => { if (st.view === v) return; st.view = v; mountPreview(); };
+function renderDesign() { const d = $('#pf-design', st.el); if (d) d.innerHTML = studioHTML(st, plan()); }
+const lockPrompt = tier => upsell('pf_design', tier === 1 ? 'Bu variant Plus va Pro tarifida ochiladi.' : 'Bu variant faqat Pro tarifida ochiladi. Pro tarifida hamma shablon, fon va effekt, o‘z ranglaringiz va AI dizayner bor.');
+function dzClick(btn) {
+  const key = btn.dataset.dz, r = dzApply(st, key, plan());
+  if (r.lock) { lockPrompt(r.lock); return; }
+  if (!r.ok) return;
+  const y = btn.closest('.pf-main') ? window.scrollY : 0; renderDesign(); const nb = $(`[data-dz="${key}"]`, st.el); if (nb) nb.focus({ preventScroll: true }); if (y) window.scrollTo({ top: y }); previewNow(); paintScore();
+}
+const snap = () => JSON.stringify({ tpl: st.pf.tpl, accent: st.pf.accent, dz: st.pf.dz });
+async function aiDesign(btn) {
+  if (!hasFeature('pf_studio')) { upsell('pf_studio'); return; }
+  st.wish = (($('#pf-wish', st.el) || {}).value || '').trim().slice(0, 200); const prev = snap();
+  await design(st, st.wish, d => { st.dzPrev = prev; st.pf.tpl = d.tpl; st.pf.accent = d.accent; st.pf.dz = d.dz; st.aiWhy = { text: d.why }; renderDesign(); previewNow(); toast('AI dizayni qo‘llandi. Xohlasangiz, o‘zingiz o‘zgartiring.'); }, btn);
+}
+function aiUndo() { if (!st.dzPrev) return; const o = JSON.parse(st.dzPrev); st.pf.tpl = o.tpl; st.pf.accent = o.accent; st.pf.dz = o.dz; st.dzPrev = ''; st.aiWhy = null; renderDesign(); previewNow(); }
 
 /* ---------- ko'rinishlar ---------- */
 function nextHTML() {
@@ -159,9 +190,7 @@ function askHTML() {
   return `<section class="card pf-ask"><div class="pf-prog" role="progressbar" aria-valuemin="1" aria-valuemax="${n}" aria-valuenow="${st.step + 1}">${ASK.map((_, i) => `<i class="${i < st.step ? 'on' : i === st.step ? 'cur' : ''}"></i>`).join('')}</div><span class="pf-k">${st.step + 1} / ${n}</span><h3 class="pf-q">${s.q}</h3><p class="pf-qh">${s.h}</p><div class="pf-qb">${s.b()}</div>
   <div class="pf-bar"><button type="button" class="btn" data-do="back"${st.step ? '' : ' disabled'}>Orqaga</button><button type="button" class="btn" data-do="skip">O‘tkazib yuborish</button><button type="button" class="btn primary" data-do="next">${st.step === n - 1 ? 'Tugatish' : 'Keyingi'}</button><button type="button" class="link-btn" data-do="edit">Qo‘lda tahrirlash</button></div></section>`;
 }
-const ctlHTML = () => `<div class="pf-ctl"><div class="pf-tpls" role="radiogroup" aria-label="Shablon">${TPLS.map(t => `<button type="button" role="radio" aria-checked="${st.pf.tpl === t}" data-tpl="${t}" style="--a:${st.pf.accent}"><svg viewBox="0 0 44 60" aria-hidden="true">${THUMB[t]}</svg><span>${TPL_N[t]}</span></button>`).join('')}</div>
-  <div class="pf-acc" role="radiogroup" aria-label="Rang">${ACCENTS.map(([c, n]) => `<button type="button" role="radio" aria-checked="${st.pf.accent === c}" data-acc="${c}" style="background:${c}" aria-label="${n}"></button>`).join('')}</div>
-  <div class="pf-lg"><span>Hujjat tili</span><div class="tabs" role="group">${['en', 'uz', 'ru'].map(l => `<button type="button" data-dl="${l}" aria-selected="${st.pf.lang === l}">${l.toUpperCase()}</button>`).join('')}</div></div></div>`;
+const langHTML = () => `<div class="pf-ctl"><div class="pf-lg"><span>Hujjat tili</span><div class="tabs" role="group">${['en', 'uz', 'ru'].map(l => `<button type="button" data-dl="${l}" aria-selected="${st.pf.lang === l}">${l.toUpperCase()}</button>`).join('')}</div></div></div>`;
 const expHTML = () => `<div class="pf-exp"><button type="button" class="btn primary" data-do="pdf">PDF</button><button type="button" class="btn" data-do="word">Word</button><button type="button" class="btn" data-do="web">Veb sahifa</button><button type="button" class="btn sm" data-do="big" aria-label="Katta ko‘rinish">⤢</button></div><p class="hint pf-eh">PDF: ochilgan oynada “PDF sifatida saqlash” ni tanlang. Word tahrirlash uchun qulay, maketi PDF dan farq qiladi. Veb sahifa bitta HTML fayl bo‘ladi.</p>`;
 
 /* ---------- amallar ---------- */
@@ -174,18 +203,25 @@ async function printPdf() {
   try { await Promise.race([fr.contentDocument.fonts.ready, wait(2500)]); } catch (e) {} await wait(250);
   try { const w = fr.contentWindow; w.onafterprint = () => fr.remove(); setTimeout(() => fr.remove(), 180000); w.focus(); w.print(); } catch (e) { fr.remove(); toast('Chop etish ochilmadi. Veb sahifani yuklab, brauzerdan PDF qiling.', 'err'); }
 }
-function getWord() { if (!gate()) return; try { download(new Blob([docxBytes(st.pf, st.imgs)], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), fileBase(st.pf) + '.docx'); } catch (e) { toast('Word faylini yaratib bo‘lmadi.', 'err'); } }
-function getWeb() { if (!gate()) return; download(new Blob([docHTML(st.pf, st.imgs, { mode: 'web' })], { type: 'text/html;charset=utf-8' }), fileBase(st.pf) + '.html'); toast('Veb sahifa yuklandi. Uni istalgan hosting yoki brauzerda ochish mumkin.'); }
+function getWord() { if (!gate()) return; try { download(new Blob([docxBytes(st.pf, st.imgs, plan())], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), fileBase(st.pf) + '.docx'); } catch (e) { toast('Word faylini yaratib bo‘lmadi.', 'err'); } }
+async function getWeb() {
+  if (!gate()) return; let js = ''; try { const r = await fetch('/js/pfweb.js'); if (r.ok) js = await r.text(); } catch (e) {}
+  download(new Blob([webHTML({ js })], { type: 'text/html;charset=utf-8' }), fileBase(st.pf) + '.html'); toast('Veb sahifa yuklandi. Uni istalgan hosting yoki brauzerda ochish mumkin.');
+}
 function bigView() {
-  const p = modal({ title: 'Portfolio ko‘rinishi', body: '<div class="pf-desk"><div class="pf-big"></div></div>', actions: [{ label: 'Yopish', value: 0, cls: 'primary' }] });
-  const bg = $$('.modal-bg').pop(); bg.querySelector('.modal').classList.add('pf-wide'); const host = $('.pf-big', bg); makePaper(host, html(true)); return p;
+  const web = st.view === 'web', p = modal({ title: web ? 'Veb-sayt ko‘rinishi' : 'Portfolio ko‘rinishi', body: `<div class="pf-desk"><div class="pf-big"></div></div>`, actions: [{ label: 'Yopish', value: 0, cls: 'primary' }] });
+  const bg = $$('.modal-bg').pop(); bg.querySelector('.modal').classList.add(web ? 'pf-xl' : 'pf-wide'); const host = $('.pf-big', bg); if (web) makeWeb(host, pvHTML(), true); else makePaper(host, html(true)); return p;
 }
 function goto(sec) {
   st.mode = 'edit'; st.open.add(sec); if (['acts', 'projects', 'awards'].includes(sec)) ens(sec, 1);
   setTab('build'); renderBuild();
   const d = $(`[data-s="${sec}"]`, st.el); if (d) { d.scrollIntoView({ behavior: 'smooth', block: 'start' }); const i = $$('input:not([type=file]):not([type=checkbox]),textarea,select', d).find(x => !x.value); if (i) setTimeout(() => i.focus({ preventScroll: true }), 350); }
 }
-function setTab(t) { st.tab = t; $('.pf', st.el).dataset.t = t; $$('[data-tab]', st.el).forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t))); const sb = $('#pf-score', st.el), bb = $('#pf-build', st.el); bb.hidden = t === 'score'; sb.hidden = t !== 'score'; if (t === 'score') mountScore(); if (t === 'view' && st.paper) setTimeout(st.paper.measure, 30); }
+function setTab(t) {
+  st.tab = t; $('.pf', st.el).dataset.t = t; $$('[data-tab]', st.el).forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  const sb = $('#pf-score', st.el), bb = $('#pf-build', st.el), db = $('#pf-design', st.el); bb.hidden = t !== 'build' && t !== 'view'; sb.hidden = t !== 'score'; db.hidden = t !== 'design';
+  if (t === 'score') mountScore(); if (t === 'design') renderDesign(); if (t === 'view' && st.paper) setTimeout(st.paper.measure, 30);
+}
 async function pickPhoto(file) {
   let im; try { im = await loadImage(file); } catch (e) { toast(e.message, 'err'); return; }
   const v = { z: 1, cx: .5, cy: .5 }, p = modal({ title: 'Profil rasmini joylashtiring', body: '<div class="pf-crop"><canvas width="240" height="300"></canvas></div><label class="pf-zoom">Yaqinlashtirish<input type="range" min="1" max="3" step="0.01" value="1"></label><p class="hint">Rasmni sudrab, yuzni o‘rtaga keltiring.</p>', actions: [{ label: 'Bekor qilish', value: 0 }, { label: 'Saqlash', value: 1, cls: 'primary' }] });
@@ -233,26 +269,29 @@ async function act(d, el) {
   else if (k === 'polish-projects') await polish(st, { kinds: ['projects'] }, refreshAll, el);
   else if (k === 'polish-all') await polish(st, { kinds: ['acts', 'projects'], need: ['headline', 'summary'] }, () => { st.mode = 'edit'; refreshAll(true); }, el);
   else if (k === 'extract') await extract(st, refreshAll, el);
+  else if (k === 'ai-design') await aiDesign(el);
+  else if (k === 'ai-undo') aiUndo();
   else if (k === 'review') await review(st, () => $('#pf-rv', st.el), el);
 }
 
 /* ---------- kirish nuqtasi ---------- */
 const emTitle = x => { const y = tr(x), i = y.lastIndexOf(' '); return i < 0 ? '<em>' + esc(y) + '</em>' : esc(y.slice(0, i)) + ' <em>' + esc(y.slice(i + 1)) + '</em>'; };
 export async function portfolio(el) {
-  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=46'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
+  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=47'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
   Object.keys(st).forEach(k => delete st[k]);
   const saved = ls.get(KEY, null), fresh = !saved;
-  Object.assign(st, { el, pf: normalize(saved), imgs: {}, tab: 'build', step: 0, open: new Set(['about']), pick: new Set(), read: new Set(), last: JSON.stringify(normalize(saved || emptyPf())) });
+  Object.assign(st, { el, pf: normalize(saved), imgs: {}, tab: 'build', view: 'a4', wish: '', aiWhy: null, dzPrev: '', step: 0, open: new Set(['about']), pick: new Set(), read: new Set(), last: JSON.stringify(normalize(saved || emptyPf())) });
   if (fresh) st.pf = seedFromProfile(emptyPf(), ls.get('qabul:profile', {}), ls.get('qabul:p', {}), ls.get('qabul:apps', []), 'en');
   st.mode = canExport(st.pf) && !fresh ? 'edit' : 'ask';
   await Promise.all(st.pf.att.map(async a => { const v = await store.get(a.id); if (v && v.url) st.imgs[a.id] = v; }));
   el.innerHTML = `<div class="page-h"><div><h2>${emTitle('Portfolio quruvchi')}</h2><p>Yutuqlaringizni bir hujjatga jamlang: PDF, Word yoki veb-sahifa. Sayt kerakli ma’lumotni so‘raydi, rasmlaringizni o‘qiydi va portfolioni baholaydi.</p></div><span class="badge" data-cr="badge">${credits().left} / ${credits().limit} kredit qoldi</span></div>
-  <div class="pf" data-t="build"><div class="tabs pf-tabs" role="tablist"><button type="button" role="tab" data-tab="build" aria-selected="true">Tuzish</button><button type="button" role="tab" class="t-view" data-tab="view" aria-selected="false">Ko‘rinish</button><button type="button" role="tab" data-tab="score" aria-selected="false">Baho</button></div>
-  <div class="pf-grid"><div class="pf-main"><div id="pf-build"></div><div id="pf-score" hidden></div></div>
-  <aside class="pf-aside"><div id="pf-sc"></div>${expHTML()}<div class="pf-desk"><div class="pf-paper" id="pf-paper"></div></div><div class="pf-pg" id="pf-pg"></div>${ctlHTML()}</aside></div></div>`;
+  <div class="pf" data-t="build"><div class="tabs pf-tabs" role="tablist"><button type="button" role="tab" data-tab="build" aria-selected="true">Tuzish</button><button type="button" role="tab" data-tab="design" aria-selected="false">Dizayn</button><button type="button" role="tab" class="t-view" data-tab="view" aria-selected="false">Ko‘rinish</button><button type="button" role="tab" data-tab="score" aria-selected="false">Baho</button></div>
+  <div class="pf-grid"><div class="pf-main"><div id="pf-build"></div><div id="pf-design" hidden></div><div id="pf-score" hidden></div></div>
+  <aside class="pf-aside"><div id="pf-sc"></div>${expHTML()}<div class="pf-pvw"><div class="pf-vt" role="group" aria-label="Ko‘rinish turi"><button type="button" data-pv="a4" aria-selected="true">A4 (PDF)</button><button type="button" data-pv="web" aria-selected="false">Veb-sayt</button><button type="button" class="pf-dzb" data-tab="design">Dizaynni sozlash</button></div><div class="pf-desk"><div class="pf-paper" id="pf-paper"></div></div><div class="pf-pg" id="pf-pg"></div></div>${langHTML()}</aside></div></div>`;
   renderBuild(); paintScore();
-  st.paper = makePaper($('#pf-paper', el), html(true)); $('#pf-paper', el).addEventListener('pf:pages', () => { const n = +$('#pf-paper', el).dataset.pages; $('#pf-pg', el).textContent = `≈ ${n} ${tr(n === 1 ? 'sahifa' : 'sahifalar')}`; });
+  mountPreview(); $('#pf-paper', el).addEventListener('pf:pages', () => { const n = +$('#pf-paper', el).dataset.pages; $('#pf-pg', el).textContent = `≈ ${n} ${tr(n === 1 ? 'sahifa' : 'sahifalar')}`; });
   const onInput = e => {
+    const cc = e.target.closest('[data-cc]'); if (cc) { if (!hasFeature('pf_studio')) return; if (cc.dataset.cc === 'accent') st.pf.accent = cc.value.toLowerCase(); else st.pf.dz.acc2 = cc.value.toLowerCase(); previewNow(); return; }
     const x = e.target.closest('[data-p]'); if (!x) return; const p = x.dataset.p;
     if (p === '@skills') st.pf.skills = fromList(x.value).slice(0, MAX.skills); else if (p === '@targets') st.pf.targets = fromList(x.value).slice(0, MAX.targets); else setP(st.pf, p, x.value);
     const it = x.closest('.pf-item'); if (it && /\.(title|school)$/.test(p)) { const b = $('header b', it); if (b) b.textContent = x.value.trim() || tr('Yangi yozuv'); }
@@ -266,9 +305,9 @@ export async function portfolio(el) {
   });
   el.addEventListener('click', e => {
     const t = e.target.closest('[data-tab]'); if (t) { setTab(t.dataset.tab); return; }
-    const tp = e.target.closest('[data-tpl]'); if (tp) { st.pf.tpl = tp.dataset.tpl; $('.pf-ctl', el).outerHTML = ctlHTML(); changed(); return; }
-    const ac = e.target.closest('[data-acc]'); if (ac) { st.pf.accent = ac.dataset.acc; $('.pf-ctl', el).outerHTML = ctlHTML(); changed(); return; }
-    const dl = e.target.closest('[data-dl]'); if (dl) { st.pf.lang = dl.dataset.dl; $('.pf-ctl', el).outerHTML = ctlHTML(); changed(); return; }
+    const dzb = e.target.closest('[data-dz]'); if (dzb) { dzClick(dzb); return; }
+    const pvb = e.target.closest('[data-pv]'); if (pvb) { setView(pvb.dataset.pv); return; }
+    const dl = e.target.closest('[data-dl]'); if (dl) { st.pf.lang = dl.dataset.dl; $('.pf-ctl', el).outerHTML = langHTML(); changed(); previewNow(); return; }
     const d = e.target.closest('[data-do]'); if (d && !d.disabled) act(d.dataset.do, d).catch(er => toast(er.message || 'Xatolik yuz berdi.', 'err'));
   });
   $('#pf-build', el).addEventListener('toggle', e => { const s = e.target.dataset && e.target.dataset.s; if (s) e.target.open ? st.open.add(s) : st.open.delete(s); }, true);

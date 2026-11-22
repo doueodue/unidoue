@@ -5,6 +5,10 @@ import { normalize, emptyPf, evaluate, seedFromProfile, range, splitBullets, saf
 import { docHTML, fileBase, esc } from '../public/js/pfdoc.js';
 import { docxBytes } from '../public/js/pfdocx.js';
 import { zip, crc32 } from '../public/js/zip.js';
+import { effective, allow, cleanDz, defaultDz, designFromAI, lockedCount, TPLS, PALETTES, BGS, FXS, FONTS } from '../public/js/pfdesign.js';
+import { webCSS } from '../public/js/pfwebcss.js';
+import { printCSS } from '../public/js/pfcss.js';
+import { readFileSync } from 'node:fs';
 
 let n = 0; const ok = (c, m) => { n++; if (!c) { console.error('FAIL:', m); process.exitCode = 1; } };
 const eq = (a, b, m) => { n++; try { assert.deepEqual(a, b); } catch (e) { console.error('FAIL:', m, '\n  got', JSON.stringify(a), '\n  want', JSON.stringify(b)); process.exitCode = 1; } };
@@ -90,4 +94,49 @@ const docx = new TextDecoder().decode(dz['word/document.xml']);
 ok(docx.includes('Abdullo &lt;&amp;&gt; Karimov') && !docx.includes('<&>'), 'docx text escaped'); ok(docx.includes('2024–hozir'), 'ongoing activity range in docx'); ok(docx.includes('https://x.io/crm'), 'project url in docx'); ok(docx.includes('w:pStyle w:val="Heading2"'), 'docx uses Heading2');
 ok((docx.match(/<w:tbl>/g) || []).length === 2 && docx.split('<w:tr>').length - 1 === 2, 'docx header + gallery tables');
 for (const [k, v] of Object.entries(dz)) if (/\.(xml|rels)$/.test(k)) { const t = new TextDecoder().decode(v); const opens = (t.match(/<(?!\?|\/|!)[^>]*[^/]>/g) || []).length, closes = (t.match(/<\/[^>]+>/g) || []).length; ok(opens === closes, `balanced tags in ${k} (${opens}/${closes})`); }
+
+/* ---- dizayn tizimi: tarif cheklovi ---- */
+const PRO_DZ = { tpl: 'noir', accent: '#123456', dz: { ...defaultDz(), acc2: '#abcdef', font: 'mono', bg: 'aurora', fx: ['reveal', 'count', 'spot', 'tilt', 'glow'], mode: 'dark', shape: 'round', dens: 'compact' } };
+const eFree = effective(PRO_DZ, 'free'), ePlus = effective(PRO_DZ, 'plus'), ePro = effective(PRO_DZ, 'pro');
+eq([eFree.tpl, eFree.dz.font, eFree.dz.bg, eFree.dz.fx, eFree.dz.mode, eFree.dz.shape, eFree.dz.dens], ['rail', 'auto', 'none', ['reveal'], 'tpl', 'soft', 'cozy'], 'free: Pro tanlovlari eng yaqin ruxsat etilganga tushadi');
+ok(PALETTES.slice(0, 4).some(p => p[0] === eFree.accent), 'free: rang 4 ta paletradan biriga yaqinlashtiriladi'); ok(eFree.dz.acc2 === PALETTES.find(p => p[0] === eFree.accent)[1], 'free: acc2 palitradan');
+eq([ePlus.tpl, ePlus.dz.font, ePlus.dz.bg, ePlus.dz.fx, ePlus.dz.mode, ePlus.dz.shape, ePlus.dz.dens], ['rail', 'auto', 'none', ['reveal', 'count'], 'dark', 'soft', 'cozy'], 'plus: faqat Plus darajasigacha');
+eq([ePro.tpl, ePro.accent, ePro.dz.acc2, ePro.dz.font, ePro.dz.bg, ePro.dz.mode, ePro.dz.shape, ePro.dz.dens, ePro.dz.fx.length], ['noir', '#123456', '#abcdef', 'mono', 'aurora', 'dark', 'round', 'compact', 5], 'pro: hammasi saqlanadi, ixtiyoriy ranglar ham');
+ok(['ledger', 'rail'].every(k => allow('free').tpls.includes(k)) && allow('free').tpls.length === 2 && allow('plus').tpls.length === 5 && allow('pro').tpls.length === 8, 'shablonlar soni: 2 / 5 / 8');
+ok(allow('free').palettes.length === 4 && allow('plus').palettes.length === 10 && allow('pro').palettes.length === 16, 'ranglar soni: 4 / 10 / 16'); ok(!allow('free').custom && !allow('plus').custom && allow('pro').custom, 'ixtiyoriy rang faqat Pro'); ok(!allow('plus').ai && allow('pro').ai, 'AI dizayner faqat Pro');
+ok(lockedCount('free') > lockedCount('plus') && lockedCount('plus') > lockedCount('pro') && lockedCount('pro') === 0, 'yopiq variantlar soni tarif oshgan sari kamayadi');
+eq(effective({ tpl: 'nova' }, undefined).tpl, 'rail', 'tarif berilmasa Free hisoblanadi'); eq(effective({ tpl: 'nova' }, 'bogus').tpl, 'rail', 'notanish tarif Free');
+ok(Object.keys(BGS).length === 11 && Object.keys(FXS).length === 9 && Object.keys(FONTS).length === 7 && TPLS.length === 8, 'katalog hajmi');
+for (const k of Object.keys(BGS)) ok(effective({ tpl: 'ledger', dz: { bg: k } }, 'free').dz.bg === (BGS[k] === 0 ? k : 'none'), `free fon cheklovi: ${k}`);
+const dirty = cleanDz({ acc2: 'red', font: '__proto__', bg: 'constructor', fx: ['reveal', 'reveal', 'hack', '<b>', 7], mode: 'x', dens: null, shape: [] });
+eq(dirty, defaultDz(), 'cleanDz: iflos qiymatlar standartga'); eq(cleanDz({ fx: ['reveal', 'reveal', 'count'] }).fx, ['reveal', 'count'], 'cleanDz: takrorlar olinadi'); eq(cleanDz(null), defaultDz(), 'cleanDz(null)');
+const dd = designFromAI({ template: 'nova', accent: '#5b3df5', accent2: '#ff5fa2', font: 'grotesk', bg: 'aurora', fx: ['reveal', 'spot', 'nope'], mode: 'dark', shape: 'round', density: 'cozy', why: '<b>x</b>\n' + 'y'.repeat(400) }, 'pro');
+eq([dd.tpl, dd.accent, dd.dz.acc2, dd.dz.bg, dd.dz.fx], ['nova', '#5b3df5', '#ff5fa2', 'aurora', ['reveal', 'spot']], 'AI taklifi oq roʻyxatdan oʻtadi'); ok(dd.why.length <= 240 && !/[<>]/.test(dd.why), 'AI sababi tozalangan');
+eq(designFromAI({ template: '<script>', accent: 'javascript:1', font: 'comic' }, 'pro').tpl, 'ledger', 'AI notoʻgʻri shablon → ledger'); eq(designFromAI({ template: 'nova', accent: '#5b3df5' }, 'free').tpl, 'rail', 'AI taklifi Free tarifda ham cheklanadi'); eq(designFromAI(null).tpl, 'ledger', 'AI null → xavfsiz');
+eq(normalize({ dz: { bg: 'aurora', fx: ['spot'] } }).dz.bg, 'aurora', 'normalize dz ni saqlaydi (cheklov renderda)'); eq(normalize({ dz: 'x' }).dz, defaultDz(), 'normalize buzuq dz');
+eq(normalize(normalize({ dz: { mode: 'dark' } })), normalize({ dz: { mode: 'dark' } }), 'dz bilan normalize idempotent');
+
+/* ---- dizayn tizimi: 8 shablon × 2 rejim render ---- */
+const full = normalize({ name: 'Aziza K', headline: 'CS', city: 'Tashkent', email: 'a@b.uz', links: [{ l: 'GH', u: 'github.com/a' }], summary: 'Hello', skills: ['Py', 'C', 'JS', 'SQL'], langs: [{ n: 'EN', lv: 'C1' }], targets: ['MIT'], edu: [{ school: 'L1', gpa: '4.9' }], tests: [{ name: 'SAT', score: '1500' }], acts: [{ title: 'Club', what: 'Did X', result: '12 people' }], awards: [{ title: 'Gold', year: '2024', level: 'national' }], projects: [{ title: 'P', what: 'built' }], att: [{ id: 'z', cap: 'C' }] });
+const imgs = { z: { url: 'data:image/jpeg;base64,/9j/AAAA' } };
+for (const t of TPLS) for (const mode of ['print', 'web']) {
+  const h = docHTML({ ...full, tpl: t, dz: { ...defaultDz(), bg: 'aurora', fx: Object.keys(FXS), mode: 'system' } }, imgs, { mode, plan: 'pro', js: 'window.x=1;</script><b>' });
+  ok(!/undefined|NaN|\[object/.test(h), `${t}/${mode}: render nopok qiymatlarsiz`); ok(h.includes('Aziza K') && h.includes(`t-${t}`), `${t}/${mode}: sinf va kontent`);
+  if (mode === 'web') { ok(h.includes('fx-spot') && h.includes('class="th"') && h.includes('<h1') && h.includes('id="gallery"'), `${t}: veb effektlar, rejim tugmasi, galereya`); ok(!h.includes('window.x=1;</script>'), `${t}: skript </script> dan himoyalangan`); ok(h.split('<script>').length === 2, `${t}: bitta skript`); }
+  else ok(h.includes('@page') && h.includes('html{background:'), `${t}: A4 + sahifa foni`);
+}
+const wFree = docHTML({ ...full, tpl: 'noir', dz: { ...defaultDz(), bg: 'aurora', fx: Object.keys(FXS), mode: 'dark' } }, imgs, { mode: 'web' });
+const hc = h => (h.match(/<html[^>]*class="([^"]*)"/) || [])[1] || '', bc = h => (h.match(/<body class="([^"]*)"/) || [])[1] || '';
+ok(bc(wFree).includes('t-rail') && hc(wFree) === 'fx-reveal' && !wFree.includes('class="th"') && bc(wFree).includes('b-none'), 'Free: veb-sayt cheklangan (rail, fon yoʻq, faqat reveal, rejim tugmasi yoʻq)');
+ok(!docHTML(full, imgs, { mode: 'web', plan: 'plus', jsSrc: '/js/pfweb.js' }).includes('<script>') && docHTML(full, imgs, { mode: 'web', jsSrc: '/js/pfweb.js' }).includes('src="/js/pfweb.js"'), 'jsSrc → <script src> (CSP uchun)');
+ok(!/<script/i.test(docHTML(full, imgs, { mode: 'print', plan: 'pro' })), 'A4 hujjatda skript yoʻq');
+const wx = docHTML(normalize({ name: '</style><img src=x onerror=1>', headline: '"><svg onload=1>', summary: "'\"<b>", skills: ['<i>'], acts: [{ title: '<u>' }], dz: { fx: ['reveal', 'type', 'marquee', 'count'] } }), {}, { mode: 'web', plan: 'pro' });
+ok(!/<img src=x|<svg onload|<u>/.test(wx) && wx.includes('&lt;/style&gt;') && wx.includes('&lt;i&gt;') && wx.includes('&lt;u&gt;'), 'veb: foydalanuvchi matni XSS ga qarshi');
+ok(/@media\(prefers-reduced-motion:reduce\)/.test(webCSS(effective(full, 'pro'))) && /@media print/.test(webCSS(effective(full, 'pro'))), 'veb CSS: reduced-motion va print');
+for (const t of TPLS) { ok(webCSS({ tpl: t, accent: '#2745e8', dz: { ...defaultDz(), bg: 'blueprint' } }).includes('--bg:'), `${t}: webCSS`); ok(printCSS(t, 'ledger').includes('@page'), `${t}: printCSS`); }
+const js = readFileSync(new URL('../public/js/pfweb.js', import.meta.url), 'utf8');
+ok(!/eval\(|new Function|document\.write|innerHTML|XMLHttpRequest|fetch\(/.test(js) && js.includes("'use strict'"), 'pfweb.js: xavfli chaqiruvlarsiz, strict');
+try { new Function(js); ok(true, 'pfweb.js sintaksisi'); } catch (e) { ok(false, 'pfweb.js sintaksisi: ' + e.message); }
+const dxFree = docxBytes({ ...full, accent: '#123456', tpl: 'noir' }, {}, 'free'), dxPro = docxBytes({ ...full, accent: '#123456', tpl: 'noir' }, {}, 'pro');
+ok(new TextDecoder().decode(parseZip(dxPro)['word/document.xml']).includes('123456') && !new TextDecoder().decode(parseZip(dxFree)['word/document.xml']).includes('123456'), 'Word: rang tarifga qarab (Free paletaga yaqinlashadi, Pro oʻzi)');
 console.log(`pf: ${n} checks, ${process.exitCode ? 'FAILED' : 'ok'}`);

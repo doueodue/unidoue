@@ -1,10 +1,11 @@
 /* Portfolio AI amallari: sayqallash (matn), rasmdan o'qish va baholash. AI faqat foydalanuvchi bergan ma'lumotdan foydalanadi;
  * har bir taklif qo'llashdan oldin ko'rsatiladi va tahrirlanadi. */
 import { $, $$, S, esc, toast, modal, aiFlag } from './core.js';
-import { t as tr } from './i18n.js';
+import { t as tr, lang } from './i18n.js';
 import { md } from './markdown.js';
 import { streamAI, askAI } from './views3.js';
 import { normalize, actText, MAX, uid } from './pfmodel.js';
+import { designFromAI } from './pfdesign.js';
 
 const off = () => { if (S.account.config.ai) return false; toast('AI hozircha ulanmagan.', 'err'); return true; };
 const busy = async (btn, f) => { if (btn) btn.disabled = true; try { return await f(); } finally { if (btn) btn.disabled = false; } };
@@ -75,4 +76,11 @@ export async function review(st, getHost, btn) {
       st.rvText = r.reply; const h = getHost(); if (h) { h.innerHTML = `<div class="pre">${md(r.reply)}</div><p class="hint">${tr('AI xato qilishi mumkin. Baho qabul natijasini bashorat qilmaydi.')}</p>`; aiFlag($('.pre', h), 'portfolio', r.reply); }
     } catch (e) { const h = getHost(); if (h) h.innerHTML = e.code === 'AI_NOT_CONFIGURED' ? '' : `<p class="msg err">${esc(e.message)}</p>`; }
   });
+}
+
+/** AI dizayner (Pro): shablon, rang, shrift, fon va effektlarni tanlaydi. Javob oq ro'yxat bo'yicha tozalanadi (designFromAI); taklif darhol qo'llanadi, "qaytarish" bilan bekor qilinadi. */
+export async function design(st, wish, apply, btn) {
+  if (off()) return;
+  let j; try { await busy(btn, async () => { toast('AI dizayn tanlamoqda…'); const r = await askAI({ tool: 'portfolio', mode: 'design', docLang: st.pf.lang, uiLang: lang(), wish, pf: slim(st) }); j = parseJson(r.reply); }); } catch (e) { fail(e); return; }
+  apply(designFromAI(j, 'pro'));
 }
