@@ -130,6 +130,14 @@ Butun ilova yagona vizual tilga ega: **`public/atlas.css`** (`app.css` dan keyin
 - Mavsum (`data-season`) va qorong‘i rejim ranglari o‘zgaruvchilar orqali ishlaydi; animatsiyalar faqat `prefers-reduced-motion: no-preference` da.
 - Sarlavhalar `<em>` bilan bo‘linmaydi — tarjima kaliti butun jumla bo‘lishi kerak.
 
+## Tanishtiruv sahifasi (landing) va yer shari
+`unidoue.uz` ochilganda avval **tanishtiruv sahifasi** chiqadi, ilovaning o‘zi `/app` da. Yuqoridagi **Kirish** `/app` ga, **Ro‘yxatdan o‘tish** `/app?m=register` ga olib boradi (`main.js` shu parametrni o‘qib ro‘yxat ekranini ochadi). Tizimga kirgan foydalanuvchi uchun tugma «Panelga o‘tish» ga aylanadi; o‘rnatilgan ilova (PWA/TWA) esa tanishtiruvni ko‘rmay to‘g‘ridan-to‘g‘ri `/app` ga tushadi (manifest `start_url` ham `/app`).
+- Fayllar: `public/landing.html`, `public/landing.css`, `public/js/landing.js` (parallaks, sanagichlar, qadamlar, SAT namunasi), `public/js/globe.js` (yer shari), `public/js/globe_data.js`, `public/js/i18n_land.js` (RU/EN).
+- **Yer shari** — Canvas 2D, tashqi kutubxonasiz: nuqtali quruqlik, Toshkentdan ~30 ta universitetga havo yo‘llari (yoylar va harakatlanuvchi nuqtalar), universitet nomlari yorliq sifatida (ustma-ust tushmaydi, kartalar ostida qolmaydi), sichqoncha/barmoq bilan aylantirish, sahifa pastga aylanganda tezlashadi. `prefers-reduced-motion` da harakatsiz, ko‘rinmay qolganda to‘xtaydi.
+- Quruqlik ma’lumoti `globe_data.js` da 1° li bitmaska (8100 bayt, base64); manba — Natural Earth 110m (jamoat mulki). Universitetlar ro‘yxati (`PLACES`) shu faylda: ism, kenglik, uzunlik, muhimlik (1–3).
+- Statistika (`201 universitet`, `48 davlat`) `universities.json` + `intl.json` ga mos bo‘lishi testda tekshiriladi; ma’lumot qo‘shilsa, `landing.html` dagi `data-n` va matnlarni yangilang.
+- Dizayn «Yo‘l daftari» tokenlaridan foydalanadi (fasl, qorong‘i rejim, kontur foni); Free/Plus/Pro narxlari `/api/plans` dan yangilanadi. Telefonda `grid-template-columns` har doim `minmax(0,1fr)` bo‘lsin, aks holda sahifa o‘ngga cho‘ziladi.
+
 ## Tarif dizayni (shisha uslubi)
 Har bir tarifning oʻz shisha (glass) koʻrinishi bor: **Free — muz** (koʻkimtir shaffof), **Plus — kumush** (jilolangan metall, nozik chiziqli), **Pro — oltin** (oltin shisha va yaltiroq **toj**, ustiga sekin yaltirash yuguradi). Ranglar `[data-tier=free|plus|pro]` (yoki `.tier-*`) orqali CSS oʻzgaruvchilari boʻlib beriladi, yorugʻ va qorongʻi tema alohida sozlangan.
 - Fayllar: `public/tiers.css` (uslublar), `public/js/tiers.js` (belgilar: `tierPill`, `tierMedal`, `crownHTML`, `liveGlass`; SVG sprite sahifaga bir marta qoʻshiladi).

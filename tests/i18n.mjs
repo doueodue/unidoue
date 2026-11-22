@@ -50,6 +50,22 @@ for (const lg of ['ru', 'en']) {
     if (!okTr) { bad++; console.log(`  FAIL [${lg}]`, s, '→', o); }
   }
 }
+/* Tanishtiruv sahifasi: barcha matnlar RU/EN ga tarjima qilingan (tarjima qilinmaydigan atoqli otlar bundan mustasno) */
+{
+  const { readFileSync } = await import('node:fs');
+  const KEEP = new Set(['UniDoue', 'Georgia Tech', 'Target', 'Doue', 'SAT', 'GPA', 'IELTS', 'Arizona State University', 'SAT 1120–1360', 'Safety', 'Rice University', 'SAT 1510–1560', 'Reach', 'Georgia Institute of Technology', 'A', 'Aziza Karimova', 'Computer Science', 'SAT 1370–1530', 'Purdue University', 'SAT 1220–1480', 'Free', 'Plus', 'Pro']);
+  const SAME_EN = new Set(['AI mentor Doue', 'Portfolio']); /* inglizcha yozilishi o‘zbekchadagi bilan bir xil */
+  const h = readFileSync(new URL('../public/landing.html', import.meta.url), 'utf8').replace(/<script[^]*?<\/script>/g, '').replace(/<style[^]*?<\/style>/g, '');
+  const set = new Set();
+  for (const m of h.matchAll(/>([^<>]+)</g)) { const x = m[1].trim(); if (x && /\p{L}/u.test(x)) set.add(x); }
+  for (const m of h.matchAll(/\s(?:aria-label|title|alt|placeholder)="([^"]+)"/g)) set.add(m[1].trim());
+  for (const m of readFileSync(new URL('../public/js/landing.js', import.meta.url), 'utf8').matchAll(/\bt\('([^']+)'\)/g)) set.add(m[1]);
+  for (const lg of ['ru', 'en']) {
+    I.setLang(lg);
+    const miss = [...set].filter(x => !KEEP.has(x) && !(lg === 'en' && SAME_EN.has(x)) && !I.trText(x));
+    if (miss.length) { bad += miss.length; console.log(`  FAIL landing [${lg}] tarjimasiz:`, miss.slice(0, 8)); }
+  }
+}
 I.setLang('ru'); const d = I.trText('21-dekabr, 2026 gacha'); if (d !== 'до 21 декабря 2026') { bad++; console.log('  FAIL sana RU:', d); }
 I.setLang('en'); const e = I.trText('21-dekabr, 2026 gacha'); if (e !== 'until Dec 21, 2026') { bad++; console.log('  FAIL sana EN:', e); }
 console.log(bad ? `${bad} ta tarjima yetishmaydi` : `tarjima: ${SAMPLES.length * 2 + 2} ta tekshiruv oʻtdi`);

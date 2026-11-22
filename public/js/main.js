@@ -142,7 +142,7 @@ document.addEventListener('unidoue:signedout', () => { toast('Sessiya tugadi. Qa
 (async function boot() {
   try {
     const me = await api('/api/me');
-    if (me.user && me.user.verified === false) verifyScreen(me); else if (me.user) { adopt(me); start(); } else authScreen('login');
+    if (me.user && me.user.verified === false) verifyScreen(me); else if (me.user) { adopt(me); start(); } else authScreen(new URLSearchParams(location.search).get('m') === 'register' ? 'register' : 'login');
   } catch (e) {
     root.innerHTML = `<div style="min-height:100dvh;display:grid;place-items:center;padding:20px">${errorBox(e.message, true)}</div>`;
     const b = $('[data-retry]'); if (b) b.onclick = () => location.reload();

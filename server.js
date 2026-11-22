@@ -1161,7 +1161,7 @@ async function notifyTelegram(r) {
 
 
 /* ---------------- statik fayllar (faqat ruxsat etilgan roʻyxat) ---------------- */
-const PAGES = { '/': 'app.html', '/privacy': 'privacy.html', '/delete-account': 'delete-account.html', '/app': 'app.html', '/reset': 'reset.html', '/admin': 'admin.html' };
+const PAGES = { '/': 'landing.html', '/privacy': 'privacy.html', '/delete-account': 'delete-account.html', '/app': 'app.html', '/reset': 'reset.html', '/admin': 'admin.html' };
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.png': 'image/png',
   '.webmanifest': 'application/manifest+json; charset=utf-8', '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml' };
 /** Digital Asset Links (Google Play TWA): fayldagi barmoq izlariga TWA_SHA256 (vergul bilan) qoʻshiladi — Play App Signing izini kodsiz ulash uchun. TWA_PACKAGE paket nomini almashtiradi. */
@@ -1183,7 +1183,7 @@ function serveStatic(req, res, pathname) {
   let rel = PAGES[pathname];
   if (!rel) {
     try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch (e) { return false; }
-    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'atlas.css' || rel === 'contour.svg' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
+    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'atlas.css' || rel === 'landing.css' || rel === 'contour.svg' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
     if (!ok) return false;
   }
   const file = path.resolve(PUBLIC_DIR, rel);
