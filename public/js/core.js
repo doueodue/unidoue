@@ -152,12 +152,16 @@ export const skeleton = (n = 3) => `<div class="grid">${Array.from({ length: n }
 export const errorBox = (msg, retry) => `<div class="card err-box"><b>Yuklab bo‘lmadi</b>${esc(msg)}${retry ? `<div style="margin-top:14px"><button class="btn" data-retry>Qayta urinish</button></div>` : ''}</div>`;
 
 export const ico = {
-  home: 'M3 11l9-8 9 8M5 10v10h14V10', search: 'M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-4.3-4.3', gift: 'M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H8a2.5 2.5 0 010-5c2 0 4 2 4 5zM12 7h4a2.5 2.5 0 000-5c-2 0-4 2-4 5z',
+  home: 'M3 11l9-8 9 8M5 10v10h14V10', send: 'M12 19V5M5 12l7-7 7 7', plus: 'M12 5v14M5 12h14', copy: 'M9 9h11v11H9zM5 15H4V4h11v1', tick: 'M5 12.5l4.5 4.5L19 7.5', compass: 'M12 3a9 9 0 100 18 9 9 0 000-18zM15.5 8.5l-2 5-5 2 2-5z', doc: 'M14 3H6v18h12V7zM14 3v4h4M9 12h6M9 16h6', target: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 8a4 4 0 100 8 4 4 0 000-8zM12 12h.01', spark: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z', search: 'M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-4.3-4.3', gift: 'M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H8a2.5 2.5 0 010-5c2 0 4 2 4 5zM12 7h4a2.5 2.5 0 000-5c-2 0-4 2-4 5z',
   chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2', pen: 'M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z', cmp: 'M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h3M16 3h3a2 2 0 012 2v14a2 2 0 01-2 2h-3M12 2v20',
   list: 'M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01', bot: 'M12 8V4M8 4h8M5 8h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2zM9 14h.01M15 14h.01', card: 'M2 6h20v12H2zM2 10h20', user: 'M20 21a8 8 0 10-16 0M12 11a4 4 0 100-8 4 4 0 000 8z',
   menu: 'M4 6h16M4 12h16M4 18h16', folder: 'M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2zM3 11h18', info: 'M12 22a10 10 0 100-20 10 10 0 000 20zM12 16v-4M12 8h.01'
 };
 export const svg = n => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ico[n]}"/></svg>`;
+
+/** Doue — UniDoue AI mentori. Avatar: yoʻl yulduzi. cls: xs | sm | xl, live — tashqi halqa animatsiyasi (javob yozilayotganda). Rang --brand dan (fasl bilan almashadi). */
+export const MENTOR = 'Doue';
+export const mentorAvatar = (cls = '') => `<span class="dv ${cls}" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 2.5c1.1 6.5 4.1 10.4 11 13.5-6.9 1.5-9.9 5.3-11 13.5-1.1-8.2-4.1-12-11-13.5 6.9-3.1 9.9-7 11-13.5z"/><circle class="sp" cx="25.8" cy="6.2" r="2"/></svg><i></i></span>`;
 
 const MON = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
 export const fmtDate = d => { const x = new Date(d + 'T12:00:00'); return x.getDate() + '-' + MON[x.getMonth()] + ', ' + x.getFullYear(); };

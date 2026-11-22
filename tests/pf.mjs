@@ -163,4 +163,11 @@ ok(/^radial-gradient\(\d+%/.test(bgLayers('aurora', '#2745e8', true).l[0]) && bg
 ok(!bgLayers('dots', '#2745e8', true).l.some(x => /^radial-gradient\(\d+%/.test(x)), 'dots: pikselli naqsh takrorlanishda qoladi');
 ok(/body\{[^}]*overflow-wrap:anywhere/.test(printCSS('noir', 'rail')) && !/\.ct span\{white-space:nowrap/.test(printCSS('ledger', 'ledger')), 'A4: uzun URL/email sahifadan chiqib ketmaydi (overflow-wrap, nowrap yoʻq)');
 ok(/body\{[^}]*overflow-wrap:anywhere/.test(webCSS({ tpl: 'noir', accent: '#2745e8', dz: defaultDz() })), 'veb: body overflow-wrap:anywhere');
+/* ---- AI mentor (Doue): jonli mentor olib tashlangan, yangi chat dizayni joyida ---- */
+const v3 = readFileSync(new URL('../public/js/views3.js', import.meta.url), 'utf8'), acss = readFileSync(new URL('../public/app.css', import.meta.url), 'utf8'), cj = readFileSync(new URL('../public/js/core.js', import.meta.url), 'utf8');
+ok(!/Jonli mentor|api\/request|id="rq-/.test(v3) && !/\.bub\b|\.chat\{/.test(acss), 'mentor: jonli mentor formasi va eski .bub/.chat olib tashlangan');
+ok(/export const MENTOR = 'Doue'/.test(cj) && /export const mentorAvatar/.test(cj) && v3.includes('mentorAvatar(') && v3.includes("tool: 'mentor'") && v3.includes('mc-retry') && v3.includes('ev.shiftKey'), 'mentor: Doue avatari, qayta urinish va Shift+Enter');
+ok(['.dv{', '.mc{', '.mc-log{', '.mc-in{', '.mc-sug', '.mc-tool{', '.mc-caret'].every(k => acss.includes(k)) && (acss.match(/{/g) || []).length === (acss.match(/}/g) || []).length, 'mentor: app.css Doue uslublari va qavslar muvozanati');
+const em = new Set(), ico = cj.slice(cj.indexOf('export const ico'), cj.indexOf('};', cj.indexOf('export const ico'))), dup = []; for (const m of ico.matchAll(/(?:^|[\s,{])([a-z]+): '/g)) { if (em.has(m[1])) dup.push(m[1]); em.add(m[1]); }
+ok(['send', 'plus', 'copy', 'tick', 'compass', 'doc', 'target', 'spark'].every(k => em.has(k)) && !dup.length, 'core.js: ikonkalar takrorlanmaydi' + (dup.length ? ': ' + dup : ''));
 console.log(`pf: ${n} checks, ${process.exitCode ? 'FAILED' : 'ok'}`);

@@ -116,6 +116,12 @@ Foydalanuvchi soʻrovlari: `GET /api/admin/requests`.
 - **Esse murabbiyi** (`#/coach`, Plus va Pro; AI mentor ichida "Esse murabbiyi" tabi): motivation letter / personal statement boʻyicha darslar, yaxshi va zaif misollar, mashqlar, bepul mahalliy tekshiruvlar (klishe, noaniq soʻzlar, aniq tafsilotlar, soʻz limiti), bosqichma-bosqich AI fikri (1 kredit) va reja/outline (2 kredit). Murabbiy esseni **yozib bermaydi** — faqat oʻrgatadi va savol beradi. Maʼlumot `qabul:coach` kaliti bilan saqlanadi.
 - Testlar: `tests/pf.mjs` (brauzerda portfolio), `tests/run.js` ichidagi “Esse murabbiyi va portfolio (AI)” va “AI_VISION” boʻlimlari.
 
+## AI mentor — Doue
+AI mentorning oʻz shaxsi bor: **Doue** (nomi `core.js` dagi `MENTOR`, avatari `mentorAvatar()` — “yoʻl yulduzi”, rangi `--brand` dan, shuning uchun fasl va tungi rejim bilan almashadi). Serverda `SYS` qoidalari (kafolat yoʻq, uydirma raqam yoʻq) hamma vositada bir xil, `MENTOR_VOICE` esa faqat suhbatga qoʻshiladi: iliq, ochiq-oydin, bitta aniq keyingi qadam, inson ekanini daʼvo qilmaydi.
+- **Suhbat oynasi** (`views3.js` → `mentor()`, uslublar `app.css` oxiridagi “Doue” boʻlimi): salomlashish ekrani va 4 ta taklif tugmasi, oqimli javob (yozilayotgan kursor), Markdown jadval/roʻyxat, “Nusxalash” va “AI javobi haqida xabar berish”, xato boʻlsa “Qayta urinish”, avtomatik kengayadigan yozish maydoni (Enter — yuborish, Shift+Enter — yangi qator), “Yangi suhbat”. Suhbat Esse murabbiyi ↔ Suhbat tablari orasida saqlanadi (sahifa yangilansa tozalanadi).
+- **Chuqur vositalar**: universitetlarni qidirib tanlash (eng koʻpi 8 ta), Qabul strategiyasi va Universitet hisoboti (Pro). Natija kartasi Doue sarlavhasi bilan chiqadi; esse tahlili ham shu sarlavhadan foydalanadi.
+- **Jonli (inson) mentor soʻrovi olib tashlangan**: forma ham, `POST /api/request` ham yoʻq. Admin “Soʻrovlar” boʻlimida tarif soʻrovlari, AI javobi haqidagi xabarlar va maʼlumot xatolari qoladi.
+
 ## Tarif dizayni (shisha uslubi)
 Har bir tarifning oʻz shisha (glass) koʻrinishi bor: **Free — muz** (koʻkimtir shaffof), **Plus — kumush** (jilolangan metall, nozik chiziqli), **Pro — oltin** (oltin shisha va yaltiroq **toj**, ustiga sekin yaltirash yuguradi). Ranglar `[data-tier=free|plus|pro]` (yoki `.tier-*`) orqali CSS oʻzgaruvchilari boʻlib beriladi, yorugʻ va qorongʻi tema alohida sozlangan.
 - Fayllar: `public/tiers.css` (uslublar), `public/js/tiers.js` (belgilar: `tierPill`, `tierMedal`, `crownHTML`, `liveGlass`; SVG sprite sahifaga bir marta qoʻshiladi).

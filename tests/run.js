@@ -118,7 +118,9 @@ class Client {
     const lg = new Client(); await lg.call('POST', '/api/register', { email: 'langai@gmail.com', password: 'parol12345', name: 'Lang' }); await lg.call('POST', '/api/admin/plan', { email: 'langai@gmail.com', plan: 'pro', days: 30 }, { Authorization: 'Bearer adm-secret' });
     await lg.call('POST', '/api/ai', { tool: 'mentor', lang: 'ru', messages: [{ role: 'user', content: 'privet' }] });
     ok(/Interface language: Russian/.test(aiLast.system || JSON.stringify(aiLast)), 'AI mentor: interfeys tili (RU) modelga aytiladi');
+    ok(/Your name is Doue/.test(aiLast.system || '') && /never claim to be a human/.test(aiLast.system || '') && /never promise or guarantee admission/.test(aiLast.system || ''), 'AI mentor: Doue shaxsiyati qoʻshilgan, kafolat bermaslik qoidasi saqlangan');
     await lg.call('POST', '/api/ai', { tool: 'essay', lang: 'en', text: 'x'.repeat(250) });
+    ok(!/Your name is Doue/.test(aiLast.system || ''), 'esse tahlilida mentor ovozi (Doue) qoʻshilmaydi');
     ok(/entire answer in English/.test(aiLast.system || JSON.stringify(aiLast)), 'esse tahlili: javob tili (EN) modelga aytiladi');
     await lg.call('POST', '/api/ai', { tool: 'essay', lang: 'xx<script>', text: 'x'.repeat(250) });
     ok(/entire answer in Uzbek/.test(aiLast.system || JSON.stringify(aiLast)) && !JSON.stringify(aiLast).includes('xx<script>'), 'notanish til kodi oʻzbekchaga qaytadi, matn modelga oʻtmaydi');
@@ -160,11 +162,12 @@ class Client {
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
     const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
-    ok(/href="\/tiers\.css/.test(html) && /unidoue-v48/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v48');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v49/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v49');
 
     console.log('Hisobni oʻchirish');
     r = await a.call('DELETE', '/api/account', { password: 'xato' }); ok(r.s === 401, 'notoʻgʻri parol bilan oʻchirib boʻlmaydi');
-    r = await a.call('POST', '/api/request', { name: 'Ali', contact: '@ali123', service: 'Esse', message: 'x' }); ok(r.s === 201, 'mentor soʻrovi');
+    r = await a.call('POST', '/api/request', { name: 'Ali', contact: '@ali123', service: 'Esse', message: 'x' }); ok(r.s === 404, 'jonli mentor soʻrovi olib tashlangan (/api/request yoʻq)', r.s);
+    r = await a.call('POST', '/api/report', { kind: 'data', uni: 'MIT', text: 'Muddat notoʻgʻri koʻrsatilgan' }); ok(r.s === 201, 'foydalanuvchi xabari (hisob oʻchirilganda yoʻqolishi tekshiriladi)', r.s);
     r = await a.call('DELETE', '/api/account', { password: 'parol12345' }); ok(r.s === 200, 'hisob oʻchirildi', r.s);
     r = await new Client().call('POST', '/api/login', { email: em, password: 'parol12345' }); ok(r.s === 401, 'oʻchirilgan hisob bilan kirib boʻlmaydi');
     r = await new Client().call('GET', '/api/admin/requests', null, { Authorization: 'Bearer adm-secret' }); ok(!r.j.requests.some(x => x.email === em), 'soʻrovlar ham oʻchdi');

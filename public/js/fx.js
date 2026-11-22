@@ -42,7 +42,7 @@ function countUp(el, budget) {
 }
 export function scan(root) {
   if (reduced() || !root || root.nodeType !== 1) return;
-  if (root.closest && root.closest('.chat, .pre')) return; // AI javoblari oqimida skanerlamaymiz
+  if (root.closest && root.closest('.mc-log, .pre')) return; // AI javoblari oqimida skanerlamaymiz
   let budget = 6;
   const list = root.matches && root.matches(SEL) ? [root] : [];
   root.querySelectorAll(SEL).forEach(x => list.push(x));

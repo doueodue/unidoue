@@ -37,6 +37,7 @@ const SAMPLES = [
   'Rasmdan oʻqish bu serverda yoqilmagan. Maʼlumotni qoʻlda kiriting.', 'Avval portfolioga maʼlumot kiriting.', 'Tanlanganlarni qo‘llash', 'Rasm juda katta (12 MB dan kichik bo‘lsin).',
   'Bildirishnomalar', 'Bildirishnomani yoqish', 'Bu qurilmada yoqilgan ✓', 'Sinov yuborish', 'Bildirishnoma yoqildi ✓', 'Bildirishnoma ruxsati berilmadi.', 'Sinov xabari yuborildi — bir necha soniyada keladi.',
   'Serverga ulanib bo‘lmadi. Internetni tekshiring.', 'Yuklab bo‘lmadi', 'Tariflarni ko‘rish', 'Payme orqali to‘lash', 'Click orqali to‘lash',
+  'Men Doue — qabul yo‘lingizdagi AI mentoringizman. Universitet tanlash, test rejasi, esse va ariza muddatlari bo‘yicha yonma-yon boraman.', 'Profilimga mos universitetlar qaysilar?', 'SAT va IELTS ga qanday tayyorlanay?', 'Motivatsion xatni qanday boshlayman?', 'Stipendiya olish uchun nima qilish kerak?', 'Onlayn · qabul bo‘yicha AI mentor', 'Yangi suhbat', 'Doue’dan so‘rang…', 'Enter — yuborish · Shift+Enter — yangi qator', 'Doue yozmoqda…', 'Chuqur vositalar', 'Tanlangan universitetlar bo‘yicha batafsil hujjat.', 'Universitet qidirish…', 'Safety, target, reach va oylik reja', 'Moslik, tayyorgarlik va xavflar', 'Qabul strategiyasi', 'Universitet hisoboti', 'Nusxalash', 'Ruxsat berish',
   'AI javobi haqida xabar berish', 'AI javobi haqida xabar', 'Nima noto‘g‘ri? (ixtiyoriy)', 'Qabul natijasi hech bir tarifda kafolatlanmaydi.', 'Javob noto‘g‘ri, zararli yoki nomaqbul bo‘lsa, bizga xabar bering. Javob matni ham adminga yuboriladi.'
 ];
 let bad = 0;

@@ -1,4 +1,4 @@
-import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, refreshAccount, upsell, push, wipeLocal, errorBox, credits, inPlay } from './core.js';
+import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, refreshAccount, upsell, push, wipeLocal, errorBox, credits, inPlay, mentorAvatar } from './core.js';
 import { tierMedal, tierPill, crownHTML, liveGlass, TIER_TAG } from './tiers.js';
 import { t, dateL } from './i18n.js';
 import * as pn from './push.js';
@@ -73,7 +73,7 @@ export async function dashboard(el) {
   <section class="card s6"><h3>Ariza jarayoni</h3><p class="sub">Holatlar bo‘yicha.</p>${apps.length ? ST.map((s, i) => { const n = apps.filter(x => +x.s === i).length; return n ? `<div class="li"><div class="grow">${s}</div><b style="flex:none">${n}</b></div>` : ''; }).join('') : '<div class="empty"><b>Hali ariza yo‘q</b>Universitet tanlab, jarayonni kuzating.</div>'}</section>
 
   <section class="card s6" id="d-sch"><h3>Stipendiyalar</h3><div class="sk" style="height:80px;margin-top:10px"></div></section>
-  <section class="card s6"><h3>AI mentor</h3><p class="sub">Universitet, ariza va esse bo‘yicha savollar.</p>
+  <section class="card s6 mc-dash"><div class="mc-dh">${mentorAvatar('sm')}<div><h3>AI mentor</h3><p class="sub">Universitet, ariza va esse bo‘yicha savollar.</p></div></div>
     ${a.config.ai ? `<p>Savolingizni yozing, mentor profilingizni (ruxsat bergan bo‘lsangiz) hisobga oladi.</p><a class="btn primary" style="margin-top:14px" href="#/mentor">Suhbatni boshlash</a>`
       : `<div class="notice">${svg('info')}<div>AI mentor hozircha ulanmagan: sayt egasi serverda AI kalitini sozlagach, shu yerda ishlaydi.</div></div>`}</section></div>`;
 

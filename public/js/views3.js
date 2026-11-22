@@ -1,4 +1,4 @@
-import { $, $$, S, api, ls, esc, toast, svg, catalog, upsell, credits, applyCredits, refreshCredits, aiFlag, hasFeature } from './core.js';
+import { $, $$, S, api, ls, esc, toast, svg, catalog, upsell, credits, applyCredits, refreshCredits, aiFlag, hasFeature, MENTOR, mentorAvatar } from './core.js';
 import { md } from './markdown.js';
 import { t as tr, lang } from './i18n.js';
 
@@ -97,44 +97,101 @@ export async function essay(el) {
     if (!S.account.config.ai) { out.innerHTML = aiOff(); return; }
     if (deep && !S.account.features.includes('essay_adv')) return upsell('essay_adv', 'Chuqur esse tahlili Pro tarifida.');
     const btns = $$('#e-ai,#e-deep,#e-b', el); btns.forEach(b => (b.disabled = true)); out.innerHTML = '<div class="sk" style="height:140px"></div>';
-    try { const r = await streamAI({ tool: 'essay', text: ta.value, deep }, txt => { out.innerHTML = `<div class="pre">${md(txt)}</div>`; }); out.innerHTML = `<div class="pre">${md(r.reply)}</div><p class="hint">AI xato qilishi mumkin; maslahatlarni o‘z ovozingizga moslang. Esse sizniki bo‘lib qolsin.</p>`;  aiFlag($('.pre', out), 'essay', r.reply); }
+    const head = aiHead(deep ? 'Chuqur tahlil' : 'AI tahlil'); try { const r = await streamAI({ tool: 'essay', text: ta.value, deep }, txt => { out.innerHTML = `${head}<div class="pre">${md(txt)}</div>`; }); out.innerHTML = `${head}<div class="pre">${md(r.reply)}</div><p class="hint">AI xato qilishi mumkin; maslahatlarni o‘z ovozingizga moslang. Esse sizniki bo‘lib qolsin.</p>`;  aiFlag($('.pre', out), 'essay', r.reply); }
     catch (e) { out.innerHTML = e.code === 'AI_NOT_CONFIGURED' ? aiOff() : `<p class="msg err">${esc(e.message)}</p>`; }
     btns.forEach(b => (b.disabled = false));
   };
   $('#e-ai', el).onclick = () => ai(false); $('#e-deep', el).onclick = () => ai(true);
 }
 
-/* ================= AI MENTOR ================= */
+/* ================= AI MENTOR (Doue) ================= */
+const SUG = [['compass', 'Profilimga mos universitetlar qaysilar?'], ['target', 'SAT va IELTS ga qanday tayyorlanay?'], ['pen', 'Motivatsion xatni qanday boshlayman?'], ['gift', 'Stipendiya olish uchun nima qilish kerak?']];
+let THREAD = []; // suhbat sahifadan sahifaga oʻtganda (Esse murabbiyi ↔ Suhbat) saqlanadi; "Yangi suhbat" tozalaydi
+/** AI natija kartasi sarlavhasi: Doue avatari + nomi + natija turi */
+export const aiHead = label => `<div class="mc-oh">${mentorAvatar('sm')}<div><b>${MENTOR}</b><span>${esc(tr(label))}</span></div></div>`;
+
 export async function mentor(el) {
-  const cat = await catalog(), apps = ls.get('qabul:apps', []), acc = S.account; const hist = [];
+  const cat = await catalog(), apps = ls.get('qabul:apps', []), acc = S.account, first = String(S.user.name || '').trim().split(/\s+/)[0] || '';
+  const MAX_UNI = 8, mem = !!acc.consent.mentorMemory;
+  const tool2 = [['strategy', 'strategy', 'target', 'Qabul strategiyasi', 'Safety, target, reach va oylik reja', costOf.strategy], ['report', 'reports', 'doc', 'Universitet hisoboti', 'Moslik, tayyorgarlik va xavflar', costOf.report]];
+  const hello = () => `<div class="mc-hello">${mentorAvatar('xl live')}<h3>${tr('Salom,')} ${esc(first)}</h3><p>${tr('Men Doue — qabul yo‘lingizdagi AI mentoringizman. Universitet tanlash, test rejasi, esse va ariza muddatlari bo‘yicha yonma-yon boraman.')}</p>
+    <div class="mc-sug">${SUG.map(([ic, q], i) => `<button type="button" data-q="${i}"><span class="mc-si">${svg(ic)}</span><span>${tr(q)}</span></button>`).join('')}</div>
+    <p class="mc-mem ${mem ? 'on' : ''}">${mem ? `${svg('tick')}<span>${tr('Profilingiz ma’lumotlaridan foydalanaman (profil sahifasida o‘chirishingiz mumkin).')}</span>` : `<span>${tr('Profilingizni ko‘rishim uchun profil sahifasida ruxsat bering.')}</span> <a href="#/profile">${tr('Ruxsat berish')}</a>`}</p></div>`;
   el.innerHTML = `<div class="page-h"><div><h2>AI <em>mentor</em></h2><p>Universitet tanlash, ariza va esse bo‘yicha savollar. Javoblar umumiy maslahat, rasmiy talablarni universitet saytida tekshiring.</p></div><span class="badge" data-cr="badge">${credits().left} / ${credits().limit} kredit qoldi</span></div>
   ${mentorTabs('chat')}${acc.config.ai ? '' : aiOff()}
-  <div class="grid g-dash" style="margin-top:16px"><section class="card s7"><div class="chat" id="m-c" aria-live="polite"><div class="bub a">Salom! Men UniDoue mentoriman. ${acc.consent.mentorMemory ? 'Profilingiz ma’lumotlaridan foydalanaman (profil sahifasida o‘chirishingiz mumkin).' : 'Profilingizni ko‘rishim uchun profil sahifasida ruxsat bering.'} Nimani bilmoqchisiz?</div></div>
-    <form id="m-f" style="display:flex;gap:10px;margin-top:8px"><input id="m-i" type="text" maxlength="2000" placeholder="Savolingizni yozing…" autocomplete="off" style="flex:1"><button class="btn primary" id="m-s" type="submit">Yuborish</button></form></section>
-  <section class="card s5"><h3>Pro vositalar</h3><p class="sub">Tanlangan universitetlar bo‘yicha.</p><div class="field"><label class="f" for="m-u">Universitetlar (Ctrl bilan bir nechta)</label><select id="m-u" multiple size="6">${cat.map(c => `<option value="${esc(c.n)}" ${apps.some(a => a.n === c.n) ? 'selected' : ''}>${esc(c.n)}</option>`).join('')}</select></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn dark sm" id="m-st">Qabul strategiyasi (${costOf.strategy})</button><button class="btn sm" id="m-rp">Universitet hisoboti (${costOf.report})</button></div><div class="msg" id="m-m"></div></section></div>
-  <section class="card" id="m-o" style="margin-top:18px" hidden></section>
-  <section class="card" style="margin-top:18px"><h3>Jonli mentor bilan bog‘lanish</h3><p class="sub">Esse tahlili yoki universitet tanlashda inson mentordan yordam so‘rang. So‘rov administratorga yetkaziladi.</p><div class="row"><div class="field"><label class="f" for="rq-n">Ismingiz</label><input id="rq-n" type="text" maxlength="60" value="${esc(S.user.name)}"></div><div class="field"><label class="f" for="rq-c">Telegram yoki telefon</label><input id="rq-c" type="text" maxlength="60" placeholder="@username yoki +998…"></div><div class="field"><label class="f" for="rq-s">Xizmat</label><select id="rq-s"><option>Esse tahlili</option><option>Universitet tanlash</option><option>Ariza bo‘yicha maslahat</option><option>Boshqa</option></select></div></div><div class="field"><label class="f" for="rq-t">Izoh</label><textarea id="rq-t" maxlength="1500" style="min-height:80px"></textarea></div><button class="btn" id="rq-b">So‘rov yuborish</button><div class="msg" id="rq-m"></div></section>`;
+  <div class="grid g-dash" style="margin-top:16px">
+    <section class="mc s8" aria-label="${MENTOR}">
+      <header class="mc-h">${mentorAvatar('sm')}<div class="mc-id"><b>${MENTOR}</b><span class="mc-st"><i></i>${tr('Onlayn · qabul bo‘yicha AI mentor')}</span></div><button type="button" class="mc-ic" id="m-new" title="${tr('Yangi suhbat')}" aria-label="${tr('Yangi suhbat')}">${svg('plus')}</button></header>
+      <div class="mc-log" id="m-c" role="log" aria-live="polite"></div>
+      <form class="mc-in" id="m-f"><textarea id="m-i" rows="1" maxlength="2000" placeholder="${tr('Doue’dan so‘rang…')}" aria-label="${tr('Savolingizni yozing…')}" autocomplete="off"></textarea><button class="mc-send" id="m-s" type="submit" aria-label="${tr('Yuborish')}" disabled>${svg('send')}</button></form>
+      <div class="mc-foot"><span>${tr('Enter — yuborish · Shift+Enter — yangi qator')}</span><span id="m-n">${tr('Har bir javob')}: ${costOf.mentor} ${tr('kredit')}</span></div>
+    </section>
+    <aside class="card mc-side s4"><h3>${tr('Chuqur vositalar')}</h3><p class="sub">${tr('Tanlangan universitetlar bo‘yicha batafsil hujjat.')}</p>
+      <div class="mc-find"><input type="text" id="m-q" placeholder="${tr('Universitet qidirish…')}" aria-label="${tr('Universitet qidirish…')}" autocomplete="off"><span class="mc-cnt" id="m-k"></span></div>
+      <div class="mc-unis" id="m-u" role="group" aria-label="${tr('Universitetlar')}">${cat.map(c => `<label class="mc-u" data-s="${esc((c.n + ' ' + (c.country || '')).toLowerCase())}"><input type="checkbox" value="${esc(c.n)}" ${apps.slice(0, MAX_UNI).some(a => a.n === c.n) ? 'checked' : ''}><span>${esc(c.n)}</span><small>${esc(c.country || '')}</small></label>`).join('')}<p class="mc-none" hidden>${tr('Hech narsa topilmadi')}</p></div>
+      <div class="mc-tools">${tool2.map(([id, need, ic, ttl, dsc, cost]) => `<button type="button" class="mc-tool" id="m-${id}" data-need="${need}"><span class="mc-ti">${svg(ic)}</span><span class="mc-tx"><b>${tr(ttl)}${hasFeature(need) ? '' : ' <span class="lk">Pro</span>'}</b><small>${tr(dsc)}</small></span><em>${cost}</em></button>`).join('')}</div><div class="msg" id="m-m"></div></aside>
+  </div>
+  <section class="card mc-out" id="m-o" style="margin-top:18px" hidden></section>`;
   bindMentorTabs(el);
-  const chat = $('#m-c', el), add = (cls, txt) => { const d = document.createElement('div'); d.className = 'bub ' + cls; d.textContent = txt; chat.appendChild(d); chat.scrollTop = chat.scrollHeight; return d; };
-  $('#m-f', el).onsubmit = async ev => {
-    ev.preventDefault(); const inp = $('#m-i', el), q = inp.value.trim(); if (!q) return;
-    if (!acc.config.ai) { toast('AI hozircha ulanmagan.', 'err'); return; }
-    inp.value = ''; hist.push({ role: 'user', content: q }); add('u', q); const wait = add('a', ''); wait.innerHTML = '<span class="dots"><i></i><i></i><i></i></span>'; $('#m-s', el).disabled = true;
-    try { const r = await streamAI({ tool: 'mentor', messages: hist }, t => { wait.innerHTML = md(t); wait.scrollIntoView({ block: 'nearest' }); }); hist.push({ role: 'assistant', content: r.reply }); wait.innerHTML = md(r.reply); aiFlag(wait, 'mentor', r.reply); }
-    catch (e) { hist.pop(); wait.textContent = e.message; wait.style.color = 'var(--bad)'; }
-    $('#m-s', el).disabled = false; inp.focus();
+
+  const log = $('#m-c', el), inp = $('#m-i', el), send = $('#m-s', el), cnt = $('#m-n', el), cost = cnt.innerHTML;
+  const near = () => log.scrollHeight - log.scrollTop - log.clientHeight < 90, down = () => { log.scrollTop = log.scrollHeight; };
+  /** Doue javobi: avatar + Markdown karta + amallar (nusxalash, xabar berish) */
+  const aMsg = () => { const m = document.createElement('div'); m.className = 'mc-m a'; m.innerHTML = `${mentorAvatar('xs')}<div class="mc-c"><div class="mc-b md"></div></div>`; log.appendChild(m); return m; };
+  const finish = (m, text) => {
+    const body = $('.mc-b', m); body.innerHTML = md(text); m.classList.remove('busy');
+    const act = document.createElement('div'); act.className = 'mc-act'; const cp = document.createElement('button'); cp.type = 'button'; cp.innerHTML = `${svg('copy')}<span>${tr('Nusxalash')}</span>`;
+    cp.onclick = async () => { try { await navigator.clipboard.writeText(text); cp.innerHTML = `${svg('tick')}<span>${tr('Nusxalandi')}</span>`; setTimeout(() => (cp.innerHTML = `${svg('copy')}<span>${tr('Nusxalash')}</span>`), 1600); } catch (e) { toast('Matnni qo‘lda nusxalang.', 'err'); } };
+    act.appendChild(cp); $('.mc-c', m).appendChild(act); aiFlag(cp, 'mentor', text);
   };
+  const uMsg = q => { const m = document.createElement('div'); m.className = 'mc-m u'; const b = document.createElement('div'); b.className = 'mc-b'; b.textContent = q; m.appendChild(b); log.appendChild(m); return m; };
+  const render = () => {
+    log.innerHTML = '';
+    if (!THREAD.length) { log.innerHTML = hello(); $$('.mc-sug [data-q]', log).forEach(b => (b.onclick = () => ask(tr(SUG[+b.dataset.q][1])))); return; }
+    THREAD.forEach(x => { if (x.role === 'user') uMsg(x.content); else finish(aMsg(), x.content); }); log.querySelectorAll('.mc-m').forEach(m => (m.style.animation = 'none')); down();
+  };
+  let busy = false;
+  const sync = () => { send.disabled = busy || !inp.value.trim(); const n = inp.value.length; cnt.innerHTML = n > 1500 ? `<b class="${n > 1900 ? 'bad' : ''}">${n}/2000</b>` : cost; };
+  const grow = () => { inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 148) + 'px'; sync(); };
+  async function ask(q) {
+    q = String(q || '').trim(); if (!q || busy) return;
+    if (!acc.config.ai) { toast('AI hozircha ulanmagan.', 'err'); return; }
+    if (!THREAD.length) log.innerHTML = '';
+    THREAD.push({ role: 'user', content: q }); uMsg(q); down();
+    const m = aMsg(); m.classList.add('busy'); const av = $('.dv', m), body = $('.mc-b', m); av.classList.add('live'); body.innerHTML = `<span class="dots" role="status" aria-label="${tr('Doue yozmoqda…')}"><i></i><i></i><i></i></span>`; down();
+    busy = true; inp.value = ''; grow();
+    try {
+      const r = await streamAI({ tool: 'mentor', messages: THREAD }, t => { const s = near(); body.innerHTML = md(t) + '<span class="mc-caret"></span>'; if (s) down(); });
+      THREAD.push({ role: 'assistant', content: r.reply }); const s = near(); finish(m, r.reply); if (s) down();
+    } catch (e) {
+      THREAD.pop(); m.classList.remove('busy'); m.classList.add('err');
+      body.innerHTML = `<p>${esc(e.message)}</p><button type="button" class="mc-retry">${svg('send')}<span>${tr('Qayta urinish')}</span></button>`;
+      $('.mc-retry', body).onclick = () => { const u = m.previousElementSibling; m.remove(); if (u) u.remove(); ask(q); };
+      down();
+    }
+    av.classList.remove('live'); busy = false; sync(); if (matchMedia('(pointer:fine)').matches) inp.focus();
+  }
+  $('#m-f', el).onsubmit = ev => { ev.preventDefault(); ask(inp.value); };
+  inp.oninput = grow;
+  inp.onkeydown = ev => { if (ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing) { ev.preventDefault(); ask(inp.value); } };
+  $('#m-new', el).onclick = () => { if (busy || !THREAD.length) return; THREAD = []; render(); inp.value = ''; grow(); inp.focus(); };
+  render(); sync();
+
+  /* ---- Chuqur vositalar: universitetlarni tanlash (eng koʻpi bilan 8 ta) ---- */
+  const boxes = $$('#m-u input', el), k = $('#m-k', el), picked = () => boxes.filter(b => b.checked).map(b => b.value);
+  const count = () => { const n = picked().length; k.textContent = `${n} / ${MAX_UNI}`; k.classList.toggle('full', n >= MAX_UNI); boxes.forEach(b => (b.disabled = !b.checked && n >= MAX_UNI)); }; count();
+  boxes.forEach(b => (b.onchange = count));
+  $('#m-q', el).oninput = e => { const q = e.target.value.trim().toLowerCase(); let n = 0; $$('#m-u .mc-u', el).forEach(l => { const on = !q || l.dataset.s.includes(q); l.hidden = !on; if (on) n++; }); $('#m-u .mc-none', el).hidden = n > 0; };
   const tool = async (name, need) => {
-    const m = $('#m-m', el), sel = [...$('#m-u', el).selectedOptions].map(o => o.value).slice(0, 8), o = $('#m-o', el); m.className = 'msg err'; m.textContent = '';
+    const m = $('#m-m', el), sel = picked().slice(0, MAX_UNI), o = $('#m-o', el); m.className = 'msg err'; m.textContent = '';
     if (!acc.config.ai) { m.textContent = 'AI hozircha ulanmagan.'; return; }
     if (!acc.features.includes(need)) return upsell(need, 'Bu vosita Pro tarifida.');
     if (!sel.length) { m.textContent = 'Kamida bitta universitet tanlang.'; return; }
-    o.hidden = false; o.innerHTML = '<div class="sk" style="height:140px"></div>';
-    const head = `<h3>${name === 'strategy' ? 'Qabul strategiyasi' : 'Universitet hisoboti'}</h3>`;
-    try { const r = await streamAI({ tool: name, universities: sel }, txt => { o.innerHTML = `${head}<div class="pre">${md(txt)}</div>`; }); o.innerHTML = `${head}<div class="pre">${md(r.reply)}</div><p class="hint">Raqam va muddatlarni universitetning rasmiy saytida tekshiring.</p>`;  aiFlag($('.pre', o), name, r.reply); }
-    catch (e) { o.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; }
+    const head = aiHead(name === 'strategy' ? 'Qabul strategiyasi' : 'Universitet hisoboti'), btns = $$('.mc-tool', el); btns.forEach(b => (b.disabled = true));
+    o.hidden = false; o.innerHTML = head + '<div class="sk" style="height:140px"></div>'; o.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    try { const r = await streamAI({ tool: name, universities: sel }, txt => { o.innerHTML = `${head}<div class="pre">${md(txt)}</div>`; }); o.innerHTML = `${head}<div class="pre">${md(r.reply)}</div><p class="hint">Raqam va muddatlarni universitetning rasmiy saytida tekshiring.</p>`; aiFlag($('.pre', o), name, r.reply); }
+    catch (e) { o.innerHTML = `${head}<p class="msg err">${esc(e.message)}</p>`; }
+    btns.forEach(b => (b.disabled = false));
   };
-  $('#rq-b', el).onclick = async () => { const m = $('#rq-m', el), g = id => $('#' + id, el).value.trim(); m.className = 'msg err'; if (g('rq-n').length < 2 || g('rq-c').length < 5) { m.textContent = 'Ism va aloqa ma’lumotini kiriting.'; return; } try { await api('/api/request', 'POST', { name: g('rq-n'), contact: g('rq-c'), service: g('rq-s'), message: g('rq-t') }); m.className = 'msg ok'; m.textContent = 'So‘rov yuborildi. Siz bilan bog‘lanamiz.'; } catch (e) { m.textContent = e.message; } };
-  $('#m-st', el).onclick = () => tool('strategy', 'strategy'); $('#m-rp', el).onclick = () => tool('report', 'reports');
+  $('#m-strategy', el).onclick = () => tool('strategy', 'strategy'); $('#m-report', el).onclick = () => tool('report', 'reports');
 }
