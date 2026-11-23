@@ -178,10 +178,10 @@ html[data-theme=dark] .mk-chips span{color:var(--brand)}
 
 /* qanday ishlaydi */
 .lp-how{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.04fr);gap:clamp(36px,6vw,96px);align-items:start}
-.lp-steps{position:relative;list-style:none;margin:0;padding:0 0 0 52px;--prog:0px}
+.lp-steps{position:relative;isolation:isolate;list-style:none;margin:0;padding:0 0 0 52px;--prog:0px}
 .lp-steps::before{content:"";position:absolute;left:12px;top:30px;bottom:30px;border-left:2px dotted var(--line-2)}
 .lp-steps::after{content:"";position:absolute;left:11px;top:30px;width:4px;height:var(--prog);border-radius:4px;background:linear-gradient(var(--brand),color-mix(in srgb,var(--brand) 50%,var(--reach-v)));transition:height .15s linear}
-.lp-step{position:relative;min-height:46vh;display:flex;flex-direction:column;justify-content:center;opacity:.34;transition:opacity .5s}
+.lp-step{position:relative;z-index:1;min-height:46vh;display:flex;flex-direction:column;justify-content:center;opacity:.34;transition:opacity .5s}
 .lp-step.is-on{opacity:1}
 .lp-step .nd{position:absolute;left:-52px;top:calc(50% - 14px);width:26px;height:26px;border-radius:50%;background:var(--bg);border:2px solid var(--line-2);transition:background-color .4s,border-color .4s,box-shadow .5s,transform .5s cubic-bezier(.3,1.4,.5,1);display:grid;place-items:center}
 .lp-step.is-on .nd,.lp-step.is-done .nd{border-color:var(--brand);background:var(--brand);box-shadow:0 0 0 6px color-mix(in srgb,var(--brand) 20%,transparent)}
