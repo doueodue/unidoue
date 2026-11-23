@@ -1,0 +1,30 @@
+{
+ "name": "Eindhoven University of Technology",
+ "country": "Netherlands",
+ "city": "Eindhoven",
+ "official_url": "https://www.tue.nl",
+ "language": null,
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-15",
+  "intake": "2027–2028 academic year: bachelor programmes with selection (applications 1 Oct 2026 – 15 Jan 2027)",
+  "url": "https://www.tue.nl/en/education/bachelor-college/selection",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "",
+  "url": ""
+ },
+ "bachelor_in_english": null
+}

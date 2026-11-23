@@ -1,0 +1,30 @@
+{
+ "name": "Wageningen University & Research",
+ "country": "Netherlands",
+ "city": "Wageningen",
+ "official_url": "https://www.wur.nl",
+ "language": null,
+ "ielts": {
+  "min_overall": 6.0,
+  "url": "https://www.wur.nl/en/education/bachelor/application-admission-bachelors/apply-bachelors-programme/language-requirements",
+  "year": 2026
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "",
+  "url": ""
+ },
+ "bachelor_in_english": null
+}

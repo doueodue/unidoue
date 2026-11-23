@@ -1,0 +1,30 @@
+{
+ "name": "Fudan University",
+ "country": "China",
+ "city": "Shanghai",
+ "official_url": "https://www.fudan.edu.cn/en/",
+ "language": null,
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "English-taught Undergraduate International Program in Economics (UIPE): applicants must be 18 or older and hold a foreign passport. Application deadlines in the published 2026 requirements: 15 Nov (spring semester) and 15 May (fall semester); the 2027 version is due in October.",
+  "url": "https://econ.fudan.edu.cn/uipe/Prospective_Students1/Entry_Requirements.htm"
+ },
+ "bachelor_in_english": null
+}

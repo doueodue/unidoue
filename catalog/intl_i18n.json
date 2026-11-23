@@ -1153,5 +1153,23 @@
    "Kurs profiliga bog‘liq: umumiy IELTS 6.0 (tinglash yoki gapirishda 6.5, hech biri 6.0 dan past emas) dan, umumiy 6.5 va ikki ko‘nikmada 7.0 (hech biri 6.0 dan past emas) gacha. Kurs sahifasida uning profili ko‘rsatilgan.",
    "Зависит от профиля курса: от IELTS 6.0 в целом (6.5 по аудированию или говорению, ни один раздел не ниже 6.0) до 6.5 в целом с 7.0 по двум навыкам и не ниже 6.0 по остальным. Профиль указан на странице курса."
   ]
+ },
+ "eindhoven-university-of-technology": {
+  "intake": [
+   "2027–2028 o‘quv yili: tanlov bilan qabul qilinadigan bakalavr dasturlari (ariza 2026-yil 1-oktyabr – 2027-yil 15-yanvar)",
+   "Учебный год 2027–2028: бакалаврские программы с отбором (заявки 1 октября 2026 – 15 января 2027)"
+  ]
+ },
+ "osaka-university": {
+  "intake": [
+   "2027-yil oktyabr qabuli: Human Sciences International Undergraduate Degree Program (onlayn ro‘yxatdan o‘tish 2026-yil 1-dekabrdan)",
+   "Набор на октябрь 2027: Human Sciences International Undergraduate Degree Program (онлайн-регистрация с 1 декабря 2026)"
+  ]
+ },
+ "fudan-university": {
+  "req": [
+   "Inglizcha o‘qitiladigan Undergraduate International Program in Economics (UIPE): abituriyent 18 yoshdan katta bo‘lishi va xorijiy pasportga ega bo‘lishi kerak. E’lon qilingan 2026-yil talablariga ko‘ra ariza muddatlari: 15-noyabr (bahor semestri) va 15-may (kuz semestri); 2027-yil versiyasi oktyabrda e’lon qilinadi.",
+   "Программа на английском Undergraduate International Program in Economics (UIPE): абитуриент должен быть старше 18 лет и иметь иностранный паспорт. По опубликованным требованиям 2026 сроки подачи: 15 ноября (весенний семестр) и 15 мая (осенний); версия 2027 будет опубликована в октябре."
+  ]
  }
 }

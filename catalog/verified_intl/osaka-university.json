@@ -1,0 +1,30 @@
+{
+ "name": "Osaka University",
+ "country": "Japan",
+ "city": "Osaka",
+ "official_url": "https://www.osaka-u.ac.jp/en",
+ "language": null,
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": "2027-01-05",
+  "intake": "October 2027 entry: Human Sciences International Undergraduate Degree Program (online registration from 1 Dec 2026)",
+  "url": "https://iudp.hus.osaka-u.ac.jp/wp-content/uploads/2026/07/2027-HUS-Application-Guidelines.pdf",
+  "year": 2026
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "",
+  "url": ""
+ },
+ "bachelor_in_english": null
+}
