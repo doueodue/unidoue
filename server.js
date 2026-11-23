@@ -1388,7 +1388,7 @@ function serveStatic(req, res, pathname) {
   let rel = PAGES[pathname];
   if (!rel) {
     try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch (e) { return false; }
-    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'atlas.css' || rel === 'dark.css' || rel === 'landing.css' || rel === 'contour.svg' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'controls.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
+    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'atlas.css' || rel === 'landing.css' || rel === 'contour.svg' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'controls.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
     if (!ok) return false;
   }
   const file = path.resolve(PUBLIC_DIR, rel);

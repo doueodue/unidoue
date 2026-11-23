@@ -51,7 +51,7 @@ export function createGlobe(canvas, opts = {}) {
     const cs = getComputedStyle(root), dark = (mode || root.getAttribute('data-theme')) === 'dark';
     const brand = hex(cs.getPropertyValue('--brand') || '#d9611a'), b6 = hex(cs.getPropertyValue('--brand-600') || '#b04a0e');
     col = dark
-      ? { dark, dot: [142, 163, 200], line: [104, 124, 164], arc: mix(brand, [255, 255, 255], 0.22), sphereA: [22, 32, 54], sphereB: [10, 15, 27], glow: [96, 126, 190], pillBg: [19, 26, 41], pillTx: [232, 236, 244], pillBd: [74, 90, 128], home: brand, back: [92, 110, 150] }
+      ? { dark, dot: mix(brand, [255, 255, 255], 0.38), line: mix(brand, [255, 255, 255], 0.2), arc: mix(brand, [255, 255, 255], 0.3), sphereA: mix(brand, [20, 10, 6], 0.82), sphereB: [14, 8, 5], glow: brand, pillBg: [28, 17, 11], pillTx: [255, 240, 226], pillBd: brand, home: brand, back: mix(brand, [255, 255, 255], 0.2) }
       : { dark, dot: b6, line: b6, arc: b6, sphereA: [255, 250, 243], sphereB: mix(brand, [255, 244, 228], 0.8), glow: brand, pillBg: [255, 255, 255], pillTx: [42, 26, 16], pillBd: brand, home: brand, back: b6 };
   }
   function resize() {
@@ -89,7 +89,7 @@ export function createGlobe(canvas, opts = {}) {
     const c1 = cl(), s1 = sl(), c2 = ct(), s2 = st();
     /* atmosfera */
     let g = ctx.createRadialGradient(cx, cy, R * 0.94, cx, cy, R * 1.32);
-    g.addColorStop(0, rgba(col.glow, col.dark ? 0.14 : 0.26)); g.addColorStop(0.35, rgba(col.glow, col.dark ? 0.04 : 0.08)); g.addColorStop(1, rgba(col.glow, 0));
+    g.addColorStop(0, rgba(col.glow, col.dark ? 0.34 : 0.26)); g.addColorStop(0.35, rgba(col.glow, col.dark ? 0.1 : 0.08)); g.addColorStop(1, rgba(col.glow, 0));
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.32, 0, PI * 2); ctx.fill();
     /* shar */
     g = ctx.createRadialGradient(cx - R * 0.38, cy - R * 0.42, R * 0.1, cx, cy, R * 1.02);

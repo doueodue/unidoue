@@ -328,7 +328,7 @@ class Client {
     }
 
     console.log('Statik fayllar va sarlavhalar');
-    for (const [u, code] of [['/', 200], ['/app', 200], ['/index.html', 301], ['/js/main.js', 200], ['/data/universities.json', 200], ['/data/intl.json', 200], ['/js/views4.js', 200], ['/js/i18n.js', 200], ['/dark.css', 200], ['/admin', 200], ['/js/admin.js', 200], ['/js/ui.js', 200], ['/js/notes.js', 200], ['/js/avatar.js', 200], ['/avatar.js', 404], ['/js/unsub.js', 200], ['/unsub', 200], ['/controls.css', 200], ['/js/i18n_notes.js', 200], ['/notes.js', 404], ['/catalog/verified_intl/eth-zurich.json', 404], ['/server.js', 404], ['/package.json', 404], ['/data/db.json', 404], ['/catalog/scholarships.json', 404], ['/js/../server.js', 404], ['/%2e%2e/server.js', 404], ['/.git/config', 404]]) {
+    for (const [u, code] of [['/', 200], ['/app', 200], ['/index.html', 301], ['/js/main.js', 200], ['/data/universities.json', 200], ['/data/intl.json', 200], ['/js/views4.js', 200], ['/js/i18n.js', 200], ['/admin', 200], ['/js/admin.js', 200], ['/js/ui.js', 200], ['/js/notes.js', 200], ['/js/avatar.js', 200], ['/avatar.js', 404], ['/js/unsub.js', 200], ['/unsub', 200], ['/controls.css', 200], ['/js/i18n_notes.js', 200], ['/notes.js', 404], ['/catalog/verified_intl/eth-zurich.json', 404], ['/server.js', 404], ['/package.json', 404], ['/data/db.json', 404], ['/catalog/scholarships.json', 404], ['/js/../server.js', 404], ['/%2e%2e/server.js', 404], ['/.git/config', 404]]) {
       const x = await fetch(B + u, { redirect: 'manual' }); ok(x.status === code, `GET ${u} → ${code}`, x.status);
     }
     const hm = await fetch(B + '/'); const ht = await hm.text(); ok(/class="lp-h1"/.test(ht) && /href="\/landing\.css/.test(ht) && /href="\/app\?m=register"/.test(ht) && /script-src 'self';/.test(hm.headers.get('content-security-policy') || ''), 'bosh sahifa (/) — tanishtiruv (landing), qattiq CSP bilan');
@@ -337,7 +337,7 @@ class Client {
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
     const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
-    ok(/href="\/tiers\.css/.test(html) && /unidoue-v58/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v58');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v59/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v59');
     const ac = await fetch(B + '/atlas.css?v=50'), act = await ac.text(), cv = await fetch(B + '/contour.svg'), cvt = await cv.text();
     ok(ac.status === 200 && /text\/css/.test(ac.headers.get('content-type') || '') && /\.rt-done/.test(act) && /href="\/atlas\.css/.test(html), 'atlas.css (Yo‘l daftari dizayni) toʻgʻri MIME bilan beriladi va /app ga ulangan');
     ok(cv.status === 200 && /image\/svg\+xml/.test(cv.headers.get('content-type') || '') && /^<svg/.test(cvt) && !/<script/i.test(cvt), 'contour.svg (xarita foni) image/svg+xml bilan beriladi');

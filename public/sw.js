@@ -1,7 +1,7 @@
 /* UniDoue service worker: API hech qachon keshlanmaydi; sahifa avval tarmoqdan, oflayn boʻlsa keshdan. */
-const V = 'unidoue-v58';
+const V = 'unidoue-v59';
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(V).then(c => c.addAll(['/', '/app', '/app.css', '/atlas.css', '/dark.css', '/controls.css', '/landing.css', '/contour.svg', '/icons/icon-192.png'])).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(V).then(c => c.addAll(['/', '/app', '/app.css', '/atlas.css', '/controls.css', '/landing.css', '/contour.svg', '/icons/icon-192.png'])).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim()));
@@ -11,7 +11,7 @@ self.addEventListener('fetch', e => {
   if (r.method !== 'GET' || u.origin !== location.origin || u.pathname.startsWith('/api/')) return;
   e.respondWith(
     fetch(r).then(res => {
-      if (res.ok && (r.mode === 'navigate' || u.pathname.startsWith('/icons/') || u.pathname === '/app.css' || u.pathname === '/atlas.css' || u.pathname === '/dark.css' || u.pathname === '/controls.css' || u.pathname === '/landing.css' || u.pathname === '/contour.svg' || u.pathname === '/tiers.css')) {
+      if (res.ok && (r.mode === 'navigate' || u.pathname.startsWith('/icons/') || u.pathname === '/app.css' || u.pathname === '/atlas.css' || u.pathname === '/controls.css' || u.pathname === '/landing.css' || u.pathname === '/contour.svg' || u.pathname === '/tiers.css')) {
         const copy = res.clone();
         caches.open(V).then(c => c.put(r, copy));
       }
