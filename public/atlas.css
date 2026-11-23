@@ -195,7 +195,7 @@ html[data-theme=dark] .dh::before{opacity:.24}
 .gd-r h3{margin:0}.gd-r .sub{margin:2px 0 10px}
 .gd-chips{display:flex;gap:8px;flex-wrap:wrap}
 .gd-chips span{padding:4px 12px;border-radius:99px;font-size:13px;font-weight:650;background:var(--brand-50);color:var(--brand-600)}
-.gd-r p.tip{margin:10px 0 6px;color:var(--ink-2)}
+.gd-r .gd-tip{margin:10px 0 6px;color:var(--ink-2)}
 .gd-empty{grid-template-columns:minmax(0,1fr) auto}
 .gd-f{display:flex;gap:8px}.gd-f input{min-width:170px}
 

@@ -45,7 +45,7 @@ function gradCard(P) {
   if (n < 0) return `<section class="card gd gd-empty s8"><div class="gd-r"><h3>Siz bitirgansiz!</h3><p class="sub">Bitiruv sanasi: ${fmtDate(P.pgd)}. Keyingi qadam — arizalar va muddatlar.</p></div><a class="btn sm" href="#/profile">Sanani o‘zgartirish</a></section>`;
   const wk = Math.floor(n / 7), mo = Math.floor(n / 30.44);
   return `<section class="card gd s8"><div class="gd-n"><b>${n}</b><span>kun qoldi</span></div>
-    <div class="gd-r"><h3>Graduategacha</h3><p class="sub">${fmtDate(P.pgd)}</p><div class="gd-chips"><span>${wk} hafta</span><span>≈ ${mo} oy</span></div><p class="tip">${gradTip(n)}</p><a class="link-btn" href="#/profile">Sanani o‘zgartirish</a></div></section>`;
+    <div class="gd-r"><h3>Graduategacha</h3><p class="sub">${fmtDate(P.pgd)}</p><div class="gd-chips"><span>${wk} hafta</span><span>≈ ${mo} oy</span></div><p class="gd-tip">${gradTip(n)}</p><a class="link-btn" href="#/profile">Sanani o‘zgartirish</a></div></section>`;
 }
 
 /* ===== Safar yo‘li: profil → testlar → ro‘yxat → arizalar → natija (marshrut chizig‘i) ===== */
@@ -178,7 +178,7 @@ export async function tracker(el) {
 /* ================= TARIFLAR ================= */
 const FEAT = {
   plus: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Esse murabbiyi: darslar, tekshiruv va AI fikri', 'Portfolio dizayni: 5 ta shablon, 10 rang, fon va effektlar', '4 ta universitetni solishtirish', '175 AI kredit / oy'],
-  free: ['Barcha universitetlar + nima uchun mos ekanligi', 'Universitet haqida ma’lumot (manbalar bilan)', 'Stipendiya qidiruvi', 'To‘liq moslik tahlili va maslahatlar', 'Cheksiz arizalar kuzatuvi', 'Portfolio quruvchi: PDF, Word, veb-sahifa (2 ta shablon)', '3 ta universitetni solishtirish', '15 AI kredit / oy'],
+  free: ['Barcha universitetlar + nima uchun mos ekanligi', 'Universitet haqida ma’lumot (manbalar bilan)', 'Stipendiya qidiruvi', 'To‘liq moslik tahlili va maslahatlar', 'Cheksiz arizalar kuzatuvi', 'Portfolio quruvchi: PDF, Word, veb-sahifa (2 ta shablon)', '3 ta universitetni solishtirish', '50 AI kredit / oy'],
   pro: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Shaxsiy qabul strategiyasi', 'Chuqur esse tahlili', 'Universitet hisobotlari', 'Portfolio dizayn studiyasi: 8 shablon, fon va effektlar, o‘z ranglaringiz, AI dizayner', 'Esse murabbiyi: darslar, tekshiruv va AI fikri', '4 ta universitetni solishtirish', '300 AI kredit / oy', 'Ustuvor yordam']
 };
 const ORDER = { free: 0, plus: 1, pro: 2 };

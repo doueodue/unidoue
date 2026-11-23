@@ -196,7 +196,7 @@ const F_PLUS = [...F_FREE, 'mentor_adv', 'coach']; // coach: esse murabbiyi (Plu
 const F_PRO = [...F_PLUS, 'strategy', 'essay_adv', 'reports', 'priority', 'pf_studio']; // pf_studio: portfolio AI dizayneri (Pro). Portfolio quruvchining oʻzi hamma tarifga ochiq; dizayn cheklovlari mijozda (pfdesign.js)
 const PLAN_ORDER = { free: 0, plus: 1, pro: 2 };
 const PLANS = {
-  free: { id: 'free', name: 'Free', price: 0, ai: 15, apps: 1000, finder: 101, compare: 3, features: F_FREE },
+  free: { id: 'free', name: 'Free', price: 0, ai: 50, apps: 1000, finder: 101, compare: 3, features: F_FREE },
   plus: { id: 'plus', name: 'Plus', price: 2.99, ai: 175, apps: 1000, finder: 101, compare: 4, features: F_PLUS },
   pro:  { id: 'pro',  name: 'Pro',  price: 4.99, ai: 300, apps: 1000, finder: 101, compare: 4, features: F_PRO }
 };

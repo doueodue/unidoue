@@ -138,9 +138,9 @@ class Client {
     const fr = new Client(); await fr.call('POST', '/api/register', { email: 'free@gmail.com', password: 'parol12345', name: 'Free' });
     r = await fr.call('POST', '/api/ai', { tool: 'strategy', universities: ['MIT'] }); ok(r.s === 403 || r.s === 402, 'Free: Pro vositasi yopiq', r.s);
     for (let i = 0; i < 7; i++) await fr.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'q' }] });
-    r = await fr.call('GET', '/api/me'); ok(r.j.account.limits.ai === 15 && r.j.account.usage.ai === 7, 'Free: 15 kredit limiti, 7 ta sarflangan', r.j.account.usage);
+    r = await fr.call('GET', '/api/me'); ok(r.j.account.limits.ai === 50 && r.j.account.usage.ai === 7, 'Free: 50 kredit limiti, 7 ta sarflangan', r.j.account.usage);
     r = await fr.call('GET', '/api/credits'); const me7 = await fr.call('GET', '/api/me');
-    ok(r.s === 200 && r.j.credits.used === 7 && r.j.credits.left === 8 && r.j.credits.limit === 15 && JSON.stringify(r.j.credits) === JSON.stringify(me7.j.account.credits), 'kreditlar yagona manba: /api/credits = /api/me', r.j);
+    ok(r.s === 200 && r.j.credits.used === 7 && r.j.credits.left === 43 && r.j.credits.limit === 50 && JSON.stringify(r.j.credits) === JSON.stringify(me7.j.account.credits), 'kreditlar yagona manba: /api/credits = /api/me', r.j);
     r = await new Client().call('GET', '/api/credits'); ok(r.s === 401, 'kreditlar: kirmagan foydalanuvchiga 401');
     r = await pro.call('POST', '/api/ai', { tool: 'mentor', messages: [{ role: 'user', content: 'q' }] }); ok(r.s === 200 && r.j.credits.used === 7 && r.j.credits.left === 293 && r.j.usage.ai === 7, 'AI javobida kreditlar (6 + 1 = 7, qoldi 293)', r.j.credits);
     const rl = new Client(); await rl.call('POST', '/api/register', { email: 'rl@gmail.com', password: 'parol12345', name: 'RL' });
@@ -371,7 +371,7 @@ class Client {
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
     const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
-    ok(/href="\/tiers\.css/.test(html) && /unidoue-v69/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v59');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v70/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v59');
     const ac = await fetch(B + '/atlas.css?v=50'), act = await ac.text(), cv = await fetch(B + '/contour.svg'), cvt = await cv.text();
     ok(ac.status === 200 && /text\/css/.test(ac.headers.get('content-type') || '') && /\.rt-done/.test(act) && /href="\/atlas\.css/.test(html), 'atlas.css (Yo‘l daftari dizayni) toʻgʻri MIME bilan beriladi va /app ga ulangan');
     ok(cv.status === 200 && /image\/svg\+xml/.test(cv.headers.get('content-type') || '') && /^<svg/.test(cvt) && !/<script/i.test(cvt), 'contour.svg (xarita foni) image/svg+xml bilan beriladi');
