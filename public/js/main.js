@@ -60,7 +60,7 @@ function authScreen(mode = 'login') {
     if (!fg && pw.length < 8) { m.textContent = 'Parol kamida 8 ta belgidan iborat bo‘lsin.'; return; }
     btn.disabled = true; const t0 = btn.textContent; btn.textContent = t('Kuting…'); m.textContent = '';
     try {
-      if (fg) { await api('/api/password/forgot', 'POST', { email: em }); m.className = 'msg ok'; m.textContent = 'Agar bu email ro‘yxatda bo‘lsa, tiklash havolasi yuborildi. Pochtangizni tekshiring.'; }
+      if (fg) { await api('/api/password/forgot', 'POST', { email: em }); m.className = 'msg ok'; m.textContent = 'Agar bu email ro‘yxatda bo‘lsa, tiklash havolasi yuborildi. Pochtangizni va Spam papkasini tekshiring (xat 1–2 daqiqada keladi).'; }
       else { const me = await api(reg ? '/api/register' : '/api/login', 'POST', reg ? { email: em, password: pw, name: nm } : { email: em, password: pw }); if (me.user.verified === false) { verifyScreen(me); return; } adopt(me); start(); return; }
     } catch (e) { m.textContent = e.message; }
     btn.disabled = false; btn.textContent = t0;

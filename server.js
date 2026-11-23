@@ -139,15 +139,34 @@ const BREVO_URL = process.env.BREVO_URL || 'https://api.brevo.com/v3/smtp/email'
 const MAIL_PROVIDER = RESEND_KEY ? 'resend' : (BREVO_KEY ? 'brevo' : '');
 const MAIL_FROM = process.env.MAIL_FROM || 'UniDoue <onboarding@resend.dev>';
 // Xat yuborish: Resend yoki Brevo (domen talab qilmaydi — faqat tasdiqlangan joʻnatuvchi email)
-async function sendMail(to, subject, html) {
-  let r;
-  if (MAIL_PROVIDER === 'resend') {
-    r = await fetch(MAIL_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: MAIL_FROM, to: [to], subject, html }), signal: AbortSignal.timeout(15000) });
-  } else {
-    const m = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(MAIL_FROM), sender = m ? { name: m[1] || 'UniDoue', email: m[2] } : { name: 'UniDoue', email: MAIL_FROM.trim() };
-    r = await fetch(BREVO_URL, { method: 'POST', headers: { 'api-key': BREVO_KEY, 'Content-Type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ sender, to: [{ email: to }], subject, htmlContent: html }), signal: AbortSignal.timeout(15000) });
+const MAILSTAT = { ok: 0, fail: 0, last: null };
+const toText = h => String(h).replace(/<br\s*\/?>|<\/p>|<\/h\d>|<\/li>|<\/tr>/gi, '\n').replace(/<a [^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, '$2 ($1)').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\n{3,}/g, '\n\n').trim();
+/** Xat yuborilmagan sababini oddiy tilda tushuntiradi (admin panelda ko‘rsatiladi). */
+function mailHint(err) {
+  const e = String(err || '');
+  if (/only send testing emails|own email|verify a domain|domain is not verified/i.test(e)) return 'Resend hozircha sinov rejimida: faqat o‘z emailingizga yuboradi. Resend’da domenni tasdiqlang va MAIL_FROM ni shu domen manziliga o‘zgartiring.';
+  if (/resend 40[13]|invalid.*api.?key|api key is invalid/i.test(e)) return 'API kalit noto‘g‘ri yoki ruxsati yo‘q. Render → Environment da RESEND_API_KEY / BREVO_API_KEY ni qayta tekshiring.';
+  if (/brevo 40[01]/i.test(e) && /sender|from/i.test(e)) return 'MAIL_FROM Brevo’da tasdiqlangan jo‘natuvchi emas. Brevo → Senders bo‘limida shu manzilni tasdiqlang.';
+  if (/brevo 40[13]|key not found|unauthorized/i.test(e)) return 'Brevo API kaliti noto‘g‘ri yoki IP cheklovi bor. Brevo → SMTP & API → Security da tekshiring.';
+  if (/timeout|aborted|ENOTFOUND|ECONN/i.test(e)) return 'Xat xizmatiga ulanib bo‘lmadi (tarmoq yoki vaqt tugashi).';
+  return '';
+}
+async function sendMail(to, subject, html, kind = 'mail') {
+  const text = toText(html);
+  try {
+    let r;
+    if (MAIL_PROVIDER === 'resend') {
+      r = await fetch(MAIL_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: MAIL_FROM, to: [to], subject, html, text }), signal: AbortSignal.timeout(15000) });
+    } else {
+      const m = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(MAIL_FROM), sender = m ? { name: m[1] || 'UniDoue', email: m[2] } : { name: 'UniDoue', email: MAIL_FROM.trim() };
+      r = await fetch(BREVO_URL, { method: 'POST', headers: { 'api-key': BREVO_KEY, 'Content-Type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ sender, to: [{ email: to }], subject, htmlContent: html, textContent: text }), signal: AbortSignal.timeout(15000) });
+    }
+    if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(MAIL_PROVIDER + ' ' + r.status + ' ' + t.slice(0, 200)); }
+    MAILSTAT.ok++; MAILSTAT.last = { at: Date.now(), ok: true, kind };
+  } catch (e) {
+    MAILSTAT.fail++; MAILSTAT.last = { at: Date.now(), ok: false, kind, err: String(e.message || e).slice(0, 300) };
+    throw e;
   }
-  if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(MAIL_PROVIDER + ' ' + r.status + ' ' + t.slice(0, 200)); }
 }
 
 // Email tasdiqlash: faqat xat yuborish sozlangan boʻlsa majburiy (REQUIRE_EMAIL_VERIFY=0 bilan oʻchiriladi).
@@ -156,7 +175,7 @@ async function issueCode(u) {
   const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
   u.vcode = { h: sha256(u.id + ':' + code), exp: Date.now() + 15 * 60000, tries: 0, sent: Date.now() };
   await sendMail(u.email, 'UniDoue: tasdiqlash kodi',
-    `<p>UniDoue tasdiqlash kodingiz:</p><p style="font-size:28px;letter-spacing:6px"><b>${code}</b></p><p>Kod 15 daqiqa amal qiladi. Bu soʻrovni siz yubormagan boʻlsangiz, xatni eʼtiborsiz qoldiring.</p>`);
+    `<p>UniDoue tasdiqlash kodingiz:</p><p style="font-size:28px;letter-spacing:6px"><b>${code}</b></p><p>Kod 15 daqiqa amal qiladi. Bu soʻrovni siz yubormagan boʻlsangiz, xatni eʼtiborsiz qoldiring.</p>`, 'verify');
 }
 // Qoʻlda toʻlov: karta rekvizitlari faqat serverda sozlansa (PAY_CARD, PAY_HOLDER) koʻrsatiladi. Toʻlov avtomatik tekshirilmaydi: Pro administrator tomonidan qoʻlda yoqiladi.
 const PAY_CARD = (process.env.PAY_CARD || '').replace(/\s/g, '');
@@ -1088,7 +1107,7 @@ async function api(req, res, pathname) {
       active7: us.filter(u => (u.act || []).some(d => week.has(d))).length,
       aiMonth: us.reduce((n, u) => n + (u.usage && u.usage.p === month() ? u.usage.ai || 0 : 0), 0),
       aiTokensMonth: us.reduce((n, u) => n + (u.usage && u.usage.p === month() ? tokensUsed(u.usage) : 0), 0),
-      since: all[0] || null, rows, push: { users: us.filter(u => u.push && u.push.length).length, devices: pushDevices(), admin: db.adminPush.length }, mail: !!MAIL_PROVIDER, ai: !!AI_PROVIDER, verifyOn: VERIFY_ON, payCard: !!PAY_INFO
+      since: all[0] || null, rows, push: { users: us.filter(u => u.push && u.push.length).length, devices: pushDevices(), admin: db.adminPush.length }, mail: !!MAIL_PROVIDER, mailLast: MAILSTAT.last ? { at: MAILSTAT.last.at, ok: MAILSTAT.last.ok, kind: MAILSTAT.last.kind, err: MAILSTAT.last.err || '', hint: mailHint(MAILSTAT.last.err) } : null, mailFail: MAILSTAT.fail, mailOk: MAILSTAT.ok, mailSandbox: MAIL_PROVIDER === 'resend' && /resend\.dev/i.test(MAIL_FROM), ai: !!AI_PROVIDER, verifyOn: VERIFY_ON, payCard: !!PAY_INFO
     });
   }
 
@@ -1142,6 +1161,15 @@ async function api(req, res, pathname) {
     return send(res, 200, { ok: true, email: u.email, plan: u.plan, planUntil: u.planUntil });
   }
 
+  if (pathname === '/api/admin/mail-test' && method === 'POST') { // sinov xati: haqiqiy provayder javobini ko‘rsatadi
+    if (!admGate(req, res, ip, 'mail-test', 20)) return;
+    if (!MAIL_PROVIDER) return send(res, 200, { ok: false, error: 'RESEND_API_KEY yoki BREVO_API_KEY sozlanmagan.', hint: 'Render → Environment ga kalit va MAIL_FROM qo‘shing.' });
+    const b = await readJson(req), to = clean(b.to, 254).toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return fail(res, 400, 'Email noto‘g‘ri.');
+    try { await sendMail(to, 'UniDoue: sinov xati', '<p>Bu UniDoue sinov xati. Agar buni o‘qiyotgan bo‘lsangiz, xat yuborish to‘g‘ri sozlangan.</p>', 'test'); return send(res, 200, { ok: true, provider: MAIL_PROVIDER, from: MAIL_FROM }); }
+    catch (e) { return send(res, 200, { ok: false, provider: MAIL_PROVIDER, from: MAIL_FROM, error: String(e.message).slice(0, 300), hint: mailHint(e.message) }); }
+  }
+
   if (pathname === '/api/password/forgot' && method === 'POST') {
     if (!MAIL_PROVIDER) return send(res, 503, { error: 'Parolni tiklash hozircha ulanmagan: serverda RESEND_API_KEY yoki BREVO_API_KEY sozlanishi kerak. Telegram orqali murojaat qiling.', code: 'EMAIL_NOT_CONFIGURED' });
     if (limited('pf:' + ip, 8, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Keyinroq urinib koʻring.');
@@ -1152,8 +1180,8 @@ async function api(req, res, pathname) {
       db.resets[sha256(token)] = { uid: u.id, exp: Date.now() + 30 * 60000 }; save();
       const base = process.env.APP_URL || (isHttps(req) ? 'https://' : 'http://') + req.headers.host;
       sendMail(u.email, 'UniDoue: parolni tiklash',
-        `<p>Parolni tiklash uchun havola (30 daqiqa amal qiladi):</p><p><a href="${base}/reset?token=${token}">Yangi parol oʻrnatish</a></p><p>Bu soʻrovni siz yubormagan boʻlsangiz, xatni eʼtiborsiz qoldiring.</p>`)
-        .catch(e => console.error('Email xatosi:', e.message));
+        `<p>Parolni tiklash uchun havola (30 daqiqa amal qiladi):</p><p><a href="${base}/reset?token=${token}">Yangi parol oʻrnatish</a></p><p>Bu soʻrovni siz yubormagan boʻlsangiz, xatni eʼtiborsiz qoldiring.</p>`, 'reset')
+        .catch(e => console.error('Parol tiklash xati yuborilmadi:', e.message));
     }
     return send(res, 200, { ok: true });
   }
@@ -1360,7 +1388,7 @@ function serveStatic(req, res, pathname) {
   let rel = PAGES[pathname];
   if (!rel) {
     try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch (e) { return false; }
-    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'atlas.css' || rel === 'landing.css' || rel === 'contour.svg' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'controls.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
+    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'atlas.css' || rel === 'dark.css' || rel === 'landing.css' || rel === 'contour.svg' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'controls.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
     if (!ok) return false;
   }
   const file = path.resolve(PUBLIC_DIR, rel);

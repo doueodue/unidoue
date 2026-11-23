@@ -85,7 +85,17 @@ function renderOverview(st) {
   if (st.proExpiring) warn.push(`<div class="notice">${svg(IC.clock)}<div><b>${st.proExpiring} ta pullik tarif 7 kun ichida tugaydi.</b> <a href="#users">Foydalanuvchilar →</a></div></div>`);
   const cfg = [!st.mail && 'Xat yuborish ulanmagan (tasdiqlash va parol tiklash ishlamaydi)', !st.ai && 'AI ulanmagan', st.mail && !st.verifyOn && 'Email tasdiqlash o‘chiq', !st.payCard && 'PAY_CARD sozlanmagan (karta raqami ko‘rinmaydi)'].filter(Boolean);
   if (cfg.length) warn.push(`<div class="notice info">${svg(IC.info)}<div><b>Sozlash kerak:</b><br>${cfg.map(esc).join('<br>')}</div></div>`);
+  if (st.mail && st.mailLast && !st.mailLast.ok) warn.push(`<div class="notice">${svg(IC.warn)}<div><b>Oxirgi xat yuborilmadi (${esc({ reset: 'parol tiklash', verify: 'tasdiqlash kodi', test: 'sinov', mail: 'xabar' }[st.mailLast.kind] || 'xat')}).</b><br>${esc(st.mailLast.err)}${st.mailLast.hint ? `<br><b>Nima qilish kerak:</b> ${esc(st.mailLast.hint)}` : ''}</div></div>`);
+  if (st.mailSandbox) warn.push(`<div class="notice">${svg(IC.warn)}<div><b>MAIL_FROM sinov manzilida (resend.dev).</b> Bu holatda Resend xatni faqat o‘z hisobingiz emailiga yuboradi, boshqa foydalanuvchilarga parol tiklash xati bormaydi. Domeningizni Resend’da tasdiqlang yoki Brevo’dan foydalaning.</div></div>`);
+  if (st.mail) warn.push(`<div class="notice info">${svg(IC.mail)}<div><b>Email yuborish:</b> ${st.mailOk || 0} ta yuborilgan, ${st.mailFail || 0} ta xato (server ishga tushganidan beri).<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><input id="mt-to" type="email" placeholder="Sinov xati manzili" maxlength="254" style="flex:1;min-width:200px"><button class="btn sm" id="mt-go" type="button">Sinov xatini yuborish</button></div><small id="mt-r" style="display:block;margin-top:6px"></small></div></div>`);
   $('#alerts').innerHTML = warn.length ? `<div class="al">${warn.join('')}</div>` : '';
+  const mg = $('#mt-go');
+  if (mg) mg.onclick = async () => {
+    const to = $('#mt-to').value.trim(), out = $('#mt-r'); if (!to) { out.textContent = 'Manzilni kiriting.'; return; }
+    mg.disabled = true; out.textContent = 'Yuborilmoqda…';
+    try { const j = await call('POST', '/api/admin/mail-test', { to }); out.textContent = j.ok ? `Yuborildi (${j.provider}, ${j.from}). Pochta va Spam papkasini tekshiring.` : `Xato: ${j.error}${j.hint ? ' — ' + j.hint : ''}`; }
+    catch (e) { out.textContent = e.message; } finally { mg.disabled = false; }
+  };
   const ps = st.push || { users: 0, devices: 0, admin: 0 };
   $('#kpis').innerHTML = [
     kpi('act', st.activeToday, 'bugun kirganlar'), kpi('userp', st.signupsToday, 'bugun yangi hisob'), kpi('users', st.active7, 'oxirgi 7 kunda faol'), kpi('users', st.total, 'jami foydalanuvchi', 'mut'),

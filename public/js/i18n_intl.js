@@ -1,5 +1,6 @@
 /* Boshqa davlatlar: moslik, solishtirish, arizalar uchun tarjimalar. Format: [uz, ru, en]; RULES — raqamli jumlalar. */
 const P = [
+  ["Agar bu email ro‘yxatda bo‘lsa, tiklash havolasi yuborildi. Pochtangizni va Spam papkasini tekshiring (xat 1–2 daqiqada keladi).", "Если этот email есть в списке, ссылка для восстановления отправлена. Проверьте почту и папку «Спам» (письмо приходит за 1–2 минуты).", "If this email is registered, a reset link has been sent. Check your inbox and Spam folder (it arrives within 1–2 minutes)."],
   ["Faqat ingliz tilida", "Только на английском", "English-taught only"],
   ["Faqat muddati ochiq", "Только с открытым сроком", "Open deadline only"],
   ["Faqat IELTS yetarli", "Только если IELTS достаточно", "Only if my IELTS is enough"],

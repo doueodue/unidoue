@@ -1,0 +1,65 @@
+/* Tungi rejim — jiddiy va ishonchli ko‘rinish.
+   Fon: to‘q ko‘k-kulrang (jigarrang-qora emas); aksent faqat tugma, havola va belgilarda; rangli nur (glow), yaltiroq gradient va uchib yuruvchi bezaklar yo‘q.
+   Fasl (kuz/qish/bahor/yoz) faqat aksent rangini beradi. Oxirida ulanadi, shuning uchun boshqa fayllardagi tun qoidalarini bekor qiladi. */
+html[data-theme=dark],html[data-theme=dark][data-season]{
+  --bg:#0c111c;--surface:#131a29;--ink:#e8ecf4;--ink-2:#b2bccf;--muted:#8591a7;--line:#212a40;--line-2:#303c58;
+  --navy-950:#080c15;--navy-900:#0e1524;--navy-800:#162038;--navy-700:#212f4d;
+  --sh-1:0 1px 2px rgba(0,0,0,.4);--sh-2:0 8px 22px -12px rgba(0,0,0,.6);--sh-3:0 24px 60px -22px rgba(0,0,0,.7)
+}
+html[data-theme=dark] .leaves{display:none}
+html[data-theme=dark] body::before{opacity:.05}
+
+/* tugmalar: tekis rang, nursiz */
+html[data-theme=dark] .btn.primary,html[data-theme=dark] .lp-btn.solid{background:var(--brand);border-color:color-mix(in srgb,var(--brand) 80%,#000);box-shadow:0 1px 2px rgba(0,0,0,.4)}
+html[data-theme=dark] .btn.primary:hover,html[data-theme=dark] .lp-btn.solid:hover{background:color-mix(in srgb,var(--brand) 90%,#fff);filter:none;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+html[data-theme=dark] .lp-btn.solid:hover{transform:none}
+html[data-theme=dark] .lp-btn.ghost{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-theme=dark] .lp-btn.ghost:hover{background:var(--surface);color:var(--ink);border-color:var(--line-2)}
+
+/* logotip va aksent nuqtalari */
+html[data-theme=dark] .brand i,html[data-theme=dark] .lp-logo i{background:var(--brand);box-shadow:none}
+html[data-theme=dark] .nav a[aria-current=page],html[data-theme=dark][data-season] .nav a[aria-current=page]{background:rgba(255,255,255,.06)}
+html[data-theme=dark] .nav a[aria-current=page]::before{box-shadow:none}
+html[data-theme=dark] .nx-ic,html[data-theme=dark] .promo-ic,html[data-theme=dark] .mk-ic.star,html[data-theme=dark] .mk-av{background:color-mix(in srgb,var(--brand) 88%,#000);box-shadow:none}
+html[data-theme=dark] input[type=checkbox]:checked{box-shadow:none}
+html[data-theme=dark] .lang-pill{box-shadow:none}
+
+/* orqa fon: rangli nur o‘rniga deyarli sezilmas sovuq tus */
+html[data-theme=dark] .lp-bg::before{background:radial-gradient(circle,rgba(90,120,190,.10),transparent 62%)}
+html[data-theme=dark] .lp-bg::after{background:none}
+html[data-theme=dark] .dh::before,html[data-theme=dark] .hero-card::after,html[data-theme=dark] .grad-card::after,html[data-theme=dark] .auth-art::before{opacity:.08}
+
+/* kartalar: yengil chiziq, nur yo‘q */
+html[data-theme=dark] .lp-fc:hover,html[data-theme=dark] .lp-pl.is-hot,html[data-theme=dark] .plan.feat{box-shadow:var(--sh-2)}
+html[data-theme=dark] .lp-pl.is-hot{border-color:var(--brand)}
+html[data-theme=dark] .lp-step.is-on .nd,html[data-theme=dark] .lp-step.is-done .nd{box-shadow:none}
+html[data-theme=dark] .rt-pt.now i{box-shadow:none}
+html[data-theme=dark] .card.hover:hover::before{opacity:0}
+
+/* sarlavhadagi urg‘uli qism: to‘q sariq o‘rniga och kul rang */
+html[data-theme=dark] .lp-h1 .l2,html[data-theme=dark] .hero-card em,html[data-theme=dark] .auth-art h2 em{color:var(--ink-2)}
+html[data-theme=dark] .dh h2 em,html[data-theme=dark] .page-h h2 em{color:var(--ink-2)}
+
+/* katta raqamlar va ko‘rsatkichlar: oddiy matn rangi; progress — bitta rang */
+html[data-theme=dark] .gd-n b,html[data-theme=dark] .grad-n b,html[data-theme=dark] .ds b,html[data-theme=dark] .big-n{color:var(--ink)}
+html[data-theme=dark] .bar i{background:var(--brand)}
+html[data-theme=dark] .bar i::after{display:none}
+/* tarif shishasi: nursiz (Plus/Pro belgisi saqlanadi) */
+html[data-theme=dark] .tg,html[data-theme=dark] .side .tg{box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+html[data-theme=dark] .tg::after,html[data-theme=dark] .side .tg::after{background:none}
+
+/* tarif kartalari: shishasimon, lekin tinch — rangli to‘ldirish va uchqunlar yo‘q, Pro uchun ingichka oltin chiziq */
+html[data-theme=dark] [data-tier=free],html[data-theme=dark] .side [data-tier=free]{--tg-base:#131a29;--tg-fill:rgba(255,255,255,.035);--tg-edge:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16));--tg-grain:none}
+html[data-theme=dark] [data-tier=plus],html[data-theme=dark] .side [data-tier=plus]{--tg-base:#141b2b;--tg-fill:rgba(255,255,255,.05);--tg-edge:linear-gradient(rgba(214,222,238,.34),rgba(214,222,238,.34));--tg-grain:none}
+html[data-theme=dark] [data-tier=pro],html[data-theme=dark] .side [data-tier=pro]{--tg-base:#17191f;--tg-fill:rgba(212,170,72,.06);--tg-edge:linear-gradient(rgba(212,170,72,.55),rgba(212,170,72,.55));--tg-grain:none}
+html[data-theme=dark] .tc .sp{display:none}
+html[data-theme=dark] .tc{filter:none}
+
+/* ogohlantirish/ma’lumot bloklari: jigarrang emas, neytral */
+html[data-theme=dark] .notice,html[data-theme=dark] .notice.info{background:var(--surface);color:var(--ink-2);border:1px solid var(--line-2)}
+html[data-theme=dark] .notice svg{color:var(--muted)}
+
+/* landing «bosqichlar» chizig‘i: bitta rang */
+html[data-theme=dark] .lp-steps::after{background:var(--brand)}
+html[data-theme=dark] .tier-stage::before{background:none}
+html[data-theme=dark] .plan .tc{display:none}
