@@ -337,7 +337,7 @@ class Client {
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
     const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
-    ok(/href="\/tiers\.css/.test(html) && /unidoue-v60/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v59');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v61/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v59');
     const ac = await fetch(B + '/atlas.css?v=50'), act = await ac.text(), cv = await fetch(B + '/contour.svg'), cvt = await cv.text();
     ok(ac.status === 200 && /text\/css/.test(ac.headers.get('content-type') || '') && /\.rt-done/.test(act) && /href="\/atlas\.css/.test(html), 'atlas.css (Yo‘l daftari dizayni) toʻgʻri MIME bilan beriladi va /app ga ulangan');
     ok(cv.status === 200 && /image\/svg\+xml/.test(cv.headers.get('content-type') || '') && /^<svg/.test(cvt) && !/<script/i.test(cvt), 'contour.svg (xarita foni) image/svg+xml bilan beriladi');

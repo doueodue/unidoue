@@ -205,7 +205,7 @@ export const hasFeature = f => !!(S.account && S.account.features && S.account.f
 /** Plan yetishmasa chiroyli taklif oynasi. */
 export async function upsell(feature, text, tier) {
   const names = { scholarships: 'Stipendiya qidiruvi', predictor: 'To‘liq moslik tahlili', strategy: 'Shaxsiy qabul strategiyasi', reports: 'Universitet hisobotlari', essay_adv: 'Chuqur esse tahlili', tracker: 'Cheksiz arizalar', compare: 'Ko‘proq universitetni solishtirish', finder_adv: 'Kengaytirilgan qidiruv', coach: 'Esse murabbiyi', pf_studio: 'AI dizayner', pf_design: 'Portfolio dizayni' };
-  const tr = tier || ({ coach: 'plus', tracker: 'plus', compare: 'plus' })[feature] || 'pro'; // qaysi tarif ochadi: Plus (kumush) yoki Pro (oltin)
-  const v = await modal({ title: names[feature] || 'Yuqoriroq tarif kerak', tier: tr, body: `<p>${esc(text || UPSELL_TEXT[feature] || 'Bu imkoniyat Pro tarifida mavjud.')}</p>`, actions: [{ label: 'Keyinroq', value: 0 }, { label: 'Tariflarni ko‘rish', value: 1, cls: 'tier-' + tr }] });
+  const plan = S.account && S.account.plan, top = plan === 'pro', tr = tier || (plan === 'plus' || top ? 'pro' : ({ coach: 'plus', tracker: 'plus', compare: 'plus' })[feature] || 'pro'); // qaysi tarif ochadi: Plus (kumush) yoki Pro (oltin); Plus/Pro egasi uchun doim Pro (oltin)
+  const v = await modal({ title: names[feature] || 'Yuqoriroq tarif kerak', tier: tr, body: `<p>${esc(text || UPSELL_TEXT[feature] || 'Bu imkoniyat Pro tarifida mavjud.')}</p>`, actions: top ? [{ label: 'Yopish', value: 0, cls: 'tier-pro' }] : [{ label: 'Keyinroq', value: 0 }, { label: 'Tariflarni ko‘rish', value: 1, cls: 'tier-' + tr }] });
   if (v === 1) location.hash = '#/pricing';
 }

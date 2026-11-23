@@ -127,7 +127,7 @@ document.addEventListener('unidoue:account', updatePlanUI);
 
 async function route() {
   if (!S.user) return;
-  if (/^#\/?intl(\?|$)/.test(location.hash)) { location.replace('#/finder?c=intl'); return; } // eski «Boshqa davlatlar» havolasi
+  if (/^#\/?intl(\?|$)/.test(location.hash)) { location.replace('#/finder'); return; } // eski «Boshqa davlatlar» havolasi
   const id = (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'dashboard', r = ROUTES.find(x => x.id === id) || ROUTES[0], my = ++token;
   $$('.nav a').forEach(a => (a.getAttribute('data-r') === (r.nav || r.id) ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
   $('#ttl').textContent = t(r.t); document.title = t(r.t) + ' · UniDoue'; document.body.classList.remove('nav-open');

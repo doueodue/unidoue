@@ -1,7 +1,7 @@
 import { $, $$, S, api, ls, esc, toast, svg, fmtDate, daysLeft, catalog, allUnis, uniOptions, upsell, errorBox, modal, reportError } from './core.js';
 import { getProfile, DOCS } from './views1.js';
 import { t, pick, dateL } from './i18n.js';
-import { intlPanel, intlCount } from './views4.js';
+import { intlTools } from './views4.js';
 const ctry = c => (c ? `<div class="ctry">${esc(t(c))}</div>` : '');
 
 const TIER = { safety: 'Safety', target: 'Target', reach: 'Reach' };
@@ -52,54 +52,72 @@ function satMeter(c, mine) {
   return `<div class="satm" role="img" aria-label="${t('SAT oralig‘i')}: ${c.sat[0]}–${c.sat[1]}${me != null ? ', ' + t('Siz') + ' ' + mine : ''}"><div class="satm-t"><i class="satm-b" style="left:${a.toFixed(1)}%;width:${Math.max(2, b - a).toFixed(1)}%"></i>${me != null ? `<i class="satm-me" style="left:${me.toFixed(1)}%"><em>${t('Siz')} ${esc(mine)}</em></i>` : ''}</div>
     <div class="satm-h"><span>${t('SAT oralig‘i')}</span><b>${c.sat[0]}–${c.sat[1]}</b></div></div>`;
 }
-async function usFinder(el) {
-  const cat = await catalog(), verifiedN = cat.filter(c => c.satV).length, mySat = getProfile().Q.sat; let q = '', tier = '', vOnly = false, timer = 0, seq = 0, items = [], shown = PAGE;
-  el.innerHTML = `<div class="card ftool"><label class="fsearch">${svg('search')}<input id="f-q" type="text" placeholder="Universitet nomi" aria-label="Qidirish" maxlength="60"></label><label class="sw"><input type="checkbox" id="f-v"> Faqat tekshirilgan ma’lumot</label>
-  <div class="tabs" id="f-t" role="tablist">${[['', 'Hammasi'], ['safety', 'Safety'], ['target', 'Target'], ['reach', 'Reach']].map(([v, t]) => `<button role="tab" data-t="${v}" aria-selected="${v === ''}">${t}<span class="c"></span></button>`).join('')}</div></div>
+/** Bitta umumiy ro‘yxat: AQSh universitetlari (moslik bali bilan) va boshqa davlatlar universitetlari birga. */
+export async function finder(el) {
+  const [cat, intl] = await Promise.all([catalog(), intlTools().catch(() => null)]);
+  const smart = hasInput(), mySat = getProfile().Q.sat, intlList = intl ? intl.list : [], verifiedN = cat.filter(c => c.satV).length, total = cat.length + intlList.length;
+  const countries = [...new Set(intlList.map(c => c.country))].sort((a, b) => t(a).localeCompare(t(b)));
+  let q = '', tier = '', ctr = '', vOnly = false, f = {}, timer = 0, seq = 0, rows = [], shown = PAGE, last = null;
+  el.innerHTML = `<div class="page-h"><div><h2>Universitet qidiruvi</h2><p>Hamma davlatlar universitetlari bir joyda. AQSh universitetlari profilingizga mos Safety, Target va Reach bo‘yicha guruhlanadi; boshqa davlatlar uchun talab, muddat va o‘qish narxi ko‘rsatiladi.</p></div></div>
+  <div class="card ftool"><label class="fsearch">${svg('search')}<input id="f-q" type="text" placeholder="Universitet, shahar yoki davlat" aria-label="Qidirish" maxlength="60"></label>
+  <select id="f-c" aria-label="Davlat"><option value="">${t('Hamma davlatlar')} (${total})</option><option value="us">${t('AQSh')} (${cat.length})</option>${countries.map(c => `<option value="${esc(c)}">${esc(t(c))} (${intlList.filter(u => u.country === c).length})</option>`).join('')}</select>
+  <div class="ftool-r">${smart ? `<div class="tabs" id="f-t" role="tablist">${[['', 'Hammasi'], ['safety', 'Safety'], ['target', 'Target'], ['reach', 'Reach']].map(([v, tt]) => `<button role="tab" data-t="${v}" aria-selected="${v === ''}">${tt}<span class="c"></span></button>`).join('')}</div>` : ''}
+  <div class="sws"><label class="sw"><input type="checkbox" id="f-v"> Faqat tekshirilgan ma’lumot</label>${intl ? `<label class="sw"><input type="checkbox" id="f-en"> Faqat ingliz tilida</label><label class="sw"><input type="checkbox" id="f-ok"> Faqat muddati ochiq</label>${intl.hasIe ? '<label class="sw"><input type="checkbox" id="f-ie"> Faqat IELTS yetarli</label>' : ''}` : ''}</div></div></div>
+  ${smart ? '' : '<div class="notice info" style="margin-bottom:16px">' + svg('info') + '<div>Moslik bali va Safety / Target / Reach darajasini ko‘rish uchun natijalaringizni kiriting. <a href="#/profile"><b>Natijalarni kiritish</b></a></div></div>'}
   <div id="f-r"></div>
-  <p class="fnote">Hozir bazada <b>${cat.length}</b> ta AQSh universiteti bor, shundan <b>${verifiedN}</b> tasining ko‘rsatkichlari rasmiy manbadan tekshirilgan. Qolganlari “taxminiy” deb belgilangan. Boshqa davlatlar universitetlari tepadagi «Boshqa davlatlar» tabida.</p>`;
-  const out = $('#f-r', el), card = (u, c) => `<article class="card hover uc tk-${u.tier}"><div class="uc-top"><div class="score" style="--p:${u.score}">${u.score}</div><div class="uc-id">${ctry(u.country)}<h3>${esc(u.n)}</h3></div><span class="badge ${u.tier}">${TIER[u.tier]}</span></div>
+  <p class="fnote">Hozir bazada <b>${total}</b> ta universitet bor, shundan <b>${cat.length}</b> tasi AQShda, <b>${intlList.length}</b> tasi boshqa davlatlarda. AQShdagi <b>${verifiedN}</b> tasining ko‘rsatkichlari rasmiy manbadan tekshirilgan. Qolganlari “taxminiy” deb belgilangan.</p>
+  <p class="fnote">Boshqa davlatlar uchun qabul ehtimoli (Safety / Target / Reach) hisoblanmaydi: ularning qabul statistikasi AQShdagidek ochiq emas, shuning uchun profilingiz rasmiy talablarga (IELTS, o‘qish tili, muddat) qanchalik mosligi ko‘rsatiladi.</p>`;
+  const out = $('#f-r', el), usCard = (u, c) => `<article class="card hover uc tk-${u.tier}"><div class="uc-top"><div class="score" style="--p:${u.score}">${u.score}</div><div class="uc-id">${ctry(u.country)}<h3>${esc(u.n)}</h3></div><span class="badge ${u.tier}">${TIER[u.tier]}</span></div>
       <div class="uc-meta">${vb(u.verified, 'SAT tekshirilgan')}${u.deadline ? `<span class="badge mute">${fmtDate(u.deadline)}${u.deadlineVerified ? '' : ' (taxminiy)'}</span>` : ''}</div>${satMeter(c, mySat)}
       ${u.why ? `<p class="uc-lvl">${esc(u.level)}</p><ul class="uc-why">${u.why.map(w => `<li>${esc(w.t)}</li>`).join('')}</ul><p class="hint">${esc(u.basis)}${u.confident ? '' : ' · bu daraja taxminiy'}</p>`
         : `<div class="lock" style="border-radius:12px"><div class="lock-in"><p>Nima uchun mos ekani: SAT, GPA va IELTS bo‘yicha tushuntirish shu yerda ko‘rinadi.</p><p>Universitet ko‘rsatkichlari bilan solishtirish batafsil yoziladi.</p></div><div class="lock-cta"><button class="btn primary sm" data-up>Tushuntirishni ochish (Plus)</button></div></div>`}
-      <div class="uc-act"><button class="btn sm" data-about="${esc(u.id)}">Haqida</button><button class="btn sm" data-add="${esc(u.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(u.id)}">Solishtirish</button><a class="btn sm" href="#/predictor?u=${encodeURIComponent(u.id)}">Moslik</a></div></article>`;
-  const paint = r => {
-    out.innerHTML = `<div class="grid g2">${items.slice(0, shown).map(u => card(u, cat.find(c => c.id === u.id))).join('')}</div>
-      ${shown < items.length ? `<div class="fmore"><button class="btn" data-more type="button">Yana ko‘rsatish <span class="c">+${Math.min(PAGE, items.length - shown)}</span></button></div>` : ''}
-      ${r.shown < r.total ? `<div class="card" style="margin-top:18px;text-align:center"><b>${r.shown} / ${r.total} natija ko‘rsatilmoqda.</b><p class="sub" style="margin:6px 0 12px">Eng mos ${r.limit} ta universitet ko‘rinadi.</p><a class="btn primary" href="#/pricing">Hammasini ko‘rish</a></div>` : ''}`;
+      <div class="uc-act"><button class="btn sm" data-about="${esc(u.id)}">Haqida</button><button class="btn sm" data-add="${esc(u.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(u.id)}">Solishtirish</button><a class="btn sm" href="#/predictor?u=${encodeURIComponent(u.id)}">Moslik</a></div></article>`,
+    plainCard = c => `<article class="card hover">${ctry(c.country)}<h3>${esc(c.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${vb(c.satV, 'SAT tekshirilgan')}${c.sat ? `<span class="badge mute">SAT ${c.sat[0]}–${c.sat[1]}</span>` : ''}${c.rd ? `<span class="badge mute">Muddat: ${fmtDate(c.rd)}${c.rdV ? '' : ' (taxminiy)'}</span>` : ''}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-about="${esc(c.id)}">Haqida</button><button class="btn sm" data-add="${esc(c.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(c.id)}">Solishtirish</button></div></article>`;
+  const paint = () => {
+    const part = rows.slice(0, shown);
+    out.innerHTML = rows.length ? `<div class="grid g2">${part.map(r => (r.k === 'intl' ? intl.card(r.u) : r.k === 'plain' ? plainCard(r.u) : usCard(r.u, cat.find(c => c.id === r.u.id)))).join('')}</div>
+      ${shown < rows.length ? `<div class="fmore"><button class="btn" data-more type="button">Yana ko‘rsatish <span class="c">+${Math.min(PAGE, rows.length - shown)}</span></button></div>` : ''}
+      ${last && last.shown < last.total ? `<div class="card" style="margin-top:18px;text-align:center"><b>${last.shown} / ${last.total} natija ko‘rsatilmoqda.</b><p class="sub" style="margin:6px 0 12px">Eng mos ${last.limit} ta universitet ko‘rinadi.</p><a class="btn primary" href="#/pricing">Hammasini ko‘rish</a></div>` : ''}`
+      : '<div class="card empty"><b>Hech narsa topilmadi</b>Qidiruv so‘zi, davlat yoki filtrni o‘zgartirib ko‘ring.</div>';
   };
-  let last = null;
   out.onclick = e => {
     const g = n => e.target.closest(n); let b;
-    if ((b = g('[data-more]'))) { shown += PAGE; paint(last); return; }
+    if (g('[data-more]')) { shown += PAGE; paint(); return; }
     if (g('[data-up]')) return upsell('finder_adv', 'Har bir universitet nima uchun mos ekanini ko‘rish Pro tarifida.');
+    if ((b = g('[data-rep]'))) return reportError(b.dataset.rep);
     if ((b = g('[data-about]'))) return aboutUni(b.dataset.about);
-    if ((b = g('[data-add]'))) return addApp(cat.find(c => c.id === b.dataset.add));
+    if ((b = g('[data-add]'))) return addApp(cat.find(c => c.id === b.dataset.add) || intlList.find(c => c.id === b.dataset.add));
     if ((b = g('[data-cmp]'))) return addCmp(b.dataset.cmp);
   };
+  const intlRows = () => { // tier tanlangan bo‘lsa boshqa davlatlar chiqmaydi (ularda Safety/Target/Reach yo‘q)
+    if (tier || ctr === 'us' || !intl) return [];
+    const k = q.toLowerCase();
+    return intlList.filter(u => (!ctr || u.country === ctr) && (!k || [u.n, u.city, u.country, t(u.country)].join(' ').toLowerCase().includes(k)) && intl.pass(u, f)).map(u => ({ k: 'intl', u }));
+  };
+  const usOk = c => (!f.op || (c.rd && daysLeft(c.rd) >= 0)) && (!f.ie || (c.ielts != null && parseFloat(getProfile().Q.ielts) >= c.ielts));
   const load = async () => {
-    const my = ++seq; out.innerHTML = '<div class="grid g2">' + '<div class="card"><div class="sk" style="height:90px"></div></div>'.repeat(4) + '</div>';
+    const my = ++seq;
+    if (ctr && ctr !== 'us') { rows = intlRows(); last = null; shown = PAGE; paint(); return; }
+    out.innerHTML = '<div class="grid g2">' + '<div class="card"><div class="sk" style="height:90px"></div></div>'.repeat(4) + '</div>';
     try {
-      const r = await api('/api/finder', 'POST', { profile: profBody(), q, tier, verifiedOnly: vOnly }); if (my !== seq) return;
-      $$('#f-t button', el).forEach(b => { const k = b.dataset.t; b.querySelector('.c').textContent = k ? ' ' + r.counts[k] : ''; });
-      if (!r.items.length) { out.innerHTML = '<div class="card empty"><b>Hech narsa topilmadi</b>Filtrni o‘zgartirib ko‘ring.</div>'; return; }
-      items = r.items; shown = PAGE; last = r; paint(r);
+      let us;
+      if (smart) {
+        const r = await api('/api/finder', 'POST', { profile: profBody(), q, tier, verifiedOnly: vOnly }); if (my !== seq) return;
+        $$('#f-t button', el).forEach(b => { const k = b.dataset.t; b.querySelector('.c').textContent = k ? ' ' + r.counts[k] : ''; });
+        last = r; us = r.items.filter(u => usOk(cat.find(c => c.id === u.id) || { rd: u.deadline })).map(u => ({ k: 'us', u }));
+      } else {
+        last = null; const k = q.toLowerCase();
+        us = cat.filter(c => (!k || [c.n, c.country].join(' ').toLowerCase().includes(k)) && (!vOnly || c.satV) && usOk(c)).map(u => ({ k: 'plain', u }));
+      }
+      rows = us.concat(intlRows()); shown = PAGE; paint();
     } catch (e) { if (my === seq) { out.innerHTML = errorBox(e.message, true); const b = $('[data-retry]', out); if (b) b.onclick = load; } }
   };
   $('#f-q', el).oninput = e => { clearTimeout(timer); timer = setTimeout(() => { q = e.target.value.trim(); load(); }, 350); };
+  $('#f-c', el).onchange = e => { ctr = e.target.value; load(); };
   $('#f-v', el).onchange = e => { vOnly = e.target.checked; load(); };
+  [['f-en', 'en'], ['f-ok', 'op'], ['f-ie', 'ie']].forEach(([id, k]) => { const x = $('#' + id, el); if (x) x.onchange = () => { f = { ...f, [k]: x.checked }; load(); }; });
   $$('#f-t button', el).forEach(b => (b.onclick = () => { tier = b.dataset.t; $$('#f-t button', el).forEach(x => x.setAttribute('aria-selected', x === b)); load(); }));
   load();
-}
-export async function finder(el) {
-  let sc = /[?&]c=intl\b/.test(location.hash) ? 'intl' : 'us';
-  el.innerHTML = `<div class="page-h"><div><h2>Universitet qidiruvi</h2><p>AQShda profilingizga mos universitetlar Safety, Target va Reach bo‘yicha guruhlanadi; boshqa davlatlar uchun talab, muddat va o‘qish narxi ko‘rsatiladi.</p></div></div>
-  <div class="tabs" id="f-sc" role="tablist" style="margin-bottom:16px"><button role="tab" data-sc="us" aria-selected="${sc === 'us'}">AQSh<span class="c"></span></button><button role="tab" data-sc="intl" aria-selected="${sc === 'intl'}">Boshqa davlatlar<span class="c"></span></button></div><div id="f-body"></div>`;
-  const body = $('#f-body', el), tabs = $$('#f-sc button', el), run = () => { tabs.forEach(b => b.setAttribute('aria-selected', b.dataset.sc === sc)); body.innerHTML = ''; return sc === 'intl' ? intlPanel(body, { onAdd: addApp, onCmp: addCmp, onAbout: aboutUni }) : hasInput() ? usFinder(body) : browse(body); };
-  tabs.forEach(b => (b.onclick = () => { if (b.dataset.sc === sc) return; sc = b.dataset.sc; history.replaceState(null, '', sc === 'intl' ? '#/finder?c=intl' : '#/finder'); run(); }));
-  catalog().then(c => { const n = $('#f-sc [data-sc="us"] .c', el); if (n) n.textContent = ' ' + c.length; }).catch(() => {});
-  intlCount().then(n => { const x = $('#f-sc [data-sc="intl"] .c', el); if (x && n != null) x.textContent = ' ' + n; });
-  await run();
 }
 /** Arizalar ro‘yxatiga qo‘shadi. Muddat topilmasa yoki o‘tgan bo‘lsa, foydalanuvchidan yangi sanani so‘raydi. */
 async function addApp(c) {
@@ -200,16 +218,3 @@ export async function compare(el) {
 }
 
 /** Natija kiritilmagan bo'lsa: oddiy ro'yxat (moslik balisiz). */
-async function browse(el) {
-  const cat = await catalog();
-  el.innerHTML = `<div class="notice info" style="margin-bottom:16px">${svg('info')}<div>Moslik bali va Safety / Target / Reach darajasini ko‘rish uchun natijalaringizni kiriting. <a href="#/profile"><b>Natijalarni kiritish</b></a></div></div>
-  <div class="card" style="margin-bottom:16px"><label class="f" for="b-q">Qidirish</label><input id="b-q" type="text" maxlength="60" placeholder="Universitet nomi"></div><div id="b-r"></div>`;
-  const out = $('#b-r', el), draw = q => {
-    const rows = cat.filter(c => c.n.toLowerCase().includes(q.toLowerCase()));
-    out.innerHTML = rows.length ? `<div class="grid g2">${rows.map(c => `<article class="card hover">${ctry(c.country)}<h3>${esc(c.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${vb(c.satV, 'SAT tekshirilgan')}<span class="badge mute">SAT ${c.sat[0]}–${c.sat[1]}</span><span class="badge mute">Muddat: ${fmtDate(c.rd)}${c.rdV ? '' : ' (taxminiy)'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-about="${esc(c.id)}">Haqida</button><button class="btn sm" data-add="${esc(c.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(c.id)}">Solishtirish</button></div></article>`).join('')}</div>` : '<div class="card empty"><b>Hech narsa topilmadi</b></div>';
-    $$('[data-about]', out).forEach(b => (b.onclick = () => aboutUni(b.dataset.about)));
-    $$('[data-add]', out).forEach(b => (b.onclick = () => addApp(cat.find(c => c.id === b.dataset.add))));
-    $$('[data-cmp]', out).forEach(b => (b.onclick = () => addCmp(b.dataset.cmp)));
-  };
-  let t = 0; $('#b-q', el).oninput = e => { clearTimeout(t); t = setTimeout(() => draw(e.target.value.trim()), 200); }; draw('');
-}

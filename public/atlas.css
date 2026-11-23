@@ -212,8 +212,10 @@ html[data-theme=dark] .dh::before{opacity:.24}
 .sub-plan{display:flex;align-items:center;gap:10px;margin:8px 0 14px}
 
 /* ---------------------------------------------------------------- UNIVERSITET QIDIRUVI */
-.ftool{background:color-mix(in srgb,var(--surface) 95%,transparent);display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:14px 22px;align-items:center;padding:16px 20px;margin-bottom:20px;position:sticky;top:76px;z-index:6}
-.ftool .tabs{grid-column:1/-1;margin:0;justify-self:start}
+.ftool{background:color-mix(in srgb,var(--surface) 95%,transparent);display:grid;grid-template-columns:minmax(220px,1fr) minmax(190px,280px);gap:14px 22px;align-items:center;padding:16px 20px;margin-bottom:20px}
+.ftool .tabs{margin:0;justify-self:start}
+.ftool-r{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px}
+.ftool-r .sws{display:flex;flex-wrap:wrap;align-items:center;gap:8px 22px}
 .fsearch{position:relative;display:block}
 .fsearch svg{position:absolute;left:15px;top:50%;width:18px;height:18px;margin-top:-9px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none}
 .fsearch input{padding-left:44px;min-height:46px}
