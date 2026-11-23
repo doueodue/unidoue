@@ -205,7 +205,7 @@ const adh = readFileSync(new URL('../public/admin.html', import.meta.url), 'utf8
 ok(v1.includes('function promoBox(') && v1.includes('function promoBind(') && v1.includes("'/api/promo/redeem'") && (v1.match(/\$\{promoBox\(\)\}/g) || []).length === 2 && (v1.match(/promoBind\(el\)/g) || []).length === 3 && v1.includes('id="promo-i"'), 'tariflar: promo kod qatori ikkala ko‘rinishda ham bor va ulangan');
 ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=54'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
 ok(adh.includes('data-v="promos"') && adh.includes('id="v-promos"') && ['mk', 'mp', 'md', 'mx', 'mu', 'mn', 'mb', 'ml'].every(i => adh.includes(`id="${i}"`)) && /promos: 'Promo kodlar'/.test(adj) && ['/api/admin/promos', '/api/admin/promo', '/api/admin/promo/set', '/api/admin/promo/delete'].every(u => adj.includes(`'${u}'`)) && (adc.match(/{/g) || []).length === (adc.match(/}/g) || []).length && adc.includes('.pm-form{'), 'admin: Promo kodlar bo‘limi (forma, ro‘yxat, to‘xtatish, limit, o‘chirish)');
-ok(swj.includes("'unidoue-v59'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v59; admin.html: inline skript yo‘q');
+ok(swj.includes("'unidoue-v60'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
 const cssFiles = ['app.css', 'atlas.css', 'coach.css', 'portfolio.css', 'tiers.css', 'landing.css', 'admin.css', 'controls.css'].map(f => [f, readFileSync(new URL('../public/' + f, import.meta.url), 'utf8')]);
 const sbBad = cssFiles.filter(([f, c]) => /scrollbar-(width|color)/.test(f === 'app.css' ? c.replace(/@supports not selector\(::-webkit-scrollbar\)\{[^}]*\}[^}]*\}/, '') : c)).map(x => x[0]);
 ok(sbBad.length === 0 && acss.includes('*::-webkit-scrollbar-thumb{') && acss.includes('@supports not selector(::-webkit-scrollbar)'), 'scrollbar: yagona uslub (app.css); boshqa joyda scrollbar-width/color yo‘q — Chrome ::-webkit-scrollbar uslubini o‘chirib qo‘yadi' + (sbBad.length ? ': ' + sbBad : ''));
@@ -254,4 +254,6 @@ ok(['.pp-avb{', '.av-crop{', '.av-ring{', '.sf-av img,.pp-av img{'].every(k => a
   ok(!/\$\{c\.acc\}%/.test(v2), 'aboutUni: qabul darajasi foizga o‘tkazilgan (0.044 → 4.4%)');
 }
 
+ok(/\/tiers\.css/.test(lph) && ['free', 'plus', 'pro'].every(t => lph.includes(`class="lp-pl tg`) && lph.includes(`data-tier="${t}"`)) && lph.includes('tier-stage') && /tier-plus/.test(lph) && /tier-pro/.test(lph) && /data-pr="pro"/.test(lph), 'landing: tarif kartalari ilovadagi shisha uslubida (tiers.css, medal, tier-stage)');
+ok(/from '\.\/tiers\.js'/.test(lpj) && /crownHTML/.test(lpj) && /liveGlass/.test(lpj) && (lpc.match(/{/g) || []).length === (lpc.match(/}/g) || []).length, 'landing.js: toj va kursor yaltirashi, landing.css qavslari muvozanatda');
 console.log(`pf: ${n} checks, ${process.exitCode ? 'FAILED' : 'ok'}`);

@@ -23,7 +23,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap">
 <link rel="stylesheet" href="/app.css">
 <link rel="stylesheet" href="/atlas.css?v=54">
-<link rel="stylesheet" href="/landing.css?v=2">
+<link rel="stylesheet" href="/tiers.css?v=48">
+<link rel="stylesheet" href="/landing.css?v=3">
 <link rel="modulepreload" href="/js/landing.js">
 </head>
 <body class="lp">
@@ -254,9 +255,9 @@
       <h2>Oddiy va shaffof tariflar</h2>
       <p>Asosiy imkoniyatlar bepul. Ko‘proq AI kerak bo‘lsa, tarifni istalgan vaqtda oshirasiz.</p>
     </div>
-    <div class="lp-plans">
-      <article class="lp-pl tk-free" data-rv>
-        <h3>Free</h3>
+    <div class="lp-plans tier-stage">
+      <article class="lp-pl tg" data-tier="free" data-live data-rv>
+        <div class="plan-h"><span class="tm" data-tier="free"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><use href="#ti-free"/></svg></span><div><h3>Free</h3><p class="plan-tag">Boshlash uchun</p></div></div>
         <p class="pr"><b data-pr="free">$0</b><span>/ oy</span></p>
         <ul>
           <li>Barcha universitetlar + nima uchun mos ekanligi</li>
@@ -265,10 +266,10 @@
           <li>3 ta universitetni solishtirish</li>
           <li>15 AI kredit / oy</li>
         </ul>
-        <a class="lp-btn ghost" href="/app?m=register" data-auth="up">Bepul boshlash</a>
+        <a class="lp-btn tg-btn" href="/app?m=register" data-auth="up">Bepul boshlash</a>
       </article>
-      <article class="lp-pl tk-plus is-hot" data-rv>
-        <h3>Plus</h3>
+      <article class="lp-pl tg is-hot" data-tier="plus" data-live data-rv>
+        <div class="plan-h"><span class="tm" data-tier="plus"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><use href="#ti-plus"/></svg></span><div><h3>Plus</h3><p class="plan-tag">Jiddiy tayyorgarlik uchun</p></div></div>
         <p class="pr"><b data-pr="plus">$2.99</b><span>/ oy</span></p>
         <ul>
           <li>Bepul tarifdagi hamma imkoniyatlar</li>
@@ -277,10 +278,11 @@
           <li>4 ta universitetni solishtirish</li>
           <li>175 AI kredit / oy</li>
         </ul>
-        <a class="lp-btn solid" href="/app?m=register" data-auth="up">Plus bilan boshlash</a>
+        <a class="lp-btn tg-btn tier-plus" href="/app?m=register" data-auth="up">Plus bilan boshlash</a>
       </article>
-      <article class="lp-pl tk-pro" data-rv>
-        <h3>Pro</h3>
+      <article class="lp-pl tg" data-tier="pro" data-live data-sweep data-rv>
+        <span class="tc" data-crown aria-hidden="true"></span>
+        <div class="plan-h"><span class="tm" data-tier="pro"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><use href="#ti-pro"/></svg></span><div><h3>Pro</h3><p class="plan-tag">Hammasi ochiq</p></div></div>
         <p class="pr"><b data-pr="pro">$4.99</b><span>/ oy</span></p>
         <ul>
           <li>Bepul tarifdagi hamma imkoniyatlar</li>
@@ -290,7 +292,7 @@
           <li>300 AI kredit / oy</li>
           <li>Ustuvor yordam</li>
         </ul>
-        <a class="lp-btn ghost" href="/app?m=register" data-auth="up">Pro bilan boshlash</a>
+        <a class="lp-btn tg-btn tier-pro" href="/app?m=register" data-auth="up">Pro bilan boshlash</a>
       </article>
     </div>
   </div>

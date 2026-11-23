@@ -3,6 +3,7 @@
 import { themeSwitch } from './theme-ui.js';
 import { langSelect, bindLang, t, lang } from './i18n.js';
 import { createGlobe } from './globe.js';
+import { ensureSprite, crownHTML, liveGlass } from './tiers.js';
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const root = document.documentElement;
@@ -43,6 +44,11 @@ fetch('/api/me', { credentials: 'same-origin' }).then(r => (r.ok ? r.json() : nu
     if (sp.length) sp.forEach(s => (s.textContent = txt)); else a.textContent = txt;
   });
 }).catch(() => {});
+
+/* ---------- tarif kartalari: shisha, toj va kursor yaltirashi ---------- */
+ensureSprite();
+$$('[data-crown]').forEach(c => { c.outerHTML = crownHTML(); });
+liveGlass($('.lp-plans'));
 
 /* ---------- narxlar serverdan (o'zgarsa sahifa ham yangilanadi) ---------- */
 fetch('/api/plans').then(r => (r.ok ? r.json() : null)).then(j => {
