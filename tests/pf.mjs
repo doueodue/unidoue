@@ -203,9 +203,9 @@ ok(mj.includes("get('m') === 'register'") && readFileSync(new URL('../public/man
 /* ---- Promo kodlar: Tariflar qatori, admin bo‘limi; scrollbarlar va gorizontal siljish ---- */
 const adh = readFileSync(new URL('../public/admin.html', import.meta.url), 'utf8'), adj = readFileSync(new URL('../public/js/admin.js', import.meta.url), 'utf8'), adc = readFileSync(new URL('../public/admin.css', import.meta.url), 'utf8'), swj = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
 ok(v1.includes('function promoBox(') && v1.includes('function promoBind(') && v1.includes("'/api/promo/redeem'") && (v1.match(/\$\{promoBox\(\)\}/g) || []).length === 2 && (v1.match(/promoBind\(el\)/g) || []).length === 3 && v1.includes('id="promo-i"'), 'tariflar: promo kod qatori ikkala ko‘rinishda ham bor va ulangan');
-ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=55'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
+ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=56'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
 ok(adh.includes('data-v="promos"') && adh.includes('id="v-promos"') && ['mk', 'mp', 'md', 'mx', 'mu', 'mn', 'mb', 'ml'].every(i => adh.includes(`id="${i}"`)) && /promos: 'Promo kodlar'/.test(adj) && ['/api/admin/promos', '/api/admin/promo', '/api/admin/promo/set', '/api/admin/promo/delete'].every(u => adj.includes(`'${u}'`)) && (adc.match(/{/g) || []).length === (adc.match(/}/g) || []).length && adc.includes('.pm-form{'), 'admin: Promo kodlar bo‘limi (forma, ro‘yxat, to‘xtatish, limit, o‘chirish)');
-ok(swj.includes("'unidoue-v62'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
+ok(swj.includes("'unidoue-v65'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
 const cssFiles = ['app.css', 'atlas.css', 'coach.css', 'portfolio.css', 'tiers.css', 'landing.css', 'admin.css', 'controls.css'].map(f => [f, readFileSync(new URL('../public/' + f, import.meta.url), 'utf8')]);
 const sbBad = cssFiles.filter(([f, c]) => /scrollbar-(width|color)/.test(f === 'app.css' ? c.replace(/@supports not selector\(::-webkit-scrollbar\)\{[^}]*\}[^}]*\}/, '') : c)).map(x => x[0]);
 ok(sbBad.length === 0 && acss.includes('*::-webkit-scrollbar-thumb{') && acss.includes('@supports not selector(::-webkit-scrollbar)'), 'scrollbar: yagona uslub (app.css); boshqa joyda scrollbar-width/color yo‘q — Chrome ::-webkit-scrollbar uslubini o‘chirib qo‘yadi' + (sbBad.length ? ': ' + sbBad : ''));
@@ -262,4 +262,12 @@ ok(/from '\.\/tiers\.js'/.test(lpj) && /crownHTML/.test(lpj) && /liveGlass/.test
   ok(!!kaist && kaist.ielts === 6.5 && /^https:/.test(kaist.ieltsUrl) && kaist.rd === '2027-01-14', 'intl: KAIST IELTS 6.5 va muddat rasmiy URL bilan');
   ok(idata.every(u => !u.ieltsNote || u.ielts == null), 'intl: ieltsNote faqat IELTS yo‘q bo‘lganda');
   ok(/ieltsNote/.test(readFileSync('public/js/views4.js', 'utf8')) && /ieltsNote/.test(readFileSync('public/js/views2.js', 'utf8')), 'intl: views4/views2 ieltsNote ko‘rsatadi'); }
+{ const ah = readFileSync('public/admin.html', 'utf8'), aj = readFileSync('public/js/admin.js', 'utf8');
+  ok(/id="v-unis"/.test(ah) && /data-v="unis"/.test(ah) && /id="un-s"/.test(ah) && !/<script(?![^>]*src=)[^>]*>/.test(ah), 'admin: Universitetlar bo‘limi bor, inline skript yo‘q');
+  ok(/\/api\/admin\/uni'/.test(aj) && /\/api\/admin\/uni\/delete/.test(aj) && /unis: 'Universitetlar'/.test(aj), 'admin.js: universitet qo‘shish/o‘chirish API ga ulangan'); }
+{ const v4 = readFileSync('public/js/views4.js', 'utf8'), sj = readFileSync('public/js/scoring.js', 'utf8'), ac = readFileSync('public/atlas.css', 'utf8');
+  ok(/fitBox\(u\)/.test(v4) && /Moslik uchun nima kerak/.test(v4) && /Moslik darajasi/.test(v4), 'intl karta: moslik darajasi va "nima kerak" bloki bor');
+  ok(/cnt/.test(sj) && /\.fitb\{/.test(ac) && /\.fitb-m i/.test(ac), 'scoring cnt + atlas.css .fitb stillari');
+  const S = (await import('node:module')).createRequire(import.meta.url)('../public/js/scoring.js');
+  if (S && S.intlFit) { const f = S.intlFit({ ielts: 7, lang: 'English', rd: null, ieltsNote: null }, { ielts: 6, gpa: null, sat: null }, '2026-11-23'); ok(f.status === 'part' || f.status === 'no', 'intlFit: IELTS yetmasa mos emas/qisman'); ok(f.cnt && f.cnt.bad + f.cnt.warn >= 1 && f.advice.some(a => /IELTS/.test(a)), 'intlFit: cnt va "nima kerak" maslahati'); } }
 console.log(`pf: ${n} checks, ${process.exitCode ? 'FAILED' : 'ok'}`);

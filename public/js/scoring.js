@@ -80,7 +80,8 @@
       Faqat rasmiy talablarga (IELTS, o‘qish tili, muddat) moslik tekshiriladi. today — 'YYYY-MM-DD'. */
   function langKind(lang) {
     if (!lang) return null;
-    if (/only in master|ended/i.test(lang)) return 'part';
+    if (/only in master/i.test(lang)) return 'no'; // bakalavr ingliz tilida emas, faqat magistratura
+    if (/ended/i.test(lang)) return 'part';
     if (/some (programs|courses|modules)/i.test(lang)) return 'part';
     return /english/i.test(lang) ? 'yes' : 'no';
   }
@@ -95,7 +96,8 @@
         push('IELTS', `IELTS ${p.ielts}; talab ${u.ielts} (${gap} ball yetishmaydi)`, gap <= 0.5 ? 'warn' : 'bad');
         advice.push(`IELTS ni ${u.ielts} ga yetkazing.`);
       }
-    } else push('IELTS', 'Minimal IELTS rasmiy sahifada topilmadi: universitetdan so‘rang', 'info');
+    } else if (u.ieltsNote) push('IELTS', 'IELTS minimal bali belgilanmagan: kartadagi izohga qarang', 'info');
+    else push('IELTS', 'Minimal IELTS rasmiy sahifada topilmadi: universitetdan so‘rang', 'info');
     const lk = langKind(u.lang);
     if (lk === 'yes') push('Til', 'Ingliz tilida o‘qish imkoniyati bor', 'good');
     else if (lk === 'part') { push('Til', 'Faqat ba’zi dasturlar ingliz tilida: kerakli dastur tilini tekshiring', 'warn'); advice.push('Tanlagan yo‘nalishingiz ingliz tilida o‘qitilishini rasmiy saytda tekshiring.'); }
@@ -111,7 +113,8 @@
     const status = bad ? 'no' : warn ? 'part' : good ? 'yes' : 'unknown';
     const label = status === 'yes' && u.ielts == null ? 'Mos (IELTS talabi noma’lum)' : { yes: 'Talablarga mos', part: 'Qisman mos', no: 'Talablarga hozircha mos emas', unknown: 'Ma’lumot yetarli emas' }[status];
     if (!advice.length && status === 'yes') advice.push('Talablar mos: hujjatlar ro‘yxati va muddatni rasmiy sahifada tasdiqlang.');
-    return { status, label, parts, advice };
+    const cnt = { good: 0, warn: 0, bad: 0, info: 0 }; parts.forEach(x => { cnt[x.tone] = (cnt[x.tone] || 0) + 1; });
+    return { status, label, parts, advice, cnt };
   }
 
   return { normProfile, hasInput, parts, score, level, tier, verdict, advice, intlFit, langKind };

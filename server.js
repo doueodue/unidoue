@@ -38,7 +38,7 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [] });
+const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {} });
 let db = normDb({});
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
@@ -111,6 +111,7 @@ for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, async () => { try { flu
 const Scoring = require('./public/js/scoring.js');
 const PUSH = require('./push');
 const PROMO = require('./promo');
+const UNIS = require('./unis');
 const NOTES = require('./notes');
 const AVATAR = require('./avatar');
 
@@ -449,7 +450,10 @@ function notifyOwner(r) {
 let CATALOG = null;
 function catalog() { if (!CATALOG) { try { CATALOG = JSON.parse(fs.readFileSync(path.join(PUBLIC_DIR, 'data', 'universities.json'), 'utf8')); } catch (e) { CATALOG = []; } } return CATALOG; }
 let INTL_CAT = null;
-function intlCatalog() { if (!INTL_CAT) { try { INTL_CAT = JSON.parse(fs.readFileSync(path.join(PUBLIC_DIR, 'data', 'intl.json'), 'utf8')); } catch (e) { INTL_CAT = []; } } return INTL_CAT; }
+function intlBase() { if (!INTL_CAT) { try { INTL_CAT = JSON.parse(fs.readFileSync(path.join(PUBLIC_DIR, 'data', 'intl.json'), 'utf8')); } catch (e) { INTL_CAT = []; } } return INTL_CAT; }
+/** Asosiy intl.json + admin qoʻlda qoʻshgan/almashtirgan universitetlar (src belgisi bilan). */
+function intlAll() { return UNIS.merge(intlBase(), db.unis); }
+function intlCatalog() { return UNIS.strip(intlAll()); }
 /** id yoki nom bo‘yicha: AQSh katalogi, topilmasa boshqa davlatlar. kind: 'us' | 'intl' */
 function uniAny(by, v) { const f = x => x[by] === v; let c = catalog().find(f); if (c) return { kind: 'us', c }; c = intlCatalog().find(f); return c ? { kind: 'intl', c } : null; }
 const SYS = 'You are Doue, the AI admissions mentor of UniDoue, for students from Uzbekistan and Central Asia who plan to study abroad. ' +
@@ -1149,6 +1153,28 @@ async function api(req, res, pathname) {
     return send(res, 200, { ok: true });
   }
 
+  /* ---- admin: universitetlar (boshqa davlatlar) qoʻlda qoʻshish/tahrirlash ---- */
+  if (pathname === '/api/admin/unis' && method === 'GET') {
+    if (!admGate(req, res, ip, 'unis', 300)) return;
+    return send(res, 200, { unis: intlAll(), custom: Object.keys(db.unis).length, max: UNIS.MAX });
+  }
+  if (pathname === '/api/admin/uni' && method === 'POST') {
+    if (!admGate(req, res, ip, 'uni', 120)) return;
+    const r = UNIS.clean(await readJson(req), new Set(catalog().map(c => c.id)));
+    if (r.error) return fail(res, 400, r.error);
+    if (!db.unis[r.uni.id] && Object.keys(db.unis).length >= UNIS.MAX) return fail(res, 400, `Qoʻlda qoʻshilgan universitetlar ${UNIS.MAX} tadan oshmasin.`);
+    const isNew = !intlAll().some(u => u.id === r.uni.id);
+    db.unis[r.uni.id] = r.uni; save();
+    return send(res, isNew ? 201 : 200, { ok: true, uni: r.uni, created: isNew });
+  }
+  if (pathname === '/api/admin/uni/delete' && method === 'POST') {
+    if (!admGate(req, res, ip, 'uni', 120)) return;
+    const id = String((await readJson(req)).id || '');
+    if (!db.unis[id]) return fail(res, 404, 'Bu universitet admin tomonidan qoʻshilmagan yoki almashtirilmagan (asosiy roʻyxatdagini oʻchirib boʻlmaydi).');
+    delete db.unis[id]; save();
+    return send(res, 200, { ok: true });
+  }
+
   if (pathname === '/api/admin/plan' && method === 'POST') {
     if (!admGate(req, res, ip, 'plan', 30)) return;
     const b = await readJson(req), id = emailIdx.get(clean(b.email, 254).toLowerCase()), u = id && db.users[id];
@@ -1384,6 +1410,10 @@ function serveStatic(req, res, pathname) {
   if (pathname === '/.well-known/assetlinks.json') {
     res.setHeader('Content-Type', MIME['.json']); res.setHeader('Cache-Control', 'no-cache');
     res.end(req.method === 'HEAD' ? undefined : JSON.stringify(assetLinks(), null, 2)); return true;
+  }
+  if (pathname === '/data/intl.json') { // asosiy roʻyxat + admin qoʻshgan universitetlar
+    res.setHeader('Content-Type', MIME['.json']); res.setHeader('Cache-Control', 'no-cache');
+    res.end(req.method === 'HEAD' ? undefined : JSON.stringify(intlCatalog())); return true;
   }
   let rel = PAGES[pathname];
   if (!rel) {

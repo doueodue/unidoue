@@ -204,6 +204,37 @@ class Client {
       ok(PM.redeem(pdb, uu, 'MUDDATSIZ', now, { effPlan: () => ({ id: 'plus' }), order: ord }).code === 'PROMO_UNLIMITED' && pdb.promos.MUDDATSIZ.used === 0, 'promo.js: muddatsiz tarifga kod kerak emas, joy band qilinmaydi');
     }
 
+    console.log('Admin: universitetlar');
+    {
+      const U = { n: 'Test University of Sydney', country: 'Avstraliya', city: 'Sydney', url: 'https://www.sydney.edu.au', ielts: '6.5', ieltsUrl: 'https://example.edu/ielts', rd: '2027-01-31', rdUrl: 'https://example.edu/dates', rdIntake: '2027-yil kuzi', tuition: '45000', cur: 'aud', tuitionUrl: 'https://example.edu/fees', req: 'Attestat va IELTS.', reqUrl: 'https://example.edu/req' };
+      let r = await a.call('POST', '/api/admin/uni', U); ok(r.s === 401, 'uni: admin tokensiz qoʻshib boʻlmaydi');
+      r = await a.call('GET', '/api/admin/unis'); ok(r.s === 401, 'uni: roʻyxat admin tokensiz yopiq');
+      r = await a.call('POST', '/api/admin/uni', { ...U, n: '' }, ADMT); ok(r.s === 400, 'uni: nomsiz rad etiladi');
+      r = await a.call('POST', '/api/admin/uni', { ...U, ieltsUrl: '' }, ADMT); ok(r.s === 400, 'uni: IELTS manbasiz rad etiladi');
+      r = await a.call('POST', '/api/admin/uni', { ...U, ielts: '12' }, ADMT); ok(r.s === 400, 'uni: IELTS 12 rad etiladi');
+      r = await a.call('POST', '/api/admin/uni', { ...U, tuitionUrl: 'http://x.edu/f' }, ADMT); ok(r.s === 400, 'uni: http manba rad etiladi');
+      r = await a.call('POST', '/api/admin/uni', { ...U, cur: 'dollar' }, ADMT); ok(r.s === 400, 'uni: valyuta kodi 3 harf');
+      r = await a.call('POST', '/api/admin/uni', { ...U, rd: '2027-13-40' }, ADMT); ok(r.s === 400, 'uni: notoʻgʻri sana rad etiladi');
+      r = await a.call('POST', '/api/admin/uni', { n: 'Bo‘sh University', country: 'Avstraliya' }, ADMT); ok(r.s === 400, 'uni: hech qanday maʼlumotsiz rad etiladi');
+      r = await a.call('POST', '/api/admin/uni', { ...U, n: 'Stanford University', id: 'stanford-university' }, ADMT); ok(r.s === 400, 'uni: AQSh id bilan toʻqnashuv tekshiriladi');
+      const before = (await a.call('GET', '/data/intl.json')).j.length;
+      r = await a.call('POST', '/api/admin/uni', U, ADMT); ok(r.s === 201 && r.j.uni.id === 'test-university-of-sydney' && r.j.uni.tuition.cur === 'AUD' && r.j.uni.ielts === 6.5, 'uni: qoʻshildi', r);
+      let pub = (await a.call('GET', '/data/intl.json')).j, one = pub.find(u => u.id === 'test-university-of-sydney');
+      ok(pub.length === before + 1 && !!one && !('src' in one) && one.rdIntake.uz === '2027-yil kuzi', 'uni: ommaviy intl.json da chiqadi (src belgisiz)');
+      r = await a.call('GET', '/api/admin/unis', undefined, ADMT); ok(r.s === 200 && r.j.unis.find(u => u.id === 'test-university-of-sydney').src === 'custom' && r.j.custom === 1, 'uni: admin roʻyxatida custom');
+      r = await a.call('POST', '/api/admin/uni', { ...U, ielts: '7', id: 'test-university-of-sydney' }, ADMT); ok(r.s === 200 && r.j.created === false, 'uni: tahrirlash 200');
+      ok(((await a.call('GET', '/data/intl.json')).j.find(u => u.id === 'test-university-of-sydney') || {}).ielts === 7, 'uni: tahrir ommaviy roʻyxatga tushdi');
+      const base = pub.find(u => u.id === 'eth-zurich'); ok(!!base, 'uni: asosiy roʻyxatda ETH bor');
+      r = await a.call('POST', '/api/admin/uni', { id: 'eth-zurich', n: 'ETH Zurich', country: 'Shveytsariya', req: 'Sinov matni', reqUrl: 'https://ethz.ch/x' }, ADMT); ok(r.s === 200, 'uni: asosiy yozuvni almashtirish');
+      pub = (await a.call('GET', '/data/intl.json')).j; ok(pub.length === before + 1 && (pub.find(u => u.id === 'eth-zurich').req || {}).uz === 'Sinov matni', 'uni: almashtirilgan yozuv chiqadi, soni oʻzgarmaydi');
+      r = await a.call('POST', '/api/admin/uni/delete', { id: 'eth-zurich' }, ADMT); ok(r.s === 200, 'uni: almashtirish olib tashlandi');
+      
+      ok(JSON.stringify((await a.call('GET', '/data/intl.json')).j.find(u => u.id === 'eth-zurich')) === JSON.stringify(base), 'uni: ETH aynan asl holatiga qaytdi');
+      r = await a.call('POST', '/api/admin/uni/delete', { id: 'eth-zurich' }, ADMT); ok(r.s === 404, 'uni: asosiy yozuvni oʻchirib boʻlmaydi (almashtirilmagan)');
+      r = await a.call('POST', '/api/admin/uni/delete', { id: 'test-university-of-sydney' }, ADMT); ok(r.s === 200, 'uni: qoʻshilgan universitet oʻchirildi');
+      ok((await a.call('GET', '/data/intl.json')).j.length === before, 'uni: oʻchirilgach ommaviy roʻyxat oldingi holatda');
+    }
+
     console.log('Parol tiklash');
     const pr = new Client(); await pr.call('POST', '/api/register', { email: 'reset@gmail.com', password: 'eski-parol1', name: 'Reset' });
     r = await new Client().call('POST', '/api/password/forgot', { email: 'yoq@gmail.com' }); ok(r.s === 200 && mails.length === 0, 'mavjud boʻlmagan email: bir xil javob, xat yoʻq');
@@ -337,7 +368,7 @@ class Client {
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
     const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
-    ok(/href="\/tiers\.css/.test(html) && /unidoue-v62/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v59');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v65/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v59');
     const ac = await fetch(B + '/atlas.css?v=50'), act = await ac.text(), cv = await fetch(B + '/contour.svg'), cvt = await cv.text();
     ok(ac.status === 200 && /text\/css/.test(ac.headers.get('content-type') || '') && /\.rt-done/.test(act) && /href="\/atlas\.css/.test(html), 'atlas.css (Yo‘l daftari dizayni) toʻgʻri MIME bilan beriladi va /app ga ulangan');
     ok(cv.status === 200 && /image\/svg\+xml/.test(cv.headers.get('content-type') || '') && /^<svg/.test(cvt) && !/<script/i.test(cvt), 'contour.svg (xarita foni) image/svg+xml bilan beriladi');

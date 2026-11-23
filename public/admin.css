@@ -260,3 +260,15 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .nh-m{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;font-size:12.5px}
 .nh-c{display:flex;gap:6px;flex-wrap:wrap}
 @media(max-width:700px){.chs{grid-template-columns:1fr}.nh li{grid-template-columns:1fr}.nh-m{justify-content:flex-start}}
+
+/* Universitetlar: qoʻlda qoʻshish shakli */
+.un-g{border:0;margin:16px 0 0;padding:0;min-width:0}
+.un-g legend{padding:0;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--ink)}
+.un-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.un-row>div{min-width:0}
+.un-w2{grid-column:span 2}.un-w4{grid-column:1/-1}
+.un-row input,.un-row select{width:100%}
+@media (max-width:820px){.un-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.un-row{grid-template-columns:minmax(0,1fr)}.un-w2{grid-column:auto}}
+.un-t{display:flex;flex-wrap:wrap;gap:4px 10px;color:var(--muted);font-size:12.5px;margin-top:3px}
+.un-t b{color:var(--ink-2);font-weight:600}

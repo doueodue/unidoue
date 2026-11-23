@@ -420,3 +420,17 @@ a.nt:hover,a.nt:focus-visible{background:color-mix(in srgb,var(--brand) 8%,trans
 .av-crop canvas:active{cursor:grabbing}
 .av-ring{position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 400px rgba(12,18,24,.58),inset 0 0 0 2px rgba(255,255,255,.9);pointer-events:none}
 @media(max-width:560px){.pp-avw .pp-av{width:72px;height:72px;font-size:38px}}
+
+/* Chet el karta: moslik darajasi bloki */
+.fitb{margin:12px 0 0;padding:12px 14px;border:1px solid var(--line-2,rgba(128,128,128,.28));border-radius:12px;background:rgba(128,128,128,.06)}
+.fitb-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.fitb-m{display:flex;gap:4px;margin:10px 0 4px}
+.fitb-m i{flex:1;height:7px;border-radius:99px;background:var(--bad)}
+.fitb-m i.ok{background:var(--ok)}.fitb-m i.warn{background:var(--warn)}
+.fitb-c{color:var(--muted);font-size:12.5px}
+.fitb-l,.fitb-n ul{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px;font-size:13.5px}
+.fitb-l li{display:flex;gap:8px;align-items:flex-start}
+.fitb-l .badge{flex:none;margin-top:1px}
+.fitb-n{margin-top:12px;font-size:13.5px}
+.fitb-n ul{list-style:disc;padding-left:18px;gap:4px;color:var(--ink-2,inherit)}
+.fitb-p{margin:10px 0 0;font-size:13px;color:var(--muted)}

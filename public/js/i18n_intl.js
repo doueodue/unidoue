@@ -43,7 +43,13 @@ const P = [
   ["Tanlagan yo‘nalishingiz ingliz tilida o‘qitilishini rasmiy saytda tekshiring.", "Проверьте на официальном сайте, преподаётся ли ваше направление на английском.", "Check on the official site that your programme is taught in English."],
   ["O‘qish tilidan til sertifikati talab qilinishi mumkin: rasmiy saytda tekshiring.", "Может потребоваться сертификат языка обучения: проверьте на официальном сайте.", "A certificate in the teaching language may be required: check the official site."],
   ["Keyingi qabul davri muddatini rasmiy saytdan aniqlang.", "Узнайте срок следующего набора на официальном сайте.", "Find the next intake deadline on the official site."],
-  ["Talablar mos: hujjatlar ro‘yxati va muddatni rasmiy sahifada tasdiqlang.", "Требования подходят: подтвердите список документов и срок на официальной странице.", "Requirements fit: confirm the document list and deadline on the official page."]
+  ["Talablar mos: hujjatlar ro‘yxati va muddatni rasmiy sahifada tasdiqlang.", "Требования подходят: подтвердите список документов и срок на официальной странице.", "Requirements fit: confirm the document list and deadline on the official page."],
+  ["IELTS minimal bali belgilanmagan: kartadagi izohga qarang", "Минимальный балл IELTS не установлен: см. примечание в карточке", "No minimum IELTS score is set: see the note on the card"],
+  ["Moslik darajasi", "Уровень соответствия", "Fit level"],
+  ["Moslik uchun nima kerak", "Что нужно для соответствия", "What you need to fit"],
+  ["Profil kiritilmagan", "Профиль не заполнен", "No profile yet"],
+  ["Mezonlar", "Критерии", "Criteria"],
+  ["Moslik darajasini ko‘rish uchun IELTS, GPA yoki SAT natijangizni kiriting.", "Чтобы увидеть уровень соответствия, введите результат IELTS, GPA или SAT.", "Enter your IELTS, GPA or SAT result to see your fit level."],
 ];
 export const IRU = Object.fromEntries(P.map(x => [x[0], x[1]]));
 export const IEN = Object.fromEntries(P.map(x => [x[0], x[2]]));

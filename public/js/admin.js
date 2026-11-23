@@ -65,7 +65,7 @@ let USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all
 const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
 
 /* ---------- yo‘naltirish ---------- */
-const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar' };
+const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar' };
 function route() {
   const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
   $$('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
@@ -274,6 +274,72 @@ async function createPromo() {
   btn.disabled = false;
 }
 
+
+/* ---------- Universitetlar: qo‘lda qo‘shish / tahrirlash ---------- */
+let UNIS = null, UEDIT = '', UFILT = 'all', ULM = 40;
+const UNF = [['all', 'Hammasi'], ['mine', 'Men qo‘shgan'], ['base', 'Asosiy ro‘yxat']];
+const txt = o => (o && (o.uz || o.en || o.ru)) || '';
+const U_IDS = ['n', 'c', 't', 'w', 'l', 'e', 'i', 'in', 'iu', 'd', 'di', 'du', 'p', 'pc', 'pn', 'pu', 'r', 'ru'];
+function uniForm(u) {
+  const v = u || {}, set = (k, x) => { $('#un-' + k).value = x == null ? '' : x; };
+  set('n', v.n); set('c', v.country); set('t', v.city); set('w', v.url); set('l', v.lang); set('e', v.eng === true ? 'yes' : v.eng === false ? 'no' : '');
+  set('i', v.ielts); set('in', txt(v.ieltsNote)); set('iu', v.ielts != null ? v.ieltsUrl : v.ieltsNoteUrl);
+  set('d', v.rd); set('di', txt(v.rdIntake)); set('du', v.rdUrl);
+  const tu = v.tuition || {}; set('p', tu.amount); set('pc', tu.cur); set('pn', txt(tu.note)); set('pu', tu.url);
+  set('r', txt(v.req)); set('ru', v.reqUrl);
+}
+function uniBody() {
+  const g = k => $('#un-' + k).value.trim(), ie = g('i');
+  return { id: UEDIT || undefined, n: g('n'), country: g('c'), city: g('t'), url: g('w'), lang: g('l'), eng: g('e'),
+    ielts: ie, ieltsUrl: g('iu'), ieltsNote: ie ? '' : g('in'), ieltsNoteUrl: g('iu'),
+    rd: g('d'), rdIntake: g('di'), rdUrl: g('du'), tuition: g('p'), cur: g('pc'), tuitionNote: g('pn'), tuitionUrl: g('pu'), req: g('r'), reqUrl: g('ru') };
+}
+function uniEdit(id) {
+  const u = (UNIS && UNIS.unis || []).find(x => x.id === id); if (!u) return;
+  UEDIT = id; uniForm(u); $('#un-h').textContent = 'Tahrirlash: ' + u.n; $('#un-x').hidden = false; $('#un-s').textContent = u.src === 'base' ? 'Saqlash (asosiy yozuvni almashtiradi)' : 'Saqlash';
+  $('#un-m').className = 'msg'; $('#un-m').textContent = ''; $('#un-new').scrollIntoView({ behavior: 'smooth', block: 'start' }); $('#un-n').focus();
+}
+function uniReset() { UEDIT = ''; uniForm(null); $('#un-h').textContent = 'Yangi universitet'; $('#un-x').hidden = true; $('#un-s').textContent = 'Saqlash'; }
+function renderUnis() {
+  const box = $('#un-l-box');
+  if (!UNIS) { box.innerHTML = emptyBox('inbox', 'Universitetlar yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#nc').textContent = ''; return; }
+  const all = UNIS.unis || [], q = $('#un-q').value.trim().toLowerCase();
+  $('#nc').textContent = all.length;
+  $('#un-cl').innerHTML = [...new Set(all.map(u => u.country))].sort().map(c => `<option value="${esc(c)}">`).join('');
+  $('#un-f').innerHTML = UNF.map(([k, l]) => `<button type="button" class="chip" data-k="${k}" aria-pressed="${UFILT === k}">${l}${k === 'mine' ? ' (' + all.filter(u => u.src !== 'base').length + ')' : ''}</button>`).join('');
+  $$('#un-f [data-k]').forEach(b => (b.onclick = () => { UFILT = b.dataset.k; ULM = 40; renderUnis(); }));
+  let list = all.filter(u => (UFILT === 'all' || (UFILT === 'mine' ? u.src !== 'base' : u.src === 'base')) && (!q || (u.n + ' ' + u.country + ' ' + (u.city || '')).toLowerCase().includes(q)));
+  if (!list.length) { box.innerHTML = emptyBox('inbox', q ? 'Hech narsa topilmadi' : 'Bu yerda hali universitet yo‘q', q ? 'Boshqa so‘z bilan qidirib ko‘ring.' : 'Yuqoridagi shakldan birinchisini qo‘shing.'); return; }
+  const tot = list.length; list = list.slice(0, ULM);
+  const bits = u => [u.ielts != null ? `<b>IELTS</b> ${u.ielts}` : u.ieltsNote ? '<b>IELTS</b> izoh' : '', u.rd ? `<b>Muddat</b> ${esc(dm(u.rd))}.${esc(u.rd.slice(0, 4))}` : '', u.tuition ? `<b>Narx</b> ${fmt(u.tuition.amount)} ${esc(u.tuition.cur)}` : '', u.req ? '<b>Talab</b> bor' : ''].filter(Boolean);
+  const SRC = { base: ['mute', 'Asosiy'], custom: ['ok', 'Qo‘shilgan'], override: ['warn', 'Almashtirilgan'] };
+  box.innerHTML = `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Universitet</th><th>Ma’lumot</th><th>Manba</th><th></th></tr></thead><tbody>${list.map(u => {
+    const [tone, lab] = SRC[u.src] || SRC.base;
+    return `<tr><td data-l="Universitet"><b>${esc(u.n)}</b><div class="un-t"><span>${esc(u.country)}${u.city ? ', ' + esc(u.city) : ''}</span></div></td>
+    <td data-l="Ma’lumot"><div class="un-t">${bits(u).map(x => `<span>${x}</span>`).join('') || '<span>—</span>'}</div></td>
+    <td data-l="Manba"><span class="badge ${tone}">${lab}</span></td>
+    <td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-ed="${esc(u.id)}">Tahrirlash</button>${u.src === 'base' ? '' : `<button class="btn sm danger" type="button" data-rm="${esc(u.id)}">${u.src === 'override' ? 'Asliga qaytarish' : 'O‘chirish'}</button>`}</div></td></tr>`;
+  }).join('')}</tbody></table></div>${tot > list.length ? `<div class="grant-f"><button class="btn" type="button" id="un-more">Yana ko‘rsatish (${tot - list.length})</button></div>` : ''}
+    <p class="hint" style="margin-top:10px">Asosiy ro‘yxatdagi universitetni tahrirlasangiz, sizning versiyangiz uning o‘rniga chiqadi; “Asliga qaytarish” asl ma’lumotni tiklaydi.</p>`;
+  $$('#un-l-box [data-ed]').forEach(b => (b.onclick = () => uniEdit(b.dataset.ed)));
+  $$('#un-l-box [data-rm]').forEach(b => (b.onclick = async () => {
+    const u = all.find(x => x.id === b.dataset.rm); if (!u) return;
+    if (!await ask({ title: u.src === 'override' ? 'Asl ma’lumotga qaytarilsinmi?' : 'Universitet o‘chirilsinmi?', text: u.src === 'override' ? `${u.n}: sizning o‘zgarishlaringiz olib tashlanadi, asosiy ma’lumot qaytadi.` : `${u.n} saytdan olib tashlanadi. Foydalanuvchilarning arizalaridagi nomi o‘zgarmaydi.`, ok: u.src === 'override' ? 'Qaytarish' : 'O‘chirish', danger: true })) return;
+    try { await call('POST', '/api/admin/uni/delete', { id: u.id }); toast(u.src === 'override' ? 'Asl ma’lumot tiklandi' : 'Universitet o‘chirildi'); if (UEDIT === u.id) uniReset(); loadUnis(); } catch (e) { toast(e.message, 'err'); }
+  }));
+  const more = $('#un-more'); if (more) more.onclick = () => { ULM += 60; renderUnis(); };
+}
+async function loadUnis() { try { UNIS = await call('GET', '/api/admin/unis'); } catch (e) { if (e.status === 401) { load(); return; } toast(e.message, 'err'); } renderUnis(); }
+async function saveUni() {
+  const m = $('#un-m'), btn = $('#un-s'); m.className = 'msg'; m.textContent = 'Saqlanmoqda…'; btn.disabled = true;
+  try {
+    const r = await call('POST', '/api/admin/uni', uniBody());
+    m.className = 'msg ok'; m.textContent = ''; toast(r.created ? 'Universitet qo‘shildi: ' + r.uni.n : 'Yangilandi: ' + r.uni.n);
+    uniReset(); await loadUnis();
+  } catch (e) { m.className = 'msg err'; m.textContent = e.message; }
+  btn.disabled = false;
+}
+
 /* ---------- Xabar yuborish: sayt ichida / push / email ---------- */
 const AUD = [['all', 'Hammaga'], ['free', 'Faqat Free'], ['plus', 'Faqat Plus'], ['pro', 'Faqat Pro'], ['email', 'Bitta foydalanuvchi'], ['admin', 'Admin qurilmalari (sinov)']];
 const AUD_N = { all: 'barcha foydalanuvchilarga', free: 'Free foydalanuvchilarga', plus: 'Plus foydalanuvchilarga', pro: 'Pro foydalanuvchilarga', email: 'tanlangan foydalanuvchiga', admin: 'admin qurilmalariga' };
@@ -390,13 +456,14 @@ async function load(silent) {
   if (busy) return; busy = true;
   const rf = $('#rf'); rf.classList.add('spin'); if (!silent) $('#st').textContent = 'Yuklanmoqda…';
   try {
-    const [rq, us, st, od, pr, nh] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
+    const [rq, us, st, od, pr, nh, un] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
       call('GET', '/api/admin/orders').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/promos').catch(e => { if (e.status === 401) throw e; return null; }),
-      call('GET', '/api/admin/notes').catch(e => { if (e.status === 401) throw e; return null; })]);
-    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; if (nh) NH = nh; loadedAt = Date.now();
+      call('GET', '/api/admin/notes').catch(e => { if (e.status === 401) throw e; return null; }),
+      call('GET', '/api/admin/unis').catch(e => { if (e.status === 401) throw e; return null; })]);
+    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; if (nh) NH = nh; loadedAt = Date.now();
     const first = $('#shell').hidden; $('#lg').hidden = true; $('#shell').hidden = false;
-    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderNotes(); audienceUi();
+    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderNotes(); audienceUi();
     $('#st').textContent = 'Yangilandi: ' + when(Date.now()).split(', ')[1].split(' ').pop();
     if (first) route(); else fx.scan($('#kpis'));
   } catch (e) {
@@ -416,6 +483,7 @@ $('#bg').onclick = () => document.body.classList.toggle('nav-open');
 $('#scrim').onclick = () => document.body.classList.remove('nav-open');
 $('#uq').oninput = () => { ULIM = 100; renderUsers(); };
 $('#pg').onclick = () => { const e = $('#pe').value.trim().toLowerCase(); if (!e) { $('#pm').className = 'msg err'; $('#pm').textContent = 'Emailni kiriting.'; return; } give(e, $('#pp').value, parseInt($('#pd').value, 10) || 30, $('#pm')); };
+$('#un-s').onclick = saveUni; $('#un-x').onclick = uniReset; $('#un-q').oninput = () => { ULM = 40; renderUnis(); };
 $('#mb').onclick = createPromo; $('#mk-r').onclick = () => { $('#mk').value = pmRand(); $('#mk').focus(); };
 $('#md').oninput = () => $$('#md-p [data-d]').forEach(x => x.setAttribute('aria-pressed', x.dataset.d === $('#md').value));
 $('#mk').onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); createPromo(); } };
