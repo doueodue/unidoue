@@ -284,6 +284,7 @@ function uniForm(u) {
   const v = u || {}, set = (k, x) => { $('#un-' + k).value = x == null ? '' : x; };
   set('n', v.n); set('c', v.country); set('t', v.city); set('w', v.url); set('l', v.lang); set('e', v.eng === true ? 'yes' : v.eng === false ? 'no' : '');
   set('i', v.ielts); set('in', txt(v.ieltsNote)); set('iu', v.ielts != null ? v.ieltsUrl : v.ieltsNoteUrl);
+  set('sat', v.sat); set('satu', v.satUrl);
   set('d', v.rd); set('di', txt(v.rdIntake)); set('du', v.rdUrl);
   const tu = v.tuition || {}; set('p', tu.amount); set('pc', tu.cur); set('pn', txt(tu.note)); set('pu', tu.url);
   set('r', txt(v.req)); set('ru', v.reqUrl);
@@ -292,6 +293,7 @@ function uniBody() {
   const g = k => $('#un-' + k).value.trim(), ie = g('i');
   return { id: UEDIT || undefined, n: g('n'), country: g('c'), city: g('t'), url: g('w'), lang: g('l'), eng: g('e'),
     ielts: ie, ieltsUrl: g('iu'), ieltsNote: ie ? '' : g('in'), ieltsNoteUrl: g('iu'),
+    sat: g('sat'), satUrl: g('satu'),
     rd: g('d'), rdIntake: g('di'), rdUrl: g('du'), tuition: g('p'), cur: g('pc'), tuitionNote: g('pn'), tuitionUrl: g('pu'), req: g('r'), reqUrl: g('ru') };
 }
 function uniEdit(id) {
@@ -311,7 +313,7 @@ function renderUnis() {
   let list = all.filter(u => (UFILT === 'all' || (UFILT === 'mine' ? u.src !== 'base' : u.src === 'base')) && (!q || (u.n + ' ' + u.country + ' ' + (u.city || '')).toLowerCase().includes(q)));
   if (!list.length) { box.innerHTML = emptyBox('inbox', q ? 'Hech narsa topilmadi' : 'Bu yerda hali universitet yo‘q', q ? 'Boshqa so‘z bilan qidirib ko‘ring.' : 'Yuqoridagi shakldan birinchisini qo‘shing.'); return; }
   const tot = list.length; list = list.slice(0, ULM);
-  const bits = u => [u.ielts != null ? `<b>IELTS</b> ${u.ielts}` : u.ieltsNote ? '<b>IELTS</b> izoh' : '', u.rd ? `<b>Muddat</b> ${esc(dm(u.rd))}.${esc(u.rd.slice(0, 4))}` : '', u.tuition ? `<b>Narx</b> ${fmt(u.tuition.amount)} ${esc(u.tuition.cur)}` : '', u.req ? '<b>Talab</b> bor' : ''].filter(Boolean);
+  const bits = u => [u.ielts != null ? `<b>IELTS</b> ${u.ielts}` : u.ieltsNote ? '<b>IELTS</b> izoh' : '', u.sat != null ? `<b>SAT</b> ${u.sat}` : '', u.rd ? `<b>Muddat</b> ${esc(dm(u.rd))}.${esc(u.rd.slice(0, 4))}` : '', u.tuition ? `<b>Narx</b> ${fmt(u.tuition.amount)} ${esc(u.tuition.cur)}` : '', u.req ? '<b>Talab</b> bor' : ''].filter(Boolean);
   const SRC = { base: ['mute', 'Asosiy'], custom: ['ok', 'Qo‘shilgan'], override: ['warn', 'Almashtirilgan'] };
   box.innerHTML = `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Universitet</th><th>Ma’lumot</th><th>Manba</th><th></th></tr></thead><tbody>${list.map(u => {
     const [tone, lab] = SRC[u.src] || SRC.base;

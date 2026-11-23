@@ -98,6 +98,11 @@
       }
     } else if (u.ieltsNote) push('IELTS', 'IELTS minimal bali belgilanmagan: kartadagi izohga qarang', 'info');
     else push('IELTS', 'Minimal IELTS rasmiy sahifada topilmadi: universitetdan so‘rang', 'info');
+    if (u.sat != null) {
+      if (p.sat == null) { push('SAT', `Universitet talabi: SAT ${u.sat}. Natijangizni kiriting.`, 'info'); advice.push('SAT natijangizni profilga kiriting.'); }
+      else if (p.sat >= u.sat) push('SAT', `SAT ${p.sat} talab qilingan ${u.sat} dan kam emas`, 'good');
+      else { const gap = u.sat - p.sat; push('SAT', `SAT ${p.sat}; talab ${u.sat} (${gap} ball yetishmaydi)`, gap <= 50 ? 'warn' : 'bad'); advice.push(`SAT ni ${u.sat} ga yetkazing.`); }
+    }
     const lk = langKind(u.lang);
     if (lk === 'yes') push('Til', 'Ingliz tilida o‘qish imkoniyati bor', 'good');
     else if (lk === 'part') { push('Til', 'Faqat ba’zi dasturlar ingliz tilida: kerakli dastur tilini tekshiring', 'warn'); advice.push('Tanlagan yo‘nalishingiz ingliz tilida o‘qitilishini rasmiy saytda tekshiring.'); }

@@ -22,7 +22,7 @@ function clean(b, usIds) {
   if (usIds && usIds.has(id)) return { error: 'Bu id AQSh universitetlari roʻyxatida allaqachon bor.' };
   const site = url(b.url); if (site === null) return { error: 'Rasmiy sayt manzili https:// bilan boshlansin.' };
   const o = { id, n, country, city: txt(b.city, 80) || null, url: site || null, lang: txt(b.lang, 80) || null, eng: b.eng === true || b.eng === 'yes' ? true : b.eng === false || b.eng === 'no' ? false : null,
-    ielts: null, ieltsUrl: null, ieltsNote: null, ieltsNoteUrl: null, rd: null, rdIntake: null, rdUrl: null, tuition: null, req: null, reqUrl: null };
+    ielts: null, ieltsUrl: null, ieltsNote: null, sat: null, satUrl: null, ieltsNoteUrl: null, rd: null, rdIntake: null, rdUrl: null, tuition: null, req: null, reqUrl: null };
   const ie = num(b.ielts);
   if (ie != null) {
     if (!(ie >= 4 && ie <= 9)) return { error: 'IELTS 4 dan 9 gacha boʻlsin.' };
@@ -31,6 +31,12 @@ function clean(b, usIds) {
   } else if (txt(b.ieltsNote, 600)) {
     const u = url(b.ieltsNoteUrl); if (!u) return { error: 'IELTS izohi uchun rasmiy manba havolasi (https://) kerak.' };
     o.ieltsNote = mk(txt(b.ieltsNote, 600)); o.ieltsNoteUrl = u;
+  }
+  const st = num(b.sat);
+  if (st != null) {
+    if (!(st >= 400 && st <= 1600)) return { error: 'SAT 400 dan 1600 gacha boʻlsin.' };
+    const u = url(b.satUrl); if (!u) return { error: 'SAT uchun rasmiy manba havolasi (https://) kerak.' };
+    o.sat = Math.round(st / 10) * 10; o.satUrl = u;
   }
   const rd = txt(b.rd, 10);
   if (rd) {
@@ -48,7 +54,7 @@ function clean(b, usIds) {
   }
   const rq = long(b.req, 1200);
   if (rq) { const u = url(b.reqUrl); if (!u) return { error: 'Talab matni uchun rasmiy manba havolasi (https://) kerak.' }; o.req = mk(rq); o.reqUrl = u; }
-  if (o.ielts == null && !o.ieltsNote && !o.rd && !o.tuition && !o.req) return { error: 'Kamida bitta maʻlumot (IELTS, muddat, narx yoki talab) manbasi bilan kiritilsin.' };
+  if (o.ielts == null && !o.ieltsNote && o.sat == null && !o.rd && !o.tuition && !o.req) return { error: 'Kamida bitta maʻlumot (IELTS, SAT, muddat, narx yoki talab) manbasi bilan kiritilsin.' };
   return { uni: o };
 }
 

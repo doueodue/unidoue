@@ -45,6 +45,9 @@ const P = [
   ["Keyingi qabul davri muddatini rasmiy saytdan aniqlang.", "Узнайте срок следующего набора на официальном сайте.", "Find the next intake deadline on the official site."],
   ["Talablar mos: hujjatlar ro‘yxati va muddatni rasmiy sahifada tasdiqlang.", "Требования подходят: подтвердите список документов и срок на официальной странице.", "Requirements fit: confirm the document list and deadline on the official page."],
   ["IELTS minimal bali belgilanmagan: kartadagi izohga qarang", "Минимальный балл IELTS не установлен: см. примечание в карточке", "No minimum IELTS score is set: see the note on the card"],
+  ["SAT (min)", "SAT (мин.)", "SAT (min)"],
+  ["sizning SAT yetarli", "ваш SAT достаточен", "your SAT is enough"],
+  ["SAT natijangizni profilga kiriting.", "Введите результат SAT в профиль.", "Enter your SAT result in your profile."],
   ["Moslik darajasi", "Уровень соответствия", "Fit level"],
   ["Moslik uchun nima kerak", "Что нужно для соответствия", "What you need to fit"],
   ["Profil kiritilmagan", "Профиль не заполнен", "No profile yet"],
@@ -54,6 +57,10 @@ const P = [
 export const IRU = Object.fromEntries(P.map(x => [x[0], x[1]]));
 export const IEN = Object.fromEntries(P.map(x => [x[0], x[2]]));
 export const IRULES = [
+  [/^Universitet talabi: SAT (\d+)\. Natijangizni kiriting\.$/, m => `Требование университета: SAT ${m[1]}. Введите свой результат.`, m => `University requirement: SAT ${m[1]}. Enter your result.`],
+  [/^SAT (\d+) talab qilingan (\d+) dan kam emas$/, m => `SAT ${m[1]} не ниже требуемого ${m[2]}`, m => `SAT ${m[1]} is not below the required ${m[2]}`],
+  [/^SAT (\d+); talab (\d+) \((\d+) ball yetishmaydi\)$/, m => `SAT ${m[1]}; требуется ${m[2]} (не хватает ${m[3]} баллов)`, m => `SAT ${m[1]}; required ${m[2]} (${m[3]} points short)`],
+  [/^SAT ni (\d+) ga yetkazing\.$/, m => `Доведите SAT до ${m[1]}.`, m => `Raise your SAT to ${m[1]}.`],
   [/^Solishtirishga qo‘shildi \((\d+)\/(\d+)\)\.$/, m => `Добавлено к сравнению (${m[1]}/${m[2]}).`, m => `Added to comparison (${m[1]}/${m[2]}).`],
   [/^(.+) allaqachon arizalar ro‘yxatida\.$/, m => `${m[1]} уже в списке заявок.`, m => `${m[1]} is already in your applications.`],
   [/^Universitet talabi: IELTS ([\d.]+)\. Natijangizni kiriting\.$/, m => `Требование университета: IELTS ${m[1]}. Введите свой результат.`, m => `University requirement: IELTS ${m[1]}. Enter your result.`],
