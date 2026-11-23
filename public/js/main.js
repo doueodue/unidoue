@@ -4,6 +4,7 @@ import { themeSwitch } from './theme-ui.js';
 import * as fx from './fx.js';
 import * as pn from './push.js';
 import { bellHTML, bindBell } from './notes.js';
+import { seePlan } from './celebrate.js';
 import { setTipTranslator } from './ui.js';
 import { paintAvatar } from './avatar.js';
 import { tierPill, liveGlass } from './tiers.js';
@@ -28,6 +29,20 @@ const ROUTES = [
 const root = $('#root');
 let token = 0;
 
+/* ---------- Google orqali kirish ---------- */
+const GE = {
+  off: 'Google orqali kirish hozircha ulanmagan.', rate: 'Juda ko‘p urinish. Birozdan keyin qayta urinib ko‘ring.', denied: 'Google orqali kirish bekor qilindi.',
+  state: 'Kirish seansi eskirgan. Qaytadan urinib ko‘ring.', token: 'Google bilan kirib bo‘lmadi. Qaytadan urinib ko‘ring.', net: 'Google serveriga ulanib bo‘lmadi. Birozdan keyin urinib ko‘ring.',
+  unverified: 'Google hisobingizdagi email tasdiqlanmagan. Boshqa hisob bilan urinib ko‘ring.'
+};
+const G_LOGO = '<svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>';
+function googleBlock(reg) {
+  const a = S.auth || {};
+  const note = reg && a.email === false ? `<p class="msg err" style="margin:0 0 10px" role="note">${t('Hozircha email orqali hisob ochib bo‘lmaydi: tasdiqlash xati yuborish ulanmagan.')}${a.google ? ' ' + t('Google orqali kiring.') : ''}</p>` : '';
+  if (!a.google) return note;
+  return `${note}<div class="auth-or"><span>${t('yoki')}</span></div><a class="btn gbtn" id="gb" href="/api/auth/google/start">${G_LOGO}<span>${t(reg ? 'Google bilan ro‘yxatdan o‘tish' : 'Google bilan kirish')}</span></a>`;
+}
+
 /* ---------- autentifikatsiya ekrani ---------- */
 function authScreen(mode = 'login') {
   const reg = mode === 'register', fg = mode === 'forgot';
@@ -43,6 +58,7 @@ function authScreen(mode = 'login') {
   ${fg ? '' : `<div class="field"><label class="f" for="ap">${t('Parol')}</label><input id="ap" type="password" maxlength="128" autocomplete="${reg ? 'new-password' : 'current-password'}" placeholder="${t('kamida 8 ta belgi')}"><label class="hint" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="ash"> ${t('Parolni ko‘rsatish')}</label></div>`}
   <div class="msg" id="am" role="alert"></div>
   <button class="btn primary" id="as" type="submit" style="width:100%;margin-top:6px">${t(fg ? 'Havola yuborish' : reg ? 'Hisob ochish' : 'Kirish')}</button>
+  ${fg ? '' : googleBlock(reg)}
   <p class="hint" style="margin-top:16px;text-align:center">${fg ? `<button type="button" class="link-btn" data-m="login">${t('← Kirishga qaytish')}</button>`
     : reg ? `${t('Hisobingiz bormi?')} <button type="button" class="link-btn" data-m="login">${t('Kirish')}</button>`
     : `<button type="button" class="link-btn" data-m="forgot">${t('Parolni unutdingizmi?')}</button><br>${t('Yangimisiz?')} <button type="button" class="link-btn" data-m="register">${t('Hisob ochish')}</button>`}</p>
@@ -50,6 +66,8 @@ function authScreen(mode = 'login') {
   </form></main></div>`;
   $$('[data-m]').forEach(b => (b.onclick = () => authScreen(b.dataset.m)));
   bindLang('lang', () => authScreen(mode));
+  const ge = new URLSearchParams(location.search).get('ge');
+  if (ge) { history.replaceState(null, '', location.pathname + location.hash); const gm = $('#am'); if (gm) { gm.className = 'msg err'; gm.textContent = GE[ge] || GE.token; } }
   const ash = $('#ash'); if (ash) ash.onchange = () => ($('#ap').type = ash.checked ? 'text' : 'password');
   $('#af').onsubmit = async ev => {
     ev.preventDefault();
@@ -141,13 +159,14 @@ async function route() {
   if (my === token) { window.scrollTo(0, 0); fx.done(); }
 }
 
-function start() { shell(); addEventListener('hashchange', route); route(); }
+function start() { shell(); addEventListener('hashchange', route); route(); if (S.user && S.account) seePlan(S.user.id, S.account.plan, S.account.planUntil); }
+document.addEventListener('unidoue:account', () => { if (S.user && S.account) seePlan(S.user.id, S.account.plan, S.account.planUntil); });
 document.addEventListener('unidoue:signedout', () => { toast('Sessiya tugadi. Qayta kiring.', 'err'); authScreen('login'); });
 
 (async function boot() {
   try {
     const me = await api('/api/me');
-    if (me.user && me.user.verified === false) verifyScreen(me); else if (me.user) { adopt(me); start(); } else authScreen(new URLSearchParams(location.search).get('m') === 'register' ? 'register' : 'login');
+    if (me.user && me.user.verified === false) verifyScreen(me); else if (me.user) { adopt(me); start(); } else { S.auth = me.auth || {}; authScreen(new URLSearchParams(location.search).get('m') === 'register' ? 'register' : 'login'); }
   } catch (e) {
     root.innerHTML = `<div style="min-height:100dvh;display:grid;place-items:center;padding:20px">${errorBox(e.message, true)}</div>`;
     const b = $('[data-retry]'); if (b) b.onclick = () => location.reload();

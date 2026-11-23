@@ -178,13 +178,17 @@ function renderUsers() {
   const shown = list.slice(0, ULIM);
   $('#ul').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Foydalanuvchi</th><th>Tarif</th><th>Muddati</th><th>Oxirgi kirish</th><th class="num">AI</th><th>Push</th><th>Kod</th><th></th></tr></thead><tbody>${shown.map(u => {
     const e = eff(u), exp = u.plan !== 'free' && u.planUntil;
-    return `<tr><td class="u-td" data-l="Foydalanuvchi"><div class="u-c">${avatar(u.name || u.email)}<div><b>${esc(u.name)}</b><small>${esc(u.email)}</small>${u.verified ? '' : ' <span class="badge mute">tasdiqlanmagan</span>'}</div></div></td>
+    return `<tr><td class="u-td" data-l="Foydalanuvchi"><div class="u-c">${avatar(u.name || u.email)}<div><b>${esc(u.name)}</b><small>${esc(u.email)}</small>${vbadge(u.vs, u.google)}</div></div></td>
     <td data-l="Tarif"><span class="pb ${e}">${planName(e)}</span>${u.requested ? ` <span class="badge warn">so‘rov</span>` : ''}</td>
     <td data-l="Muddati">${exp ? esc(when(u.planUntil)) + (u.planUntil < now ? ' <span class="badge bad">tugagan</span>' : u.planUntil - now < 7 * 864e5 ? ' <span class="badge warn">tugayapti</span>' : '') : '<span class="mut">—</span>'}</td>
     <td data-l="Oxirgi kirish">${u.seen ? esc(dm(u.seen)) : '<span class="mut">—</span>'}</td><td class="num" data-l="AI">${u.ai || 0}</td>
     <td data-l="Push">${u.push ? `<span class="pn">${svg(IC.bell)}${u.push}</span>` : '<span class="mut">—</span>'}</td><td data-l="Kod">${esc(u.ref || '') || '<span class="mut">—</span>'}</td>
-    <td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-g="${esc(u.email)}">Tarif</button>${u.push ? `<button class="btn sm" type="button" data-n="${esc(u.email)}">Xabar</button>` : ''}${e !== 'free' ? `<button class="btn sm danger" type="button" data-rv="${esc(u.email)}">Bekor qilish</button>` : ''}</div></td></tr>`; }).join('')}</tbody></table></div>${list.length > ULIM ? `<div class="more"><button class="btn" type="button" id="um">Yana ko‘rsatish (${list.length - ULIM})</button></div>` : ''}` : emptyBox('users', 'Foydalanuvchi topilmadi', 'Qidiruv yoki filtrni o‘zgartirib ko‘ring.');
+    <td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-g="${esc(u.email)}">Tarif</button>${u.push ? `<button class="btn sm" type="button" data-n="${esc(u.email)}">Xabar</button>` : ''}${u.vs !== 'yes' && !u.google ? `<button class="btn sm" type="button" data-vr="${esc(u.email)}">Qayta tasdiqlatish</button>` : ''}${e !== 'free' ? `<button class="btn sm danger" type="button" data-rv="${esc(u.email)}">Bekor qilish</button>` : ''}</div></td></tr>`; }).join('')}</tbody></table></div>${list.length > ULIM ? `<div class="more"><button class="btn" type="button" id="um">Yana ko‘rsatish (${list.length - ULIM})</button></div>` : ''}` : emptyBox('users', 'Foydalanuvchi topilmadi', 'Qidiruv yoki filtrni o‘zgartirib ko‘ring.');
   const um = $('#um'); if (um) um.onclick = () => { ULIM += 100; renderUsers(); };
+  $$('#ul [data-vr]').forEach(b => (b.onclick = async () => {
+    if (!await ask({ title: 'Emailni qayta tasdiqlatasizmi?', text: `${b.dataset.vr} manziliga 6 xonali kod yuboriladi. Foydalanuvchi kodni kiritmaguncha saytga kira olmaydi.`, ok: 'Kod yuborish' })) return;
+    b.disabled = true; try { await call('POST', '/api/admin/user/reverify', { email: b.dataset.vr }); toast('Kod yuborildi'); load(); } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+  }));
   $$('#ul [data-rv]').forEach(b => (b.onclick = async () => { if (await ask({ title: 'Tarifni bekor qilasizmi?', text: `${b.dataset.rv} Free tarifga o‘tadi.`, ok: 'Bekor qilish', danger: true })) give(b.dataset.rv, 'free', 1, $('#pm')); }));
   $$('#ul [data-g]').forEach(b => (b.onclick = () => { $('#pe').value = b.dataset.g; $('#grant').scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#pp').focus(); }));
   $$('#ul [data-n]').forEach(b => (b.onclick = () => { location.hash = '#push'; $('#na').value = 'email'; $('#nq').value = b.dataset.n; audienceUi(); $('#nt').focus(); }));
@@ -225,6 +229,7 @@ function askNum({ title, text, value, min, max, ok = 'Saqlash' }) {
     document.addEventListener('keydown', key); document.body.appendChild(bg); inp.focus(); inp.select();
   });
 }
+const vbadge = (vs, g) => g ? ' <span class="badge ok">Google ✓</span>' : vs === 'yes' ? '' : vs === 'no' ? ' <span class="badge warn">kod kutilmoqda</span>' : ' <span class="badge mute">tasdiqlanmagan (eski)</span>';
 function renderPromos() {
   const box = $('#ml');
   if (!PROMOS) { box.innerHTML = emptyBox('ticket', 'Promo kodlar yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#mc').textContent = ''; return; }
@@ -236,7 +241,7 @@ function renderPromos() {
   const ymd = ts => { const x = when(ts).split(',').slice(0, 2).join(',').replace(/ \d\d:\d\d$/, ''); return x; };
   box.innerHTML = `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Kod</th><th>Tarif</th><th>Foydalanildi</th><th>Holat</th><th></th></tr></thead><tbody>${list.map(p => {
     const [tone, lab] = PM_ST[p.status] || PM_ST.active, pct = Math.min(100, Math.round(p.used / p.max * 100));
-    const who = p.recent.length ? `<details class="pm-who"><summary>Kimlar ishlatgan (${p.used})</summary><ul>${p.recent.map(r => `<li><span>${esc(r.email || 'o‘chirilgan hisob')}</span><small>${esc(when(r.t))}</small></li>`).join('')}${p.used > p.recent.length ? `<li class="mut">…va yana ${p.used - p.recent.length} ta</li>` : ''}</ul></details>` : '';
+    const who = p.recent.length ? `<details class="pm-who"><summary>Kimlar ishlatgan (${p.used})</summary><ul>${p.recent.map(r => `<li><span class="pm-e" title="${esc(r.email || '')}">${esc(r.email || 'o‘chirilgan hisob')}</span><small>${esc(when(r.t))}</small>${r.vs === 'yes' ? '<em class="pm-v ok">tasdiqlangan</em>' : r.vs === 'no' ? '<em class="pm-v warn">kod kutilmoqda</em>' : r.vs === 'old' ? '<em class="pm-v warn">tasdiqlanmagan (eski)</em>' : ''}</li>`).join('')}${p.used > p.recent.length ? `<li class="mut">…va yana ${p.used - p.recent.length} ta</li>` : ''}</ul></details>` : '';
     return `<tr><td data-l="Kod"><div class="pm-cd"><code class="pm-code">${esc(p.code)}</code><button type="button" class="ic-btn sm" data-cp="${esc(p.code)}" aria-label="Nusxalash" title="Nusxalash">${svg(IC.copy)}</button></div>${p.note ? `<small class="pm-note">${esc(p.note)}</small>` : ''}<small class="pm-note">Yaratilgan: ${esc(ymd(p.created))}</small>${who}</td>
     <td data-l="Tarif"><span class="pb ${p.plan}">${planName(p.plan)}</span><small class="pm-note">${esc(dayStr(p.days))}</small></td>
     <td data-l="Foydalanildi"><div class="pm-use"><b>${p.used}</b><span> / ${p.max}</span></div><div class="pm-bar" aria-hidden="true"><i style="width:${pct}%"></i></div></td>

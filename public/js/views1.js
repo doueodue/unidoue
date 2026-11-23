@@ -1,4 +1,5 @@
 import { $, $$, S, api, ls, esc, toast, modal, svg, fmtDate, daysLeft, catalog, allUnis, uniOptions, refreshAccount, upsell, push, wipeLocal, errorBox, credits, inPlay, mentorAvatar } from './core.js';
+import { celebrate } from './celebrate.js';
 import { tierMedal, tierPill, crownHTML, liveGlass, TIER_TAG } from './tiers.js';
 import { t, dateL, lang } from './i18n.js';
 import * as pn from './push.js';
@@ -215,7 +216,7 @@ function promoBind(el) {
     b.disabled = true; m.className = 'promo-m'; m.textContent = 'Tekshirilmoqda…';
     try {
       const r = await api('/api/promo/redeem', 'POST', { code });
-      S.account = r.account; accountChanged(); promoDone = { plan: r.plan, until: r.until };
+      S.account = r.account; celebrate(r.plan, { until: r.until, uid: S.user && S.user.id }); accountChanged(); promoDone = { plan: r.plan, until: r.until };
       toast(r.plan === 'pro' ? 'Pro tarifi yoqildi' : 'Plus tarifi yoqildi'); pricing(el); return;
     } catch (e) { m.className = 'promo-m err'; m.textContent = e.message; b.disabled = false; i.select(); }
   };
@@ -230,7 +231,7 @@ async function checkPaid(el, id) {
     let r; try { r = await api('/api/pay/order?id=' + id); } catch (e) { box.remove(); return; }
     if (!el.isConnected) return;
     if (r.state === 'paid') {
-      history.replaceState(null, '', '#/pricing'); await refreshAccount(); accountChanged(); toast('To‘lov qabul qilindi. Tarif yoqildi ✓'); return pricing(el);
+      history.replaceState(null, '', '#/pricing'); await refreshAccount(); celebrate(S.account.plan, { until: S.account.planUntil, uid: S.user && S.user.id }); accountChanged(); toast('To‘lov qabul qilindi. Tarif yoqildi ✓'); return pricing(el);
     }
     if (r.state !== 'new') { history.replaceState(null, '', '#/pricing'); show('<b>Bu buyurtma yopilgan.</b> Yangi to‘lov uchun tarifni qayta tanlang.'); return; }
     await new Promise(r2 => setTimeout(r2, 2000));
@@ -365,10 +366,11 @@ export async function profile(el) {
     paint();
   }
   $('#p-del', el).onclick = async () => {
-    const v = await modal({ title: 'Hisobni o‘chirasizmi?', body: '<p>Profil, natijalar, arizalar va so‘rovlaringiz butunlay o‘chadi. Qaytarib bo‘lmaydi. Tasdiqlash uchun parolingizni kiriting.</p><div class="field" style="margin-top:12px"><input id="dpw" type="password" autocomplete="current-password" placeholder="Parol"></div>', actions: [{ label: 'Bekor', value: 0 }, { label: 'O‘chirish', value: 1, cls: 'danger' }], collect: bg => ($('#dpw', bg) || {}).value });
+    const np = !!(S.user && S.user.noPw);
+    const v = await modal({ title: 'Hisobni o‘chirasizmi?', body: np ? '<p>Profil, natijalar, arizalar va so‘rovlaringiz butunlay o‘chadi. Qaytarib bo‘lmaydi. Tasdiqlash uchun emailingizni yozing.</p><div class="field" style="margin-top:12px"><input id="dpw" type="email" autocomplete="off" placeholder="Email"></div>' : '<p>Profil, natijalar, arizalar va so‘rovlaringiz butunlay o‘chadi. Qaytarib bo‘lmaydi. Tasdiqlash uchun parolingizni kiriting.</p><div class="field" style="margin-top:12px"><input id="dpw" type="password" autocomplete="current-password" placeholder="Parol"></div>', actions: [{ label: 'Bekor', value: 0 }, { label: 'O‘chirish', value: 1, cls: 'danger' }], collect: bg => ($('#dpw', bg) || {}).value });
     if (v !== 1) return;
     const pw = modal.data;
-    try { await api('/api/account', 'DELETE', { password: pw || '' }); wipeLocal(); location.hash = ''; location.reload(); } catch (e) { toast(e.message, 'err'); }
+    try { await api('/api/account', 'DELETE', np ? { confirm: pw || '' } : { password: pw || '' }); wipeLocal(); location.hash = ''; location.reload(); } catch (e) { toast(e.message, 'err'); }
   };
 }
 

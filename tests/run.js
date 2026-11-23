@@ -7,6 +7,7 @@ const fs = require('node:fs');
 function rmq(d) { for (let i = 0; i < 12; i++) { try { fs.rmSync(d, { recursive: true, force: true }); return; } catch (e) { const t = Date.now() + 150; while (Date.now() < t); } } }
 const os = require('node:os');
 const path = require('node:path');
+process.env.REQUIRE_EMAIL_VERIFY = '0'; // boshqa boʻlimlar tasdiqlashsiz ishlaydi; majburiy tasdiqlash alohida boʻlimda sinaladi
 
 const PORT = 4100 + Math.floor(Math.random() * 500), B = `http://localhost:${PORT}`;
 let pass = 0, failN = 0;
@@ -370,7 +371,7 @@ class Client {
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
     const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
-    ok(/href="\/tiers\.css/.test(html) && /unidoue-v68/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v59');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v69/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v59');
     const ac = await fetch(B + '/atlas.css?v=50'), act = await ac.text(), cv = await fetch(B + '/contour.svg'), cvt = await cv.text();
     ok(ac.status === 200 && /text\/css/.test(ac.headers.get('content-type') || '') && /\.rt-done/.test(act) && /href="\/atlas\.css/.test(html), 'atlas.css (Yo‘l daftari dizayni) toʻgʻri MIME bilan beriladi va /app ga ulangan');
     ok(cv.status === 200 && /image\/svg\+xml/.test(cv.headers.get('content-type') || '') && /^<svg/.test(cvt) && !/<script/i.test(cvt), 'contour.svg (xarita foni) image/svg+xml bilan beriladi');
@@ -628,6 +629,89 @@ class Client {
       r = await c('POST', '/api/verify', { code: c2 }); ok(r.s === 400, '5 xato urinishdan keyin kod bloklanadi', r.s);
     } catch (e) { failN++; console.log('XATO:', e); }
     vs.kill(); mm.close(); rmq(vd);
+  }
+  {
+    console.log('Majburiy email tasdiqlash + Google kirish');
+    const stopS = async (sp, d) => { await new Promise(r => { sp.once('exit', r); sp.kill(); setTimeout(r, 2000); }); rmq(d); };
+    const wait = async port => { for (let i = 0; i < 50; i++) { try { if ((await fetch(`http://localhost:${port}/healthz`)).ok) return; } catch (e) {} await new Promise(r => setTimeout(r, 100)); } };
+    const mkc = port => { let ck = ''; const c = async (m, u, bd, hd = {}) => { const r = await fetch(`http://localhost:${port}${u}`, { method: m, redirect: 'manual', headers: { ...(bd ? { 'Content-Type': 'application/json' } : {}), ...(ck ? { Cookie: ck } : {}), ...hd }, body: bd ? JSON.stringify(bd) : undefined }); const all = r.headers.getSetCookie ? r.headers.getSetCookie() : []; for (const sc of all) { const kv = sc.split(';')[0]; if (kv.startsWith('sid=')) ck = /Max-Age=0/.test(sc) ? '' : kv; } let j = null; try { j = await r.json(); } catch (e) {} return { s: r.status, j, h: r.headers, set: all }; }; c.jar = () => ck; c.set = v => (ck = v); return c; };
+    // 1) xat xizmati yoʻq: email bilan hisob ochilmaydi (tasdiqlab boʻlmaydi), kirish ekrani buni biladi
+    {
+      const d = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), port = PORT + 20;
+      const sp = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: port, DATA_DIR: d, ANTHROPIC_API_KEY: '', RESEND_API_KEY: '', BREVO_API_KEY: '', GOOGLE_CLIENT_ID: '', GOOGLE_CLIENT_SECRET: '', REQUIRE_EMAIL_VERIFY: '' }, stdio: 'ignore' });
+      await wait(port);
+      try {
+        const c = mkc(port);
+        let r = await c('POST', '/api/register', { email: 'x@gmail.com', password: 'parol12345', name: 'Xushnud' });
+        ok(r.s === 503 && r.j.code === 'EMAIL_NOT_CONFIGURED', 'xat xizmatisiz: hisob ochilmaydi (tasdiqlanmagan hisob kirmaydi)', r);
+        r = await c('GET', '/api/me'); ok(r.j.user === null && r.j.auth.google === false && r.j.auth.email === false, 'kirish ekrani sozlamasi: Google yoʻq, email yoʻq', r.j);
+        r = await c('GET', '/api/auth/google/start'); ok(r.s === 302 && /ge=off/.test(r.h.get('location')), 'Google sozlanmagan: start xato bilan qaytaradi', r.h.get('location'));
+        r = await c('GET', '/api/admin/users', null, { Authorization: 'Bearer nope' }); ok(r.s === 401, 'admin yopiq', r.s);
+      } catch (e) { failN++; console.log('XATO:', e); }
+      await stopS(sp, d);
+    }
+    // 2) xat xizmati + Google
+    {
+      const sent = []; let claims = null, tokFail = false;
+      const mm = await mock((q, b, r) => { sent.push(JSON.parse(b)); r.setHeader('content-type', 'application/json'); r.end('{"id":"1"}'); });
+      const gm = await mock((q, b, r) => { r.setHeader('content-type', 'application/json'); if (tokFail) { r.statusCode = 400; return r.end('{"error":"invalid_grant"}'); } r.end(JSON.stringify({ id_token: 'h.' + Buffer.from(JSON.stringify(claims)).toString('base64url') + '.s' })); });
+      const d = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), port = PORT + 21;
+      const sp = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: port, DATA_DIR: d, ANTHROPIC_API_KEY: '', ADMIN_TOKEN: 'adm-secret', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mm.address().port}/emails`, GOOGLE_CLIENT_ID: 'gid', GOOGLE_CLIENT_SECRET: 'gsec', GOOGLE_TOKEN_URL: `http://localhost:${gm.address().port}/token`, REQUIRE_EMAIL_VERIFY: '', APP_URL: `http://localhost:${port}` }, stdio: 'ignore' });
+      await wait(port);
+      const gl = async (c, st, extra = '') => { const r = await fetch(`http://localhost:${port}/api/auth/google/callback?code=abc&state=${st}${extra}`, { redirect: 'manual', headers: { Cookie: 'gst=' + (c.gst === undefined ? st : c.gst) } }); const set = r.headers.getSetCookie(); const sid = set.map(x => x.split(';')[0]).find(x => x.startsWith('sid=')); return { s: r.status, loc: r.headers.get('location') || '', sid }; };
+      const good = (o = {}) => ({ aud: 'gid', iss: 'https://accounts.google.com', exp: Math.floor(Date.now() / 1000) + 3600, sub: 'sub-1', email: 'gulom@gmail.com', email_verified: true, name: 'Gulom Karimov', ...o });
+      try {
+        const c = mkc(port);
+        let r = await c('GET', '/api/me'); ok(r.j.auth.google === true && r.j.auth.email === true, 'sozlama: Google va email yoqilgan', r.j);
+        // start: yoʻnaltirish + state cookie
+        r = await c('GET', '/api/auth/google/start'); const loc = r.h.get('location') || '', st = (/state=([^&]+)/.exec(loc) || [])[1];
+        ok(r.s === 302 && loc.startsWith('https://accounts.google.com/') && /client_id=gid/.test(loc) && /scope=openid\+email\+profile/.test(loc) && !!st && r.set.some(x => x.startsWith('gst=' + st) && /HttpOnly/.test(x) && /SameSite=Lax/.test(x)), 'Google start: toʻgʻri URL va himoyalangan state cookie', loc);
+        ok(decodeURIComponent((/redirect_uri=([^&]+)/.exec(loc) || [])[1]) === `http://localhost:${port}/api/auth/google/callback`, 'redirect_uri APP_URL dan olinadi', loc);
+        // noto'g'ri holatlar
+        claims = good();
+        let g = await gl({ gst: 'boshqa' }, st); ok(/ge=state/.test(g.loc) && !g.sid, 'state mos kelmasa kirish rad etiladi', g);
+        g = await gl({}, st, '&error=access_denied'); ok(/ge=denied/.test(g.loc) && !g.sid, 'Google rad etsa — xabar', g);
+        claims = good({ aud: 'boshqa' }); g = await gl({}, st); ok(/ge=token/.test(g.loc) && !g.sid, 'aud mos kelmasa rad etiladi', g);
+        claims = good({ email_verified: false }); g = await gl({}, st); ok(/ge=unverified/.test(g.loc) && !g.sid, 'Googleda email tasdiqlanmagan boʻlsa rad etiladi', g);
+        claims = good({ exp: 1 }); g = await gl({}, st); ok(/ge=token/.test(g.loc) && !g.sid, 'muddati oʻtgan token rad etiladi', g);
+        claims = good(); tokFail = true; g = await gl({}, st); ok(/ge=token/.test(g.loc) && !g.sid, 'Google kodni rad etsa — kirish yoʻq', g); tokFail = false;
+        // muvaffaqiyat: yangi hisob tasdiqlangan, kod soʻralmaydi
+        const before = sent.length; g = await gl({}, st);
+        ok(g.s === 302 && g.loc === '/app#/dashboard' && !!g.sid, 'Google bilan yangi hisob ochildi va sessiya berildi', g);
+        ok(sent.length === before, 'Google hisobiga tasdiqlash xati yuborilmaydi');
+        const gc = mkc(port); gc.set(g.sid);
+        r = await gc('GET', '/api/me'); ok(r.j.user && r.j.user.email === 'gulom@gmail.com' && r.j.user.verified === true && r.j.user.noPw === true && r.j.user.name === 'Gulom Karimov', 'Google hisobi tasdiqlangan', r.j);
+        r = await gc('GET', '/api/credits'); ok(r.s === 200, 'Google foydalanuvchisi API dan foydalanadi', r.s);
+        const uid = r.j && (await gc('GET', '/api/me')).j.user.id;
+        g = await gl({}, st); const gc2 = mkc(port); gc2.set(g.sid); r = await gc2('GET', '/api/me'); ok(r.j.user.id === uid, 'qayta kirishda shu hisobning oʻzi ochiladi', r.j);
+        r = await c('POST', '/api/login', { email: 'gulom@gmail.com', password: 'parol12345' }); ok(r.s === 401 && /Google/.test(r.j.error), 'Google hisobiga parol bilan kirib boʻlmaydi', r.j);
+        // oldindan band qilingan (tasdiqlanmagan) email: Google egasi kirsa, eski parol va sessiya bekor
+        const hc = mkc(port); r = await hc('POST', '/api/register', { email: 'hijack@gmail.com', password: 'hujumchi123', name: 'Hujumchi' }); ok(r.s === 201 && r.j.user.verified === false, 'email bilan roʻyxatdan oʻtish tasdiqlanmagan boshlanadi', r.j);
+        const att = hc.jar();
+        claims = good({ sub: 'sub-2', email: 'hijack@gmail.com', name: 'Haqiqiy Ega' }); g = await gl({}, st);
+        const rc = mkc(port); rc.set(g.sid); r = await rc('GET', '/api/me'); ok(r.j.user && r.j.user.verified === true && r.j.user.email === 'hijack@gmail.com', 'haqiqiy ega Google bilan kirdi', r.j);
+        const ac = mkc(port); ac.set(att); r = await ac('GET', '/api/me'); ok(r.j.user === null, 'oldindan band qilgan kishining sessiyasi bekor qilindi', r.j);
+        r = await c('POST', '/api/login', { email: 'hijack@gmail.com', password: 'hujumchi123' }); ok(r.s === 401, 'oldindan band qilgan kishining paroli ishlamaydi', r.s);
+        // yarim qolgan roʻyxatdan oʻtishni haqiqiy ega qayta boshlay oladi
+        const e1 = mkc(port); r = await e1('POST', '/api/register', { email: 'yarim@gmail.com', password: 'parol12345', name: 'Yarim' }); const c1 = (sent.at(-1).html.match(/<b>(\d{6})<\/b>/) || [])[1];
+        const e2 = mkc(port); r = await e2('POST', '/api/register', { email: 'yarim@gmail.com', password: 'parol12345', name: 'Yarim 2' }); ok(r.s === 201, 'tasdiqlanmagan email qayta roʻyxatdan oʻta oladi (band qolmaydi)', r);
+        const c2 = (sent.at(-1).html.match(/<b>(\d{6})<\/b>/) || [])[1];
+        r = await e1('GET', '/api/me'); ok(r.j.user === null, 'eski tasdiqlanmagan hisob almashtirildi', r.j);
+        r = await e2('POST', '/api/verify', { code: c2 }); ok(r.s === 200 && r.j.user.verified === true, 'yangi kod tasdiqlaydi', r.s);
+        r = await e2('POST', '/api/register', { email: 'yarim@gmail.com', password: 'parol12345', name: 'Yana' }); ok(r.s === 409, 'tasdiqlangan email qayta olinmaydi', r.s);
+        // administrator: qayta tasdiqlatish
+        r = await c('POST', '/api/admin/user/reverify', { email: 'yarim@gmail.com' }); ok(r.s === 401, 'qayta tasdiqlatish faqat admin uchun', r.s);
+        const n0 = sent.length; r = await c('POST', '/api/admin/user/reverify', { email: 'yarim@gmail.com' }, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200 && sent.length === n0 + 1, 'admin: qayta tasdiqlash kodi yuborildi', r);
+        r = await e2('GET', '/api/credits'); ok(r.s === 403 && r.j.code === 'EMAIL_UNVERIFIED', 'qayta tasdiqlatilgan hisob kodni kiritguncha yopiq', r.s);
+        const c3 = (sent.at(-1).html.match(/<b>(\d{6})<\/b>/) || [])[1]; r = await e2('POST', '/api/verify', { code: c3 }); ok(r.s === 200, 'kod bilan yana ochiladi', r.s);
+        r = await c('POST', '/api/admin/user/reverify', { email: 'gulom@gmail.com' }, { Authorization: 'Bearer adm-secret' }); ok(r.s === 400, 'Google hisobini qayta tasdiqlatib boʻlmaydi', r.s);
+        r = await c('GET', '/api/admin/users', null, { Authorization: 'Bearer adm-secret' }); const gu = r.j.users.find(u => u.email === 'gulom@gmail.com'); ok(gu && gu.google === true && gu.vs === 'yes', 'admin roʻyxatida Google va tasdiq holati', gu);
+        // Google hisobini oʻchirish: parol oʻrniga email
+        r = await gc('DELETE', '/api/account', { confirm: 'boshqa@gmail.com' }); ok(r.s === 401, 'oʻchirish: email notoʻgʻri boʻlsa rad', r.s);
+        r = await gc('DELETE', '/api/account', { confirm: 'gulom@gmail.com' }); ok(r.s === 200, 'oʻchirish: email toʻgʻri boʻlsa hisob oʻchadi', r.s);
+      } catch (e) { failN++; console.log('XATO:', e); }
+      await stopS(sp, d); mm.close(); gm.close();
+    }
   }
   {
     console.log('Onlayn toʻlov (Payme + Click)');

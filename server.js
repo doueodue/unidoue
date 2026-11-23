@@ -170,8 +170,16 @@ async function sendMail(to, subject, html, kind = 'mail') {
   }
 }
 
-// Email tasdiqlash: faqat xat yuborish sozlangan boʻlsa majburiy (REQUIRE_EMAIL_VERIFY=0 bilan oʻchiriladi).
-const VERIFY_ON = !!MAIL_PROVIDER && process.env.REQUIRE_EMAIL_VERIFY !== '0';
+// Email tasdiqlash HAR DOIM majburiy: tasdiqlanmagan hisob saytga kirmaydi. Faqat REQUIRE_EMAIL_VERIFY=0 (mahalliy sinov) oʻchiradi.
+// Xat yuborish sozlanmagan boʻlsa, email bilan hisob ochilmaydi (tasdiqlab boʻlmaydi); Google orqali kirish esa ishlayveradi.
+const VERIFY_ON = process.env.REQUIRE_EMAIL_VERIFY !== '0';
+const MAIL_OFF_MSG = 'Hozircha email orqali hisob ochib boʻlmaydi: tasdiqlash xati yuborish ulanmagan. “Google bilan kirish” dan foydalaning yoki Telegram orqali murojaat qiling.';
+// Google orqali kirish (OAuth 2.0 «authorization code», serverda). Tugma faqat GOOGLE_CLIENT_ID va GOOGLE_CLIENT_SECRET sozlansa koʻrinadi.
+const GOOGLE_ID = process.env.GOOGLE_CLIENT_ID || '', GOOGLE_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+const GOOGLE_ON = !!(GOOGLE_ID && GOOGLE_SECRET);
+const GOOGLE_AUTH = process.env.GOOGLE_AUTH_URL || 'https://accounts.google.com/o/oauth2/v2/auth';
+const GOOGLE_TOKEN = process.env.GOOGLE_TOKEN_URL || 'https://oauth2.googleapis.com/token';
+const authCfg = () => ({ google: GOOGLE_ON, email: !VERIFY_ON || !!MAIL_PROVIDER });
 async function issueCode(u) {
   const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
   u.vcode = { h: sha256(u.id + ':' + code), exp: Date.now() + 15 * 60000, tries: 0, sent: Date.now() };
@@ -355,7 +363,9 @@ function readJson(req, max = MAX_BODY) {
   });
 }
 
-const publicUser = u => ({ id: u.id, email: u.email, name: u.name, verified: u.verified !== false, av: u.avatar ? (u.avV || 1) : 0 });
+/** Email holati: yes — tasdiqlangan (kod yoki Google), no — kod kutilmoqda, old — tasdiqlash joriy qilinishidan oldingi hisob (tasdiqlanmagan) */
+const vstate = u => (u.verified === true ? 'yes' : u.verified === false ? 'no' : 'old');
+const publicUser = u => ({ id: u.id, email: u.email, name: u.name, verified: u.verified !== false, av: u.avatar ? (u.avV || 1) : 0, noPw: !!u.noPw });
 function accountInfo(u) {
   const pl = effPlan(u), us = usageOf(u);
   return {
@@ -607,6 +617,16 @@ function buildPortfolio(u, b, cl, ctx) {
   return { error: 'Notoʻgʻri rejim.' };
 }
 
+function dropUser(u) {
+  for (const [k, x] of Object.entries(db.sessions)) if (x.uid === u.id) delete db.sessions[k];
+  for (const [k, x] of Object.entries(db.resets)) if (x.uid === u.id) delete db.resets[k];
+  emailIdx.delete(u.email); delete db.users[u.id];
+}
+const redirect = (res, to, cookie) => { if (cookie) res.setHeader('Set-Cookie', cookie); res.statusCode = 302; res.setHeader('Location', to); res.setHeader('Cache-Control', 'no-store'); return res.end(); };
+const baseOf = req => String(process.env.APP_URL || (isHttps(req) ? 'https://' : 'http://') + req.headers.host).replace(/\/+$/, '');
+const gCookie = (req, v, age) => `gst=${v}; Path=/api/auth/google; HttpOnly; SameSite=Lax; Max-Age=${age}` + (isHttps(req) ? '; Secure' : '');
+const b64json = t => { try { return JSON.parse(Buffer.from(String(t).split('.')[1] || '', 'base64url').toString('utf8')); } catch (e) { return null; } };
+
 /* ---------------- marshrutlar ---------------- */
 async function api(req, res, pathname) {
   const method = req.method;
@@ -668,7 +688,7 @@ async function api(req, res, pathname) {
 
   if (pathname === '/api/me' && method === 'GET') {
     const u = sessionUser(req);
-    return send(res, 200, u ? meBody(u) : { user: null });
+    return send(res, 200, u ? meBody(u) : { user: null, auth: authCfg() });
   }
 
   // Profil rasmi: faqat egasiga (cookie orqali) beriladi, serverda qat'iy tekshiriladi
@@ -703,14 +723,18 @@ async function api(req, res, pathname) {
     if (!EMAIL_RE.test(email)) return fail(res, 400, 'Emailni toʻgʻri kiriting.');
     if (name.length < 2) return fail(res, 400, 'Ismingizni kiriting (kamida 2 harf).');
     if (pw.length < 8 || pw.length > 128) return fail(res, 400, 'Parol 8 dan 128 gacha belgidan iborat boʻlsin.');
-    if (emailIdx.has(email)) return fail(res, 409, 'Bu email bilan hisob allaqachon bor. “Kirish” ni bosing.');
+    if (VERIFY_ON && !MAIL_PROVIDER) return send(res, 503, { error: MAIL_OFF_MSG, code: 'EMAIL_NOT_CONFIGURED' });
+    // Tasdiqlanmagan (yarim qolgan) roʻyxatdan oʻtish emailni band qilib qoʻymasin: haqiqiy egasi qayta urinsa, eskisi almashtiriladi
+    const taken = () => { const i = emailIdx.get(email), x = i && db.users[i]; return !!x && !(x.verified === false && (!x.plan || x.plan === 'free')); };
+    if (taken()) return fail(res, 409, 'Bu email bilan hisob allaqachon bor. “Kirish” ni bosing.');
     const hash = await hashPw(pw);
-    if (emailIdx.has(email)) return fail(res, 409, 'Bu email bilan hisob allaqachon bor. “Kirish” ni bosing.');
+    if (taken()) return fail(res, 409, 'Bu email bilan hisob allaqachon bor. “Kirish” ni bosing.');
     const u = { id: crypto.randomBytes(8).toString('hex'), email, name, hash, created: Date.now(), rev: 0, data: {} };
     if (VERIFY_ON) {
       u.verified = false;
       try { await issueCode(u); } catch (e) { console.error('Tasdiqlash xati:', e.message); return fail(res, 503, 'Tasdiqlash xatini yuborib boʻlmadi. Keyinroq urinib koʻring yoki Telegram orqali murojaat qiling.'); }
-      if (emailIdx.has(email)) return fail(res, 409, 'Bu email bilan hisob allaqachon bor. “Kirish” ni bosing.');
+      if (taken()) return fail(res, 409, 'Bu email bilan hisob allaqachon bor. “Kirish” ni bosing.');
+      const old = db.users[emailIdx.get(email)]; if (old) dropUser(old);
     }
     db.users[u.id] = u; emailIdx.set(email, u.id);
     createSession(req, res, u.id);
@@ -726,10 +750,56 @@ async function api(req, res, pathname) {
     let ok = false;
     if (u) ok = await checkPw(pw, u.hash);
     else if (DUMMY_HASH) await checkPw(pw, DUMMY_HASH).catch(() => {});
-    if (!ok) { limited('login-em:' + email, 8, 15 * 60 * 1000); return fail(res, 401, 'Email yoki parol notoʻgʻri.'); }
+    if (!ok) { limited('login-em:' + email, 8, 15 * 60 * 1000); return fail(res, 401, u && u.noPw ? 'Bu hisob Google orqali ochilgan. “Google bilan kirish” ni bosing.' : 'Email yoki parol notoʻgʻri.'); }
     buckets.delete('login-em:' + email);
     createSession(req, res, u.id);
     return send(res, 200, meBody(u));
+  }
+
+  if (pathname === '/api/auth/google/start' && method === 'GET') {
+    if (!GOOGLE_ON) return redirect(res, '/app?ge=off');
+    if (limited('gst:' + ip, 40, 15 * 60 * 1000)) return redirect(res, '/app?ge=rate');
+    const state = crypto.randomBytes(24).toString('base64url');
+    const q = new URLSearchParams({ client_id: GOOGLE_ID, redirect_uri: baseOf(req) + '/api/auth/google/callback', response_type: 'code', scope: 'openid email profile', state, prompt: 'select_account', access_type: 'online' });
+    return redirect(res, GOOGLE_AUTH + '?' + q, gCookie(req, state, 600));
+  }
+
+  if (pathname === '/api/auth/google/callback' && method === 'GET') {
+    const bye = code => redirect(res, '/app?ge=' + code, gCookie(req, '', 0));
+    if (!GOOGLE_ON) return bye('off');
+    if (limited('gcb:' + ip, 40, 15 * 60 * 1000)) return bye('rate');
+    const q = new URL(req.url, 'http://x').searchParams, code = q.get('code') || '', st = q.get('state') || '', ck = parseCookies(req).gst || '';
+    if (q.get('error')) return bye('denied');
+    const a = Buffer.from(st), c = Buffer.from(ck);
+    if (!code || !st || a.length !== c.length || !crypto.timingSafeEqual(a, c)) return bye('state');
+    let tok;
+    try {
+      const r = await fetch(GOOGLE_TOKEN, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ code, client_id: GOOGLE_ID, client_secret: GOOGLE_SECRET, redirect_uri: baseOf(req) + '/api/auth/google/callback', grant_type: 'authorization_code' }), signal: AbortSignal.timeout(15000) });
+      tok = await r.json().catch(() => ({}));
+      if (!r.ok || !tok.id_token) { console.error('Google token xatosi:', r.status, String(tok.error || '').slice(0, 80)); return bye('token'); }
+    } catch (e) { console.error('Google ulanish xatosi:', e.message); return bye('net'); }
+    // id_token Google tokeni orqali toʻgʻridan-toʻgʻri (TLS) olingan: imzo qayta tekshirilmaydi, lekin daʼvolar tekshiriladi
+    const cl = b64json(tok.id_token);
+    const email = cl ? clean(cl.email, 254).toLowerCase() : '';
+    if (!cl || cl.aud !== GOOGLE_ID || !/^(https:\/\/)?accounts\.google\.com$/.test(String(cl.iss)) || !(cl.exp * 1000 > Date.now()) || !cl.sub) return bye('token');
+    if (cl.email_verified !== true && cl.email_verified !== 'true') return bye('unverified');
+    if (!EMAIL_RE.test(email)) return bye('token');
+    const sub = String(cl.sub).slice(0, 64);
+    let u = Object.values(db.users).find(x => x.google === sub) || db.users[emailIdx.get(email)];
+    if (!u) {
+      u = { id: crypto.randomBytes(8).toString('hex'), email, name: clean(cl.name || cl.given_name || email.split('@')[0], 40) || 'Foydalanuvchi', hash: await hashPw(crypto.randomBytes(24).toString('hex')), created: Date.now(), rev: 0, data: {}, verified: true, google: sub, noPw: true };
+      if (emailIdx.has(email)) return bye('token');
+      db.users[u.id] = u; emailIdx.set(email, u.id);
+    } else {
+      if (u.email !== email && emailIdx.get(email) !== u.id) return bye('token');
+      if (u.verified === false) { // bu emailni boshqa kishi parol bilan oldindan band qilgan boʻlishi mumkin: eski parol va sessiyalar bekor qilinadi
+        u.hash = await hashPw(crypto.randomBytes(24).toString('hex')); u.noPw = true;
+        for (const [k, x] of Object.entries(db.sessions)) if (x.uid === u.id) delete db.sessions[k];
+      }
+      u.verified = true; u.google = sub; delete u.vcode;
+    }
+    createSession(req, res, u.id);
+    return redirect(res, '/app#/dashboard', [res.getHeader('Set-Cookie'), gCookie(req, '', 0)].flat());
   }
 
   if (pathname === '/api/logout' && method === 'POST') {
@@ -769,7 +839,8 @@ async function api(req, res, pathname) {
     if (!u) return fail(res, 401, 'Avval hisobga kiring.');
     if (limited('del:' + u.id, 5, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
     const b = await readJson(req);
-    if (!(await checkPw(typeof b.password === 'string' ? b.password.slice(0, 128) : '', u.hash))) return fail(res, 401, 'Parol notoʻgʻri.');
+    if (u.noPw) { if (clean(b.confirm, 254).toLowerCase() !== u.email) return fail(res, 401, 'Tasdiqlash uchun emailingizni toʻgʻri yozing.'); }
+    else if (!(await checkPw(typeof b.password === 'string' ? b.password.slice(0, 128) : '', u.hash))) return fail(res, 401, 'Parol notoʻgʻri.');
     for (const [k, s] of Object.entries(db.sessions)) if (s.uid === u.id) delete db.sessions[k];
     db.requests = db.requests.filter(r => r.uid !== u.id);
     for (const [k, r] of Object.entries(db.resets)) if (r.uid === u.id) delete db.resets[k];
@@ -917,8 +988,20 @@ async function api(req, res, pathname) {
 
   if (pathname === '/api/admin/users' && method === 'GET') {
     if (!admGate(req, res, ip, 'users', 300)) return;
-    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null, seen: x.seenDay || null, verified: x.verified !== false, noMail: !!x.noMail, push: (x.push || []).length, ai: x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0 })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
+    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null, seen: x.seenDay || null, verified: x.verified !== false, vs: vstate(x), google: !!x.google, noMail: !!x.noMail, push: (x.push || []).length, ai: x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0 })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
     return send(res, 200, { users });
+  }
+
+  if (pathname === '/api/admin/user/reverify' && method === 'POST') { // eski/gumonli hisobdan emailni qayta tasdiqlashni talab qilish
+    if (!admGate(req, res, ip, 'reverify', 30)) return;
+    const b = await readJson(req), id = emailIdx.get(clean(b.email, 254).toLowerCase()), u = id && db.users[id];
+    if (!u) return fail(res, 404, 'Foydalanuvchi topilmadi.');
+    if (u.google) return fail(res, 400, 'Bu hisob Google orqali tasdiqlangan.');
+    if (!MAIL_PROVIDER) return fail(res, 400, 'Xat yuborish ulanmagan: foydalanuvchiga kod yuborib boʻlmaydi.');
+    const prev = u.verified; u.verified = false;
+    try { await issueCode(u); } catch (e) { if (prev === undefined) delete u.verified; else u.verified = prev; delete u.vcode; return fail(res, 502, 'Kod yuborilmadi: ' + String(e.message).slice(0, 160)); }
+    save();
+    return send(res, 200, { ok: true, email: u.email });
   }
 
   if (pathname === '/api/admin/requests' && method === 'GET') {
@@ -1103,7 +1186,7 @@ async function api(req, res, pathname) {
     const rows = days.map(d => ({ d, active: us.filter(u => (u.act || []).includes(d)).length, signups: us.filter(u => u.created && tashkentISO(u.created) === d).length }));
     const week = new Set(days.slice(-7)), all = us.flatMap(u => u.act || []).sort();
     return send(res, 200, {
-      today, total: us.length, unverified: us.filter(u => u.verified === false).length,
+      today, total: us.length, unverified: us.filter(u => u.verified !== true).length,
       pro: us.filter(u => effPlan(u).id === 'pro').length, plus: us.filter(u => effPlan(u).id === 'plus').length,
       proExpiring: us.filter(u => effPlan(u).id !== 'free' && u.planUntil && u.planUntil - now < 7 * 864e5).length,
       pending: us.filter(u => u.planReq && PLAN_ORDER[effPlan(u).id] < PLAN_ORDER[u.planReqPlan || 'pro']).length,
@@ -1122,7 +1205,7 @@ async function api(req, res, pathname) {
   /* ---- admin: promo kodlar ---- */
   if (pathname === '/api/admin/promos' && method === 'GET') {
     if (!admGate(req, res, ip, 'promos', 300)) return;
-    const now = Date.now(), list = Object.values(db.promos).sort((a, b) => b.created - a.created).map(p => PROMO.view(p, now));
+    const now = Date.now(), list = Object.values(db.promos).sort((a, b) => b.created - a.created).map(p => { const v = PROMO.view(p, now); v.recent = v.recent.map(r => { const x = r.email && db.users[emailIdx.get(r.email)]; return { ...r, vs: x ? vstate(x) : '' }; }); return v; });
     return send(res, 200, { promos: list, limits: PROMO.LIMITS });
   }
   if (pathname === '/api/admin/promo' && method === 'POST') {
@@ -1219,7 +1302,7 @@ async function api(req, res, pathname) {
     const key = sha256(String(b.token || '')), r = db.resets[key];
     if (!r || r.exp < Date.now() || !db.users[r.uid]) return fail(res, 400, 'Havola eskirgan yoki notoʻgʻri. Qaytadan soʻrang.');
     const u = db.users[r.uid];
-    u.hash = await hashPw(pw); delete db.resets[key];
+    u.hash = await hashPw(pw); delete db.resets[key]; delete u.noPw; if (u.verified === false) { u.verified = true; delete u.vcode; } // havola emailga kelgan: egalik isbotlandi
     for (const [k, s] of Object.entries(db.sessions)) if (s.uid === u.id) delete db.sessions[k];
     save();
     return send(res, 200, { ok: true });

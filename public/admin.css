@@ -229,8 +229,12 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .pm-use{font-variant-numeric:tabular-nums}.pm-use b{font-size:15px}.pm-use span{color:var(--muted)}
 .pm-bar{height:5px;width:96px;margin-top:6px;border-radius:99px;background:var(--line);overflow:hidden}.pm-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-600))}
 .pm-who{margin-top:6px;font-size:12.5px}.pm-who summary{cursor:pointer;color:var(--brand-600);font-weight:600;list-style:none}.pm-who summary::-webkit-details-marker{display:none}
-.pm-who ul{list-style:none;margin:6px 0 0;padding:8px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--line);display:grid;gap:4px;max-width:300px}
-.pm-who li{display:flex;justify-content:space-between;gap:10px}.pm-who li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pm-who small{color:var(--muted);white-space:nowrap}
+.pm-who ul{list-style:none;margin:6px 0 0;padding:6px;border-radius:12px;background:color-mix(in srgb,var(--ink) 4%,var(--surface));border:1px solid var(--line);display:grid;gap:2px;max-width:340px}
+.pm-who li{display:grid;grid-template-columns:1fr auto;gap:0 12px;align-items:baseline;padding:7px 8px;border-radius:8px}.pm-who li+li{border-top:1px dashed var(--line)}
+.pm-who .pm-e{grid-column:1/-1;font-weight:600;color:var(--ink);overflow-wrap:anywhere;white-space:normal;line-height:1.3}.pm-who li small{color:var(--muted);white-space:nowrap}
+.pm-who .pm-v{font-style:normal;font-size:11.5px;font-weight:600;justify-self:end}.pm-v.ok{color:var(--ok)}.pm-v.warn{color:var(--warn)}
+.pm-who li.mut{display:block;color:var(--muted);text-align:center;padding:6px}
+.pm-who small{color:var(--muted);white-space:nowrap}
 .pm-done{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px;padding:14px 16px;border-radius:16px;border:1.5px dashed color-mix(in srgb,var(--ok) 55%,var(--line));background:color-mix(in srgb,var(--ok) 8%,var(--surface))}
 .pm-done small{display:block;color:var(--muted);font-size:12.5px}.pm-done>div>span{display:block;margin-top:2px;color:var(--ink-2);font-size:13.5px}
 .pm-big{display:block;margin:2px 0;font:700 24px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;color:var(--ink);word-break:break-all}

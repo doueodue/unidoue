@@ -105,7 +105,8 @@ export function applyCredits(c) {
 let crBusy = 0;
 export async function refreshCredits() {
   if (!S.user || crBusy) return; crBusy = 1;
-  try { const r = await api('/api/credits'); applyCredits(r.credits); if (Number.isFinite(r.notes) && S.account && S.account.notes !== r.notes) { S.account.notes = r.notes; document.dispatchEvent(new CustomEvent('unidoue:notes')); } } catch (e) {} crBusy = 0;
+  try { const r = await api('/api/credits'); applyCredits(r.credits); if (r.plan && S.account && r.plan !== S.account.plan) { await refreshAccount().catch(() => {}); document.dispatchEvent(new CustomEvent('unidoue:account')); } // tarif boshqa joyda oʻzgardi (administrator, toʻlov, muddat tugashi)
+      if (Number.isFinite(r.notes) && S.account && S.account.notes !== r.notes) { S.account.notes = r.notes; document.dispatchEvent(new CustomEvent('unidoue:notes')); } } catch (e) {} crBusy = 0;
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshCredits(); });
 

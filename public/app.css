@@ -633,3 +633,8 @@ html[data-theme=dark] .mtabs .lk{background:rgba(124,148,255,.14);border-color:r
   .mc-sug{grid-template-columns:1fr}.mc-log{padding:16px 12px 8px}.mc-h{padding:12px}.mc-in{margin:8px 10px 0}.mc-foot{padding:8px 14px 12px}
   .mc-m.u .mc-b{max-width:88%}.mc-c{max-width:100%}.mc-m.a .dv.xs{display:none}
 }
+
+/* Google bilan kirish */
+.auth-or{display:flex;align-items:center;gap:12px;margin:18px 0 12px;color:var(--muted);font-size:12.5px}.auth-or:before,.auth-or:after{content:"";flex:1;height:1px;background:var(--line-2)}
+.btn.gbtn{width:100%;gap:10px;background:#fff;color:#1f1f1f;border:1px solid #dadce0;font-weight:600;text-decoration:none}.btn.gbtn:hover{background:#f7f8f8;border-color:#c6c9cc}
+html[data-theme=dark] .btn.gbtn{background:#131314;color:#e3e3e3;border-color:#8e918f}html[data-theme=dark] .btn.gbtn:hover{background:#1e1f20}

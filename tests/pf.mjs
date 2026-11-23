@@ -205,7 +205,7 @@ const adh = readFileSync(new URL('../public/admin.html', import.meta.url), 'utf8
 ok(v1.includes('function promoBox(') && v1.includes('function promoBind(') && v1.includes("'/api/promo/redeem'") && (v1.match(/\$\{promoBox\(\)\}/g) || []).length === 2 && (v1.match(/promoBind\(el\)/g) || []).length === 3 && v1.includes('id="promo-i"'), 'tariflar: promo kod qatori ikkala ko‘rinishda ham bor va ulangan');
 ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=57'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
 ok(adh.includes('data-v="promos"') && adh.includes('id="v-promos"') && ['mk', 'mp', 'md', 'mx', 'mu', 'mn', 'mb', 'ml'].every(i => adh.includes(`id="${i}"`)) && /promos: 'Promo kodlar'/.test(adj) && ['/api/admin/promos', '/api/admin/promo', '/api/admin/promo/set', '/api/admin/promo/delete'].every(u => adj.includes(`'${u}'`)) && (adc.match(/{/g) || []).length === (adc.match(/}/g) || []).length && adc.includes('.pm-form{'), 'admin: Promo kodlar bo‘limi (forma, ro‘yxat, to‘xtatish, limit, o‘chirish)');
-ok(swj.includes("'unidoue-v68'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
+ok(swj.includes("'unidoue-v69'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
 const cssFiles = ['app.css', 'atlas.css', 'coach.css', 'portfolio.css', 'tiers.css', 'landing.css', 'admin.css', 'controls.css'].map(f => [f, readFileSync(new URL('../public/' + f, import.meta.url), 'utf8')]);
 const sbBad = cssFiles.filter(([f, c]) => /scrollbar-(width|color)/.test(f === 'app.css' ? c.replace(/@supports not selector\(::-webkit-scrollbar\)\{[^}]*\}[^}]*\}/, '') : c)).map(x => x[0]);
 ok(sbBad.length === 0 && acss.includes('*::-webkit-scrollbar-thumb{') && acss.includes('@supports not selector(::-webkit-scrollbar)'), 'scrollbar: yagona uslub (app.css); boshqa joyda scrollbar-width/color yo‘q — Chrome ::-webkit-scrollbar uslubini o‘chirib qo‘yadi' + (sbBad.length ? ': ' + sbBad : ''));
@@ -275,4 +275,14 @@ ok(/from '\.\/tiers\.js'/.test(lpj) && /crownHTML/.test(lpj) && /liveGlass/.test
   ok(b.parts.some(x => x.k === 'SAT' && x.tone === 'good'), 'intlFit: SAT yetarli');
   ok(c.status === 'no' && S2.intlFit({ lang: 'English' }, { sat: 1000 }, '2026-11-23').parts.every(x => x.k !== 'SAT'), 'intlFit: SAT talabi yo‘q universitetda SAT mezoni chiqmaydi');
   ok(/id="un-sat"/.test(readFileSync('public/admin.html', 'utf8')) && /sat: g\('sat'\)/.test(readFileSync('public/js/admin.js', 'utf8')), 'admin: SAT maydoni formada'); }
+{
+  const cj = readFileSync(new URL('../public/js/celebrate.js', import.meta.url), 'utf8'), mj = readFileSync(new URL('../public/js/main.js', import.meta.url), 'utf8'), vj = readFileSync(new URL('../public/js/views1.js', import.meta.url), 'utf8');
+  const tcz = readFileSync(new URL('../public/tiers.css', import.meta.url), 'utf8');
+  ok(/export function celebrate/.test(cj) && /export function seePlan/.test(cj) && /prefers-reduced-motion/.test(cj) && /aria-modal/.test(cj) && /Escape/.test(cj) && !/eval\(|document\.write/.test(cj), 'celebrate.js: dialog, Esc, harakatni kamaytirish, xavfsiz');
+  ok(/ud:plan:/.test(cj) && !/'qabul:/.test(cj), 'celebrate.js: tarif belgisi serverga sinxronlanmaydigan kalitda');
+  ok(['.cel{', '.cel[data-tier=pro]', '@keyframes cel-pop', '@keyframes cel-crown', 'prefers-reduced-motion:reduce'].every(x => tcz.includes(x)) && (tcz.match(/{/g) || []).length === (tcz.match(/}/g) || []).length, 'tiers.css: tabrik uslublari (kumush/oltin), qavslar muvozanatda');
+  ok(/seePlan\(S\.user\.id/.test(mj) && /celebrate\(r\.plan/.test(vj), 'main.js/views1.js: tabrik ulangan (tarif oʻzgarganda va promo kodda)');
+  ok(/\/api\/auth\/google\/start/.test(mj) && /ge=|'ge'/.test(mj), 'main.js: Google bilan kirish tugmasi va xato xabarlari');
+  ok(/tiers\.css\?v=49/.test(html0), 'app.html: tiers.css v49');
+}
 console.log(`pf: ${n} checks, ${process.exitCode ? 'FAILED' : 'ok'}`);
