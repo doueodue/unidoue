@@ -5,9 +5,9 @@
  "official_url": "https://www.nus.edu.sg",
  "language": "English",
  "ielts": {
-  "min_overall": null,
-  "url": "",
-  "year": null
+  "min_overall": 6.5,
+  "url": "https://www.nus.edu.sg/oam/docs/default-source/default-document-library/english-test-scores.pdf",
+  "year": 2026
  },
  "deadline": {
   "date": "2027-02-17",

@@ -7,7 +7,9 @@
  "ielts": {
   "min_overall": null,
   "url": "https://iso.metu.edu.tr/en/english-proficiency",
-  "year": 2026
+  "year": 2026,
+  "note": "The medium of instruction is English, but submitting an English proficiency score is not obligatory for the undergraduate application; a valid score only strengthens it.",
+  "note_url": "https://iso.metu.edu.tr/en/english-proficiency"
  },
  "deadline": {
   "date": "2026-07-12",

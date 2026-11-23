@@ -5,13 +5,13 @@
  "official_url": "https://admission.kaist.ac.kr/intl-undergraduate",
  "language": "English",
  "ielts": {
-  "min_overall": null,
-  "url": "",
-  "year": null
+  "min_overall": 6.5,
+  "url": "https://admission.kaist.ac.kr/intl-undergraduate",
+  "year": 2026
  },
  "deadline": {
-  "date": null,
-  "intake": "Fall 2026",
+  "date": "2027-01-14",
+  "intake": "Fall 2027 (Regular)",
   "url": "https://univapply.kaist.ac.kr/interapply",
   "year": 2026
  },
@@ -23,7 +23,7 @@
   "year": null
  },
  "requirement": {
-  "text": "Applicant must hold foreign citizenship (no Korean dual citizenship) and graduate high school by 31 Aug 2026; application fee USD 80. Dates, IELTS and tuition not found on opened pages.",
+  "text": "For the Fall 2026 intake: applicant must hold foreign citizenship (no Korean dual citizenship) and graduate high school by 31 Aug 2026; application fee USD 80. Tuition not stated on the opened pages.",
   "url": "https://univapply.kaist.ac.kr/interapply"
  },
  "bachelor_in_english": null

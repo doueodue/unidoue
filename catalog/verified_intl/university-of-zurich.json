@@ -7,7 +7,9 @@
  "ielts": {
   "min_overall": null,
   "url": "",
-  "year": null
+  "year": null,
+  "note": "Bachelor programmes are taught in German, so German proof at level C1 is required. For English-taught programmes (mainly master) IELTS Academic overall 7.0 with at least 6.5 in Speaking and Writing.",
+  "note_url": "https://www.uzh.ch/en/studies/application/languagerequirements.html"
  },
  "deadline": {
   "date": null,

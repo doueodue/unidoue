@@ -7,7 +7,9 @@
  "ielts": {
   "min_overall": null,
   "url": "",
-  "year": null
+  "year": null,
+  "note": "The main teaching language of all ETH bachelor programmes is German: IELTS is not accepted for bachelor admission, a German language certificate is required by 31 March. Master programmes are mostly in English and need English proof (TOEFL, IELTS or Cambridge C1 Advanced) – see the master language requirements page.",
+  "note_url": "https://ethz.ch/en/studies/registration-application/bachelor/other-certificates/application.html"
  },
  "deadline": {
   "date": "2027-03-31",

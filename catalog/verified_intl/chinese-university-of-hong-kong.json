@@ -5,9 +5,9 @@
  "official_url": "https://www.cuhk.edu.hk",
  "language": "English / Chinese",
  "ielts": {
-  "min_overall": null,
-  "url": "",
-  "year": null
+  "min_overall": 6.0,
+  "url": "https://admission.cuhk.edu.hk/application/overseas-other-qualifications-non-local-international-team/requirements/",
+  "year": 2026
  },
  "deadline": {
   "date": "2027-01-07",

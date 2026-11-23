@@ -7,7 +7,9 @@
  "ielts": {
   "min_overall": null,
   "url": "",
-  "year": null
+  "year": null,
+  "note": "College of Design (English-taught): an IELTS score above about 6.0 is expected, but no strict cutoff is published.",
+  "note_url": "https://www.c.u-tokyo.ac.jp/college-of-design/en/admissions/"
  },
  "deadline": {
   "date": null,

@@ -5,9 +5,9 @@
  "official_url": "https://www.tum.de",
  "language": "German (some programs English)",
  "ielts": {
-  "min_overall": null,
+  "min_overall": 6.5,
   "url": "https://www.tum.de/en/studies/application/application-info-portal/admission-requirements/language-certificates",
-  "year": null
+  "year": 2026
  },
  "deadline": {
   "date": null,

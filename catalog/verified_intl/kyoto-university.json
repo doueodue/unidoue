@@ -7,13 +7,15 @@
  "ielts": {
   "min_overall": null,
   "url": "https://www.iup.kyoto-u.ac.jp/Application_Guidelines_for_October_2026_Enrollment.pdf",
-  "year": 2025
+  "year": 2025,
+  "note": "Kyoto iUP sets no minimum IELTS score; successful applicants typically have about 6.5.",
+  "note_url": "https://www.iup.kyoto-u.ac.jp/"
  },
  "deadline": {
-  "date": "2025-12-04",
-  "intake": "Kyoto iUP, October 2026 enrollment (6-month prep course, undergraduate April 2027)",
-  "url": "https://www.iup.kyoto-u.ac.jp/Application_Guidelines_for_October_2026_Enrollment.pdf",
-  "year": 2025
+  "date": "2026-12-03",
+  "intake": "October 2027 enrollment (iUP)",
+  "url": "https://www.iup.kyoto-u.ac.jp/",
+  "year": 2026
  },
  "tuition": {
   "amount": 535800,

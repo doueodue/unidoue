@@ -3,7 +3,7 @@ import json, glob, re, unicodedata
 ROOT = '/home/claude/unidoue/'
 UZ = {'Switzerland': 'Shveytsariya', 'Finland': 'Finlyandiya', 'Scotland': 'Shotlandiya', 'Wales': 'Uels', 'France': 'Fransiya', 'Italy': 'Italiya',
       'Australia': 'Avstraliya', 'New Zealand': 'Yangi Zelandiya', 'Germany': 'Germaniya', 'Japan': 'Yaponiya', 'South Korea': 'Janubiy Koreya', 'China': 'Xitoy', 'England': 'Angliya', 'Canada': 'Kanada', 'Netherlands': 'Niderlandiya', 'Singapore': 'Singapur', 'Ireland': 'Irlandiya', 'Turkey': 'Turkiya', 'Hong Kong': 'Gonkong', 'Sweden': 'Shvetsiya', 'Denmark': 'Daniya', 'Norway': 'Norvegiya', 'Malaysia': 'Malayziya', 'Austria': 'Avstriya', 'Spain': 'Ispaniya', 'Belgium': 'Belgiya', 'Poland': 'Polsha', 'Czechia': 'Chexiya', 'Estonia': 'Estoniya', 'Hungary': 'Vengriya', 'Portugal': 'Portugaliya', 'United Arab Emirates': 'BAA', 'Czech Republic': 'Chexiya', 'Kazakhstan': 'Qozog‘iston', 'Lithuania': 'Litva', 'Latvia': 'Latviya', 'India': 'Hindiston', 'Thailand': 'Tailand', 'Russia': 'Rossiya', 'Armenia': 'Armaniston', 'Azerbaijan': 'Ozarbayjon', 'Georgia': 'Gruziya', 'Kyrgyzstan': 'Qirg‘iziston', 'Taiwan': 'Tayvan', 'Luxembourg': 'Lyuksemburg', 'Cyprus': 'Kipr', 'Vietnam': 'Vetnam', 'Philippines': 'Filippin'}
-TODAY = '2026-11-09'
+TODAY = '2026-11-23'
 def slug(n): return re.sub(r'[^a-z0-9]+', '-', unicodedata.normalize('NFKD', n).encode('ascii', 'ignore').decode().lower()).strip('-')
 TR = json.load(open(ROOT + 'catalog/intl_i18n.json', encoding='utf-8'))
 def tr(fid, key, en):  # {en, uz, ru}; tarjima boʻlmasa faqat inglizcha
@@ -18,6 +18,7 @@ for f in sorted(glob.glob(ROOT + 'catalog/verified_intl/*.json')):
     n = re.sub(r'\s*\(.*\)$', '', d['name']).strip(); fid = slug(re.sub(r'\s*\(.*\)$', '', d['name']).replace('École', 'Ecole'))
     ie = d.get('ielts') or {}; dl = d.get('deadline') or {}; tu = d.get('tuition') or {}; rq = d.get('requirement') or {}
     ieV = isinstance(ie.get('min_overall'), (int, float)) and 4 <= ie['min_overall'] <= 9 and url_ok(ie.get('url')) and fresh(ie.get('year'))
+    ieNV = bool(ie.get('note')) and url_ok(ie.get('note_url')) and ie.get('min_overall') is None
     if ie.get('min_overall') is not None and not ieV: rej.append((n, 'ielts', ie))
     rdV = bool(dl.get('date')) and re.fullmatch(r'20\d\d-\d\d-\d\d', dl['date']) is not None and TODAY <= dl['date'] <= '2028-06-30' and url_ok(dl.get('url'))
     if dl.get('date') and not rdV: rej.append((n, 'deadline', dl.get('date')))
@@ -27,10 +28,11 @@ for f in sorted(glob.glob(ROOT + 'catalog/verified_intl/*.json')):
     o = dict(id=fid, n=n, country=UZ.get(d['country'], d['country']), city=d.get('city') or None, url=d.get('official_url') if url_ok(d.get('official_url')) else None,
              lang=d.get('language') or None, eng=d.get('bachelor_in_english'),
              ielts=ie['min_overall'] if ieV else None, ieltsUrl=ie.get('url') if ieV else None,
+             ieltsNote=tr(fid, 'ieltsNote', ie.get('note')) if (ieNV and not ieV) else None, ieltsNoteUrl=ie.get('note_url') if (ieNV and not ieV) else None,
              rd=dl['date'] if rdV else None, rdIntake=tr(fid, 'intake', dl.get('intake')) if rdV else None, rdUrl=dl.get('url') if rdV else None,
              tuition=dict(amount=tu['amount'], cur=tu['currency'], note=tr(fid, 'note', tu.get('note')), url=tu['url']) if tuV else None,
              req=tr(fid, 'req', rq['text']) if rqV else None, reqUrl=rq.get('url') if rqV else None)
-    (out if (ieV or rdV or tuV or rqV) else dropped).append(o)
+    (out if (ieV or ieNV or rdV or tuV or rqV) else dropped).append(o)
 out.sort(key=lambda o: (o['country'], o['n']))
 json.dump(out, open(ROOT + 'public/data/intl.json', 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 print(len(out), 'universitet |', sum(1 for o in out if o['ielts']), 'IELTS |', sum(1 for o in out if o['rd']), 'muddat |', sum(1 for o in out if o['tuition']), 'oʻqish narxi |', sum(1 for o in out if o['req']), 'talab;', len(dropped), 'ta olib tashlandi')

@@ -7,7 +7,9 @@
  "ielts": {
   "min_overall": null,
   "url": "",
-  "year": null
+  "year": null,
+  "note": "Language level depends on the language of the programme; English proficiency is checked at admission for Italian-taught programmes and is not an admission requirement there.",
+  "note_url": "https://www.polimi.it/en/prospective-students/how-to-apply/admission-to-laurea-programmes/language-requirements"
  },
  "deadline": {
   "date": "2026-06-11",

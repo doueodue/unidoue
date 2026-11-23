@@ -7,7 +7,9 @@
  "ielts": {
   "min_overall": null,
   "url": "",
-  "year": null
+  "year": null,
+  "note": "English-taught bachelor programmes need English level B2 or above (about IELTS 5.5); Italian-taught programmes need Italian B2. A specific IELTS score is not set.",
+  "note_url": "https://didattica.polito.it/inte/en/apply_bsc_lang"
  },
  "deadline": {
   "date": null,

@@ -23,7 +23,7 @@ export async function aboutUni(id) {
   const site = c.site || c.url; if (site) rows.push(row('Rasmiy sayt', `<a href="${esc(safeUrl(site))}" target="_blank" rel="noopener noreferrer">${esc(site.replace(/^https:\/\//, ''))}</a>`));
   if (intl) {
     rows.push(row('O‘qish tili', c.lang ? esc(c.lang) : none));
-    rows.push(row('IELTS', c.ielts != null ? `${c.ielts}${link(c.ieltsUrl)}` : none));
+    rows.push(row('IELTS', c.ielts != null ? `${c.ielts}${link(c.ieltsUrl)}` : c.ieltsNote ? `${esc(pick(c.ieltsNote))}${link(c.ieltsNoteUrl)}` : none));
     rows.push(row('Ariza muddati', c.rd ? `${esc(dateL(c.rd, fmtDate))}${link(c.rdUrl)}${c.rdIntake ? `<br><small style="color:var(--muted)">${esc(pick(c.rdIntake))}</small>` : ''}` : none));
     rows.push(row('O‘qish narxi', c.tuition ? `${c.tuition.amount.toLocaleString('en-US')} ${esc(c.tuition.cur)} / ${t('yil')}${link(c.tuition.url)}${c.tuition.note ? `<br><small style="color:var(--muted)">${esc(pick(c.tuition.note))}</small>` : ''}` : none));
     if (c.req) rows.push(row('Talab', `${esc(pick(c.req))}${link(c.reqUrl)}`));

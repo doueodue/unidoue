@@ -5,9 +5,9 @@
  "official_url": "https://www.ox.ac.uk",
  "language": "English",
  "ielts": {
-  "min_overall": 7.5,
-  "url": "https://ox.ac.uk/admissions/undergraduate/applying-to-oxford/for-international-students/english-language-requirements?wssl=1",
-  "year": null
+  "min_overall": 7.0,
+  "url": "https://www.ox.ac.uk/admissions/undergraduate/international-students/english-language-requirements",
+  "year": 2026
  },
  "deadline": {
   "date": "2026-10-15",

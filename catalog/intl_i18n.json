@@ -100,6 +100,10 @@
   "req": [
    "Chet eldagi EI dan tashqari abituriyentlarga 12–13 yillik o‘qishdan keyingi o‘rta ma’lumot hujjati (yoki tayyorlov yili) kerak, TOL/CEnT-S/SAT asosidagi qabul testidan o‘tish (minimum 30/100), dastur tili darajasini isbotlash va Universitaly orqali o‘qish vizasini olish shart.",
    "Абитуриентам из-за пределов ЕС нужен документ о среднем образовании после 12–13 лет обучения (или подготовительный год), прохождение вступительного теста TOL/CEnT-S/SAT (минимум 30/100), подтверждение языка программы и студенческая виза через Universitaly."
+  ],
+  "ieltsNote": [
+   "Til darajasi dastur tiliga bog‘liq; italyancha dasturlarda ingliz tili qabul paytida tekshiriladi, ammo qabul sharti emas.",
+   "Требуемый уровень языка зависит от языка программы; на программах на итальянском английский проверяется при поступлении, но не является условием приёма."
   ]
  },
  "sapienza-university-of-rome": {
@@ -116,8 +120,12 @@
  },
  "kaist": {
   "req": [
-   "Abituriyent chet el fuqarosi bo‘lishi (Koreya ikkinchi fuqaroligisiz) va 2026-yil 31-avgustgacha maktabni tugatishi kerak; ariza to‘lovi 80 USD. Muddat, IELTS va o‘qish narxi ochilgan sahifalarda topilmadi.",
-   "Абитуриент должен быть иностранным гражданином (без корейского двойного гражданства) и окончить школу до 31 августа 2026; сбор 80 USD. Сроки, IELTS и стоимость на открытых страницах не найдены."
+   "2026-yil kuzi qabuli uchun: abituriyent chet el fuqarosi bo‘lishi (Koreya ikkinchi fuqaroligisiz) va 2026-yil 31-avgustgacha maktabni tugatishi kerak; ariza to‘lovi 80 USD. O‘qish narxi ochilgan sahifalarda ko‘rsatilmagan.",
+   "Для набора осени 2026: абитуриент должен быть иностранным гражданином (без корейского двойного гражданства) и окончить школу до 31 августа 2026; сбор 80 USD. Стоимость на открытых страницах не указана."
+  ],
+  "intake": [
+   "2027-yil kuzi (oddiy qabul)",
+   "Осень 2027 (основной набор)"
   ]
  },
  "seoul-national-university": {
@@ -200,12 +208,20 @@
   "req": [
    "Qabul davlatga va attestatga bog‘liq (swissuniversities/ETH davlatlar ro‘yxati); ayrim abituriyentlar ETH kirish imtihonidan o‘tishi kerak. O‘qitish nemis tilida bo‘lgani uchun 31-martgacha nemis tili isboti talab qilinadi.",
    "Приём зависит от страны и аттестата (список стран swissuniversities/ETH); некоторым абитуриентам нужно сдать вступительный экзамен ETH. Так как обучение на немецком, подтверждение немецкого требуется до 31 марта."
+  ],
+  "ieltsNote": [
+   "ETH bakalavr dasturlarining asosiy o‘qitish tili — nemis tili: bakalavrga qabulda IELTS qabul qilinmaydi, 31-martgacha nemis tili sertifikati kerak. Magistratura dasturlari asosan inglizcha va ingliz tili isbotini (TOEFL, IELTS yoki Cambridge C1 Advanced) talab qiladi.",
+   "Основной язык обучения на бакалавриате ETH — немецкий: IELTS для поступления на бакалавриат не принимается, до 31 марта нужен сертификат по немецкому. Магистерские программы в основном на английском и требуют подтверждения английского (TOEFL, IELTS или Cambridge C1 Advanced)."
   ]
  },
  "university-of-zurich": {
   "req": [
    "C1 darajadagi nemis tili talab qilinadi; chet el attestati Shveytsariya maturasiga mos bo‘lishi kerak, aks holda ECUS qo‘shimcha imtihoni (avgustda) va o‘z yurtidagi universitetga qabul qilinganlik isboti kerak.",
    "Требуется немецкий на уровне C1; зарубежный аттестат должен соответствовать швейцарской матуре, иначе нужен дополнительный экзамен ECUS (в августе) и подтверждение зачисления в вуз на родине."
+  ],
+  "ieltsNote": [
+   "Bakalavr dasturlari nemis tilida o‘qitiladi, shuning uchun nemis tili C1 darajasi isboti kerak. Inglizcha dasturlar (asosan magistratura) uchun IELTS Academic umumiy 7.0, Speaking va Writing bo‘yicha kamida 6.5.",
+   "Бакалавриат преподаётся на немецком, поэтому нужен сертификат немецкого уровня C1. Для программ на английском (в основном магистратура) — IELTS Academic 7.0 в целом и не ниже 6.5 по Speaking и Writing."
   ]
  },
  "aberystwyth-university": {
@@ -281,12 +297,24 @@
   "req": [
    "Yapon bo‘lmagan, Yaponiyadan tashqarida 12 yillik o‘qishni 2026-yil 30-sentyabrgacha tugatgan (yoki tugatadigan) bo‘lishi va 2023-yil 1-noyabrdan keyin topshirilgan qabul qilinadigan ingliz tili testini (IELTS, TOEFL va h.k.) topshirishi kerak.",
    "Не японец, завершивший (или завершающий) 12 лет обучения вне Японии к 30 сентября 2026, и приложивший признанный тест английского (IELTS, TOEFL и др.), сданный после 1 ноября 2023."
+  ],
+  "ieltsNote": [
+   "Kyoto iUP uchun minimal IELTS bali belgilanmagan; muvaffaqiyatli abituriyentlarda odatda taxminan 6.5.",
+   "Для Kyoto iUP минимальный балл IELTS не установлен; у успешных абитуриентов обычно около 6.5."
+  ],
+  "intake": [
+   "2027-yil oktyabr qabuli (iUP)",
+   "Набор на октябрь 2027 (iUP)"
   ]
  },
  "university-of-tokyo": {
   "req": [
    "An’anaviy dasturlar yapon tilida o‘tadi va yuqori yapon tili darajasini talab qiladi; inglizcha variantlar: PEAK (oxirgi qabul 2026-yil sentyabr) va yangi UTokyo Design (2027-yil sentyabr).",
    "Традиционные программы ведутся на японском и требуют высокого уровня японского; английские варианты — PEAK (последний набор в сентябре 2026) и новая UTokyo Design (сентябрь 2027)."
+  ],
+  "ieltsNote": [
+   "College of Design (inglizcha): IELTS taxminan 6.0 dan yuqori bo‘lishi kutiladi, ammo qat’iy chegara e’lon qilinmagan.",
+   "College of Design (на английском): ожидается IELTS выше примерно 6.0, но жёсткий порог не опубликован."
   ]
  },
  "waseda-university": {
@@ -531,6 +559,10 @@
   "req": [
    "Davlat ro‘yxatda bo‘lmasa, milliy malakalar qabul qilinmaydi: xalqaro malaka (SAT, ACT, A-Levels, IB, AP), 9–11-sinf transkripti, tavsiyanoma va motivatsion xat, hamda TOEFL iBT (yangi shkalada minimum 4,5; 2026-yil 21-yanvargacha 80). IELTS qabul qilinmaydi. O‘zbekiston sahifada alohida ko‘rsatilmagan.",
    "Национальные квалификации не принимаются, если страна не в списке: нужна международная квалификация (SAT, ACT, A-Levels, IB, AP), транскрипт 9–11 классов, рекомендации и мотивационное письмо, а также TOEFL iBT (минимум 4,5 по новой шкале; 80 до 21 января 2026). IELTS не принимается. Узбекистан на странице отдельно не указан."
+  ],
+  "ieltsNote": [
+   "Bakalavrga qabulda IELTS ingliz tili imtihoni sifatida qabul qilinmaydi (YÖK qoidasi). Abituriyent o‘rniga xalqaro imtihon natijasi yoki diplom bahosini (SAT, ACT, IB, A-level va h.k.) topshiradi.",
+   "IELTS не принимается как подтверждение английского при поступлении на бакалавриат (правило YÖK). Вместо него подают результат международного экзамена или оценки диплома (SAT, ACT, IB, A-level и др.)."
   ]
  },
  "middle-east-technical-university": {
@@ -541,6 +573,10 @@
   "req": [
    "Xalqaro abituriyent sifatida onlayn ariza, o‘rta ta’lim natijalari bilan (A-levels, SAT, IB va h.k.); ariza uchun ingliz tili bali shart emas, lekin TOEFL/PTE bali bo‘lmagan qabul qilinganlar METU ingliz tili imtihonini yoki bir yillik tayyorlovni o‘tadi. 2022-yil 24-dekabrdan keyingi IELTS qabul qilinmaydi.",
    "Онлайн-заявка как иностранный абитуриент с результатами среднего образования (A-levels, SAT, IB и т.п.); балл по английскому для подачи не нужен, но принятые без действующего TOEFL/PTE сдают экзамен METU по английскому или проходят год подготовки. IELTS, сданный после 24 декабря 2022, не принимается."
+  ],
+  "ieltsNote": [
+   "O‘qitish tili — ingliz tili, lekin bakalavrga ariza uchun ingliz tili bali topshirish majburiy emas; amaldagi bal arizani faqat kuchaytiradi.",
+   "Язык обучения — английский, но подавать балл по английскому для поступления на бакалавриат не обязательно; действующий балл лишь усиливает заявку."
   ]
  },
  "sabanci-university": {
@@ -803,6 +839,10 @@
   "req": [
    "Kamida 12 yillik o‘qishdan keyingi o‘rta ta’lim diplomi (mamlakatingiz talab qilsa, milliy kirish imtihoni sertifikati ham); ingliz tilidagi dasturlar uchun ingliz tili B2 yoki undan yuqori; TIL kirish testi yoki SAT natijasi (Architecture uchun SAT yaroqsiz). Chet eldagi EI a’zosi bo‘lmagan abituriyentlar Universitaly orqali oldindan ro‘yxatdan o‘tadi (2026/27 davri: til sertifikati 22-maygacha, oldindan ro‘yxatdan o‘tish taxminan 30-iyun).",
    "Диплом о среднем образовании после не менее 12 лет обучения (и сертификат национального вступительного экзамена, если его требует ваша страна); английский уровня B2 и выше для программ на английском; вступительный тест TIL или результат SAT (SAT не принимается для Architecture). Абитуриенты не из ЕС, находящиеся за границей, предварительно регистрируются на Universitaly (цикл 2026/27: языковой сертификат до 22 мая, предрегистрация около 30 июня)."
+  ],
+  "ieltsNote": [
+   "Inglizcha bakalavr dasturlariga B2 va undan yuqori ingliz tili darajasi (taxminan IELTS 5.5) kerak; italyancha dasturlarga italyan tili B2. Aniq IELTS bali belgilanmagan.",
+   "Для бакалавриата на английском нужен английский уровня B2 и выше (примерно IELTS 5.5); для программ на итальянском — итальянский B2. Конкретный балл IELTS не установлен."
   ]
  },
  "american-university-of-armenia": {

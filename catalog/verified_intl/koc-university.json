@@ -7,7 +7,9 @@
  "ielts": {
   "min_overall": null,
   "url": "https://international.ku.edu.tr/undergraduate-programs/how-to-apply/",
-  "year": 2026
+  "year": 2026,
+  "note": "IELTS is not accepted as a valid English proficiency exam for undergraduate admission (Council of Higher Education, YÖK rule). Applicants submit an international exam score or diploma grade instead (SAT, ACT, IB, A-levels etc.).",
+  "note_url": "https://international.ku.edu.tr/undergraduate-programs/how-to-apply/"
  },
  "deadline": {
   "date": "2026-08-05",
