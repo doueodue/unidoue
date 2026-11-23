@@ -203,9 +203,9 @@ ok(mj.includes("get('m') === 'register'") && readFileSync(new URL('../public/man
 /* ---- Promo kodlar: Tariflar qatori, admin bo‘limi; scrollbarlar va gorizontal siljish ---- */
 const adh = readFileSync(new URL('../public/admin.html', import.meta.url), 'utf8'), adj = readFileSync(new URL('../public/js/admin.js', import.meta.url), 'utf8'), adc = readFileSync(new URL('../public/admin.css', import.meta.url), 'utf8'), swj = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
 ok(v1.includes('function promoBox(') && v1.includes('function promoBind(') && v1.includes("'/api/promo/redeem'") && (v1.match(/\$\{promoBox\(\)\}/g) || []).length === 2 && (v1.match(/promoBind\(el\)/g) || []).length === 3 && v1.includes('id="promo-i"'), 'tariflar: promo kod qatori ikkala ko‘rinishda ham bor va ulangan');
-ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=58'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
+ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=59'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
 ok(adh.includes('data-v="promos"') && adh.includes('id="v-promos"') && ['mk', 'mp', 'md', 'mx', 'mu', 'mn', 'mb', 'ml'].every(i => adh.includes(`id="${i}"`)) && /promos: 'Promo kodlar'/.test(adj) && ['/api/admin/promos', '/api/admin/promo', '/api/admin/promo/set', '/api/admin/promo/delete'].every(u => adj.includes(`'${u}'`)) && (adc.match(/{/g) || []).length === (adc.match(/}/g) || []).length && adc.includes('.pm-form{'), 'admin: Promo kodlar bo‘limi (forma, ro‘yxat, to‘xtatish, limit, o‘chirish)');
-ok(swj.includes("'unidoue-v70'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
+ok(swj.includes("'unidoue-v71'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
 const cssFiles = ['app.css', 'atlas.css', 'coach.css', 'portfolio.css', 'tiers.css', 'landing.css', 'admin.css', 'controls.css'].map(f => [f, readFileSync(new URL('../public/' + f, import.meta.url), 'utf8')]);
 const sbBad = cssFiles.filter(([f, c]) => /scrollbar-(width|color)/.test(f === 'app.css' ? c.replace(/@supports not selector\(::-webkit-scrollbar\)\{[^}]*\}[^}]*\}/, '') : c)).map(x => x[0]);
 ok(sbBad.length === 0 && acss.includes('*::-webkit-scrollbar-thumb{') && acss.includes('@supports not selector(::-webkit-scrollbar)'), 'scrollbar: yagona uslub (app.css); boshqa joyda scrollbar-width/color yo‘q — Chrome ::-webkit-scrollbar uslubini o‘chirib qo‘yadi' + (sbBad.length ? ': ' + sbBad : ''));
@@ -284,5 +284,14 @@ ok(/from '\.\/tiers\.js'/.test(lpj) && /crownHTML/.test(lpj) && /liveGlass/.test
   ok(/seePlan\(S\.user\.id/.test(mj) && /celebrate\(r\.plan/.test(vj), 'main.js/views1.js: tabrik ulangan (tarif oʻzgarganda va promo kodda)');
   ok(/\/api\/auth\/google\/start/.test(mj) && /ge=|'ge'/.test(mj), 'main.js: Google bilan kirish tugmasi va xato xabarlari');
   ok(/tiers\.css\?v=49/.test(html0), 'app.html: tiers.css v49');
+}
+{
+  const fj = readFileSync(new URL('../public/js/feedback.js', import.meta.url), 'utf8'), mj2 = readFileSync(new URL('../public/js/main.js', import.meta.url), 'utf8'), acs = readFileSync(new URL('../public/atlas.css', import.meta.url), 'utf8');
+  ok(/export function openFeedback/.test(fj) && /aria-modal/.test(fj) && /Escape/.test(fj) && /\/api\/feedback/.test(fj) && !/eval\(|document\.write/.test(fj), 'feedback.js: dialog, Esc, /api/feedback, xavfsiz');
+  ok(/fbHTML\(\)/.test(mj2) && /bindFeedback\(\)/.test(mj2) && /fb-s-link/.test(mj2), 'main.js: fikr tugmasi sarlavhada va yon panelda');
+  ok(['.fbp{', '.fbp-o.on', '.fbp-ck', '@keyframes fb-dr', 'max-width:560px'].every(x => acs.includes(x)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length, 'atlas.css: fikr oynasi uslublari, qavslar muvozanatda');
+  ok(/compressShot/.test(fj) && /type="file"[^>]*accept="image\/jpeg,image\/png,image\/webp"/.test(fj) && /onpaste/.test(fj) && /ondrop/.test(fj) && /imgs: draft\.imgs/.test(fj) && ['.fbp-add', '.fbp-i', '.fbp-dz', '.fbp.drag'].every(x => acs.includes(x)), 'feedback.js: rasm yuklash (tanlash, tashlash, Ctrl+V), uslublar');
+  ok(/fbLightbox/.test(adj) && /readAsDataURL/.test(adj) && !/createObjectURL/.test(adj) && /\.fb-lb\{/.test(readFileSync(new URL('../public/admin.css', import.meta.url), 'utf8')), 'admin: fikr rasmlari data: URL bilan (CSP blob: ga ruxsat bermaydi), lightbox');
+  ok(/id="v-feedback"/.test(adh) && /data-v="feedback"/.test(adh) && /renderFeedback/.test(adj) && /\/api\/admin\/feedback/.test(adj), 'admin: Fikrlar sahifasi');
 }
 console.log(`pf: ${n} checks, ${process.exitCode ? 'FAILED' : 'ok'}`);

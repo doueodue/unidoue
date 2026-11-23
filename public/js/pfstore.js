@@ -39,6 +39,20 @@ export async function compress(file, max = 1000) {
   im.close(); if (!/^data:image\/jpeg;base64,/.test(url)) throw new Error('Brauzer rasmni qayta ishlay olmadi.');
   return { url, w, h };
 }
+/** Xato ekrani: uzun tomoni ≤ max px, JPEG ≤ ~cap belgi (avval sifat, keyin oʻlcham kamayadi — yozuvlar oʻqiladigan boʻlib qolsin). */
+export async function compressShot(file, max = 1280, cap = 170000) {
+  const im = await loadImage(file);
+  try {
+    let k = Math.min(1, max / Math.max(im.w, im.h)), q = 0.8, url = '';
+    for (let i = 0; i < 9; i++) {
+      url = draw(im.src, Math.max(1, Math.round(im.w * k)), Math.max(1, Math.round(im.h * k)), 0, 0, im.w, im.h, q);
+      if (url.length <= cap) break;
+      if (q > 0.55) q -= 0.1; else k *= 0.8;
+    }
+    if (!/^data:image\/jpeg;base64,/.test(url) || url.length > cap * 1.3) throw new Error('Rasm juda murakkab. Kichikroq ekran rasmini tanlang.');
+    return url;
+  } finally { im.close(); }
+}
 /** Profil rasmi 4:5 (320×400). view: { z: yaqinlashtirish ≥1, cx, cy: markaz (0..1) } */
 export function cropPhoto(im, view) {
   const base = Math.max(320 / im.w, 400 / im.h), s = base * Math.max(1, view.z || 1), sw = 320 / s, sh = 400 / s;

@@ -154,6 +154,12 @@ export const skeleton = (n = 3) => `<div class="grid">${Array.from({ length: n }
 export const errorBox = (msg, retry) => `<div class="card err-box"><b>Yuklab bo‘lmadi</b>${esc(msg)}${retry ? `<div style="margin-top:14px"><button class="btn" data-retry>Qayta urinish</button></div>` : ''}</div>`;
 
 export const ico = {
+  image: 'M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v11a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 17.5v-11zM8.6 10.2a1.6 1.6 0 100-3.2 1.6 1.6 0 000 3.2zM4.5 16.5l4.3-4.3 3.4 3.4 2.4-2.4 4.9 4.9',
+  chat: 'M4 6a2 2 0 012-2h12a2 2 0 012 2v8.5a2 2 0 01-2 2h-6.6L7 20.2v-3.7H6a2 2 0 01-2-2V6zM8 8.6h8M8 11.8h5',
+  bug: 'M12 7a4 4 0 00-4 4v3.5a4 4 0 008 0V11a4 4 0 00-4-4zM9 4.6l1.4 1.8M15 4.6l-1.4 1.8M4 10.5l3.6 1.3M20 10.5l-3.6 1.3M4 18l3.8-1.9M20 18l-3.8-1.9M8 12h8M12 12v7.3',
+  bulb: 'M9.5 17.5h5M10.3 20.5h3.4M12 3.2a6 6 0 00-3.6 10.8c.7.6 1.1 1.4 1.1 2.2v.3h5v-.3c0-.8.4-1.6 1.1-2.2A6 6 0 0012 3.2z',
+  help: 'M12 21a9 9 0 100-18 9 9 0 000 18zM9.5 9.6a2.6 2.6 0 114.4 1.9c-.9.7-1.9 1.3-1.9 2.6M12 17.2h.01',
+  x: 'M6 6l12 12M18 6L6 18',
   home: 'M3 11l9-8 9 8M5 10v10h14V10', send: 'M12 19V5M5 12l7-7 7 7', plus: 'M12 5v14M5 12h14', copy: 'M9 9h11v11H9zM5 15H4V4h11v1', tick: 'M5 12.5l4.5 4.5L19 7.5', compass: 'M12 3a9 9 0 100 18 9 9 0 000-18zM15.5 8.5l-2 5-5 2 2-5z', doc: 'M14 3H6v18h12V7zM14 3v4h4M9 12h6M9 16h6', target: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 8a4 4 0 100 8 4 4 0 000-8zM12 12h.01', spark: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z', search: 'M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-4.3-4.3', gift: 'M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H8a2.5 2.5 0 010-5c2 0 4 2 4 5zM12 7h4a2.5 2.5 0 000-5c-2 0-4 2-4 5z',
   chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2', pen: 'M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z', cmp: 'M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h3M16 3h3a2 2 0 012 2v14a2 2 0 01-2 2h-3M12 2v20',
   list: 'M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01', bot: 'M12 8V4M8 4h8M5 8h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2zM9 14h.01M15 14h.01', card: 'M2 6h20v12H2zM2 10h20', user: 'M20 21a8 8 0 10-16 0M12 11a4 4 0 100-8 4 4 0 000 8z',

@@ -65,7 +65,7 @@ let USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all
 const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
 
 /* ---------- yo‘naltirish ---------- */
-const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar' };
+const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar' };
 function route() {
   const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
   $$('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
@@ -82,6 +82,7 @@ const kpi = (ic, n, label, tone, on) => `<div class="kpi ${tone || ''}${on ? ' o
 function renderOverview(st) {
   const warn = [];
   if (st.pending) warn.push(`<div class="notice">${svg(IC.warn)}<div><b>${st.pending} ta tarif so‘rovi kutmoqda.</b> <a href="#requests">Ko‘rish →</a></div></div>`);
+  if (st.fbNew) warn.push(`<div class="notice info">${svg(IC.inbox)}<div><b>${st.fbNew} ta yangi fikr yoki xato xabari bor.</b> <a href="#feedback">Ko‘rish →</a></div></div>`);
   if (st.proExpiring) warn.push(`<div class="notice">${svg(IC.clock)}<div><b>${st.proExpiring} ta pullik tarif 7 kun ichida tugaydi.</b> <a href="#users">Foydalanuvchilar →</a></div></div>`);
   const cfg = [!st.mail && 'Xat yuborish ulanmagan (tasdiqlash va parol tiklash ishlamaydi)', !st.ai && 'AI ulanmagan', st.mail && !st.verifyOn && 'Email tasdiqlash o‘chiq', !st.payCard && 'PAY_CARD sozlanmagan (karta raqami ko‘rinmaydi)'].filter(Boolean);
   if (cfg.length) warn.push(`<div class="notice info">${svg(IC.info)}<div><b>Sozlash kerak:</b><br>${cfg.map(esc).join('<br>')}</div></div>`);
@@ -144,6 +145,61 @@ function renderChart(rows) {
 }
 
 /* ---------- So‘rovlar ---------- */
+/* ---------- Fikrlar ---------- */
+let FBK = null, FBF = 'new', FBT = '';
+const FB_T = { bug: ['Xato', 'bad'], idea: ['Taklif', 'warn'], ask: ['Savol', 'target'] };
+function deviceOf(ua) {
+  ua = String(ua || '');
+  const br = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : '';
+  const os = /Android/.test(ua) ? 'Android' : /iPhone|iPad|iPod/.test(ua) ? 'iOS' : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : '';
+  return [br, os].filter(Boolean).join(' · ');
+}
+const FBURL = new Map();
+async function fbBlob(id, n) {
+  const k = id + ':' + n; if (FBURL.has(k)) return FBURL.get(k);
+  const r = await fetch(`/api/admin/feedback/img?id=${encodeURIComponent(id)}&n=${n}`, { headers: { Authorization: 'Bearer ' + TOKEN } });
+  if (!r.ok) throw new Error('Rasm yuklanmadi');
+  const bl = await r.blob(); /* CSP blob: rasmlarga ruxsat bermaydi — data: URL ishlatamiz */
+  const u = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(new Error('Rasm o‘qilmadi')); fr.readAsDataURL(bl); });
+  FBURL.set(k, u); return u;
+}
+async function fbThumb(b) {
+  try { const u = await fbBlob(b.dataset.fi, b.dataset.n); b.innerHTML = `<img src="${u}" alt="">`; b.onclick = () => fbLightbox(u); }
+  catch (e) { b.classList.add('bad'); b.innerHTML = '<span>Rasm yo‘q</span>'; b.disabled = true; }
+}
+function fbLightbox(u) {
+  const bg = document.createElement('div'); bg.className = 'fb-lb'; bg.setAttribute('role', 'dialog'); bg.setAttribute('aria-modal', 'true'); bg.setAttribute('aria-label', 'Rasm');
+  bg.innerHTML = `<img src="${u}" alt=""><div class="fb-lb-a"><a class="btn sm" href="${u}" download="fikr-rasm.jpg">Yuklab olish</a><button class="btn sm" type="button" data-c>Yopish</button></div>`;
+  const off = () => { bg.remove(); document.removeEventListener('keydown', key, true); };
+  const key = e => { if (e.key === 'Escape') { e.preventDefault(); off(); } };
+  bg.addEventListener('pointerdown', e => { if (e.target === bg) off(); }); $('[data-c]', bg).onclick = off; document.addEventListener('keydown', key, true);
+  document.body.appendChild(bg); $('[data-c]', bg).focus();
+}
+function renderFeedback() {
+  const all = (FBK && FBK.items) || [], nNew = all.filter(f => f.status !== 'done').length;
+  $('#fc').textContent = FBK ? (FBK.total > all.length ? all.length + ' / ' + FBK.total : all.length) : '';
+  const nn = $('#fb-nn'); if (nn) { nn.hidden = !nNew; nn.textContent = nNew > 99 ? '99+' : nNew; }
+  const chip = (k, v, label, n) => `<button type="button" class="chip" data-${k}="${v}" aria-pressed="${(k === 's' ? FBF : FBT) === v}">${label}${n != null ? ` <b>${n}</b>` : ''}</button>`;
+  $('#ff').innerHTML = chip('s', 'new', 'Yangi', nNew) + chip('s', 'done', 'Bajarilgan', all.length - nNew) + chip('s', '', 'Hammasi', all.length) + '<span class="fb-sep" aria-hidden="true"></span>' + Object.entries(FB_T).map(([k, [l]]) => chip('t', k, l, all.filter(f => f.type === k).length)).join('');
+  $$('#ff [data-s]').forEach(b => (b.onclick = () => { FBF = b.dataset.s; renderFeedback(); }));
+  $$('#ff [data-t]').forEach(b => (b.onclick = () => { FBT = FBT === b.dataset.t ? '' : b.dataset.t; renderFeedback(); }));
+  if (!FBK) { $('#fl').innerHTML = emptyBox('inbox', 'Fikrlar yuklanmadi', 'Keyinroq yangilab ko‘ring.'); return; }
+  const byEmail = new Map(USERS.map(u => [u.email, u]));
+  const list = all.filter(f => (!FBF || (FBF === 'done') === (f.status === 'done')) && (!FBT || f.type === FBT));
+  $('#fl').innerHTML = list.length ? list.map(f => { const [tl, tone] = FB_T[f.type] || ['Xabar', 'mute'], u = byEmail.get(f.email), done = f.status === 'done', dev = [deviceOf(f.ua), f.vp, f.theme === 'dark' ? 'qorong‘i' : f.theme === 'light' ? 'yorug‘' : '', f.lang && f.lang.toUpperCase()].filter(Boolean).join(' · ');
+    const mail = `mailto:${encodeURIComponent(f.email)}?subject=${encodeURIComponent('UniDoue: ' + tl.toLowerCase() + ' haqida')}&body=${encodeURIComponent('Salom, ' + (f.name || '') + '!\n\n\n— Sizning xabaringiz:\n' + f.text.split('\n').map(x => '> ' + x).join('\n'))}`;
+    return `<article class="card req fbc${done ? ' done' : ''}" data-ty="${esc(f.type)}">
+    <div class="req-h">${avatar(f.name)}<div><b>${esc(f.name)}</b><small>${esc(rel(f.ts))} · ${esc(when(f.ts))}</small></div><span class="badge ${tone}">${esc(tl)}</span>${u ? `<span class="pb ${eff(u)}">${planName(eff(u))}</span>` : ''}${done ? '<span class="badge ok">bajarilgan</span>' : ''}</div>
+    <div class="req-meta"><span>${esc(f.email)}</span>${f.page ? `<span>· sahifa: <code>${esc(f.page)}</code></span>` : ''}</div>
+    <div class="req-m">${esc(f.text)}</div>
+    ${f.ni ? `<div class="fbc-i">${Array.from({ length: f.ni }, (_, n) => `<button type="button" class="fbc-t" data-fi="${esc(f.id)}" data-n="${n}" aria-label="Rasmni kattalashtirish ${n + 1}"><span class="fbc-ld"></span></button>`).join('')}</div>` : ''}
+    ${dev ? `<div class="fbc-d">${esc(dev)}</div>` : ''}
+    <div class="req-a"><button class="btn sm${done ? '' : ' primary'}" type="button" data-fs="${esc(f.id)}" data-st="${done ? 'new' : 'done'}">${done ? 'Qayta ochish' : 'Bajarildi'}</button><a class="btn sm" href="${mail}">Email orqali javob</a><button class="btn sm danger" type="button" data-fd="${esc(f.id)}">O‘chirish</button></div></article>`; }).join('')
+    : emptyBox('inbox', all.length ? 'Bu filtrda xabar yo‘q' : 'Hali fikr yo‘q', all.length ? 'Filtrni o‘zgartirib ko‘ring.' : 'Foydalanuvchilar sarlavhadagi tugma orqali yuborgan xabarlar shu yerda paydo bo‘ladi.');
+  $$('#fl [data-fi]').forEach(b => fbThumb(b));
+  $$('#fl [data-fs]').forEach(b => (b.onclick = async () => { b.disabled = true; try { await call('POST', '/api/admin/feedback/set', { id: b.dataset.fs, status: b.dataset.st }); const f = all.find(x => x.id === b.dataset.fs); if (f) f.status = b.dataset.st; if (STATS) STATS.fbNew = all.filter(x => x.status !== 'done').length; renderFeedback(); renderOverview(STATS); } catch (e) { toast(e.message, 'err'); b.disabled = false; } }));
+  $$('#fl [data-fd]').forEach(b => (b.onclick = async () => { if (!await ask({ title: 'Xabarni o‘chirasizmi?', text: 'Qaytarib bo‘lmaydi.', ok: 'O‘chirish', danger: true })) return; try { await call('POST', '/api/admin/feedback/delete', { id: b.dataset.fd }); FBK.items = all.filter(x => x.id !== b.dataset.fd); FBK.total--; if (STATS) STATS.fbNew = FBK.items.filter(x => x.status !== 'done').length; renderFeedback(); renderOverview(STATS); toast('O‘chirildi'); } catch (e) { toast(e.message, 'err'); } }));
+}
 const emptyBox = (ic, t, s) => `<div class="empty">${svg(IC[ic])}<b>${t}</b><span>${s || ''}</span></div>`;
 function renderRequests() {
   const reqs = REQS.slice().reverse(); $('#rc').textContent = reqs.length;
@@ -463,14 +519,15 @@ async function load(silent) {
   if (busy) return; busy = true;
   const rf = $('#rf'); rf.classList.add('spin'); if (!silent) $('#st').textContent = 'Yuklanmoqda…';
   try {
-    const [rq, us, st, od, pr, nh, un] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
+    const [rq, us, st, od, pr, nh, un, fk] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
       call('GET', '/api/admin/orders').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/promos').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/notes').catch(e => { if (e.status === 401) throw e; return null; }),
-      call('GET', '/api/admin/unis').catch(e => { if (e.status === 401) throw e; return null; })]);
-    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; if (nh) NH = nh; loadedAt = Date.now();
+      call('GET', '/api/admin/unis').catch(e => { if (e.status === 401) throw e; return null; }),
+      call('GET', '/api/admin/feedback').catch(e => { if (e.status === 401) throw e; return null; })]);
+    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; FBK = fk; if (nh) NH = nh; loadedAt = Date.now();
     const first = $('#shell').hidden; $('#lg').hidden = true; $('#shell').hidden = false;
-    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderNotes(); audienceUi();
+    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); audienceUi();
     $('#st').textContent = 'Yangilandi: ' + when(Date.now()).split(', ')[1].split(' ').pop();
     if (first) route(); else fx.scan($('#kpis'));
   } catch (e) {

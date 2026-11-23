@@ -38,7 +38,7 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {} });
+const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [] });
 let db = normDb({});
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
@@ -449,6 +449,14 @@ async function mailMany(users, m) {
   return out;
 }
 /** Sayt egasiga: yangi soʻrov yoki toʻlov (Telegram + administrator qurilmalariga push) */
+const FB_TYPES = { bug: 'Xato', idea: 'Taklif', ask: 'Savol' };
+/** Foydalanuvchi fikri: Telegram + administrator qurilmalariga push */
+function notifyFeedback(f) {
+  const ni = f.imgs ? f.imgs.length : 0;
+  notifyTelegram({ service: 'Fikr: ' + FB_TYPES[f.type], name: f.name, contact: f.email, message: f.text + (f.page ? '\n\nSahifa: ' + f.page : '') + (ni ? `\nRasm: ${ni} ta (admin panelda)` : '') });
+  if (!db.adminPush.length) return;
+  pushTo(db.adminPush, { title: FB_TYPES[f.type] + ' haqida xabar', body: `${f.name || ''}: ${String(f.text).slice(0, 120)}${ni ? ' 🖼' : ''}`, url: '/admin#feedback', tag: 'feedback' }, { urgency: 'normal' }).catch(() => {});
+}
 function notifyOwner(r) {
   notifyTelegram(r);
   if (!db.adminPush.length) return;
@@ -842,7 +850,7 @@ async function api(req, res, pathname) {
     if (u.noPw) { if (clean(b.confirm, 254).toLowerCase() !== u.email) return fail(res, 401, 'Tasdiqlash uchun emailingizni toʻgʻri yozing.'); }
     else if (!(await checkPw(typeof b.password === 'string' ? b.password.slice(0, 128) : '', u.hash))) return fail(res, 401, 'Parol notoʻgʻri.');
     for (const [k, s] of Object.entries(db.sessions)) if (s.uid === u.id) delete db.sessions[k];
-    db.requests = db.requests.filter(r => r.uid !== u.id);
+    db.requests = db.requests.filter(r => r.uid !== u.id); db.feedback = db.feedback.filter(f => f.uid !== u.id);
     for (const [k, r] of Object.entries(db.resets)) if (r.uid === u.id) delete db.resets[k];
     PROMO.forget(db, u.id);
     emailIdx.delete(u.email); delete db.users[u.id];
@@ -1004,6 +1012,34 @@ async function api(req, res, pathname) {
     return send(res, 200, { ok: true, email: u.email });
   }
 
+  if (pathname === '/api/admin/feedback' && method === 'GET') {
+    if (!admGate(req, res, ip, 'feedback', 300)) return;
+    return send(res, 200, { items: db.feedback.slice(-500).reverse().map(({ imgs, ...f }) => ({ ...f, ni: imgs ? imgs.length : 0 })), total: db.feedback.length });
+  }
+  if (pathname === '/api/admin/feedback/img' && method === 'GET') {
+    if (!admGate(req, res, ip, 'fbimg', 600)) return;
+    const q = new URL(req.url, 'http://x').searchParams, f = db.feedback.find(x => x.id === q.get('id')), im = f && f.imgs && f.imgs[parseInt(q.get('n'), 10) || 0];
+    if (!im) return fail(res, 404, 'Rasm topilmadi.');
+    res.statusCode = 200; res.setHeader('Content-Type', 'image/jpeg'); res.setHeader('Cache-Control', 'private, max-age=3600'); res.setHeader('Content-Disposition', 'inline');
+    return res.end(Buffer.from(im, 'base64'));
+  }
+  if (pathname === '/api/admin/feedback/set' && method === 'POST') {
+    if (!admGate(req, res, ip, 'feedback', 120)) return;
+    const b = await readJson(req), f = db.feedback.find(x => x.id === String(b.id || ''));
+    if (!f) return fail(res, 404, 'Xabar topilmadi.');
+    if (!['new', 'done'].includes(b.status)) return fail(res, 400, 'Holat notoʻgʻri.');
+    f.status = b.status; save();
+    return send(res, 200, { ok: true });
+  }
+  if (pathname === '/api/admin/feedback/delete' && method === 'POST') {
+    if (!admGate(req, res, ip, 'feedback', 120)) return;
+    const b = await readJson(req), n = db.feedback.length;
+    db.feedback = db.feedback.filter(x => x.id !== String(b.id || ''));
+    if (db.feedback.length === n) return fail(res, 404, 'Xabar topilmadi.');
+    save();
+    return send(res, 200, { ok: true });
+  }
+
   if (pathname === '/api/admin/requests' && method === 'GET') {
     if (!admGate(req, res, ip, 'requests', 300)) return;
     return send(res, 200, { requests: db.requests });
@@ -1079,6 +1115,34 @@ async function api(req, res, pathname) {
     sysNote(u, 'Promo kod qabul qilindi', PLANS[r.plan].name + ' tarifi yoqildi');
     save();
     return send(res, 200, { ok: true, plan: r.plan, days: r.days, until: r.until, account: accountInfo(u) });
+  }
+
+  /* ---- fikr-mulohaza: xato, taklif yoki savol (sarlavhadagi tugma) ---- */
+  if (pathname === '/api/feedback' && method === 'POST') {
+    const u = sessionUser(req);
+    if (!u) return fail(res, 401, 'Avval hisobga kiring.');
+    if (limited('fb:' + u.id, 6, 60 * 60 * 1000) || limited('fbi:' + ip, 40, 24 * 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp xabar yubordingiz. Birozdan keyin urinib koʻring.');
+    const b = await readJson(req, 700 * 1024), type = String(b.type || '');
+    if (!FB_TYPES[type]) return fail(res, 400, 'Xabar turini tanlang.');
+    const text = String(b.text || '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ' ').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 1500);
+    if (text.length < 10) return fail(res, 400, 'Kamida 10 ta belgi yozing.');
+    // ilova qilingan ekran rasmlari: eng koʻpi 2 ta, faqat JPEG (mijoz canvas orqali qayta kodlaydi), har biri ≤ 190 KB
+    const imgs = [];
+    for (const x of (Array.isArray(b.imgs) ? b.imgs : []).slice(0, 2)) {
+      const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/]+={0,2})$/.exec(String(x || ''));
+      const buf = m && Buffer.from(m[1], 'base64');
+      if (!buf || buf.length < 600 || buf.length > 190 * 1024 || buf[0] !== 0xff || buf[1] !== 0xd8 || buf[2] !== 0xff) return fail(res, 400, 'Rasm notoʻgʻri yoki juda katta.');
+      imgs.push(m[1]);
+    }
+    if ((Array.isArray(b.imgs) ? b.imgs.length : 0) > 2) return fail(res, 400, 'Eng koʻpi bilan 2 ta rasm yuklash mumkin.');
+    const pg = clean(b.page, 80);
+    const f = { id: crypto.randomBytes(6).toString('hex'), ts: new Date().toISOString(), uid: u.id, email: u.email, name: u.name, plan: effPlan(u).id, type, text, page: /^#?\/[\w\-/?=&.%]*$/.test(pg) ? pg : '', vp: /^\d{2,5}x\d{2,5}$/.test(String(b.vp)) ? String(b.vp) : '', theme: ['light', 'dark'].includes(b.theme) ? b.theme : '', lang: ['uz', 'ru', 'en'].includes(b.lang) ? b.lang : '', ua: clean(req.headers['user-agent'], 160), status: 'new' };
+    if (imgs.length) f.imgs = imgs;
+    db.feedback.push(f); if (db.feedback.length > 2000) db.feedback.shift();
+    // joy tejash: butun baza har safar yoziladi, shuning uchun rasmlar faqat eng yangi xabarlarda (≤ 60 ta va jami ≈ 5 MB) saqlanadi
+    let withImg = 0, bytes = 0; for (let i = db.feedback.length - 1; i >= 0; i--) { const im = db.feedback[i].imgs; if (!im) continue; bytes += im.reduce((n, x) => n + x.length, 0); if (++withImg > 60 || bytes > 5e6) delete db.feedback[i].imgs; }
+    save(); notifyFeedback(f);
+    return send(res, 201, { ok: true });
   }
 
   if (pathname === '/api/plan/downgrade' && method === 'POST') {
@@ -1186,7 +1250,7 @@ async function api(req, res, pathname) {
     const rows = days.map(d => ({ d, active: us.filter(u => (u.act || []).includes(d)).length, signups: us.filter(u => u.created && tashkentISO(u.created) === d).length }));
     const week = new Set(days.slice(-7)), all = us.flatMap(u => u.act || []).sort();
     return send(res, 200, {
-      today, total: us.length, unverified: us.filter(u => u.verified !== true).length,
+      today, total: us.length, fbNew: db.feedback.filter(f => f.status !== 'done').length, unverified: us.filter(u => u.verified !== true).length,
       pro: us.filter(u => effPlan(u).id === 'pro').length, plus: us.filter(u => effPlan(u).id === 'plus').length,
       proExpiring: us.filter(u => effPlan(u).id !== 'free' && u.planUntil && u.planUntil - now < 7 * 864e5).length,
       pending: us.filter(u => u.planReq && PLAN_ORDER[effPlan(u).id] < PLAN_ORDER[u.planReqPlan || 'pro']).length,

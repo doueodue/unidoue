@@ -371,11 +371,68 @@ class Client {
     ok(ap.headers.get('x-frame-options') === 'DENY' && ap.headers.get('x-content-type-options') === 'nosniff', 'xavfsizlik sarlavhalari');
     const html = await (await fetch(B + '/app')).text(); ok(!/<script>[^<]/.test(html) && !/ on\w+=/.test(html), '/app da inline skript va hodisa atributlari yoʻq');
     const tc = await fetch(B + '/tiers.css?v=48'); const tct = await tc.text(); ok(tc.status === 200 && /text\/css/.test(tc.headers.get('content-type') || '') && /data-tier=pro/.test(tct) && /data-tier=plus/.test(tct), 'tiers.css (tarif shishasi) toʻgʻri MIME bilan beriladi');
-    ok(/href="\/tiers\.css/.test(html) && /unidoue-v70/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v59');
+    ok(/href="\/tiers\.css/.test(html) && /unidoue-v71/.test(await (await fetch(B + '/sw.js')).text()), '/app tiers.css ni ulaydi, SW v59');
     const ac = await fetch(B + '/atlas.css?v=50'), act = await ac.text(), cv = await fetch(B + '/contour.svg'), cvt = await cv.text();
     ok(ac.status === 200 && /text\/css/.test(ac.headers.get('content-type') || '') && /\.rt-done/.test(act) && /href="\/atlas\.css/.test(html), 'atlas.css (Yo‘l daftari dizayni) toʻgʻri MIME bilan beriladi va /app ga ulangan');
     ok(cv.status === 200 && /image\/svg\+xml/.test(cv.headers.get('content-type') || '') && /^<svg/.test(cvt) && !/<script/i.test(cvt), 'contour.svg (xarita foni) image/svg+xml bilan beriladi');
 
+    console.log('Fikr-mulohaza');
+    {
+      const AD = { Authorization: 'Bearer adm-secret' }, fe = `fb${Date.now()}@gmail.com`, f = new Client();
+      await f.call('POST', '/api/register', { email: fe, password: 'parol12345', name: 'Fikrli' });
+      r = await new Client().call('POST', '/api/feedback', { type: 'bug', text: 'Kirmasdan yozish mumkin emas' }); ok(r.s === 401, 'fikr: hisobsiz yuborib boʻlmaydi', r.s);
+      r = await f.call('POST', '/api/feedback', { type: 'xxx', text: 'Notoʻgʻri tur bilan yuborish' }); ok(r.s === 400, 'fikr: notoʻgʻri tur rad etiladi', r.s);
+      r = await f.call('POST', '/api/feedback', { type: 'bug', text: 'qisqa' }); ok(r.s === 400 && /10/.test(r.j.error), 'fikr: 10 belgidan qisqa matn rad etiladi', r.j);
+      r = await f.call('POST', '/api/feedback', { type: 'bug', text: '<b>Tugma ishlamayapti</b>\n\n\n\nBosganda hech narsa boʻlmaydi', page: '#/finder', vp: '390x844', theme: 'dark', lang: 'ru' }, { 'User-Agent': 'Mozilla/5.0 (Linux; Android 14) Chrome/130.0 Mobile Safari/537.36' }); ok(r.s === 201, 'fikr: xato xabari yuborildi', r.s);
+      r = await f.call('POST', '/api/feedback', { type: 'idea', text: 'Telegram orqali eslatma kelsa yaxshi boʻlardi', page: '<script>alert(1)</script>', vp: 'katta', theme: 'pushti', lang: 'xx' }); ok(r.s === 201, 'fikr: taklif yuborildi', r.s);
+      r = await new Client().call('GET', '/api/admin/feedback'); ok(r.s === 401, 'fikr: roʻyxat tokensiz yopiq', r.s);
+      r = await new Client().call('GET', '/api/admin/feedback', null, AD); const mine = r.j.items.filter(x => x.email === fe);
+      const fb = mine.find(x => x.type === 'bug'), fi = mine.find(x => x.type === 'idea');
+      ok(r.s === 200 && mine.length === 2 && r.j.items[0].ts >= r.j.items[r.j.items.length - 1].ts, 'fikr: admin roʻyxatida ikkalasi bor (yangisi tepada)', r.j);
+      ok(fb && fb.status === 'new' && fb.name === 'Fikrli' && fb.page === '#/finder' && fb.vp === '390x844' && fb.theme === 'dark' && fb.lang === 'ru' && /Android/.test(fb.ua) && fb.text.includes('Tugma ishlamayapti') && !/\n\n\n/.test(fb.text) && !('hash' in fb), 'fikr: maydonlar toʻgʻri saqlandi', fb);
+      ok(fi && fi.page === '' && fi.vp === '' && fi.theme === '' && fi.lang === '', 'fikr: notoʻgʻri sahifa/qurilma maydonlari tozalandi (XSS yoʻq)', fi);
+      r = await new Client().call('GET', '/api/admin/stats', null, AD); ok(r.j.fbNew >= 2, 'fikr: statistikada yangi fikrlar soni', r.j.fbNew);
+      r = await new Client().call('POST', '/api/admin/feedback/set', { id: fb.id, status: 'done' }); ok(r.s === 401, 'fikr: holatni tokensiz oʻzgartirib boʻlmaydi', r.s);
+      r = await new Client().call('POST', '/api/admin/feedback/set', { id: fb.id, status: 'zzz' }, AD); ok(r.s === 400, 'fikr: notoʻgʻri holat rad etiladi', r.s);
+      r = await new Client().call('POST', '/api/admin/feedback/set', { id: 'yoq', status: 'done' }, AD); ok(r.s === 404, 'fikr: mavjud boʻlmagan xabar — 404', r.s);
+      r = await new Client().call('POST', '/api/admin/feedback/set', { id: fb.id, status: 'done' }, AD); ok(r.s === 200, 'fikr: bajarildi deb belgilandi', r.s);
+      r = await new Client().call('GET', '/api/admin/feedback', null, AD); ok(r.j.items.find(x => x.id === fb.id).status === 'done', 'fikr: holat saqlandi');
+      r = await new Client().call('POST', '/api/admin/feedback/delete', { id: fi.id }, AD); ok(r.s === 200, 'fikr: admin oʻchirdi', r.s);
+      r = await new Client().call('POST', '/api/admin/feedback/delete', { id: fi.id }, AD); ok(r.s === 404, 'fikr: ikkinchi oʻchirish — 404', r.s);
+      // ekran rasmlari
+      {
+        const g1 = new Client(), g2 = new Client(), e2 = `fbi${Date.now()}@gmail.com`, TXT = 'Rasm bilan yuborilgan xato haqida xabar'; // tezlik cheklovi (soatiga 6) sababli ikki hisob
+        await g1.call('POST', '/api/register', { email: 'x' + e2, password: 'parol12345', name: 'Rasmsiz' });
+        await g2.call('POST', '/api/register', { email: e2, password: 'parol12345', name: 'Rasmli' });
+        const jpg = n => 'data:image/jpeg;base64,' + Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), require('node:crypto').randomBytes(n)]).toString('base64');
+        const J1 = jpg(2000), J2 = jpg(3000);
+        r = await g1.call('POST', '/api/feedback', { type: 'bug', text: TXT, imgs: ['data:image/png;base64,' + Buffer.alloc(900, 1).toString('base64')] }); ok(r.s === 400, 'fikr rasm: PNG rad etiladi (faqat JPEG)', r.s);
+        r = await g1.call('POST', '/api/feedback', { type: 'bug', text: TXT, imgs: ['data:image/jpeg;base64,' + Buffer.alloc(900, 7).toString('base64')] }); ok(r.s === 400, 'fikr rasm: JPEG emas (sarlavha notoʻgʻri) rad etiladi', r.s);
+        r = await g1.call('POST', '/api/feedback', { type: 'bug', text: TXT, imgs: ['data:image/jpeg;base64,/9j/'] }); ok(r.s === 400, 'fikr rasm: juda kichik rasm rad etiladi', r.s);
+        r = await g1.call('POST', '/api/feedback', { type: 'bug', text: TXT, imgs: [jpg(200 * 1024)] }); ok(r.s === 400, 'fikr rasm: 190 KB dan katta rasm rad etiladi', r.s);
+        r = await g2.call('POST', '/api/feedback', { type: 'bug', text: TXT, imgs: ['http://evil.example/x.jpg'] }); ok(r.s === 400, 'fikr rasm: tashqi havola rad etiladi', r.s);
+        r = await g2.call('POST', '/api/feedback', { type: 'bug', text: TXT, imgs: [J1, J1, J1] }); ok(r.s === 400, 'fikr rasm: 3 ta rasm rad etiladi', r.s);
+        r = await g2.call('POST', '/api/feedback', { type: 'bug', text: TXT, imgs: [J1, J2] }); ok(r.s === 201, 'fikr rasm: 2 ta JPEG bilan yuborildi', r.s);
+        r = await new Client().call('GET', '/api/admin/feedback', null, AD); const wi = r.j.items.find(x => x.email === e2);
+        ok(wi && wi.ni === 2 && !('imgs' in wi), 'fikr rasm: admin roʻyxatida faqat rasmlar soni (ni=2), base64 yoʻq', wi);
+        let im = await fetch(B + `/api/admin/feedback/img?id=${wi.id}&n=1`, { headers: AD }); const ib = Buffer.from(await im.arrayBuffer());
+        ok(im.status === 200 && im.headers.get('content-type') === 'image/jpeg' && /private/.test(im.headers.get('cache-control') || '') && ib.equals(Buffer.from(J2.split(',')[1], 'base64')), 'fikr rasm: admin aynan saqlangan JPEG ni oladi (private kesh)', [im.status, im.headers.get('content-type')]);
+        im = await fetch(B + `/api/admin/feedback/img?id=${wi.id}&n=0`); ok(im.status === 401, 'fikr rasm: tokensiz rasm koʻrib boʻlmaydi', im.status);
+        im = await fetch(B + `/api/admin/feedback/img?id=${wi.id}&n=5`, { headers: AD }); ok(im.status === 404, 'fikr rasm: mavjud boʻlmagan rasm — 404', im.status);
+        im = await fetch(B + `/api/admin/feedback/img?id=yoq&n=0`, { headers: AD }); ok(im.status === 404, 'fikr rasm: mavjud boʻlmagan xabar rasmi — 404', im.status);
+        im = await fetch(B + `/api/admin/feedback/img?id=${wi.id}&n=0`, { headers: { Authorization: 'Bearer ' + AD.Authorization.slice(7) + 'x' } }); ok(im.status === 401, 'fikr rasm: notoʻgʻri token bilan 401', im.status);
+        r = await g2.call('POST', '/api/feedback', { type: 'ask', text: 'Rasmsiz savol yuboryapman' }); r = await new Client().call('GET', '/api/admin/feedback', null, AD);
+        ok(r.j.items.filter(x => x.email === e2 && x.ni === 0).length === 1, 'fikr rasm: rasmsiz xabarda ni=0');
+        await g1.call('DELETE', '/api/account', { password: 'parol12345' });
+        r = await g2.call('DELETE', '/api/account', { password: 'parol12345' }); ok(r.s === 200, 'fikr rasm: hisob oʻchirildi', r.s);
+        im = await fetch(B + `/api/admin/feedback/img?id=${wi.id}&n=0`, { headers: AD }); ok(im.status === 404, 'fikr rasm: hisob oʻchirilganda rasmlar ham oʻchadi', im.status);
+      }
+      // tezlik cheklovi: soatiga 6 ta
+      let last = 0; for (let i = 0; i < 6; i++) last = (await f.call('POST', '/api/feedback', { type: 'ask', text: 'Savol raqami ' + i + ' uchun matn' })).s;
+      ok(last === 429, 'fikr: soatiga 6 tadan koʻp yuborib boʻlmaydi', last);
+      r = await f.call('DELETE', '/api/account', { password: 'parol12345' }); ok(r.s === 200, 'fikr: hisob oʻchirildi', r.s);
+      r = await new Client().call('GET', '/api/admin/feedback', null, AD); ok(!r.j.items.some(x => x.email === fe), 'fikr: hisob oʻchirilganda xabarlari ham oʻchadi');
+    }
     console.log('Hisobni oʻchirish');
     r = await a.call('DELETE', '/api/account', { password: 'xato' }); ok(r.s === 401, 'notoʻgʻri parol bilan oʻchirib boʻlmaydi');
     r = await a.call('POST', '/api/request', { name: 'Ali', contact: '@ali123', service: 'Esse', message: 'x' }); ok(r.s === 404, 'jonli mentor soʻrovi olib tashlangan (/api/request yoʻq)', r.s);
