@@ -78,7 +78,14 @@
   ]
  },
  "heidelberg-university": {
-  "req": null
+  "req": [
+   "EI/EIH (EU/EEA) dan tashqari davlatlar abituriyentlari bakalavr dasturlariga to‘g‘ridan-to‘g‘ri Heidelberg universitetiga ariza beradi; tan olingan o‘rta ta’lim attestati va nemis tilini juda yaxshi bilish kerak.",
+   "Абитуриенты из стран вне ЕС/ЕЭЗ подают заявку на бакалавриат напрямую в Гейдельбергский университет; нужны признанный аттестат и очень хорошее знание немецкого."
+  ],
+  "ieltsNote": [
+   "Barcha bakalavr dasturlariga qabulda til talabi — nemis tilini juda yaxshi bilish (o‘qitish tili); ingliz tili testi talab qilinmaydi.",
+   "Языковое требование для всех программ бакалавриата — очень хорошее знание немецкого (язык обучения), а не тест по английскому."
+  ]
  },
  "ludwig-maximilians-universitat-munchen": {
   "req": [
@@ -130,8 +137,8 @@
  },
  "seoul-national-university": {
   "req": [
-   "Koreya fuqarosi bo‘lmagan abituriyent iyul oynasida onlayn ariza va tavsiyanomalarni topshiradi; ingliz tili, talablar va o‘qish narxi biriktirilgan qo‘llanma PDF’ida, bu tasdiqlanmagan.",
-   "Иностранный абитуриент подаёт онлайн-заявку и рекомендательные письма в июльском окне; английский, требования и стоимость указаны в приложенном PDF-руководстве, это не проверено."
+   "Koreys tili (TOPIK 3-daraja va undan yuqori) yoki ingliz tili (TOEFL iBT 80, TEPS 551 yoki IELTS 6.0 va undan yuqori) isboti kerak. “International Admissions I” uchun abituriyent va ikkala ota-onasi ariza muddatigacha Koreya fuqaroligidan voz kechgan bo‘lishi shart. 2027-yil kuzi uchun ariza sanalari tekshirilgan sahifalarda hali e’lon qilinmagan.",
+   "Нужен документ о знании корейского (TOPIK уровня 3 и выше) или английского (TOEFL iBT 80, TEPS 551 или IELTS 6.0 и выше). Для «International Admissions I» абитуриент и оба родителя должны отказаться от корейского гражданства до окончания приёма заявок. Даты подачи на осень 2027 на проверенных страницах пока не опубликованы."
   ]
  },
  "yonsei-university": {
@@ -1105,6 +1112,46 @@
   "note": [
    "2027-28 uchun xorijiy talabalar to‘lovi, 1-toifa (auditoriya asosidagi kurslar); boshqa toifalar qimmatroq",
    "Плата для иностранных студентов на 2027-28, категория 1 (аудиторные курсы); другие категории дороже"
+  ]
+ },
+ "sungkyunkwan-university": {
+  "req": [
+   "Xalqaro bakalavr abituriyentlarining ota-onasi Koreya fuqarosi bo‘lmasligi va o‘rta maktabni tugatgan (yoki tugatayotgan) bo‘lishi kerak. Koreys tili (TOPIK) yoki ingliz tili testi isboti talab qilinadi; daraja yo‘nalishga bog‘liq. Qabul davrlari: bahor (ariza oktyabr–noyabr) va kuz (aprel–may).",
+   "Родители иностранного абитуриента бакалавриата не должны быть гражданами Кореи; нужен аттестат (или выпуск в этом году). Требуется подтверждение корейского (TOPIK) или английского; уровень зависит от специальности. Наборы: весна (заявки октябрь–ноябрь) и осень (апрель–май)."
+  ]
+ },
+ "university-of-manchester": {
+  "ieltsNote": [
+   "Kursga bog‘liq: odatda IELTS 6.0–7.0 (foundation kurslarida 5.5); masalan, Computer Science uchun 6.5, Electrical and Electronic Engineering uchun 7.0. Kurs sahifasini tekshiring.",
+   "Зависит от курса: обычно эквивалент IELTS 6.0–7.0 (5.5 для foundation); например, 6.5 для Computer Science и 7.0 для Electrical and Electronic Engineering. Проверьте страницу курса."
+  ]
+ },
+ "rwth-aachen-university": {
+  "ieltsNote": [
+   "Ko‘pchilik bakalavr dasturlariga qabulda nemis tili C1 darajasi kerak. Ingliz tili muhim bo‘lgan ayrim dasturlarda (masalan, informatika) ingliz tili B2 (IELTS 6.0 va undan yuqori) ham talab qilinadi.",
+   "Для большинства бакалаврских программ при зачислении нужен немецкий уровня C1. Для некоторых программ, где важен английский (например, информатика), также нужен английский B2 (IELTS 6.0 и выше)."
+  ],
+  "req": [
+   "Xalqaro abituriyentda tan olingan o‘rta ta’lim attestati bo‘lib, umumiy bahosi Germaniya shkalasida 2.5 ga teng yoki undan yaxshi bo‘lishi kerak; past baho TestAS test natijasi bilan to‘ldirilishi mumkin.",
+   "Иностранному абитуриенту нужен признанный аттестат со средним баллом не хуже немецкого 2,5; более низкие оценки можно компенсировать результатом теста TestAS."
+  ]
+ },
+ "unsw-sydney": {
+  "ieltsNote": [
+   "Dasturga bog‘liq: masalan, Education bakalavriatida umumiy 7.5, Social Work kabi ayrim dasturlarda 7.0; UNSW College to‘g‘ridan-to‘g‘ri qabuli uchun umumiy 6.5 va hech bir bo‘limda 6.0 dan past emas. O‘z dasturingiz sahifasini tekshiring.",
+   "Зависит от программы: например, 7.5 в целом для программ Education и 7.0 для некоторых программ, таких как Social Work; для прямого поступления UNSW College указано 6.5 в целом и не ниже 6.0 по каждому разделу. Проверьте страницу своей программы."
+  ]
+ },
+ "monash-university": {
+  "ieltsNote": [
+   "Kursga bog‘liq: masalan, Bachelor of Science uchun umumiy IELTS 6.5 va hech bir bo‘limda 6.0 dan past emas; Medicine to‘g‘ridan-to‘g‘ri qabuli uchun umumiy 7.0 va hech bir bo‘limda 6.5 dan past emas. O‘z kursingiz sahifasini tekshiring.",
+   "Зависит от курса: например, IELTS 6.5 в целом и не ниже 6.0 по каждому разделу для Bachelor of Science и 7.0 в целом и не ниже 6.5 для прямого поступления на Medicine. Проверьте страницу своего курса."
+  ]
+ },
+ "university-of-bristol": {
+  "ieltsNote": [
+   "Kurs profiliga bog‘liq: umumiy IELTS 6.0 (tinglash yoki gapirishda 6.5, hech biri 6.0 dan past emas) dan, umumiy 6.5 va ikki ko‘nikmada 7.0 (hech biri 6.0 dan past emas) gacha. Kurs sahifasida uning profili ko‘rsatilgan.",
+   "Зависит от профиля курса: от IELTS 6.0 в целом (6.5 по аудированию или говорению, ни один раздел не ниже 6.0) до 6.5 в целом с 7.0 по двум навыкам и не ниже 6.0 по остальным. Профиль указан на странице курса."
   ]
  }
 }

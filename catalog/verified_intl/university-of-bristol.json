@@ -1,0 +1,32 @@
+{
+ "name": "University of Bristol",
+ "country": "England",
+ "city": "Bristol",
+ "official_url": "https://www.bristol.ac.uk",
+ "language": "English",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null,
+  "note": "Depends on the course profile: from IELTS 6.0 overall (with 6.5 in listening or speaking, none below 6.0) to 6.5 overall with 7.0 in two skills and none below 6.0. The course page lists its profile.",
+  "note_url": "https://www.bristol.ac.uk/study/language-requirements/profile-f/"
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "",
+  "url": ""
+ },
+ "bachelor_in_english": true
+}

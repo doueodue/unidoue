@@ -1,0 +1,32 @@
+{
+ "name": "RWTH Aachen University",
+ "country": "Germany",
+ "city": "Aachen",
+ "official_url": "https://www.rwth-aachen.de",
+ "language": "German",
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null,
+  "note": "Most bachelor programmes need German at level C1 when you enrol. Some programmes where English is essential (for example computer science) also require English at B2 (IELTS 6.0 or higher).",
+  "note_url": "https://www.rwth-aachen.de/cms/root/studium/vor-dem-studium/zugangsvoraussetzungen/zugangsvoraussetzung-fuer-den-bachelor-un/~drar/zugangsvoraussetzungen-fuer-internationa/?lidx=1"
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "International applicants need a recognised university entrance qualification with an overall grade equivalent to German 2.5 or better; weaker grades can be compensated with a TestAS aptitude test result.",
+  "url": "https://www.rwth-aachen.de/cms/root/studium/vor-dem-studium/zugangsvoraussetzungen/zugangsvoraussetzung-fuer-den-bachelor-un/~drar/zugangsvoraussetzungen-fuer-internationa/?lidx=1"
+ },
+ "bachelor_in_english": false
+}

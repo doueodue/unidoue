@@ -1,0 +1,30 @@
+{
+ "name": "Sungkyunkwan University (SKKU)",
+ "country": "South Korea",
+ "city": "Seoul",
+ "official_url": "https://admission-global.skku.edu/eng/index.html",
+ "language": null,
+ "ielts": {
+  "min_overall": null,
+  "url": "",
+  "year": null
+ },
+ "deadline": {
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
+ },
+ "tuition": {
+  "amount": null,
+  "currency": "",
+  "note": "",
+  "url": "",
+  "year": null
+ },
+ "requirement": {
+  "text": "International undergraduate applicants must have non-Korean parents and a high school diploma (or be about to graduate). Korean (TOPIK) or English test proof is required; the level depends on the major. Intakes: Spring (applications October–November) and Fall (April–May).",
+  "url": "https://sscience.skku.edu/eng_sscience/admnissions/undergraduate.do"
+ },
+ "bachelor_in_english": null
+}

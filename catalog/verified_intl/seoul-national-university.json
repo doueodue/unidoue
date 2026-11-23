@@ -2,18 +2,18 @@
  "name": "Seoul National University",
  "country": "South Korea",
  "city": "Seoul",
- "official_url": "https://en.snu.ac.kr/admission",
- "language": "Korean",
+ "official_url": "https://en.snu.ac.kr",
+ "language": null,
  "ielts": {
-  "min_overall": null,
-  "url": "",
-  "year": null
+  "min_overall": 6.0,
+  "url": "https://en.snu.ac.kr/admission/overview/faq/admission",
+  "year": 2026
  },
  "deadline": {
-  "date": "2026-07-09",
-  "intake": "Spring 2027",
-  "url": "https://en.snu.ac.kr/admission/overview/notice?md=v&bbsidx=170606",
-  "year": 2026
+  "date": null,
+  "intake": "",
+  "url": "",
+  "year": null
  },
  "tuition": {
   "amount": null,
@@ -23,8 +23,8 @@
   "year": null
  },
  "requirement": {
-  "text": "Non-Korean applicant submits online application plus recommendation letters in the July window; English proficiency, eligibility and tuition details are in the attached guide PDF, not verified.",
-  "url": "https://en.snu.ac.kr/admission/overview/notice?md=v&bbsidx=170606"
+  "text": "Proof of Korean (TOPIK level 3 or higher) or English proficiency (TOEFL iBT 80, TEPS 551 or IELTS 6.0 or higher) is required. For International Admissions I, the applicant and both parents must renounce Korean nationality before the application deadline. The Fall 2027 application dates were not yet published on the pages checked.",
+  "url": "https://en.snu.ac.kr/admission/overview/faq/admission"
  },
  "bachelor_in_english": null
 }
