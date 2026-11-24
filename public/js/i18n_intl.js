@@ -53,6 +53,7 @@ const P = [
   ["Profil kiritilmagan", "Профиль не заполнен", "No profile yet"],
   ["Mezonlar", "Критерии", "Criteria"],
   ["Moslik darajasini ko‘rish uchun IELTS, GPA yoki SAT natijangizni kiriting.", "Чтобы увидеть уровень соответствия, введите результат IELTS, GPA или SAT.", "Enter your IELTS, GPA or SAT result to see your fit level."],
+  ["Ro‘yxatdan universitetlarni belgilang: tanlanganlar shu yerda ko‘rinadi.", "Отметьте университеты в списке: выбранные появятся здесь.", "Tick universities in the list: your picks will appear here."],
   /* Dunyo reytingi (QS 2027) va hamma davlat uchun bir xil Safety / Target / Reach */
   ["QS 2027 umumiy jadvalida topilmadi", "Не найден в общем рейтинге QS 2027", "Not found in the QS 2027 overall table"],
   ["QS World University Rankings 2027 bo‘yicha dunyo reytingi", "Мировой рейтинг QS World University Rankings 2027", "World ranking, QS World University Rankings 2027"],

@@ -128,6 +128,7 @@ export async function mentor(el) {
     </section>
     <aside class="card mc-side s4"><h3>${tr('Chuqur vositalar')}</h3><p class="sub">${tr('Tanlangan universitetlar bo‘yicha batafsil hujjat.')}</p>
       <div class="mc-find"><input type="text" id="m-q" placeholder="${tr('Universitet qidirish…')}" aria-label="${tr('Universitet qidirish…')}" autocomplete="off"><span class="mc-cnt" id="m-k"></span></div>
+      <div class="mc-pick" id="m-p" aria-live="polite"></div>
       <div class="mc-unis" id="m-u" role="group" aria-label="${tr('Universitetlar')}">${cat.map(c => `<label class="mc-u" data-s="${esc((c.n + ' ' + (c.country || '')).toLowerCase())}"><input type="checkbox" value="${esc(c.n)}" ${apps.slice(0, MAX_UNI).some(a => a.n === c.n) ? 'checked' : ''}><span>${esc(c.n)}</span><small>${esc(c.country || '')}</small></label>`).join('')}<p class="mc-none" hidden>${tr('Hech narsa topilmadi')}</p></div>
       <div class="mc-tools">${tool2.map(([id, need, ic, ttl, dsc, cost]) => `<button type="button" class="mc-tool" id="m-${id}" data-need="${need}"><span class="mc-ti">${svg(ic)}</span><span class="mc-tx"><b>${tr(ttl)}${hasFeature(need) ? '' : ' <span class="lk">Pro</span>'}</b><small>${tr(dsc)}</small></span><em>${cost}</em></button>`).join('')}</div><div class="msg" id="m-m"></div></aside>
   </div>
@@ -178,9 +179,22 @@ export async function mentor(el) {
   render(); sync();
 
   /* ---- Chuqur vositalar: universitetlarni tanlash (eng koʻpi bilan 8 ta) ---- */
-  const boxes = $$('#m-u input', el), k = $('#m-k', el), picked = () => boxes.filter(b => b.checked).map(b => b.value);
-  const count = () => { const n = picked().length; k.textContent = `${n} / ${MAX_UNI}`; k.classList.toggle('full', n >= MAX_UNI); boxes.forEach(b => (b.disabled = !b.checked && n >= MAX_UNI)); }; count();
-  boxes.forEach(b => (b.onchange = count));
+  const boxes = $$('#m-u input', el), k = $('#m-k', el);
+  /* Tanlanganlar savati: ro‘yxatda qayerda bo‘lishidan qat’i nazar hammasi bir joyda ko‘rinadi (× bilan olib tashlanadi) */
+  const tray = $('#m-p', el), list = $('#m-u', el), ctryOf = n => (cat.find(c => c.n === n) || {}).country || '';
+  const paintTray = () => {
+    const sel = picked();
+    tray.innerHTML = sel.length ? sel.map((n, i) => `<span class="mc-chip" style="--i:${i}"><b>${i + 1}</b><span title="${esc(n)}">${esc(n)}</span>${ctryOf(n) ? `<small>${esc(tr(ctryOf(n)))}</small>` : ''}<button type="button" data-rm="${esc(n)}" aria-label="${esc(tr('Olib tashlash'))}: ${esc(n)}">×</button></span>`).join('')
+      : `<p class="mc-pe">${tr('Ro‘yxatdan universitetlarni belgilang: tanlanganlar shu yerda ko‘rinadi.')}</p>`;
+  };
+  /** Belgilanganlar ro‘yxat tepasiga chiqadi (tanlash tartibida), qolganlari asl tartibda */
+  const order = cat.map(c => c.n), pin = () => { const sel = picked(), ls = $$('#m-u .mc-u', el), none = $('#m-u .mc-none', el); ls.sort((a, b) => { const x = sel.indexOf(a.querySelector('input').value), y = sel.indexOf(b.querySelector('input').value); return (x < 0 ? 1e4 + order.indexOf(a.querySelector('input').value) : x) - (y < 0 ? 1e4 + order.indexOf(b.querySelector('input').value) : y); }).forEach(l => list.insertBefore(l, none)); list.scrollTop = 0; };
+  let seqSel = boxes.filter(b => b.checked).map(b => b.value);
+  const picked = () => seqSel.filter(n => boxes.some(b => b.value === n && b.checked));
+  const count = () => { const n = picked().length; k.textContent = `${n} / ${MAX_UNI}`; k.classList.toggle('full', n >= MAX_UNI); boxes.forEach(b => (b.disabled = !b.checked && n >= MAX_UNI)); paintTray(); }; count(); pin();
+  boxes.forEach(b => (b.onchange = () => { seqSel = seqSel.filter(n => n !== b.value); if (b.checked) seqSel.push(b.value); count(); }));
+  tray.onclick = e => { const x = e.target.closest('[data-rm]'); if (!x) return; const b = boxes.find(q => q.value === x.dataset.rm); if (b) { b.checked = false; b.onchange(); pin(); } };
+  list.addEventListener('focusout', e => { if (!list.contains(e.relatedTarget)) pin(); });
   $('#m-q', el).oninput = e => { const q = e.target.value.trim().toLowerCase(); let n = 0; $$('#m-u .mc-u', el).forEach(l => { const on = !q || l.dataset.s.includes(q); l.hidden = !on; if (on) n++; }); $('#m-u .mc-none', el).hidden = n > 0; };
   const tool = async (name, need) => {
     const m = $('#m-m', el), sel = picked().slice(0, MAX_UNI), o = $('#m-o', el); m.className = 'msg err'; m.textContent = '';
