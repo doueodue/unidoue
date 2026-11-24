@@ -205,7 +205,7 @@ const adh = readFileSync(new URL('../public/admin.html', import.meta.url), 'utf8
 ok(v1.includes('function promoBox(') && v1.includes('function promoBind(') && v1.includes("'/api/promo/redeem'") && (v1.match(/\$\{promoBox\(\)\}/g) || []).length === 2 && (v1.match(/promoBind\(el\)/g) || []).length === 3 && v1.includes('id="promo-i"'), 'tariflar: promo kod qatori ikkala ko‘rinishda ham bor va ulangan');
 ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=62'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
 ok(adh.includes('data-v="promos"') && adh.includes('id="v-promos"') && ['mk', 'mp', 'md', 'mx', 'mu', 'mn', 'mb', 'ml'].every(i => adh.includes(`id="${i}"`)) && /promos: 'Promo kodlar'/.test(adj) && ['/api/admin/promos', '/api/admin/promo', '/api/admin/promo/set', '/api/admin/promo/delete'].every(u => adj.includes(`'${u}'`)) && (adc.match(/{/g) || []).length === (adc.match(/}/g) || []).length && adc.includes('.pm-form{'), 'admin: Promo kodlar bo‘limi (forma, ro‘yxat, to‘xtatish, limit, o‘chirish)');
-ok(swj.includes("'unidoue-v77'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
+ok(swj.includes("'unidoue-v78'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
 const cssFiles = ['app.css', 'atlas.css', 'coach.css', 'portfolio.css', 'tiers.css', 'landing.css', 'admin.css', 'controls.css'].map(f => [f, readFileSync(new URL('../public/' + f, import.meta.url), 'utf8')]);
 const sbBad = cssFiles.filter(([f, c]) => /scrollbar-(width|color)/.test(f === 'app.css' ? c.replace(/@supports not selector\(::-webkit-scrollbar\)\{[^}]*\}[^}]*\}/, '') : c)).map(x => x[0]);
 ok(sbBad.length === 0 && acss.includes('*::-webkit-scrollbar-thumb{') && acss.includes('@supports not selector(::-webkit-scrollbar)'), 'scrollbar: yagona uslub (app.css); boshqa joyda scrollbar-width/color yo‘q — Chrome ::-webkit-scrollbar uslubini o‘chirib qo‘yadi' + (sbBad.length ? ': ' + sbBad : ''));
@@ -301,5 +301,16 @@ ok(/from '\.\/tiers\.js'/.test(lpj) && /crownHTML/.test(lpj) && /liveGlass/.test
   { const ni = readFileSync(new URL('../public/js/navicons.js', import.meta.url), 'utf8'); const ids = [...mj2.matchAll(/\{ id: '(\w+)'[^}]*?i: '(\w+)'(?![^}]*hide: 1)/g)].map(m => m[1]); const shown = ids.filter(id => new RegExp('\\b' + id + ': \\[').test(ni)); const paths = [...ni.matchAll(/^  \w+: \[('[^']+'), ('[^']+')\]/gm)].map(m => m[1]);
     ok(/navIcon\(r\.id, \(\) => svg\(r\.i\)\)/.test(mj2) && /from '\.\/navicons\.js'/.test(mj2) && ids.length >= 12 && shown.length === ids.length && new Set(paths).size === paths.length && paths.length >= 12 && /\.nav a svg \.ni-a\{fill:/.test(acs) && /\[aria-current=page\] svg \.ni-a/.test(acs), 'yon menyu: har bir bo‘limning oʻz ikki qatlamli belgisi bor, belgilar takrorlanmaydi (' + paths.length + ' ta)'); }
   ok(/id="v-feedback"/.test(adh) && /data-v="feedback"/.test(adh) && /renderFeedback/.test(adj) && /\/api\/admin\/feedback/.test(adj), 'admin: Fikrlar sahifasi');
+}
+// Eski brauzerlar (color-mix yo‘q): compat.js hamma sahifada uslublardan keyin ulanadi va CSS ni CSSOM orqali tuzatadi
+{ const cj = readFileSync(new URL('../public/js/compat.js', import.meta.url), 'utf8');
+  for (const f of ['app', 'admin', 'landing', 'unsub', 'reset']) { const h = readFileSync(new URL(`../public/${f}.html`, import.meta.url), 'utf8'), i = h.indexOf('<script src="/js/compat.js"></script>'), last = h.lastIndexOf('rel="stylesheet"');
+    ok(i > last && last > 0, `compat: ${f}.html uslublardan keyin compat.js ni ulaydi`); }
+  ok(/CSS\.supports\('color', FN \+ 'in srgb, red 50%, blue\)'\)/.test(cj) && /r\.style\.cssText = fix\(/.test(cj) && /MutationObserver/.test(cj) && !/innerHTML|<style/.test(cj), 'compat: faqat color-mix yo‘q brauzerda, CSSOM orqali, keyin qo‘shilgan uslublar ham');
+  const vm = await import('node:vm'), box = { window: {}, document: null }; // fix() ni sinash: brauzersiz, funksiya matnidan
+  const src = cj.slice(cj.indexOf('function args'), cj.indexOf('function walk')) + '; this.fix = fix;';
+  vm.runInNewContext('var FN = "color-mix(";' + src, box);
+  ok(box.fix('a{background:color-mix(in srgb,var(--brand) 78%,#fff);color:color-mix(in srgb, var(--ink) 13%, transparent)}') === 'a{background:var(--brand);color:transparent}', 'compat: ulushi katta rang tanlanadi');
+  ok(box.fix('x:radial-gradient(380px at 0 0,color-mix(in srgb,color-mix(in srgb,var(--a) 20%,#000) 40%,var(--b)),transparent 72%)') === 'x:radial-gradient(380px at 0 0,var(--b),transparent 72%)', 'compat: ichma-ich color-mix va gradient ichida');
 }
 console.log(`pf: ${n} checks, ${process.exitCode ? 'FAILED' : 'ok'}`);
