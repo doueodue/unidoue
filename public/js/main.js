@@ -6,6 +6,7 @@ import * as pn from './push.js';
 import { bellHTML, bindBell } from './notes.js';
 import { seePlan } from './celebrate.js';
 import { fbHTML, bindFeedback } from './feedback.js';
+import { navIcon } from './navicons.js';
 import { setTipTranslator } from './ui.js';
 import { paintAvatar } from './avatar.js';
 import { tierPill, liveGlass } from './tiers.js';
@@ -118,7 +119,7 @@ document.addEventListener('unidoue:unverified', () => { if (S.user) verifyScreen
 /* ---------- ilova qobig‘i ---------- */
 function shell() {
   let sec = '';
-  const nav = ROUTES.filter(r => !r.hide).map(r => { const h = r.sec && r.sec !== sec ? `<div class="nav-sec">${t(sec = r.sec)}</div>` : ''; return `${h}<a href="#/${r.id}" data-r="${r.id}">${svg(r.i)}<span>${t(r.t)}</span>${r.need ? `<span class="tag${hasFeature(r.need) ? '' : ' lk'}" data-need="${r.need}">${hasFeature(r.need) ? r.tag || '' : NEED_PLAN[r.need]}</span>` : r.tag ? `<span class="tag">${r.tag}</span>` : ''}</a>`; }).join('');
+  const nav = ROUTES.filter(r => !r.hide).map(r => { const h = r.sec && r.sec !== sec ? `<div class="nav-sec">${t(sec = r.sec)}</div>` : ''; return `${h}<a href="#/${r.id}" data-r="${r.id}">${navIcon(r.id, () => svg(r.i))}<span>${t(r.t)}</span>${r.need ? `<span class="tag${hasFeature(r.need) ? '' : ' lk'}" data-need="${r.need}">${hasFeature(r.need) ? r.tag || '' : NEED_PLAN[r.need]}</span>` : r.tag ? `<span class="tag">${r.tag}</span>` : ''}</a>`; }).join('');
   root.innerHTML = `<div class="shell"><aside class="side" id="side"><a class="brand" href="#/dashboard"><i>${STAR}</i><span>UniDoue</span></a><nav class="nav" aria-label="${t('Asosiy menyu')}">${nav}</nav>
   <div class="nav-links">
   <a class="nav-tg" href="https://t.me/unidoue" target="_blank" rel="noopener noreferrer" title="${t('Telegram kanal')}" aria-label="${t('Telegram kanal')}">${svg('tg')}<span>Telegram</span></a>
