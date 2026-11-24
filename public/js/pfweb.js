@@ -10,6 +10,18 @@
   var fine = window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches;
   h.classList.add('js');
 
+  /* ---- eski brauzerlar: color-mix() yo‘q bo‘lsa fonlar shaffof qolmasin (ulushi katta rangga almashtiriladi; /js/compat.js bilan bir xil) ---- */
+  (function () {
+    var FN = 'color-mix(';
+    try { if (!window.CSS || !CSS.supports || CSS.supports('color', FN + 'in srgb, red 50%, blue)')) return; } catch (e) { return; }
+    var args = function (s) { var out = [], dp = 0, cur = ''; for (var i = 0; i < s.length; i++) { var ch = s[i]; if (ch === '(') dp++; else if (ch === ')') dp--; if (ch === ',' && dp === 0) { out.push(cur.trim()); cur = ''; } else cur += ch; } out.push(cur.trim()); return out; };
+    var part = function (x) { var m = /\s(-?[\d.]+)%\s*$/.exec(x); return m ? [x.slice(0, m.index).trim(), +m[1]] : [x.trim(), null]; };
+    var pick = function (inner) { var a = args(inner); if (a.length < 3) return a[a.length - 1] || 'transparent'; var A = part(a[1]), B = part(a[2]), w = A[1] != null ? A[1] : B[1] != null ? 100 - B[1] : 50; return w >= 50 ? A[0] : B[0]; };
+    var fix = function (css) { for (var g = 0; css.indexOf(FN) >= 0 && g < 2000; g++) { var i = css.lastIndexOf(FN), j = i + FN.length, dp = 1; for (; j < css.length; j++) { if (css[j] === '(') dp++; else if (css[j] === ')' && --dp === 0) break; } if (j >= css.length) break; css = css.slice(0, i) + pick(css.slice(i + FN.length, j)) + css.slice(j + 1); } return css; };
+    var walk = function (rules) { for (var k = 0; k < rules.length; k++) { var r = rules[k]; try { if (r.style && r.style.cssText.indexOf(FN) >= 0) r.style.cssText = fix(r.style.cssText); if (r.cssRules) walk(r.cssRules); } catch (e) {} } };
+    for (var i = 0; i < d.styleSheets.length; i++) { try { walk(d.styleSheets[i].cssRules); } catch (e) {} }
+  })();
+
   /* ---- rang rejimi ---- */
   var th = $('.th')[0];
   if (th) {
