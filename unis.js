@@ -58,10 +58,11 @@ function clean(b, usIds) {
   return { uni: o };
 }
 
-/** Asosiy roʻyxat + admin yozuvlari: bir xil id almashtiriladi, yangilari qoʻshiladi. Har yozuvga src: base | custom | override. */
+/** Asosiy roʻyxat + admin yozuvlari: bir xil id almashtiriladi, yangilari qoʻshiladi. Har yozuvga src: base | custom | override.
+ *  Almashtirilganda QS o‘rni (qs, qsAs) asosiy ro‘yxatdan saqlanadi: admin shaklida bu maydon yo‘q. */
 function merge(base, extra) {
   extra = extra || {}; const seen = new Set(), out = [];
-  for (const u of base) { const e = extra[u.id]; seen.add(u.id); out.push(e ? { ...e, src: 'override' } : { ...u, src: 'base' }); }
+  for (const u of base) { const e = extra[u.id]; seen.add(u.id); out.push(e ? { ...e, ...(u.qs ? { qs: u.qs } : {}), ...(u.qsAs ? { qsAs: u.qsAs } : {}), src: 'override' } : { ...u, src: 'base' }); }
   for (const id of Object.keys(extra)) if (!seen.has(id)) out.push({ ...extra[id], src: 'custom' });
   return out.sort((a, b) => String(a.country).localeCompare(String(b.country), 'uz') || String(a.n).localeCompare(String(b.n)));
 }

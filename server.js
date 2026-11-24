@@ -198,9 +198,9 @@ const F_PLUS = [...F_FREE, 'mentor_adv', 'coach']; // coach: esse murabbiyi (Plu
 const F_PRO = [...F_PLUS, 'strategy', 'essay_adv', 'reports', 'priority', 'pf_studio']; // pf_studio: portfolio AI dizayneri (Pro). Portfolio quruvchining oʻzi hamma tarifga ochiq; dizayn cheklovlari mijozda (pfdesign.js)
 const PLAN_ORDER = { free: 0, plus: 1, pro: 2 };
 const PLANS = {
-  free: { id: 'free', name: 'Free', price: 0, ai: 50, apps: 1000, finder: 101, compare: 3, features: F_FREE },
-  plus: { id: 'plus', name: 'Plus', price: 2.99, ai: 175, apps: 1000, finder: 101, compare: 4, features: F_PLUS },
-  pro:  { id: 'pro',  name: 'Pro',  price: 4.99, ai: 300, apps: 1000, finder: 101, compare: 4, features: F_PRO }
+  free: { id: 'free', name: 'Free', price: 0, ai: 50, apps: 1000, finder: 1000, compare: 3, features: F_FREE },
+  plus: { id: 'plus', name: 'Plus', price: 2.99, ai: 175, apps: 1000, finder: 1000, compare: 4, features: F_PLUS },
+  pro:  { id: 'pro',  name: 'Pro',  price: 4.99, ai: 300, apps: 1000, finder: 1000, compare: 4, features: F_PRO }
 };
 const AI_COST = { mentor: 1, essay: 2, essay_deep: 4, strategy: 6, report: 6, coach_step: 1, coach_plan: 2, pf_polish: 2, pf_extract: 2, pf_review: 3, pf_design: 2 };
 const month = () => new Date().toISOString().slice(0, 7);
@@ -1071,23 +1071,36 @@ async function api(req, res, pathname) {
     if (limited('calc:' + u.id, 60, 60 * 1000)) return fail(res, 429, 'Juda tez soʻrayapsiz.');
     const b = await readJson(req), p = Scoring.normProfile(b.profile);
     if (!Scoring.hasInput(p)) return fail(res, 400, 'Kamida GPA, SAT yoki IELTS ni kiriting.');
-    const pl = effPlan(u), adv = can(u, 'finder_adv'), q = clean(b.q, 60).toLowerCase(), want = ['safety', 'target', 'reach'].includes(b.tier) ? b.tier : '';
-    let rows = catalog().map(c => { const v = Scoring.score(c, p), t = Scoring.tier(c, v); return { c, v, t }; });
+    const pl = effPlan(u), adv = can(u, 'finder_adv'), q = clean(b.q, 60).toLowerCase(), want = ['safety', 'target', 'reach'].includes(b.tier) ? b.tier : '', today = tashkentISO();
+    const qc = (Array.isArray(b.qc) ? b.qc : []).slice(0, 30).map(x => clean(x, 40)), ctr = clean(b.country, 40);
+    /* Hamma universitet (AQSh va boshqa davlatlar) bir xil hisob modeli bilan baholanadi: Scoring.fit */
+    let rows = catalog().map(c => ({ c, kind: 'us' })).concat(intlCatalog().map(c => ({ c, kind: 'intl' }))).map(r => ({ ...r, f: Scoring.fit({ ...r.c, kind: r.kind }, p, today) }));
+    rows = rows.filter(r => {
+      const c = r.c, intl = r.kind === 'intl';
+      if (ctr && (ctr === 'us' ? intl : c.country !== ctr)) return false;
+      if (q && ![c.n, c.city, c.country].join(' ').toLowerCase().includes(q) && !(intl && qc.includes(c.country))) return false;
+      if (b.verifiedOnly && !(intl ? (c.ieltsUrl || c.rdUrl || c.reqUrl) : c.satV)) return false;
+      if (b.op && !(c.rd && c.rd >= today)) return false;
+      if (b.ie && !(p.ielts != null && c.ielts != null && p.ielts >= c.ielts)) return false;
+      if (b.en && intl && Scoring.langKind(c.lang) !== 'yes') return false;
+      return true;
+    });
     const counts = { safety: 0, target: 0, reach: 0 };
-    rows.forEach(r => counts[r.t.tier]++);
-    rows = rows.filter(r => (!q || r.c.n.toLowerCase().includes(q)) && (!want || r.t.tier === want) && (!b.verifiedOnly || r.c.satV)).sort((a, z) => z.v - a.v);
+    rows.forEach(r => counts[r.f.tier]++);
+    const rk = r => { const n = Scoring.rankNum(r.c.qs); return n == null ? 1e4 : n; }; // teng ballda: dunyo reytingi yuqorirog‘i oldin, reytingi yo‘q oxirida
+    rows = rows.filter(r => !want || r.f.tier === want).sort((a, z) => z.f.score - a.f.score || rk(a) - rk(z));
     // Free tarifda ham muvozanatli roʻyxat: har bir darajadan navbat bilan olinadi, koʻrsatish tartibi Target, Reach, Safety
     const ORD = { target: 0, reach: 1, safety: 2 }, total = rows.length;
     let pick = rows;
     if (rows.length > pl.finder) {
-      const by = { safety: [], target: [], reach: [] }; rows.forEach(r => by[r.t.tier].push(r)); pick = [];
+      const by = { safety: [], target: [], reach: [] }; rows.forEach(r => by[r.f.tier].push(r)); pick = [];
       while (pick.length < pl.finder && (by.target.length || by.reach.length || by.safety.length))
         for (const k of ['target', 'reach', 'safety']) if (by[k].length && pick.length < pl.finder) pick.push(by[k].shift());
     }
-    pick = pick.slice().sort((a, z) => ORD[a.t.tier] - ORD[z.t.tier] || z.v - a.v);
+    pick = pick.slice().sort((a, z) => ORD[a.f.tier] - ORD[z.f.tier] || z.f.score - a.f.score || rk(a) - rk(z));
     const items = pick.map(r => {
-      const o = { id: r.c.id, n: r.c.n, country: r.c.country, score: r.v, tier: r.t.tier, verified: !!r.c.satV, deadline: r.c.rd, deadlineVerified: !!r.c.rdV };
-      if (adv) { o.level = Scoring.level(r.v); o.why = Scoring.parts(r.c, p).map(x => ({ k: x.k, t: x.t, tone: x.tone, v: Math.round(x.v) })); o.basis = r.t.basis; o.confident = r.t.confident; }
+      const c = r.c, o = { id: c.id, kind: r.kind, n: c.n, country: c.country, score: r.f.score, tier: r.f.tier, est: r.f.est, verified: r.kind === 'us' ? !!c.satV : false, deadline: c.rd, deadlineVerified: r.kind === 'us' ? !!c.rdV : !!c.rdUrl };
+      if (adv) { o.level = r.f.level; o.why = r.f.parts.map(x => ({ k: x.k, t: x.t, tone: x.tone, v: Math.round(x.v) })); o.basis = r.f.basis; o.confident = r.f.confident; }
       return o;
     });
     return send(res, 200, { items, total, shown: items.length, limit: pl.finder, advanced: adv, counts });
@@ -1100,13 +1113,17 @@ async function api(req, res, pathname) {
     const b = await readJson(req), p = Scoring.normProfile(b.profile), hit = uniAny('id', clean(b.id, 80)), c = hit && hit.c;
     if (!c) return fail(res, 404, 'Universitet topilmadi.');
     if (!Scoring.hasInput(p)) return fail(res, 400, 'Kamida GPA, SAT yoki IELTS ni kiriting.');
-    if (hit.kind === 'intl') { // boshqa davlatlar: qabul ehtimoli emas, faqat rasmiy talablarga moslik
-      const f = Scoring.intlFit(c, p, tashkentISO()), full = can(u, 'predictor');
-      return send(res, 200, { kind: 'intl', id: c.id, n: c.n, country: c.country, status: f.status, label: f.label, full, parts: full ? f.parts : f.parts.filter(x => x.k === 'IELTS'), advice: full ? f.advice : [], disclaimer: 'Bu faqat rasmiy talablar (IELTS, o‘qish tili, muddat) bilan solishtirish. Qabul ehtimoli emas: bu universitetlarning qabul statistikasi ochiq emas.' });
+    /* AQSh va boshqa davlatlar: bir xil ball, daraja va Safety / Target / Reach. Boshqa davlatlarda SAT/GPA rasmiy ochiq emas, shuning uchun QS reytingidan taxminiy olinadi (est). */
+    const f = Scoring.fit({ ...c, kind: hit.kind }, p, tashkentISO()), full = can(u, 'predictor'), intl = hit.kind === 'intl';
+    const out = { kind: hit.kind, id: c.id, n: c.n, country: c.country, score: f.score, verdict: f.verdict, est: f.est, full,
+      disclaimer: f.est ? 'Bu universitet uchun SAT va GPA ko‘rsatkichlari rasmiy ochiq emas: ular QS reytingi asosida taxminiy baholandi. Bu qabul kafolati emas; talab va muddatni rasmiy saytda tekshiring.' : 'Bu taxminiy baho, qabul kafolati emas. Haqiqiy qaror esse, tavsiyanoma, faoliyat va arizachilar raqobatiga ham bogʻliq.' };
+    if (f.est) out.qs = c.qs || null;
+    if (full) {
+      out.level = f.level; out.tier = { tier: f.tier, basis: f.basis, confident: f.confident };
+      out.parts = f.parts.map(x => ({ k: x.k, v: Math.round(x.v), w: Math.round(x.w * 100), t: x.t, tone: x.tone })); out.advice = f.advice;
+      out.verified = intl ? { sat: false, acceptance: false, deadline: !!c.rdUrl } : { sat: !!c.satV, acceptance: !!c.accV, deadline: !!c.rdV };
     }
-    const v = Scoring.score(c, p), full = can(u, 'predictor');
-    const out = { id: c.id, n: c.n, score: v, verdict: Scoring.verdict(v), full, disclaimer: 'Bu taxminiy baho, qabul kafolati emas. Haqiqiy qaror esse, tavsiyanoma, faoliyat va arizachilar raqobatiga ham bogʻliq.' };
-    if (full) { out.level = Scoring.level(v); out.tier = Scoring.tier(c, v); out.parts = Scoring.parts(c, p).map(x => ({ k: x.k, v: Math.round(x.v), w: Math.round(x.w * 100), t: x.t, tone: x.tone })); out.advice = Scoring.advice(c, p); out.verified = { sat: !!c.satV, acceptance: !!c.accV, deadline: !!c.rdV }; }
+    if (f.req) out.req = { status: f.req.status, label: f.req.label, parts: full ? f.req.parts : f.req.parts.filter(x => x.k === 'IELTS'), advice: full ? f.req.advice : [] };
     return send(res, 200, out);
   }
 

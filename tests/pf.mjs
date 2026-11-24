@@ -203,7 +203,7 @@ ok(mj.includes("get('m') === 'register'") && readFileSync(new URL('../public/man
 /* ---- Promo kodlar: Tariflar qatori, admin bo‘limi; scrollbarlar va gorizontal siljish ---- */
 const adh = readFileSync(new URL('../public/admin.html', import.meta.url), 'utf8'), adj = readFileSync(new URL('../public/js/admin.js', import.meta.url), 'utf8'), adc = readFileSync(new URL('../public/admin.css', import.meta.url), 'utf8'), swj = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
 ok(v1.includes('function promoBox(') && v1.includes('function promoBind(') && v1.includes("'/api/promo/redeem'") && (v1.match(/\$\{promoBox\(\)\}/g) || []).length === 2 && (v1.match(/promoBind\(el\)/g) || []).length === 3 && v1.includes('id="promo-i"'), 'tariflar: promo kod qatori ikkala ko‘rinishda ham bor va ulangan');
-ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=62'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
+ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=63'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
 ok(adh.includes('data-v="promos"') && adh.includes('id="v-promos"') && ['mk', 'mp', 'md', 'mx', 'mu', 'mn', 'mb', 'ml'].every(i => adh.includes(`id="${i}"`)) && /promos: 'Promo kodlar'/.test(adj) && ['/api/admin/promos', '/api/admin/promo', '/api/admin/promo/set', '/api/admin/promo/delete'].every(u => adj.includes(`'${u}'`)) && (adc.match(/{/g) || []).length === (adc.match(/}/g) || []).length && adc.includes('.pm-form{'), 'admin: Promo kodlar bo‘limi (forma, ro‘yxat, to‘xtatish, limit, o‘chirish)');
 ok(swj.includes("'unidoue-v78'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
 const cssFiles = ['app.css', 'atlas.css', 'coach.css', 'portfolio.css', 'tiers.css', 'landing.css', 'admin.css', 'controls.css'].map(f => [f, readFileSync(new URL('../public/' + f, import.meta.url), 'utf8')]);
@@ -234,7 +234,7 @@ ok(['.pp-avb{', '.av-crop{', '.av-ring{', '.sf-av img,.pp-av img{'].every(k => a
   ok(/export async function intlTools\b/.test(v4) && !/intlPanel|intlCount/.test(v4 + v2), 'views4 exports intlTools; old intlPanel/intlCount removed');
   ok(!/export (async )?function intl\b/.test(v4), 'old intl route export removed');
   ok(/import \{[^}]*intlTools[^}]*\} from '\.\/views4\.js'/.test(v2), 'finder imports intlTools');
-  ok(!/data-sc=|f-sc/.test(v2) && /id="f-c"/.test(v2) && /intl\.card\(r\.u\)/.test(v2) && /addApp\(cat\.find\(c => c\.id === b\.dataset\.add\) \|\| intlList\.find/.test(v2), 'finder: AQSh/Boshqa davlatlar tabi yo‘q, hamma universitet bitta ro‘yxatda, davlat filtri va addApp ulangan');
+  ok(!/data-sc=|f-sc/.test(v2) && /id="f-c"/.test(v2) && /intl\.card\(r\.u, r\.r\)/.test(v2) && /addApp\(cat\.find\(c => c\.id === b\.dataset\.add\) \|\| intlList\.find/.test(v2), 'finder: AQSh/Boshqa davlatlar tabi yo‘q, hamma universitet bitta ro‘yxatda, davlat filtri va addApp ulangan');
   ok(!/id: 'intl'/.test(mn), 'intl is no longer a nav route');
   ok(/\^#\\\/\?intl/.test(mn) && /location\.replace\('#\/finder'\)/.test(mn), 'old #/intl link redirects to finder');
   ok(!/filtrlar rasmiy ma’lumot yig‘ilgach/.test(v2), 'outdated “filters will be added” note removed');
@@ -301,6 +301,23 @@ ok(/from '\.\/tiers\.js'/.test(lpj) && /crownHTML/.test(lpj) && /liveGlass/.test
   { const ni = readFileSync(new URL('../public/js/navicons.js', import.meta.url), 'utf8'); const ids = [...mj2.matchAll(/\{ id: '(\w+)'[^}]*?i: '(\w+)'(?![^}]*hide: 1)/g)].map(m => m[1]); const shown = ids.filter(id => new RegExp('\\b' + id + ': \\[').test(ni)); const paths = [...ni.matchAll(/^  \w+: \[('[^']+'), ('[^']+')\]/gm)].map(m => m[1]);
     ok(/navIcon\(r\.id, \(\) => svg\(r\.i\)\)/.test(mj2) && /from '\.\/navicons\.js'/.test(mj2) && ids.length >= 12 && shown.length === ids.length && new Set(paths).size === paths.length && paths.length >= 12 && /\.nav a svg \.ni-a\{fill:/.test(acs) && /\[aria-current=page\] svg \.ni-a/.test(acs), 'yon menyu: har bir bo‘limning oʻz ikki qatlamli belgisi bor, belgilar takrorlanmaydi (' + paths.length + ' ta)'); }
   ok(/id="v-feedback"/.test(adh) && /data-v="feedback"/.test(adh) && /renderFeedback/.test(adj) && /\/api\/admin\/feedback/.test(adj), 'admin: Fikrlar sahifasi');
+}
+// Dunyo reytingi (QS 2027) va hamma davlat uchun bir xil Safety / Target / Reach
+{ const rq = (await import('node:module')).createRequire(import.meta.url), S3 = rq('../public/js/scoring.js'), UN = rq('../unis.js');
+  const us = JSON.parse(readFileSync('public/data/universities.json', 'utf8')), it = JSON.parse(readFileSync('public/data/intl.json', 'utf8')), all = us.concat(it), by = n => all.find(u => u.n === n);
+  ok(all.filter(u => u.qs).length >= 170 && all.every(u => u.qs == null || /^=?\d+(-\d+)?$/.test(u.qs)), 'reyting: QS o‘rni ko‘p universitetda, format to‘g‘ri');
+  ok(by('MIT').qs === '1' && by('University of Oxford').qs === '4' && by('University of Michigan').qs === '51' && by('Korea University').qs === '=52' && by('Heidelberg University').qs === '86' && !by('Bocconi University').qs && !by('Amherst College').qs, 'reyting: tekshirilgan qiymatlar');
+  ok(UN.merge(it, { 'eth-zurich': { id: 'eth-zurich', n: 'ETH Zurich', country: 'Shveytsariya', ielts: 7 } }).find(u => u.id === 'eth-zurich').qs === by('ETH Zurich').qs, 'reyting: admin almashtirsa ham QS o‘rni saqlanadi');
+  const P = S3.normProfile({ gpa: 4.6, sc: 5, sat: 1480, ielts: 7, ex: 2 }), T = '2026-11-24', F = u => S3.fit({ ...u, kind: us.includes(u) ? 'us' : 'intl' }, P, T);
+  ok(us.every(u => F(u).score === S3.score(u, P) && F(u).tier === S3.tier(u, S3.score(u, P)).tier && !F(u).est && !F(u).req), 'scoring: AQSh hisobi o‘zgarmadi');
+  ok(it.every(u => { const f = F(u); return Number.isInteger(f.score) && ['safety', 'target', 'reach'].includes(f.tier) && f.est && f.req && f.parts.length >= 2 && !f.confident; }), 'scoring: har bir xorijiy universitet ball, daraja va talablar oladi');
+  ok(F(by('University of Cambridge')).tier === 'reach' && F(by('University of Oxford')).tier === 'reach', 'scoring: QS top-30 hamma uchun Reach');
+  ok(it.filter(u => !u.qs).every(u => F(u).tier !== 'safety'), 'scoring: reytingi yo‘q universitet Safety bo‘lmaydi');
+  const e1 = S3.estimate({ qs: '40' }), e2 = S3.estimate({ qs: '801-850' }); ok(e1.sat[0] > e2.sat[0] && e1.gpa > e2.gpa && e1._est && S3.rankNum('=52') === 52 && S3.rankNum('1001-1200') === 1001, 'scoring: o‘rin yuqori → ko‘rsatkich yuqori');
+  const v2 = readFileSync('public/js/views2.js', 'utf8'), v4 = readFileSync('public/js/views4.js', 'utf8'), uc = readFileSync('public/js/ucard.js', 'utf8'), ac2 = readFileSync('public/atlas.css', 'utf8');
+  ok((v2.match(/rankChip\(/g) || []).length >= 3 && /cardTop\(c \|\| u, u\)/.test(v2) && /cardTop\(c, null, true\)/.test(v2) && /cardTop\(u, r\)/.test(v4) && /whyBlock\(r\)/.test(v4) && /export function rankChip/.test(uc), 'reyting: chip hamma kartada (AQSh, oddiy, xorijiy), Haqida, Solishtirish, Moslik');
+  ok(/window\.Scoring\.fit\(c, P, today\)/.test(v2) && !/Boshqa davlatlar uchun qabul ehtimoli/.test(v2) && /country: ctr, op: !!f\.op/.test(v2), 'finder/solishtirish: hamma uchun bir xil hisob, filtrlar serverda');
+  ok(['.rk{', '.rk-top{', '.rk-no{', '.rk-row{'].every(k => ac2.includes(k)), 'reyting: chip uslubi');
 }
 // Eski brauzerlar (color-mix yo‘q): compat.js hamma sahifada uslublardan keyin ulanadi va CSS ni CSSOM orqali tuzatadi
 { const cj = readFileSync(new URL('../public/js/compat.js', import.meta.url), 'utf8');

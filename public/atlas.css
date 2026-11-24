@@ -260,6 +260,21 @@ html[data-theme=dark] .dh::before{opacity:.24}
 article.card.hover>h3{font:400 25px/1.1 var(--serif);letter-spacing:-.012em;margin-bottom:6px}
 .uc .tbl th{white-space:nowrap;padding-right:18px}
 .uc>h3{margin:0}
+/* QS dunyo reytingi belgisi: kartaning eng tepasida, ixcham. Rang o‘ringa qarab: top-10 oltin, 100 gacha fasl rangi, keyingilari sokin. */
+.rk-row{display:flex;align-items:center;gap:8px;min-height:24px}
+article.card.hover:not(.uc)>.rk-row{margin-bottom:10px}
+.uc>.rk-row{margin-bottom:-3px}
+.rk{--rk:var(--ink-2);display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px 0 6px;border-radius:99px;font-size:12px;line-height:1;white-space:nowrap;color:var(--rk);background:color-mix(in srgb,var(--rk) 9%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rk) 24%,transparent);cursor:default}
+.rk svg{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.rk b{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.rk i{font-style:normal;font-weight:500;font-size:11px;opacity:.7}
+.rk-top{--rk:#9a6400;background:linear-gradient(135deg,rgba(255,214,120,.42),rgba(255,236,190,.22));box-shadow:inset 0 0 0 1px rgba(184,128,20,.38)}
+.rk-hi{--rk:var(--brand-600)}
+.rk-mid{--rk:var(--ink-2)}
+.rk-lo,.rk-no{--rk:var(--muted)}
+.rk-no{background:none;box-shadow:inset 0 0 0 1px var(--line)}
+html[data-theme=dark] .rk-top{--rk:#f3c66a;background:linear-gradient(135deg,rgba(243,198,106,.2),rgba(243,198,106,.08));box-shadow:inset 0 0 0 1px rgba(243,198,106,.4)}
+html[data-theme=dark] .rk-hi{--rk:color-mix(in srgb,var(--brand) 70%,#fff)}
 
 /* ---------------------------------------------------------------- KIRISH EKRANI */
 .auth{grid-template-columns:minmax(0,1.04fr) minmax(0,1fr)}

@@ -2,9 +2,9 @@ import { $, $$, S, api, ls, esc, toast, svg, fmtDate, daysLeft, catalog, allUnis
 import { getProfile, DOCS } from './views1.js';
 import { t, pick, dateL } from './i18n.js';
 import { intlTools } from './views4.js';
+import { rankChip, cardTop, whyBlock, TIER } from './ucard.js';
 const ctry = c => (c ? `<div class="ctry">${esc(t(c))}</div>` : '');
 
-const TIER = { safety: 'Safety', target: 'Target', reach: 'Reach' };
 const profBody = () => { const { Q } = getProfile(); return { gpa: Q.gpa, sc: Q.sc, sat: Q.sat, ielts: Q.ielts, ex: Q.ex, ach: Q.ach }; };
 const hasInput = () => { const { Q } = getProfile(); return !!(Q.gpa || Q.sat || Q.ielts); };
 const needProfile = () => `<div class="card empty"><b>Avval natijalaringizni kiriting</b>GPA, SAT yoki IELTS ni profilda to‘ldiring.<br><a class="btn primary" style="margin-top:14px" href="#/profile">Profilga o‘tish</a></div>`;
@@ -18,6 +18,7 @@ export async function aboutUni(id) {
   const src = c.src || {}, row = (k, v) => `<div style="display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid var(--line)"><span style="color:var(--muted)">${k}</span><span style="text-align:right">${v}</span></div>`;
   const rows = [], intl = c.kind === 'intl', link = u => (safeUrl(u) ? lnk(u, 'manba') : ''), none = '<span style="color:var(--muted)">rasmiy saytda tekshiring</span>';
   rows.push(row('Davlat', esc(t(c.country || ''))));
+  rows.push(row('Dunyo reytingi', rankChip(c)));
   if (c.city) rows.push(row('Shahar', esc(c.city + (c.state ? ', ' + c.state : ''))));
   if (c.address) rows.push(row('Manzil', esc(c.address)));
   const site = c.site || c.url; if (site) rows.push(row('Rasmiy sayt', `<a href="${esc(safeUrl(site))}" target="_blank" rel="noopener noreferrer">${esc(site.replace(/^https:\/\//, ''))}</a>`));
@@ -59,7 +60,7 @@ export async function finder(el) {
   const smart = hasInput(), mySat = getProfile().Q.sat, intlList = intl ? intl.list : [], verifiedN = cat.filter(c => c.satV).length, total = cat.length + intlList.length;
   const countries = [...new Set(intlList.map(c => c.country))].sort((a, b) => t(a).localeCompare(t(b)));
   let q = '', tier = '', ctr = '', vOnly = false, f = {}, timer = 0, seq = 0, rows = [], shown = PAGE, last = null;
-  el.innerHTML = `<div class="page-h"><div><h2>Universitet qidiruvi</h2><p>Hamma davlatlar universitetlari bir joyda. AQSh universitetlari profilingizga mos Safety, Target va Reach bo‘yicha guruhlanadi; boshqa davlatlar uchun talab, muddat va o‘qish narxi ko‘rsatiladi.</p></div></div>
+  el.innerHTML = `<div class="page-h"><div><h2>Universitet qidiruvi</h2><p>Hamma davlatlar universitetlari bir joyda. Har bir universitet profilingizga mos Safety, Target va Reach bo‘yicha baholanadi; kartada dunyo reytingi, talab, muddat va o‘qish narxi ham ko‘rsatiladi.</p></div></div>
   <div class="card ftool"><label class="fsearch">${svg('search')}<input id="f-q" type="text" placeholder="Universitet, shahar yoki davlat" aria-label="Qidirish" maxlength="60"></label>
   <select id="f-c" aria-label="Davlat"><option value="">${t('Hamma davlatlar')} (${total})</option><option value="us">${t('AQSh')} (${cat.length})</option>${countries.map(c => `<option value="${esc(c)}">${esc(t(c))} (${intlList.filter(u => u.country === c).length})</option>`).join('')}</select>
   <div class="ftool-r">${smart ? `<div class="tabs" id="f-t" role="tablist">${[['', 'Hammasi'], ['safety', 'Safety'], ['target', 'Target'], ['reach', 'Reach']].map(([v, tt]) => `<button role="tab" data-t="${v}" aria-selected="${v === ''}">${tt}<span class="c"></span></button>`).join('')}</div>` : ''}
@@ -67,16 +68,16 @@ export async function finder(el) {
   ${smart ? '' : '<div class="notice info" style="margin-bottom:16px">' + svg('info') + '<div>Moslik bali va Safety / Target / Reach darajasini ko‘rish uchun natijalaringizni kiriting. <a href="#/profile"><b>Natijalarni kiritish</b></a></div></div>'}
   <div id="f-r"></div>
   <p class="fnote">Hozir bazada <b>${total}</b> ta universitet bor, shundan <b>${cat.length}</b> tasi AQShda, <b>${intlList.length}</b> tasi boshqa davlatlarda. AQShdagi <b>${verifiedN}</b> tasining ko‘rsatkichlari rasmiy manbadan tekshirilgan. Qolganlari “taxminiy” deb belgilangan.</p>
-  <p class="fnote">Boshqa davlatlar uchun qabul ehtimoli (Safety / Target / Reach) hisoblanmaydi: ularning qabul statistikasi AQShdagidek ochiq emas, shuning uchun profilingiz rasmiy talablarga (IELTS, o‘qish tili, muddat) qanchalik mosligi ko‘rsatiladi.</p>`;
-  const out = $('#f-r', el), usCard = (u, c) => `<article class="card hover uc tk-${u.tier}"><div class="uc-top"><div class="score" style="--p:${u.score}">${u.score}</div><div class="uc-id">${ctry(u.country)}<h3>${esc(u.n)}</h3></div><span class="badge ${u.tier}">${TIER[u.tier]}</span></div>
+  <p class="fnote">Boshqa davlatlarda SAT, GPA va qabul foizi ochiq e’lon qilinmaydi: ularning Safety / Target / Reach darajasi QS reytingi asosidagi taxminiy ko‘rsatkichlarga tayanadi va “taxminiy” deb belgilanadi. Rasmiy talablar (IELTS, o‘qish tili, muddat) alohida tekshiriladi.</p>
+  <p class="fnote">Dunyo reytingi: QS World University Rankings 2027. “—” belgisi universitet umumiy jadvalda topilmaganini bildiradi.</p>`;
+  const out = $('#f-r', el), usCard = (u, c) => `<article class="card hover uc tk-${u.tier}">${cardTop(c || u, u)}
       <div class="uc-meta">${vb(u.verified, 'SAT tekshirilgan')}${u.deadline ? `<span class="badge mute">${fmtDate(u.deadline)}${u.deadlineVerified ? '' : ' (taxminiy)'}</span>` : ''}</div>${satMeter(c, mySat)}
-      ${u.why ? `<p class="uc-lvl">${esc(u.level)}</p><ul class="uc-why">${u.why.map(w => `<li>${esc(w.t)}</li>`).join('')}</ul><p class="hint">${esc(u.basis)}${u.confident ? '' : ' · bu daraja taxminiy'}</p>`
-        : `<div class="lock" style="border-radius:12px"><div class="lock-in"><p>Nima uchun mos ekani: SAT, GPA va IELTS bo‘yicha tushuntirish shu yerda ko‘rinadi.</p><p>Universitet ko‘rsatkichlari bilan solishtirish batafsil yoziladi.</p></div><div class="lock-cta"><button class="btn primary sm" data-up>Tushuntirishni ochish (Plus)</button></div></div>`}
+      ${whyBlock(u)}
       <div class="uc-act"><button class="btn sm" data-about="${esc(u.id)}">Haqida</button><button class="btn sm" data-add="${esc(u.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(u.id)}">Solishtirish</button><a class="btn sm" href="#/predictor?u=${encodeURIComponent(u.id)}">Moslik</a></div></article>`,
-    plainCard = c => `<article class="card hover">${ctry(c.country)}<h3>${esc(c.n)}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${vb(c.satV, 'SAT tekshirilgan')}${c.sat ? `<span class="badge mute">SAT ${c.sat[0]}–${c.sat[1]}</span>` : ''}${c.rd ? `<span class="badge mute">Muddat: ${fmtDate(c.rd)}${c.rdV ? '' : ' (taxminiy)'}</span>` : ''}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-about="${esc(c.id)}">Haqida</button><button class="btn sm" data-add="${esc(c.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(c.id)}">Solishtirish</button></div></article>`;
+    plainCard = c => `<article class="card hover">${cardTop(c, null, true)}<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${vb(c.satV, 'SAT tekshirilgan')}${c.sat ? `<span class="badge mute">SAT ${c.sat[0]}–${c.sat[1]}</span>` : ''}${c.rd ? `<span class="badge mute">Muddat: ${fmtDate(c.rd)}${c.rdV ? '' : ' (taxminiy)'}</span>` : ''}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-about="${esc(c.id)}">Haqida</button><button class="btn sm" data-add="${esc(c.id)}">Arizaga qo‘shish</button><button class="btn sm" data-cmp="${esc(c.id)}">Solishtirish</button></div></article>`;
   const paint = () => {
     const part = rows.slice(0, shown);
-    out.innerHTML = rows.length ? `<div class="grid g2">${part.map(r => (r.k === 'intl' ? intl.card(r.u) : r.k === 'plain' ? plainCard(r.u) : usCard(r.u, cat.find(c => c.id === r.u.id)))).join('')}</div>
+    out.innerHTML = rows.length ? `<div class="grid g2">${part.map(r => (r.k === 'intl' ? intl.card(r.u, r.r) : r.k === 'plain' ? plainCard(r.u) : usCard(r.r, r.u))).join('')}</div>
       ${shown < rows.length ? `<div class="fmore"><button class="btn" data-more type="button">Yana ko‘rsatish <span class="c">+${Math.min(PAGE, rows.length - shown)}</span></button></div>` : ''}
       ${last && last.shown < last.total ? `<div class="card" style="margin-top:18px;text-align:center"><b>${last.shown} / ${last.total} natija ko‘rsatilmoqda.</b><p class="sub" style="margin:6px 0 12px">Eng mos ${last.limit} ta universitet ko‘rinadi.</p><a class="btn primary" href="#/pricing">Hammasini ko‘rish</a></div>` : ''}`
       : '<div class="card empty"><b>Hech narsa topilmadi</b>Qidiruv so‘zi, davlat yoki filtrni o‘zgartirib ko‘ring.</div>';
@@ -90,27 +91,26 @@ export async function finder(el) {
     if ((b = g('[data-add]'))) return addApp(cat.find(c => c.id === b.dataset.add) || intlList.find(c => c.id === b.dataset.add));
     if ((b = g('[data-cmp]'))) return addCmp(b.dataset.cmp);
   };
-  const intlRows = () => { // tier tanlangan bo‘lsa boshqa davlatlar chiqmaydi (ularda Safety/Target/Reach yo‘q)
-    if (tier || ctr === 'us' || !intl) return [];
-    const k = q.toLowerCase();
-    return intlList.filter(u => (!ctr || u.country === ctr) && (!k || [u.n, u.city, u.country, t(u.country)].join(' ').toLowerCase().includes(k)) && intl.pass(u, f)).map(u => ({ k: 'intl', u }));
-  };
+  /** Profil kiritilmagan (ballsiz) rejim: ikkala ro‘yxat ham brauzerda filtrlanadi. */
+  const k0 = () => q.toLowerCase(), cMatch = u => { const k = k0(); return !k || [u.n, u.city, u.country, t(u.country)].join(' ').toLowerCase().includes(k); };
   const usOk = c => (!f.op || (c.rd && daysLeft(c.rd) >= 0)) && (!f.ie || (c.ielts != null && parseFloat(getProfile().Q.ielts) >= c.ielts));
+  const plainRows = () => {
+    const us = ctr && ctr !== 'us' ? [] : cat.filter(c => cMatch(c) && (!vOnly || c.satV) && usOk(c)).map(u => ({ k: 'plain', u }));
+    const it = !intl || ctr === 'us' ? [] : intlList.filter(u => (!ctr || u.country === ctr) && cMatch(u) && intl.pass(u, f)).map(u => ({ k: 'intl', u }));
+    return us.concat(it);
+  };
   const load = async () => {
     const my = ++seq;
-    if (ctr && ctr !== 'us') { rows = intlRows(); last = null; shown = PAGE; paint(); return; }
+    if (!smart) { last = null; rows = plainRows(); shown = PAGE; paint(); return; }
     out.innerHTML = '<div class="grid g2">' + '<div class="card"><div class="sk" style="height:90px"></div></div>'.repeat(4) + '</div>';
     try {
-      let us;
-      if (smart) {
-        const r = await api('/api/finder', 'POST', { profile: profBody(), q, tier, verifiedOnly: vOnly }); if (my !== seq) return;
-        $$('#f-t button', el).forEach(b => { const k = b.dataset.t; b.querySelector('.c').textContent = k ? ' ' + r.counts[k] : ''; });
-        last = r; us = r.items.filter(u => usOk(cat.find(c => c.id === u.id) || { rd: u.deadline })).map(u => ({ k: 'us', u }));
-      } else {
-        last = null; const k = q.toLowerCase();
-        us = cat.filter(c => (!k || [c.n, c.country].join(' ').toLowerCase().includes(k)) && (!vOnly || c.satV) && usOk(c)).map(u => ({ k: 'plain', u }));
-      }
-      rows = us.concat(intlRows()); shown = PAGE; paint();
+      const k = q.toLowerCase(), qc = k ? countries.filter(c => t(c).toLowerCase().includes(k)) : [];
+      /* Hamma universitet (AQSh va boshqa davlatlar) serverda bir xil model bilan baholanadi va filtrlanadi */
+      const r = await api('/api/finder', 'POST', { profile: profBody(), q, qc, tier, verifiedOnly: vOnly, country: ctr, op: !!f.op, ie: !!f.ie, en: !!f.en }); if (my !== seq) return;
+      $$('#f-t button', el).forEach(b => { const kk = b.dataset.t; b.querySelector('.c').textContent = kk ? ' ' + r.counts[kk] : ''; });
+      last = r;
+      rows = r.items.map(it => (it.kind === 'intl' ? { k: 'intl', u: intlList.find(c => c.id === it.id), r: it } : { k: 'us', u: cat.find(c => c.id === it.id), r: it })).filter(x => x.u);
+      shown = PAGE; paint();
     } catch (e) { if (my === seq) { out.innerHTML = errorBox(e.message, true); const b = $('[data-retry]', out); if (b) b.onclick = load; } }
   };
   $('#f-q', el).oninput = e => { clearTimeout(timer); timer = setTimeout(() => { q = e.target.value.trim(); load(); }, 350); };
@@ -172,21 +172,17 @@ export async function predictor(el) {
   const run = async () => {
     out.innerHTML = '<div class="card"><div class="sk" style="height:120px"></div></div>';
     try {
-      const r = await api('/api/predict', 'POST', { id: $('#pr-u', el).value, profile: profBody() });
-      if (r.kind === 'intl') {
-        const tone = { yes: 'ok', part: 'warn', no: 'bad', unknown: 'mute' }[r.status], TN = { good: 'ok', warn: 'warn', bad: 'bad', info: 'mute' };
-        out.innerHTML = `<div class="grid g-dash"><section class="card s5" style="text-align:center"><p class="dial-l">${esc(t(r.country))} · ${esc(r.n)}</p><p style="margin:14px 0"><span class="badge ${tone}" style="font-size:15px;padding:8px 14px">${esc(t(r.label))}</span></p><p class="hint">Talablarga moslik (qabul ehtimoli emas)</p></section>
-        <section class="card s7"><h3>Talablar bo‘yicha tekshiruv</h3><p class="sub">IELTS, o‘qish tili, muddat va narx rasmiy ma’lumotlar bilan solishtirildi.</p>${r.parts.map(x => `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px"><b>${esc(t(x.k))}</b><span class="badge ${TN[x.tone]}">${{ good: 'mos', warn: 'diqqat', bad: 'mos emas', info: 'ma’lumot' }[x.tone]}</span></div><small style="color:var(--muted)">${esc(t(x.t))}</small></div>`).join('')}
-        ${r.full ? `<h3 style="margin-top:14px">Nimani qilish kerak</h3>${r.advice.length ? `<ul style="padding-left:18px;color:var(--ink-2)">${r.advice.map(a => `<li>${esc(t(a))}</li>`).join('')}</ul>` : '<p class="sub">Qo‘shimcha tavsiya yo‘q.</p>'}` : `<div class="lock" style="margin-top:12px"><div class="lock-in"><h3>Batafsil tahlil</h3><p>Barcha mezonlar va nimani yaxshilash kerakligi haqida tavsiyalar.</p></div><div class="lock-cta"><b>To‘liq tahlil Pro tarifida</b><a class="btn primary" href="#/pricing">Tariflarni ko‘rish</a></div></div>`}</section></div>
-        <div class="notice" style="margin-top:16px">${svg('info')}<div>${esc(t(r.disclaimer))}</div></div>`;
-        return;
-      }
-      out.innerHTML = `<div class="grid g-dash"><section class="card s5" style="text-align:center"><div class="score big ${r.full ? 'tk-' + r.tier.tier : ''}" style="--p:${r.score}">${r.score}</div><p class="dial-l">Moslik balli · ${esc(r.n)}</p><p><b>${esc(r.full ? r.level : r.verdict)}</b></p>${r.full ? `<p style="margin-top:8px"><span class="badge ${r.tier.tier}">${TIER[r.tier.tier]}</span></p><p class="hint">${esc(r.tier.basis)}</p>` : ''}</section>
+      const r = await api('/api/predict', 'POST', { id: $('#pr-u', el).value, profile: profBody() }), me = cat.find(c => c.id === r.id) || { qs: r.qs };
+      const TN = { good: 'ok', warn: 'warn', bad: 'bad', info: 'mute' };
+      /* Boshqa davlatlar: ball va Safety / Target / Reach AQShnikidek, ustiga rasmiy talablar tekshiruvi */
+      const reqBox = r.req ? `<section class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Rasmiy talablar bo‘yicha tekshiruv</h3><span class="badge ${{ yes: 'ok', part: 'warn', no: 'bad', unknown: 'mute' }[r.req.status]}">${esc(t(r.req.label))}</span></div><p class="sub">IELTS, o‘qish tili, muddat va narx rasmiy ma’lumotlar bilan solishtirildi.</p>${r.req.parts.map(x => `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px"><b>${esc(t(x.k))}</b><span class="badge ${TN[x.tone]}">${{ good: 'mos', warn: 'diqqat', bad: 'mos emas', info: 'ma’lumot' }[x.tone]}</span></div><small style="color:var(--muted)">${esc(t(x.t))}</small></div>`).join('')}
+        ${r.full ? (r.req.advice.length ? `<h3 style="margin-top:14px">Talablar bo‘yicha nima qilish kerak</h3><ul style="padding-left:18px;color:var(--ink-2)">${r.req.advice.map(a => `<li>${esc(t(a))}</li>`).join('')}</ul>` : '') : ''}</section>` : '';
+      out.innerHTML = `<div class="grid g-dash"><section class="card s5" style="text-align:center"><div class="rk-row" style="justify-content:center;margin-bottom:6px">${rankChip(me)}</div><div class="score big ${r.full ? 'tk-' + r.tier.tier : ''}" style="--p:${r.score}">${r.score}</div><p class="dial-l">Moslik balli · ${esc(r.n)}</p><p><b>${esc(r.full ? r.level : r.verdict)}</b></p>${r.full ? `<p style="margin-top:8px"><span class="badge ${r.tier.tier}">${TIER[r.tier.tier]}</span>${r.est ? ' <span class="badge mute">taxminiy</span>' : ''}</p><p class="hint">${esc(r.tier.basis)}${r.tier.confident ? '' : ' · bu daraja taxminiy'}</p>` : (r.est ? '<p><span class="badge mute">taxminiy</span></p>' : '')}</section>
       <section class="card s7">${r.full ? `<h3>Moslik balli qanday hisoblandi</h3><p class="sub">Har bir mezon uchun hissa.</p>${r.parts.map(x => `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between"><b>${esc(x.k)}</b><span>${x.v}/100 · ulushi ${x.w}%</span></div><div class="bar" style="margin:6px 0"><i style="width:${x.v}%"></i></div><small style="color:var(--muted)">${esc(x.t)}</small></div>`).join('')}
         <h3 style="margin-top:14px">Nimani yaxshilash kerak</h3>${r.advice.length ? `<ul style="padding-left:18px;color:var(--ink-2)">${r.advice.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : '<p class="sub">Qo‘shimcha tavsiya yo‘q.</p>'}
-        <div style="display:flex;gap:6px;flex-wrap:wrap">${vb(r.verified.sat, 'SAT oralig‘i tekshirilgan')}${vb(r.verified.acceptance, 'qabul darajasi tekshirilgan')}${vb(r.verified.deadline, 'muddat tekshirilgan')}</div>`
-        : `<div class="lock"><div class="lock-in"><h3>Ball qanday hisoblandi</h3><p>SAT, GPA, IELTS va faoliyat bo‘yicha batafsil tahlil.</p><p>Nimani yaxshilash kerakligi haqida tavsiyalar.</p><p>Safety / Target / Reach darajasi.</p></div><div class="lock-cta"><b>To‘liq tahlil Pro tarifida</b><a class="btn primary" href="#/pricing">Tariflarni ko‘rish</a></div></div>`}</section></div>
-      <div class="notice" style="margin-top:16px">${svg('info')}<div>${esc(r.disclaimer)}</div></div>`;
+        ${r.kind === 'intl' ? '' : `<div style="display:flex;gap:6px;flex-wrap:wrap">${vb(r.verified.sat, 'SAT oralig‘i tekshirilgan')}${vb(r.verified.acceptance, 'qabul darajasi tekshirilgan')}${vb(r.verified.deadline, 'muddat tekshirilgan')}</div>`}`
+        : `<div class="lock"><div class="lock-in"><h3>Ball qanday hisoblandi</h3><p>SAT, GPA, IELTS va faoliyat bo‘yicha batafsil tahlil.</p><p>Nimani yaxshilash kerakligi haqida tavsiyalar.</p><p>Safety / Target / Reach darajasi.</p></div><div class="lock-cta"><b>To‘liq tahlil Pro tarifida</b><a class="btn primary" href="#/pricing">Tariflarni ko‘rish</a></div></div>`}</section></div>${reqBox}
+      <div class="notice" style="margin-top:16px">${svg('info')}<div>${esc(t(r.disclaimer))}</div></div>`;
     } catch (e) { out.innerHTML = errorBox(e.message); }
   };
   $('#pr-go', el).onclick = run; run();
@@ -205,12 +201,12 @@ export async function compare(el) {
       const r = await api('/api/compare', 'POST', { ids }), it = r.items, row = (t, f) => `<tr><th>${t}</th>${it.map(c => `<td>${f(c)}</td>`).join('')}</tr>`;
       const dash = '<span style="color:var(--muted)">—</span>', na = '<span style="color:var(--muted)">rasmiy saytda tekshiring</span>', isI = c => c.kind === 'intl', link = (u, l = 'manba') => (safeUrl(u) ? lnk(u, l) : '');
       const { Q } = getProfile(), P = window.Scoring && hasInput() ? window.Scoring.normProfile({ gpa: Q.gpa, sc: Q.sc, sat: Q.sat, ielts: Q.ielts, ex: Q.ex, ach: Q.ach }) : null, today = new Date().toISOString().slice(0, 10);
-      const fitCell = c => { if (!P) return dash; if (isI(c)) { const f = window.Scoring.intlFit(c, P, today); return `<span class="badge ${{ yes: 'ok', part: 'warn', no: 'bad', unknown: 'mute' }[f.status]}">${esc(t(f.label))}</span>`; } const v = window.Scoring.score(c, P), tr = window.Scoring.tier(c, v); return `<b>${v}</b>/100 <span class="badge ${tr.tier}">${TIER[tr.tier]}</span>`; };
+      const fitCell = c => { if (!P) return dash; const f = window.Scoring.fit(c, P, today); return `<b>${f.score}</b>/100 <span class="badge ${f.tier}">${TIER[f.tier]}</span>${f.est ? ' <span class="badge mute">taxminiy</span>' : ''}${f.req ? `<br><small style="color:var(--muted)">${esc(t(f.req.label))}</small>` : ''}`; };
       out.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th></th>${it.map(c => `<th style="text-transform:none;font-size:14px;color:var(--ink)">${esc(c.n)}<br><button class="link-btn" data-rm="${esc(c.id)}" style="font-size:12px;font-weight:500;color:var(--bad)">Olib tashlash</button></th>`).join('')}</tr></thead><tbody>
-      ${row('Joylashuv', c => esc(t(c.country || '')) + (c.city ? ', ' + esc(c.city) : ''))}${P ? row('Profilingizga moslik', fitCell) : ''}${row('SAT (o‘rta 50%)', c => (isI(c) ? dash : c.sat ? `${c.sat[0]}–${c.sat[1]} ${vb(c.satV)}${lnk((c.src || {}).sat, 'manba')}` : dash))}${row('Qabul darajasi', c => (isI(c) ? dash : c.acc != null ? (c.acc * 100).toFixed(1) + '% ' + vb(c.accV) + lnk((c.src || {}).accept, 'manba') : '<span style="color:var(--muted)">tekshirilmagan</span>'))}${row('IELTS', c => (isI(c) ? (c.ielts != null ? c.ielts + link(c.ieltsUrl) : na) : c.ielts != null ? c.ielts + (c.ieltsKind === 'recommended' ? ' (tavsiya)' : '') + ' ' + vb(c.ieltsV) + lnk((c.src || {}).ielts, 'manba') : c.ieltsKind === 'none_stated' ? 'minimal ball ko‘rsatilmagan ' + vb(true) + lnk((c.src || {}).ielts, 'rasmiy sahifa') : '—'))}
+      ${row('Joylashuv', c => esc(t(c.country || '')) + (c.city ? ', ' + esc(c.city) : ''))}${row('Dunyo reytingi', c => rankChip(c))}${P ? row('Profilingizga moslik', fitCell) : ''}${row('SAT (o‘rta 50%)', c => (isI(c) ? dash : c.sat ? `${c.sat[0]}–${c.sat[1]} ${vb(c.satV)}${lnk((c.src || {}).sat, 'manba')}` : dash))}${row('Qabul darajasi', c => (isI(c) ? dash : c.acc != null ? (c.acc * 100).toFixed(1) + '% ' + vb(c.accV) + lnk((c.src || {}).accept, 'manba') : '<span style="color:var(--muted)">tekshirilmagan</span>'))}${row('IELTS', c => (isI(c) ? (c.ielts != null ? c.ielts + link(c.ieltsUrl) : na) : c.ielts != null ? c.ielts + (c.ieltsKind === 'recommended' ? ' (tavsiya)' : '') + ' ' + vb(c.ieltsV) + lnk((c.src || {}).ielts, 'manba') : c.ieltsKind === 'none_stated' ? 'minimal ball ko‘rsatilmagan ' + vb(true) + lnk((c.src || {}).ielts, 'rasmiy sahifa') : '—'))}
       ${row('O‘qish tili', c => (isI(c) ? (c.lang ? esc(c.lang) : na) : 'English'))}${row('Muddat (Regular)', c => (isI(c) ? (c.rd ? esc(dateL(c.rd, fmtDate)) + link(c.rdUrl) + (c.rdIntake ? `<br><small style="color:var(--muted)">${esc(pick(c.rdIntake))}</small>` : '') : na) : c.rd ? fmtDate(c.rd) + ' ' + vb(c.rdV) + lnk((c.src || {}).deadline, 'manba') : dash))}${row('Erta muddatlar', c => (c.early && c.early.length ? c.early.map(e => esc(e.plan) + ': ' + fmtDate(e.date)).join('<br>') : '—'))}
       ${row('O‘qish narxi', c => (isI(c) ? (c.tuition ? `${c.tuition.amount.toLocaleString('en-US')} ${esc(c.tuition.cur)} / ${t('yil')}${link(c.tuition.url)}${c.tuition.note ? `<br><small style="color:var(--muted)">${esc(pick(c.tuition.note))}</small>` : ''}` : na) : dash))}${row('Qabul talabi', c => (isI(c) && c.req ? esc(pick(c.req)) + link(c.reqUrl) : dash))}${row('Rasmiy sayt', c => { const w = c.site || c.url; return (safeUrl(w) ? `<a href="${esc(w)}" target="_blank" rel="noopener noreferrer">${esc((w.match(/^https:\/\/(?:www\.)?([^\/?#]+)/) || [])[1] || w)}</a>` : '—') + `<br><button class="link-btn" type="button" data-rep="${esc(c.n)}">Xato topdingizmi?</button>`; })}</tbody></table></div>
-      <div class="notice info" style="margin-top:16px">${svg('info')}<div>Boshqa davlatlar universitetlarida SAT va qabul darajasi ochiq e’lon qilinmaydi, shuning uchun ular uchun bu ustunlar bo‘sh. Reyting va stipendiyalar ustunlari rasmiy ma’lumot yig‘ilgach qo‘shiladi. Ko‘rsatkichlarni universitetning rasmiy saytida tekshiring.</div></div>`;
+      <div class="notice info" style="margin-top:16px">${svg('info')}<div>Boshqa davlatlar universitetlarida SAT va qabul darajasi ochiq e’lon qilinmaydi, shuning uchun ular uchun bu ustunlar bo‘sh, moslik bali esa QS reytingi asosida taxminiy hisoblanadi. Dunyo reytingi: QS World University Rankings 2027. Ko‘rsatkichlarni universitetning rasmiy saytida tekshiring.</div></div>`;
       $$('[data-rep]', out).forEach(b => (b.onclick = () => reportError(b.dataset.rep)));
       $$('[data-rm]', out).forEach(b => (b.onclick = () => { ids = ids.filter(x => x !== b.dataset.rm); ls.set('qabul:cmp', ids); draw(); }));
     } catch (e) { out.innerHTML = errorBox(e.message); }
