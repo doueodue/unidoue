@@ -25,7 +25,7 @@ const ROUTES = [
   { id: 'coach', t: 'Esse murabbiyi', i: 'pen', hide: 1, nav: 'mentor', need: 'coach', v: () => import('./coach.js').then(m => m.coach) },
   { id: 'portfolio', t: 'Portfolio', i: 'folder', tag: 'NEW', v: () => import('./portfolio.js').then(m => m.portfolio) },
   { id: 'pricing', t: 'Tariflar', i: 'card', sec: 'Hisob', v: () => import('./views1.js').then(m => m.pricing) },
-  { id: 'profile', t: 'Profil', i: 'user', v: () => import('./views1.js').then(m => m.profile) }
+  { id: 'profile', t: 'Profil', i: 'user', hide: 1, v: () => import('./views1.js').then(m => m.profile) }
 ];
 const root = $('#root');
 let token = 0;
@@ -125,7 +125,7 @@ function shell() {
   <a class="nav-tg" href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">💬 ${t('Yordam')}</a>
   <button class="nav-tg" id="fb-s-link" type="button">✎ ${t('Fikr bildirish')}</button>
   </div>
-  <div class="side-foot tg" id="sf" data-tier="free" data-live><div class="sf-row"><span class="sf-av" id="sf-av" aria-hidden="true"></span><div class="sf-who"><b id="sf-u"></b><small id="sf-p"></small></div><span id="sf-t"></span></div><button class="btn sm" id="lo" type="button">${t('Chiqish')}</button></div></aside>
+  <div class="side-foot tg" id="sf" data-tier="free" data-live><a class="sf-row" id="sf-me" href="#/profile" title="${t('Profil')}" aria-label="${t('Profil')}"><span class="sf-av" id="sf-av" aria-hidden="true"></span><div class="sf-who"><b id="sf-u"></b><small id="sf-p"></small></div><span id="sf-t"></span></a><button class="btn sm" id="lo" type="button">${t('Chiqish')}</button></div></aside>
   <div class="scrim" id="scrim"></div>
   <div class="main"><header class="top"><button class="burger" id="bg" aria-label="Menyu" type="button">${svg('menu')}</button><h1 id="ttl"></h1><span class="top-tools">${themeSwitch()}${langSelect('lang')}</span>${bellHTML()}${fbHTML()}<span id="pb"></span></header>
   <main class="content" id="view" tabindex="-1"></main></div></div>`;
@@ -150,6 +150,7 @@ async function route() {
   if (/^#\/?intl(\?|$)/.test(location.hash)) { location.replace('#/finder'); return; } // eski «Boshqa davlatlar» havolasi
   const id = (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'dashboard', r = ROUTES.find(x => x.id === id) || ROUTES[0], my = ++token;
   $$('.nav a').forEach(a => (a.getAttribute('data-r') === (r.nav || r.id) ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
+  const me = $('#sf-me'); if (me) { if (r.id === 'profile') me.setAttribute('aria-current', 'page'); else me.removeAttribute('aria-current'); }
   $('#ttl').textContent = t(r.t); document.title = t(r.t) + ' · UniDoue'; document.body.classList.remove('nav-open');
   refreshCredits(); // har sahifaga oʻtganda kreditlarni serverdan yangilaymiz (boshqa qurilma/oyna, oy almashishi)
   const el = $('#view'); el.innerHTML = skeleton(3); el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';

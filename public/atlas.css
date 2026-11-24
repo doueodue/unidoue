@@ -52,6 +52,10 @@ html[data-season] .nav-sec,.nav-sec{position:relative;font:italic 400 16px/1 var
 .side-foot{margin-top:auto;padding:12px;border-radius:20px;position:relative}
 .side .side-foot{margin-top:14px}
 .side-foot .sf-row{display:flex;align-items:center;gap:11px}
+.side-foot a.sf-row{margin:-6px -6px 0;padding:6px;border-radius:14px;color:inherit;text-decoration:none;cursor:pointer;transition:background .16s,box-shadow .16s}
+.side-foot a.sf-row:hover{background:color-mix(in srgb,var(--tg-ink,#fff) 11%,transparent)}
+.side-foot a.sf-row:focus-visible{outline:2px solid var(--tg-ink,#fff);outline-offset:1px}
+.side-foot a.sf-row[aria-current=page]{background:color-mix(in srgb,var(--tg-ink,#fff) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tg-ink,#fff) 26%,transparent)}
 .sf-av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font:400 22px/1 var(--serif);color:#fff;background:linear-gradient(145deg,var(--brand),color-mix(in srgb,var(--brand) 58%,#000));box-shadow:0 6px 16px -6px var(--brand),inset 0 1px 0 rgba(255,255,255,.35)}
 .sf-who{flex:1;min-width:0}
 .sf-who b,.sf-who small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
