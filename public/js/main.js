@@ -121,9 +121,9 @@ function shell() {
   const nav = ROUTES.filter(r => !r.hide).map(r => { const h = r.sec && r.sec !== sec ? `<div class="nav-sec">${t(sec = r.sec)}</div>` : ''; return `${h}<a href="#/${r.id}" data-r="${r.id}">${svg(r.i)}<span>${t(r.t)}</span>${r.need ? `<span class="tag${hasFeature(r.need) ? '' : ' lk'}" data-need="${r.need}">${hasFeature(r.need) ? r.tag || '' : NEED_PLAN[r.need]}</span>` : r.tag ? `<span class="tag">${r.tag}</span>` : ''}</a>`; }).join('');
   root.innerHTML = `<div class="shell"><aside class="side" id="side"><a class="brand" href="#/dashboard"><i>${STAR}</i><span>UniDoue</span></a><nav class="nav" aria-label="${t('Asosiy menyu')}">${nav}</nav>
   <div class="nav-links">
-  <a class="nav-tg" href="https://t.me/unidoue" target="_blank" rel="noopener noreferrer">✈ ${t('Telegram kanal')}</a>
-  <a class="nav-tg" href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer">💬 ${t('Yordam')}</a>
-  <button class="nav-tg" id="fb-s-link" type="button">✎ ${t('Fikr bildirish')}</button>
+  <a class="nav-tg" href="https://t.me/unidoue" target="_blank" rel="noopener noreferrer" title="${t('Telegram kanal')}" aria-label="${t('Telegram kanal')}">${svg('tg')}<span>Telegram</span></a>
+  <a class="nav-tg" href="https://t.me/unidoue_yordam" target="_blank" rel="noopener noreferrer" title="${t('Yordam')}">${svg('help')}<span>${t('Yordam')}</span></a>
+  <button class="nav-tg" id="fb-s-link" type="button" title="${t('Fikr bildirish')}" aria-label="${t('Fikr bildirish')}">${svg('chat')}<span>${t('Fikr')}</span></button>
   </div>
   <div class="side-foot tg" id="sf" data-tier="free" data-live><a class="sf-row" id="sf-me" href="#/profile" title="${t('Profil')}" aria-label="${t('Profil')}"><span class="sf-av" id="sf-av" aria-hidden="true"></span><div class="sf-who"><b id="sf-u"></b><small id="sf-p"></small></div><span id="sf-t"></span></a><button class="btn sm" id="lo" type="button">${t('Chiqish')}</button></div></aside>
   <div class="scrim" id="scrim"></div>

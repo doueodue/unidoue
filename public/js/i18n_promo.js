@@ -62,6 +62,7 @@ const P = [
   ["Xabaringiz yetib bordi. Har birini o‘qib chiqamiz.", "Сообщение получено. Мы читаем каждое.", "Your message arrived. We read every one."],
   ["Yana yozish", "Написать ещё", "Write another"],
   ["Fikr bildirish", "Оставить отзыв", "Send feedback"],
+  ["Fikr", "Отзыв", "Feedback"],
   ["Juda koʻp xabar yubordingiz. Birozdan keyin urinib koʻring.", "Вы отправили слишком много сообщений. Попробуйте чуть позже.", "You have sent too many messages. Please try again shortly."],
   ["Xabar turini tanlang.", "Выберите тип сообщения.", "Choose a message type."],
   ["Rasm qo‘shish", "Добавить фото", "Add a screenshot"],

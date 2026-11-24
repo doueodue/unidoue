@@ -154,6 +154,7 @@ export const skeleton = (n = 3) => `<div class="grid">${Array.from({ length: n }
 export const errorBox = (msg, retry) => `<div class="card err-box"><b>Yuklab bo‘lmadi</b>${esc(msg)}${retry ? `<div style="margin-top:14px"><button class="btn" data-retry>Qayta urinish</button></div>` : ''}</div>`;
 
 export const ico = {
+  tg: 'M21 3.6L3.2 10.4l6 2.3 2.2 6.1 3.2-4.1 4.5 3.3L21 3.6zM9.2 12.7l8.4-6',
   image: 'M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v11a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 17.5v-11zM8.6 10.2a1.6 1.6 0 100-3.2 1.6 1.6 0 000 3.2zM4.5 16.5l4.3-4.3 3.4 3.4 2.4-2.4 4.9 4.9',
   chat: 'M4 6a2 2 0 012-2h12a2 2 0 012 2v8.5a2 2 0 01-2 2h-6.6L7 20.2v-3.7H6a2 2 0 01-2-2V6zM8 8.6h8M8 11.8h5',
   bug: 'M12 7a4 4 0 00-4 4v3.5a4 4 0 008 0V11a4 4 0 00-4-4zM9 4.6l1.4 1.8M15 4.6l-1.4 1.8M4 10.5l3.6 1.3M20 10.5l-3.6 1.3M4 18l3.8-1.9M20 18l-3.8-1.9M8 12h8M12 12v7.3',
