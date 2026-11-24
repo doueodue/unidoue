@@ -7,6 +7,7 @@ import { bellHTML, bindBell } from './notes.js';
 import { seePlan } from './celebrate.js';
 import { fbHTML, bindFeedback } from './feedback.js';
 import { navIcon } from './navicons.js';
+import { initEsc, markRoute } from './esc.js';
 import { setTipTranslator } from './ui.js';
 import { paintAvatar } from './avatar.js';
 import { tierPill, liveGlass } from './tiers.js';
@@ -148,6 +149,7 @@ document.addEventListener('unidoue:account', updatePlanUI);
 
 async function route() {
   if (!S.user) return;
+  markRoute();
   if (/^#\/?intl(\?|$)/.test(location.hash)) { location.replace('#/finder'); return; } // eski «Boshqa davlatlar» havolasi
   const id = (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'dashboard', r = ROUTES.find(x => x.id === id) || ROUTES[0], my = ++token;
   $$('.nav a').forEach(a => (a.getAttribute('data-r') === (r.nav || r.id) ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
@@ -163,7 +165,7 @@ async function route() {
   if (my === token) { window.scrollTo(0, 0); fx.done(); }
 }
 
-function start() { shell(); addEventListener('hashchange', route); route(); if (S.user && S.account) seePlan(S.user.id, S.account.plan, S.account.planUntil); }
+function start() { shell(); initEsc(); addEventListener('hashchange', route); route(); if (S.user && S.account) seePlan(S.user.id, S.account.plan, S.account.planUntil); }
 document.addEventListener('unidoue:account', () => { if (S.user && S.account) seePlan(S.user.id, S.account.plan, S.account.planUntil); });
 document.addEventListener('unidoue:signedout', () => { toast('Sessiya tugadi. Qayta kiring.', 'err'); authScreen('login'); });
 

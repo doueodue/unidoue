@@ -205,7 +205,7 @@ const adh = readFileSync(new URL('../public/admin.html', import.meta.url), 'utf8
 ok(v1.includes('function promoBox(') && v1.includes('function promoBind(') && v1.includes("'/api/promo/redeem'") && (v1.match(/\$\{promoBox\(\)\}/g) || []).length === 2 && (v1.match(/promoBind\(el\)/g) || []).length === 3 && v1.includes('id="promo-i"'), 'tariflar: promo kod qatori ikkala ko‘rinishda ham bor va ulangan');
 ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=63'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
 ok(adh.includes('data-v="promos"') && adh.includes('id="v-promos"') && ['mk', 'mp', 'md', 'mx', 'mu', 'mn', 'mb', 'ml'].every(i => adh.includes(`id="${i}"`)) && /promos: 'Promo kodlar'/.test(adj) && ['/api/admin/promos', '/api/admin/promo', '/api/admin/promo/set', '/api/admin/promo/delete'].every(u => adj.includes(`'${u}'`)) && (adc.match(/{/g) || []).length === (adc.match(/}/g) || []).length && adc.includes('.pm-form{'), 'admin: Promo kodlar bo‘limi (forma, ro‘yxat, to‘xtatish, limit, o‘chirish)');
-ok(swj.includes("'unidoue-v80'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
+ok(swj.includes("'unidoue-v81'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
 const cssFiles = ['app.css', 'atlas.css', 'coach.css', 'portfolio.css', 'tiers.css', 'landing.css', 'admin.css', 'controls.css'].map(f => [f, readFileSync(new URL('../public/' + f, import.meta.url), 'utf8')]);
 const sbBad = cssFiles.filter(([f, c]) => /scrollbar-(width|color)/.test(f === 'app.css' ? c.replace(/@supports not selector\(::-webkit-scrollbar\)\{[^}]*\}[^}]*\}/, '') : c)).map(x => x[0]);
 ok(sbBad.length === 0 && acss.includes('*::-webkit-scrollbar-thumb{') && acss.includes('@supports not selector(::-webkit-scrollbar)'), 'scrollbar: yagona uslub (app.css); boshqa joyda scrollbar-width/color yo‘q — Chrome ::-webkit-scrollbar uslubini o‘chirib qo‘yadi' + (sbBad.length ? ': ' + sbBad : ''));
@@ -319,6 +319,8 @@ ok(/from '\.\/tiers\.js'/.test(lpj) && /crownHTML/.test(lpj) && /liveGlass/.test
   ok(/window\.Scoring\.fit\(c, P, today\)/.test(v2) && !/Boshqa davlatlar uchun qabul ehtimoli/.test(v2) && /country: ctr, op: !!f\.op/.test(v2), 'finder/solishtirish: hamma uchun bir xil hisob, filtrlar serverda');
   ok(['.rk{', '.rk-top{', '.rk-no{', '.rk-row{'].every(k => ac2.includes(k)), 'reyting: chip uslubi');
 }
+{ const es = readFileSync('public/js/esc.js', 'utf8'), mj3 = readFileSync('public/js/main.js', 'utf8');
+  ok(/initEsc\(\)/.test(mj3) && /markRoute\(\);/.test(mj3) && /addEventListener\('keydown'[\s\S]*, true\)/.test(es) && /\.modal-bg:not\(\.out\)/.test(es) && /history\.back\(\)/.test(es) && /#\/dashboard/.test(es), 'esc: modal yopadi, panellarga tegmaydi, aks holda ilova ichida orqaga'); }
 // Eski brauzerlar (color-mix yo‘q): compat.js hamma sahifada uslublardan keyin ulanadi va CSS ni CSSOM orqali tuzatadi
 { const cj = readFileSync(new URL('../public/js/compat.js', import.meta.url), 'utf8');
   for (const f of ['app', 'admin', 'landing', 'unsub', 'reset']) { const h = readFileSync(new URL(`../public/${f}.html`, import.meta.url), 'utf8'), i = h.indexOf('<script src="/js/compat.js"></script>'), last = h.lastIndexOf('rel="stylesheet"');
