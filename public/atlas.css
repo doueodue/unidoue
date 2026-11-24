@@ -431,6 +431,20 @@ a.nt:hover,a.nt:focus-visible{background:color-mix(in srgb,var(--brand) 8%,trans
 @media(prefers-reduced-motion:reduce){.bell:hover svg{animation:none}}
 @media(max-width:760px){.bell{width:36px;height:36px}}
 @media(max-width:560px){.top h1{display:none}.top-tools{gap:6px}.top{gap:8px}}
+/* Telefon: tepa panel siqilmasin — til tugmasi faqat joriy tilni ko‘rsatadi, bosilsa qolganlari pastga ochiladi */
+@media(max-width:480px){
+  .top .lang-seg{display:flex;flex-direction:column;height:34px;padding:0;background:none;box-shadow:none;overflow:visible;z-index:5}
+  .top .lang-seg .lang-pill{display:none}
+  .top .lang-seg .lang-opt{display:none;min-width:44px;height:34px;padding:0 10px;border-radius:99px;font-size:12px}
+  .top .lang-seg .lang-opt[aria-pressed=true]{display:block;order:-1;background:var(--brand);color:#fff;box-shadow:0 4px 12px -4px var(--brand),inset 0 1px 0 rgba(255,255,255,.3)}
+  .top .lang-seg .lang-opt[aria-pressed=true]::after{content:"";display:inline-block;width:5px;height:5px;margin:0 0 2px 5px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(45deg);transition:transform .2s;opacity:.85}
+  .top .lang-seg.open .lang-opt[aria-pressed=true]::after{transform:rotate(225deg);margin-bottom:-1px}
+  .top .lang-seg.open .lang-opt{display:block;margin-top:6px;flex:none;background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line-2),0 10px 24px -10px rgba(0,0,0,.35);animation:lgIn .18s ease both}
+  .top .lang-seg.open .lang-opt[aria-pressed=true]{margin-top:0;animation:none;background:var(--brand);color:#fff;box-shadow:0 4px 12px -4px var(--brand),inset 0 1px 0 rgba(255,255,255,.3)}
+  .top{gap:6px}.top-tools{gap:6px}
+}
+@media(max-width:360px){.bell{width:34px;height:34px}.top,html[data-season] .top{padding:0 10px}.top .burger{width:36px;height:36px}}
+@keyframes lgIn{from{opacity:0;transform:translateY(-4px)}}
 
 /* ---- Profil rasmi (avatar) ---- */
 .sf-av,.pp-av{overflow:hidden}

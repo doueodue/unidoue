@@ -90,5 +90,13 @@ export function langSelect(id = 'lang') {
 export function bindLang(id, onChange) {
   const box = document.getElementById(id); if (!box) return;
   const to = box.dataset.to; if (box.style.getPropertyValue('--i') !== to) requestAnimationFrame(() => requestAnimationFrame(() => box.style.setProperty('--i', to)));
-  box.addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (!b || b.dataset.l === cur) return; setLang(b.dataset.l); onChange(b.dataset.l); });
+  /* Tor ekranda (telefon) faqat joriy til ko‘rinadi: bosilsa qolgan tillar pastga ochiladi */
+  const narrow = () => !!box.closest('.top') && window.matchMedia && matchMedia('(max-width:480px)').matches;
+  const shut = () => { box.classList.remove('open'); box.querySelector('[aria-pressed=true]')?.setAttribute('aria-expanded', 'false'); };
+  box.addEventListener('click', e => {
+    const b = e.target.closest('[data-l]'); if (!b) return;
+    if (b.dataset.l === cur) { if (narrow()) { const o = box.classList.toggle('open'); b.setAttribute('aria-expanded', String(o)); if (o) setTimeout(() => document.addEventListener('click', function off(ev) { if (!box.contains(ev.target)) shut(); if (!box.classList.contains('open') || !box.contains(ev.target)) document.removeEventListener('click', off); }), 0); } return; }
+    shut(); setLang(b.dataset.l); onChange(b.dataset.l);
+  });
+  box.addEventListener('keydown', e => { if (e.key === 'Escape' && box.classList.contains('open')) { e.stopPropagation(); shut(); box.querySelector('[aria-pressed=true]')?.focus(); } });
 }
