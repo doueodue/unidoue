@@ -295,6 +295,7 @@ ok(/from '\.\/tiers\.js'/.test(lpj) && /crownHTML/.test(lpj) && /liveGlass/.test
   { const pj = readFileSync(new URL('../public/js/portfolio.js', import.meta.url), 'utf8'), wc = readFileSync(new URL('../public/js/pfwebcss.js', import.meta.url), 'utf8');
     ok(/d\.body\.className = n\.body\.className/.test(pj) && /link\[rel=stylesheet\]/.test(pj), 'portfolio: A4 ko‘rinish yangilanganda body klassi (t-*, b-*) va shrift havolasi almashadi (hamma shablon bir xil chiqmasin)');
     ok(/\.t-rail \.hero \.hx,\.t-rail \.hero \.pw\{translate:none\}/.test(wc), 'yon panel: parallaks rasm va ismni bir-biriga surmaydi'); }
+  ok(/function replyDlg/.test(adj) && /\/api\/admin\/reply/.test(adj) && /data-fr=/.test(adj) && /data-rr=/.test(adj) && /\.modal\.rp\{/.test(readFileSync(new URL('../public/admin.css', import.meta.url), 'utf8')) && /\.req-h\{[^}]*flex-wrap:wrap/.test(readFileSync(new URL('../public/admin.css', import.meta.url), 'utf8')), 'admin: javob yozish oynasi (fikr va soʻrovlar), kartalar telefonda sigʻadi');
   ok(/id="v-feedback"/.test(adh) && /data-v="feedback"/.test(adh) && /renderFeedback/.test(adj) && /\/api\/admin\/feedback/.test(adj), 'admin: Fikrlar sahifasi');
 }
 console.log(`pf: ${n} checks, ${process.exitCode ? 'FAILED' : 'ok'}`);

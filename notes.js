@@ -76,4 +76,17 @@ function mailHtml({ title, body, link, unsub }) {
 </table></td></tr></table></body></html>`;
 }
 
-module.exports = { LIMITS, AUDS, check, seenOf, visible, unread, list, add, remove, sig, sigOk, mailHtml, URL_RE };
+/** Administrator javobi: oddiy shaxsiy xat ko'rinishida (tugmasiz, bekor qilish havolasiz). quote — foydalanuvchining oldingi xabari. */
+function replyHtml({ body, quote, replyable }) {
+  const para = String(body).split(/\n{2,}/).map(x => `<p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#2b2620">${esc(x).replace(/\n/g, '<br>')}</p>`).join('');
+  const q = quote ? `<div style="margin-top:20px;padding:10px 14px;border-left:3px solid #e0d6c8;color:#8a8175;font-size:13px;line-height:1.55">${esc(String(quote).slice(0, 600)).replace(/\n/g, '<br>')}</div>` : '';
+  return `<!doctype html><html><body style="margin:0;background:#f4f1ec;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;color:#1d1a16">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #e8e1d8;border-radius:14px">
+<tr><td style="padding:18px 24px;border-bottom:1px solid #eee5da;font:700 17px Georgia,serif;color:#c2521b">✦ UniDoue</td></tr>
+<tr><td style="padding:24px">${para}${q}</td></tr>
+<tr><td style="padding:14px 24px;background:#faf7f2;border-radius:0 0 14px 14px;font-size:12px;line-height:1.5;color:#8a8175">${replyable ? 'Javob yozmoqchi bo‘lsangiz, shu xatga javob qaytaring.' : 'Bu xat UniDoue jamoasidan, sizning xabaringizga javob sifatida yuborildi.'}</td></tr>
+</table></td></tr></table></body></html>`;
+}
+
+module.exports = { LIMITS, AUDS, check, seenOf, visible, unread, list, add, remove, sig, sigOk, mailHtml, replyHtml, URL_RE };

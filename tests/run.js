@@ -31,7 +31,7 @@ class Client {
   const ai = await mock((q, b, r) => { aiLast = JSON.parse(b); if (aiMode === 'fail') { r.statusCode = 500; return r.end('{"error":{"type":"x"}}'); } r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ content: [{ type: 'text', text: 'Test javobi' }] })); });
   const mail = await mock((q, b, r) => { mails.push(JSON.parse(b)); r.setHeader('content-type', 'application/json'); r.end('{"id":"1"}'); });
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-'));
-  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', REG_RATE_MAX: '30', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, REQUIRE_EMAIL_VERIFY: '0', MAIL_BULK_MAX: '3', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
+  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', MAIL_REPLY_TO: 'help@unidoue.uz', REG_RATE_MAX: '30', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, REQUIRE_EMAIL_VERIFY: '0', MAIL_BULK_MAX: '3', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
   for (let i = 0; i < 40; i++) { try { if ((await fetch(B + '/healthz')).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
   const PROFILE = { gpa: 4.6, sc: 5, sat: 1480, ielts: 7, ex: 2 };
   try {
@@ -397,6 +397,26 @@ class Client {
       r = await new Client().call('POST', '/api/admin/feedback/set', { id: 'yoq', status: 'done' }, AD); ok(r.s === 404, 'fikr: mavjud boʻlmagan xabar — 404', r.s);
       r = await new Client().call('POST', '/api/admin/feedback/set', { id: fb.id, status: 'done' }, AD); ok(r.s === 200, 'fikr: bajarildi deb belgilandi', r.s);
       r = await new Client().call('GET', '/api/admin/feedback', null, AD); ok(r.j.items.find(x => x.id === fb.id).status === 'done', 'fikr: holat saqlandi');
+      // administrator panelidan javob xati
+      {
+        const RP = (b, h) => new Client().call('POST', '/api/admin/reply', b, h === undefined ? AD : h);
+        r = await RP({ kind: 'feedback', id: fb.id, body: 'Salom' }, null); ok(r.s === 401, 'javob: tokensiz yuborib boʻlmaydi', r.s);
+        r = await RP({ kind: 'feedback', id: 'yoq', body: 'Salom, rahmat' }); ok(r.s === 404, 'javob: mavjud boʻlmagan xabar — 404', r.s);
+        r = await RP({ kind: 'zzz', id: fb.id, body: 'Salom, rahmat' }); ok(r.s === 404, 'javob: notoʻgʻri tur — 404', r.s);
+        r = await RP({ kind: 'feedback', id: fb.id, body: ' ' }); ok(r.s === 400, 'javob: boʻsh matn rad etiladi', r.s);
+        mails.length = 0;
+        r = await RP({ kind: 'feedback', id: fb.id, to: 'boshqa@evil.example', subject: 'UniDoue: xato haqida', body: 'Salom!\n\nMuammo <b>tuzatildi</b>.\n\nHurmat bilan', done: true });
+        const rm = mails[mails.length - 1] || {};
+        ok(r.s === 200 && r.j.ok && r.j.replies.length === 1 && r.j.status === 'done', 'javob: fikrga javob yuborildi, “bajarildi” belgilandi', r.j);
+        ok(mails.length === 1 && rm.to[0] === fe && rm.subject === 'UniDoue: xato haqida' && rm.reply_to === 'help@unidoue.uz', 'javob: faqat xabar egasiga ketadi (boshqa manzil eʼtiborsiz), mavzu va Reply-To toʻgʻri', rm);
+        ok(rm.html.includes('Muammo &lt;b&gt;tuzatildi&lt;/b&gt;.') && !rm.html.includes('<b>tuzatildi') && rm.html.includes('Tugma ishlamayapti') && /Muammo/.test(rm.text), 'javob: matn xavfsiz (HTML qochiriladi), foydalanuvchi xabari iqtibos qilinadi', rm.html && rm.html.slice(0, 200));
+        r = await new Client().call('GET', '/api/admin/feedback', null, AD); const fb2 = r.j.items.find(x => x.id === fb.id);
+        ok(fb2.status === 'done' && fb2.replies.length === 1 && fb2.replies[0].subject === 'UniDoue: xato haqida', 'javob: admin roʻyxatida “javob berilgan” belgisi saqlandi', fb2);
+        r = await f.call('POST', '/api/plan/request', { plan: 'plus' }); r = await new Client().call('GET', '/api/admin/requests', null, AD); const rq = r.j.requests.find(x => x.email === fe);
+        mails.length = 0; r = await RP({ kind: 'request', id: rq.id, subject: 'UniDoue: Plus haqida', body: 'Plus yoqildi, rahmat.' });
+        ok(r.s === 200 && mails.length === 1 && mails[0].to[0] === fe && mails[0].subject === 'UniDoue: Plus haqida', 'javob: tarif soʻroviga javob yuborildi', r.j);
+        r = await new Client().call('GET', '/api/admin/requests', null, AD); ok(r.j.requests.find(x => x.id === rq.id).replies.length === 1, 'javob: soʻrovda “javob berilgan” saqlandi');
+      }
       r = await new Client().call('POST', '/api/admin/feedback/delete', { id: fi.id }, AD); ok(r.s === 200, 'fikr: admin oʻchirdi', r.s);
       r = await new Client().call('POST', '/api/admin/feedback/delete', { id: fi.id }, AD); ok(r.s === 404, 'fikr: ikkinchi oʻchirish — 404', r.s);
       // ekran rasmlari

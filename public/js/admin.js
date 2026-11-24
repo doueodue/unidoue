@@ -60,6 +60,37 @@ function ask({ title, text, ok = 'Tasdiqlash', danger = false }) {
   });
 }
 
+/* Foydalanuvchiga javob xati yozish oynasi. Natija: server javobi ({ ok, replies, status }) yoki null (bekor). */
+function replyDlg({ kind, id, name, to, subject, quote, done }) {
+  return new Promise(res => {
+    const bg = document.createElement('div'); bg.className = 'modal-bg';
+    const hi = 'Salom' + (name ? ', ' + String(name).split(' ')[0] : '') + '!', sign = '\n\n\n\nHurmat bilan,\nUniDoue jamoasi', ini = hi + '\n\n' + sign.trimStart();
+    bg.innerHTML = `<div class="modal rp" role="dialog" aria-modal="true" aria-labelledby="rp-t"><h3 id="rp-t">${svg(IC.mail)}Javob yozish</h3>
+      <div class="rp-to"><span>Kimga</span><b>${esc(to)}</b></div>
+      <label class="rp-l" for="rp-s">Mavzu</label><input id="rp-s" type="text" maxlength="150" value="${esc(subject)}" autocomplete="off">
+      <label class="rp-l" for="rp-b">Javob matni</label><textarea id="rp-b" rows="8" maxlength="5000" placeholder="Javobingizni yozing…"></textarea>
+      ${quote ? `<details class="rp-q"><summary>Foydalanuvchining xabari (xatga iqtibos qilinadi)</summary><div>${esc(quote)}</div></details>` : ''}
+      ${kind === 'feedback' && !done ? '<label class="rp-ck"><input type="checkbox" id="rp-d" checked><span>Yuborgach «Bajarildi» deb belgilash</span></label>' : ''}
+      <div class="msg" id="rp-m" role="alert"></div>
+      <div class="acts"><button class="btn" type="button" data-x>Bekor</button><button class="btn primary" type="button" data-ok>Yuborish</button></div></div>`;
+    const prev = document.activeElement, ta = $('#rp-b', bg), sj = $('#rp-s', bg), msg = $('#rp-m', bg), okb = $('[data-ok]', bg), xb = $('[data-x]', bg);
+    ta.value = ini; let busy = false; ta.addEventListener('input', () => { if (msg.textContent) { msg.className = 'msg'; msg.textContent = ''; } });
+    const out = v => { document.removeEventListener('keydown', key, true); bg.classList.add('out'); setTimeout(() => bg.remove(), 220); if (prev && prev.focus) try { prev.focus(); } catch (e) {} res(v); };
+    const close = async () => { if (busy) return; if (ta.value.trim() !== ini.trim() && ta.value.trim().length > 12 && !await ask({ title: 'Javob yuborilmadi', text: 'Yozganingiz yo‘qoladi. Yopasizmi?', ok: 'Yopish', danger: true })) return ta.focus(); out(null); };
+    const send = async () => {
+      if (busy) return; const body = ta.value.trim();
+      if (body.length < 2) { msg.className = 'msg err'; msg.textContent = 'Javob matnini yozing.'; return ta.focus(); }
+      busy = true; okb.disabled = true; okb.textContent = 'Yuborilmoqda…'; xb.disabled = true; msg.className = 'msg'; msg.textContent = '';
+      try { const d = $('#rp-d', bg); const r = await call('POST', '/api/admin/reply', { kind, id, subject: sj.value, body, done: !!(d && d.checked) }); out(r); }
+      catch (e) { busy = false; okb.disabled = false; okb.textContent = 'Qayta yuborish'; xb.disabled = false; msg.className = 'msg err'; msg.textContent = e.message; }
+    };
+    const key = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); send(); } };
+    bg.addEventListener('pointerdown', e => { if (e.target === bg) close(); });
+    xb.onclick = close; okb.onclick = send; document.addEventListener('keydown', key, true); document.body.appendChild(bg); ta.focus(); ta.setSelectionRange(hi.length + 2, hi.length + 2);
+  });
+}
+const replied = r => (r.replies && r.replies.length ? `<span class="badge ok" title="${esc(r.replies.map(x => when(x.ts)).join(', '))}">Javob yuborilgan${r.replies.length > 1 ? ' ×' + r.replies.length : ''}</span>` : '');
+
 /* ---------- holat ---------- */
 let USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all', ULIM = 100, loadedAt = 0;
 const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
@@ -86,7 +117,7 @@ function renderOverview(st) {
   if (st.proExpiring) warn.push(`<div class="notice">${svg(IC.clock)}<div><b>${st.proExpiring} ta pullik tarif 7 kun ichida tugaydi.</b> <a href="#users">Foydalanuvchilar →</a></div></div>`);
   const cfg = [!st.mail && 'Xat yuborish ulanmagan (tasdiqlash va parol tiklash ishlamaydi)', !st.ai && 'AI ulanmagan', st.mail && !st.verifyOn && 'Email tasdiqlash o‘chiq', !st.payCard && 'PAY_CARD sozlanmagan (karta raqami ko‘rinmaydi)'].filter(Boolean);
   if (cfg.length) warn.push(`<div class="notice info">${svg(IC.info)}<div><b>Sozlash kerak:</b><br>${cfg.map(esc).join('<br>')}</div></div>`);
-  if (st.mail && st.mailLast && !st.mailLast.ok) warn.push(`<div class="notice">${svg(IC.warn)}<div><b>Oxirgi xat yuborilmadi (${esc({ reset: 'parol tiklash', verify: 'tasdiqlash kodi', test: 'sinov', mail: 'xabar' }[st.mailLast.kind] || 'xat')}).</b><br>${esc(st.mailLast.err)}${st.mailLast.hint ? `<br><b>Nima qilish kerak:</b> ${esc(st.mailLast.hint)}` : ''}</div></div>`);
+  if (st.mail && st.mailLast && !st.mailLast.ok) warn.push(`<div class="notice">${svg(IC.warn)}<div><b>Oxirgi xat yuborilmadi (${esc({ reset: 'parol tiklash', verify: 'tasdiqlash kodi', test: 'sinov', mail: 'xabar', reply: 'javob' }[st.mailLast.kind] || 'xat')}).</b><br>${esc(st.mailLast.err)}${st.mailLast.hint ? `<br><b>Nima qilish kerak:</b> ${esc(st.mailLast.hint)}` : ''}</div></div>`);
   if (st.mailSandbox) warn.push(`<div class="notice">${svg(IC.warn)}<div><b>MAIL_FROM sinov manzilida (resend.dev).</b> Bu holatda Resend xatni faqat o‘z hisobingiz emailiga yuboradi, boshqa foydalanuvchilarga parol tiklash xati bormaydi. Domeningizni Resend’da tasdiqlang yoki Brevo’dan foydalaning.</div></div>`);
   if (st.mail) warn.push(`<div class="notice info">${svg(IC.mail)}<div><b>Email yuborish:</b> ${st.mailOk || 0} ta yuborilgan, ${st.mailFail || 0} ta xato (server ishga tushganidan beri).<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><input id="mt-to" type="email" placeholder="Sinov xati manzili" maxlength="254" style="flex:1;min-width:200px"><button class="btn sm" id="mt-go" type="button">Sinov xatini yuborish</button></div><small id="mt-r" style="display:block;margin-top:6px"></small></div></div>`);
   $('#alerts').innerHTML = warn.length ? `<div class="al">${warn.join('')}</div>` : '';
@@ -189,15 +220,20 @@ function renderFeedback() {
   $('#fl').innerHTML = list.length ? list.map(f => { const [tl, tone] = FB_T[f.type] || ['Xabar', 'mute'], u = byEmail.get(f.email), done = f.status === 'done', dev = [deviceOf(f.ua), f.vp, f.theme === 'dark' ? 'qorong‘i' : f.theme === 'light' ? 'yorug‘' : '', f.lang && f.lang.toUpperCase()].filter(Boolean).join(' · ');
     const mail = `mailto:${encodeURIComponent(f.email)}?subject=${encodeURIComponent('UniDoue: ' + tl.toLowerCase() + ' haqida')}&body=${encodeURIComponent('Salom, ' + (f.name || '') + '!\n\n\n— Sizning xabaringiz:\n' + f.text.split('\n').map(x => '> ' + x).join('\n'))}`;
     return `<article class="card req fbc${done ? ' done' : ''}" data-ty="${esc(f.type)}">
-    <div class="req-h">${avatar(f.name)}<div><b>${esc(f.name)}</b><small>${esc(rel(f.ts))} · ${esc(when(f.ts))}</small></div><span class="badge ${tone}">${esc(tl)}</span>${u ? `<span class="pb ${eff(u)}">${planName(eff(u))}</span>` : ''}${done ? '<span class="badge ok">bajarilgan</span>' : ''}</div>
+    <div class="req-h">${avatar(f.name)}<div><b>${esc(f.name)}</b><small>${esc(rel(f.ts))} · ${esc(when(f.ts))}</small></div><span class="badge ${tone}">${esc(tl)}</span>${u ? `<span class="pb ${eff(u)}">${planName(eff(u))}</span>` : ''}${done ? '<span class="badge ok">bajarilgan</span>' : ''}${replied(f)}</div>
     <div class="req-meta"><span>${esc(f.email)}</span>${f.page ? `<span>· sahifa: <code>${esc(f.page)}</code></span>` : ''}</div>
     <div class="req-m">${esc(f.text)}</div>
     ${f.ni ? `<div class="fbc-i">${Array.from({ length: f.ni }, (_, n) => `<button type="button" class="fbc-t" data-fi="${esc(f.id)}" data-n="${n}" aria-label="Rasmni kattalashtirish ${n + 1}"><span class="fbc-ld"></span></button>`).join('')}</div>` : ''}
     ${dev ? `<div class="fbc-d">${esc(dev)}</div>` : ''}
-    <div class="req-a"><button class="btn sm${done ? '' : ' primary'}" type="button" data-fs="${esc(f.id)}" data-st="${done ? 'new' : 'done'}">${done ? 'Qayta ochish' : 'Bajarildi'}</button><a class="btn sm" href="${mail}">Email orqali javob</a><button class="btn sm danger" type="button" data-fd="${esc(f.id)}">O‘chirish</button></div></article>`; }).join('')
+    <div class="req-a"><button class="btn sm${done ? '' : ' primary'}" type="button" data-fs="${esc(f.id)}" data-st="${done ? 'new' : 'done'}">${done ? 'Qayta ochish' : 'Bajarildi'}</button>${STATS && STATS.mail ? `<button class="btn sm" type="button" data-fr="${esc(f.id)}">${svg(IC.mail)}Javob yozish</button>` : `<a class="btn sm" href="${mail}" title="Xat yuborish serverda ulanmagan: pochta ilovangizda ochiladi">Email orqali javob</a>`}<button class="btn sm danger" type="button" data-fd="${esc(f.id)}">O‘chirish</button></div></article>`; }).join('')
     : emptyBox('inbox', all.length ? 'Bu filtrda xabar yo‘q' : 'Hali fikr yo‘q', all.length ? 'Filtrni o‘zgartirib ko‘ring.' : 'Foydalanuvchilar sarlavhadagi tugma orqali yuborgan xabarlar shu yerda paydo bo‘ladi.');
   $$('#fl [data-fi]').forEach(b => fbThumb(b));
   $$('#fl [data-fs]').forEach(b => (b.onclick = async () => { b.disabled = true; try { await call('POST', '/api/admin/feedback/set', { id: b.dataset.fs, status: b.dataset.st }); const f = all.find(x => x.id === b.dataset.fs); if (f) f.status = b.dataset.st; if (STATS) STATS.fbNew = all.filter(x => x.status !== 'done').length; renderFeedback(); renderOverview(STATS); } catch (e) { toast(e.message, 'err'); b.disabled = false; } }));
+  $$('#fl [data-fr]').forEach(b => (b.onclick = async () => {
+    const f = all.find(x => x.id === b.dataset.fr); if (!f) return; const tl = (FB_T[f.type] || ['Xabar'])[0];
+    const r = await replyDlg({ kind: 'feedback', id: f.id, name: f.name, to: f.email, subject: 'UniDoue: ' + tl.toLowerCase() + ' haqida', quote: f.text, done: f.status === 'done' });
+    if (!r) return; f.replies = r.replies; if (r.status) f.status = r.status; if (STATS) STATS.fbNew = all.filter(x => x.status !== 'done').length; toast('Javob yuborildi'); renderFeedback(); renderOverview(STATS);
+  }));
   $$('#fl [data-fd]').forEach(b => (b.onclick = async () => { if (!await ask({ title: 'Xabarni o‘chirasizmi?', text: 'Qaytarib bo‘lmaydi.', ok: 'O‘chirish', danger: true })) return; try { await call('POST', '/api/admin/feedback/delete', { id: b.dataset.fd }); FBK.items = all.filter(x => x.id !== b.dataset.fd); FBK.total--; if (STATS) STATS.fbNew = FBK.items.filter(x => x.status !== 'done').length; renderFeedback(); renderOverview(STATS); toast('O‘chirildi'); } catch (e) { toast(e.message, 'err'); } }));
 }
 const emptyBox = (ic, t, s) => `<div class="empty">${svg(IC[ic])}<b>${t}</b><span>${s || ''}</span></div>`;
@@ -206,9 +242,14 @@ function renderRequests() {
   const byEmail = new Map(USERS.map(u => [u.email, u]));
   $('#rl').innerHTML = reqs.length ? reqs.map(r => { const u = r.email && byEmail.get(r.email); return `<article class="card req">
     <div class="req-h">${avatar(r.name)}<div><b>${esc(r.name)}</b><small>${esc(rel(r.ts))} · ${esc(when(r.ts))}</small></div>${u ? `<span class="pb ${eff(u)}">${planName(eff(u))}</span>` : ''}</div>
-    <div class="req-meta"><span class="badge">${esc(r.service)}</span><span>${esc(r.contact)}</span>${r.email ? `<span>· hisob: ${esc(r.email)}</span>` : ''}</div>
+    <div class="req-meta"><span class="badge">${esc(r.service)}</span><span>${esc(r.contact)}</span>${r.email ? `<span>· hisob: ${esc(r.email)}</span>` : ''}${replied(r)}</div>
     ${r.message ? `<div class="req-m">${esc(r.message)}</div>` : ''}
-    ${r.email ? `<div class="req-a">${['plus', 'pro', 'free'].map(p => `<button class="btn sm${p === 'free' ? '' : ' primary'}" type="button" data-e="${esc(r.email)}" data-p="${p}">${p === 'free' ? 'Free ga qaytarish' : planName(p) + ' · 30 kun'}</button>`).join('')}</div>` : '<div class="hint">Hisob emaili ko‘rsatilmagan — tarifni qo‘lda bering.</div>'}</article>`; }).join('') : emptyBox('inbox', 'Hali so‘rov yo‘q', 'Yangi so‘rovlar shu yerda paydo bo‘ladi.');
+    ${r.email ? `<div class="req-a">${['plus', 'pro', 'free'].map(p => `<button class="btn sm${p === 'free' ? '' : ' primary'}" type="button" data-e="${esc(r.email)}" data-p="${p}">${p === 'free' ? 'Free ga qaytarish' : planName(p) + ' · 30 kun'}</button>`).join('')}${r.email && r.id && STATS && STATS.mail ? `<button class="btn sm" type="button" data-rr="${esc(r.id)}">${svg(IC.mail)}Javob yozish</button>` : ''}</div>` : '<div class="hint">Hisob emaili ko‘rsatilmagan — tarifni qo‘lda bering.</div>'}</article>`; }).join('') : emptyBox('inbox', 'Hali so‘rov yo‘q', 'Yangi so‘rovlar shu yerda paydo bo‘ladi.');
+  $$('#rl [data-rr]').forEach(b => (b.onclick = async () => {
+    const r = REQS.find(x => x.id === b.dataset.rr); if (!r) return;
+    const x = await replyDlg({ kind: 'request', id: r.id, name: r.name, to: r.email, subject: 'UniDoue: ' + r.service.toLowerCase() + ' haqida', quote: r.message });
+    if (!x) return; r.replies = x.replies; toast('Javob yuborildi'); renderRequests();
+  }));
   $$('#rl [data-e]').forEach(b => (b.onclick = async () => {
     const free = b.dataset.p === 'free';
     if (await ask({ title: free ? 'Tarifni qaytarasizmi?' : `${planName(b.dataset.p)} berilsinmi?`, text: `${b.dataset.e} ${free ? 'Free tarifga o‘tadi.' : `uchun ${planName(b.dataset.p)} tarifi 30 kunga yoqiladi.`}`, ok: free ? 'Qaytarish' : 'Berish', danger: free })) give(b.dataset.e, b.dataset.p, 30);

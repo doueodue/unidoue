@@ -9,6 +9,7 @@
  * Muhit o'zgaruvchilari:
  *  PORT, HOST, DATA_DIR            — port, interfeys, ma'lumotlar papkasi
  *  BREVO_API_KEY                   — (ixtiyoriy) Brevo orqali xat yuborish (domensiz); MAIL_FROM = tasdiqlangan joʻnatuvchi
+ *  MAIL_REPLY_TO                   — (ixtiyoriy) administrator javob xatlarining Reply-To manzili (o‘zingizning pochtangiz)
   *  APP_URL                         — (ixtiyoriy) asosiy domen, masalan https://unidoue.uz: parol xati havolasi shu bilan boshlanadi, eski *.onrender.com shunga yoʻnaltiriladi
  *  DATABASE_URL                    — (ixtiyoriy) Neon Postgres ulanish manzili: hisoblar server qayta ishga tushsa ham saqlanadi
  *  COOKIE_SECURE=1                 — cookie faqat HTTPS (productionda yoqing)
@@ -139,6 +140,7 @@ const BREVO_KEY = process.env.BREVO_API_KEY || '';
 const BREVO_URL = process.env.BREVO_URL || 'https://api.brevo.com/v3/smtp/email';
 const MAIL_PROVIDER = RESEND_KEY ? 'resend' : (BREVO_KEY ? 'brevo' : '');
 const MAIL_FROM = process.env.MAIL_FROM || 'UniDoue <onboarding@resend.dev>';
+const MAIL_REPLY_TO = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test((process.env.MAIL_REPLY_TO || '').trim()) ? process.env.MAIL_REPLY_TO.trim() : ''; // ixtiyoriy: foydalanuvchi administrator javobiga javob yozsa, shu manzilga boradi
 // Xat yuborish: Resend yoki Brevo (domen talab qilmaydi — faqat tasdiqlangan joʻnatuvchi email)
 const MAILSTAT = { ok: 0, fail: 0, last: null };
 const toText = h => String(h).replace(/<br\s*\/?>|<\/p>|<\/h\d>|<\/li>|<\/tr>/gi, '\n').replace(/<a [^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, '$2 ($1)').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\n{3,}/g, '\n\n').trim();
@@ -152,15 +154,15 @@ function mailHint(err) {
   if (/timeout|aborted|ENOTFOUND|ECONN/i.test(e)) return 'Xat xizmatiga ulanib bo‘lmadi (tarmoq yoki vaqt tugashi).';
   return '';
 }
-async function sendMail(to, subject, html, kind = 'mail') {
+async function sendMail(to, subject, html, kind = 'mail', replyTo = '') {
   const text = toText(html);
   try {
     let r;
     if (MAIL_PROVIDER === 'resend') {
-      r = await fetch(MAIL_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: MAIL_FROM, to: [to], subject, html, text }), signal: AbortSignal.timeout(15000) });
+      r = await fetch(MAIL_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: MAIL_FROM, to: [to], subject, html, text, ...(replyTo ? { reply_to: replyTo } : {}) }), signal: AbortSignal.timeout(15000) });
     } else {
       const m = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(MAIL_FROM), sender = m ? { name: m[1] || 'UniDoue', email: m[2] } : { name: 'UniDoue', email: MAIL_FROM.trim() };
-      r = await fetch(BREVO_URL, { method: 'POST', headers: { 'api-key': BREVO_KEY, 'Content-Type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ sender, to: [{ email: to }], subject, htmlContent: html, textContent: text }), signal: AbortSignal.timeout(15000) });
+      r = await fetch(BREVO_URL, { method: 'POST', headers: { 'api-key': BREVO_KEY, 'Content-Type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ sender, to: [{ email: to }], subject, htmlContent: html, textContent: text, ...(replyTo ? { replyTo: { email: replyTo } } : {}) }), signal: AbortSignal.timeout(15000) });
     }
     if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(MAIL_PROVIDER + ' ' + r.status + ' ' + t.slice(0, 200)); }
     MAILSTAT.ok++; MAILSTAT.last = { at: Date.now(), ok: true, kind };
@@ -1012,6 +1014,23 @@ async function api(req, res, pathname) {
     return send(res, 200, { ok: true, email: u.email });
   }
 
+  /* administrator panelidan foydalanuvchiga javob xati: faqat o'sha xabar (fikr yoki so'rov) egasining emailiga ketadi */
+  if (pathname === '/api/admin/reply' && method === 'POST') {
+    if (!admGate(req, res, ip, 'reply', 40)) return;
+    if (!MAIL_PROVIDER) return fail(res, 400, 'Xat yuborish ulanmagan: serverda RESEND_API_KEY yoki BREVO_API_KEY kerak.');
+    const b = await readJson(req), item = b.kind === 'feedback' ? db.feedback.find(x => x.id === String(b.id || '')) : b.kind === 'request' ? db.requests.find(x => x.id === String(b.id || '')) : null;
+    if (!item) return fail(res, 404, 'Xabar topilmadi.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item.email || '')) return fail(res, 400, 'Bu xabar egasining emaili yo‘q.');
+    const subject = clean(b.subject, 150) || 'UniDoue: javob', body = String(b.body || '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ' ').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 5000);
+    if (body.length < 2) return fail(res, 400, 'Javob matnini yozing.');
+    const quote = String(item.text || item.message || '').split('\n').slice(0, 12).join('\n');
+    try { await sendMail(item.email, subject, NOTES.replyHtml({ body, quote, replyable: !!MAIL_REPLY_TO }), 'reply', MAIL_REPLY_TO); }
+    catch (e) { return fail(res, 502, 'Xat yuborilmadi: ' + (mailHint(e.message) || String(e.message).slice(0, 160))); }
+    item.replies = [...(item.replies || []), { ts: new Date().toISOString(), subject }].slice(-20);
+    if (b.kind === 'feedback' && b.done === true) item.status = 'done';
+    save();
+    return send(res, 200, { ok: true, replies: item.replies, status: item.status || '' });
+  }
   if (pathname === '/api/admin/feedback' && method === 'GET') {
     if (!admGate(req, res, ip, 'feedback', 300)) return;
     return send(res, 200, { items: db.feedback.slice(-500).reverse().map(({ imgs, ...f }) => ({ ...f, ni: imgs ? imgs.length : 0 })), total: db.feedback.length });

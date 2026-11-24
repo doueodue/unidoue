@@ -124,8 +124,9 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 /* ---------- so‘rovlar ---------- */
 .req-list{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))}
 .req{display:flex;flex-direction:column;gap:10px}
-.req-h{display:flex;gap:12px;align-items:center}
-.req-h>div{min-width:0;flex:1}
+.req-h{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap}
+.req-h>div{min-width:0;flex:1 1 150px}
+.req-h>.badge,.req-h>.pb{flex:none}
 .req-h b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .req-h small{color:var(--muted)}
 .av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:650;font-size:15px;background:linear-gradient(135deg,var(--a),var(--b))}
@@ -301,3 +302,26 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .fb-lb-a{display:flex;gap:10px}.fb-lb-a a{text-decoration:none}
 @keyframes fb-in{from{opacity:0}}
 @media(prefers-reduced-motion:reduce){.fbc-ld,.fb-lb{animation:none}}
+
+/* ---------- javob yozish oynasi ---------- */
+.modal.rp{max-width:580px;display:flex;flex-direction:column;gap:6px;max-height:calc(100dvh - 36px);overflow:auto}
+.modal.rp h3{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.modal.rp h3 svg{width:22px;height:22px;flex:none;fill:none;stroke:var(--brand);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.rp-to{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 13px;border-radius:11px;background:color-mix(in srgb,var(--ink) 5%,var(--surface));border:1px solid var(--line)}
+.rp-to span{font-size:12.5px;color:var(--muted)}.rp-to b{font-size:14px;overflow-wrap:anywhere}
+.rp-l{margin-top:8px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.modal.rp input[type=text]{width:100%;background:var(--surface);border:1px solid var(--line-2);border-radius:11px;padding:10px 13px;font:inherit}
+.modal.rp input[type=text]:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 4px rgba(53,88,255,.14)}
+.modal.rp textarea{min-height:170px;font:inherit;line-height:1.55}
+.rp-q{margin-top:8px;border:1px solid var(--line);border-radius:11px;background:color-mix(in srgb,var(--ink) 3%,transparent)}
+.rp-q summary{cursor:pointer;padding:9px 13px;font-size:13px;color:var(--muted);list-style:none;display:flex;align-items:center;gap:8px}
+.rp-q summary::-webkit-details-marker{display:none}.rp-q summary::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .18s}
+.rp-q[open] summary::before{transform:rotate(45deg)}
+.rp-q summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:10px}
+.rp-q div{padding:0 13px 12px;font-size:13px;line-height:1.55;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;max-height:150px;overflow:auto;border-left:3px solid var(--line-2);margin:0 13px 12px;padding:2px 0 2px 11px}
+.rp-ck{display:flex;align-items:center;gap:9px;margin-top:8px;font-size:13.5px;cursor:pointer}
+.rp-ck input{width:17px;height:17px;accent-color:var(--brand);flex:none}
+.modal.rp .msg{margin:6px 0 0}.modal.rp .msg:empty{display:none}
+.modal.rp .acts{margin-top:12px}
+.req-a .btn svg,.modal.rp .btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;margin-right:6px;vertical-align:-3px}
+@media(max-width:520px){.modal.rp{padding:20px 16px}}
