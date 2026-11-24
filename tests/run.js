@@ -9,7 +9,7 @@ const os = require('node:os');
 const path = require('node:path');
 process.env.REQUIRE_EMAIL_VERIFY = '0'; // boshqa boʻlimlar tasdiqlashsiz ishlaydi; majburiy tasdiqlash alohida boʻlimda sinaladi
 
-const PORT = 4100 + Math.floor(Math.random() * 500), B = `http://localhost:${PORT}`;
+const PORT = 4200 + Math.floor(Math.random() * 500), B = `http://localhost:${PORT}`;
 let pass = 0, failN = 0;
 const ok = (c, name, extra) => { if (c) pass++; else { failN++; console.log('  FAIL:', name, extra !== undefined ? JSON.stringify(extra).slice(0, 200) : ''); } };
 
