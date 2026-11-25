@@ -168,4 +168,11 @@
     else if (ev.key === 'ArrowLeft') go('lb' + ((i + n - 1) % n));
     else if (ev.key === 'Escape') go('gallery');
   });
+
+  /* ---- Dizayn studiyasi (iframe ichida): dizayn o‘zgarganda sahifa qayta yuklanadi; aylantirish joyi ota-sahifa orqali saqlanadi ---- */
+  if (framed) {
+    var stT = 0;
+    window.addEventListener('scroll', function () { if (stT) return; stT = setTimeout(function () { stT = 0; try { parent.postMessage({ pf: 'scroll', y: window.pageYOffset || h.scrollTop || 0 }, '*'); } catch (e) {} }, 120); }, { passive: true });
+    window.addEventListener('message', function (e) { var m = e.data; if (e.source !== parent || !m || m.pf !== 'scrollTo') return; var y = +m.y; if (isFinite(y) && y >= 0) window.scrollTo(0, y); });
+  }
 })();

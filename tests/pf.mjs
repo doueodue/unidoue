@@ -101,9 +101,9 @@ const PRO_DZ = { tpl: 'noir', accent: '#123456', dz: { ...defaultDz(), acc2: '#a
 const eFree = effective(PRO_DZ, 'free'), ePlus = effective(PRO_DZ, 'plus'), ePro = effective(PRO_DZ, 'pro');
 eq([eFree.tpl, eFree.dz.font, eFree.dz.bg, eFree.dz.fx, eFree.dz.mode, eFree.dz.shape, eFree.dz.dens], ['rail', 'auto', 'none', ['reveal'], 'tpl', 'soft', 'cozy'], 'free: Pro tanlovlari eng yaqin ruxsat etilganga tushadi');
 ok(PALETTES.slice(0, 4).some(p => p[0] === eFree.accent), 'free: rang 4 ta paletradan biriga yaqinlashtiriladi'); ok(eFree.dz.acc2 === PALETTES.find(p => p[0] === eFree.accent)[1], 'free: acc2 palitradan');
-eq([ePlus.tpl, ePlus.dz.font, ePlus.dz.bg, ePlus.dz.fx, ePlus.dz.mode, ePlus.dz.shape, ePlus.dz.dens], ['rail', 'auto', 'none', ['reveal', 'count'], 'dark', 'soft', 'cozy'], 'plus: faqat Plus darajasigacha');
+eq([ePlus.tpl, ePlus.dz.font, ePlus.dz.bg, ePlus.dz.fx, ePlus.dz.mode, ePlus.dz.shape, ePlus.dz.dens], ['noir', 'auto', 'none', ['reveal', 'count'], 'dark', 'soft', 'cozy'], 'plus: faqat Plus darajasigacha');
 eq([ePro.tpl, ePro.accent, ePro.dz.acc2, ePro.dz.font, ePro.dz.bg, ePro.dz.mode, ePro.dz.shape, ePro.dz.dens, ePro.dz.fx.length], ['noir', '#123456', '#abcdef', 'mono', 'aurora', 'dark', 'round', 'compact', 5], 'pro: hammasi saqlanadi, ixtiyoriy ranglar ham');
-ok(['ledger', 'rail'].every(k => allow('free').tpls.includes(k)) && allow('free').tpls.length === 2 && allow('plus').tpls.length === 5 && allow('pro').tpls.length === 8, 'shablonlar soni: 2 / 5 / 8');
+ok(['ledger', 'rail'].every(k => allow('free').tpls.includes(k)) && allow('free').tpls.length === 2 && allow('plus').tpls.length === 8 && allow('pro').tpls.length === 8 && TPLS.every(k => allow('plus').tpls.includes(k)), 'shablonlar soni: 2 / 8 / 8 (Plus hammasini ochadi)');
 ok(allow('free').palettes.length === 4 && allow('plus').palettes.length === 10 && allow('pro').palettes.length === 16, 'ranglar soni: 4 / 10 / 16'); ok(!allow('free').custom && !allow('plus').custom && allow('pro').custom, 'ixtiyoriy rang faqat Pro'); ok(!allow('plus').ai && allow('pro').ai, 'AI dizayner faqat Pro');
 ok(lockedCount('free') > lockedCount('plus') && lockedCount('plus') > lockedCount('pro') && lockedCount('pro') === 0, 'yopiq variantlar soni tarif oshgan sari kamayadi');
 eq(effective({ tpl: 'nova' }, undefined).tpl, 'rail', 'tarif berilmasa Free hisoblanadi'); eq(effective({ tpl: 'nova' }, 'bogus').tpl, 'rail', 'notanish tarif Free');
@@ -169,7 +169,7 @@ ok((nb.match(/transparent\) no-repeat/g) || []).length === 2 && /transparent 68m
   const se = M.mySide(M.myTokens(eq, '#2745e8', '#2745e8'));
   ok(sd === '#271b14' && M.contrast('#ffffff', sd) >= 7 && M.contrast('#ffffff', sl) >= 4.5 && se !== '#0b1020' && M.contrast(se, '#0b1020') >= 1.05 && M.contrast('#ffffff', se) >= 7, 'o‘z dizayn: yon ustun rangi (qorong‘i = karta, yorug‘ = asosiy rang) oq yozuv uchun yetarli kontrast');
   const myd = { ...M.defaultMy('#d4561b'), base: 'rail', bg: '#1c130e', card: '#271b14', ink: '#f6ece4', mut: '#c2ab9b', line: '#3a2a20' };
-  const hp3 = PDOC.docHTML({ v: 1, name: 'A B', email: 'a@b.c', tpl: 'rail', accent: '#d4561b', dz: { my: myd } }, {}, { mode: 'print', plan: 'free' });
+  const hp3 = PDOC.docHTML({ v: 1, name: 'A B', email: 'a@b.c', tpl: 'rail', accent: '#d4561b', dz: { my: myd } }, {}, { mode: 'print', plan: 'pro' });
   ok(!/#0d1322/.test(hp3) && /linear-gradient\(90deg,#271b14 0 68mm/.test(hp3) && /body::before\{content:"";position:fixed;[^}]*background:#271b14/.test(hp3), 'o‘z dizayn: PDF yon ustuni qotirilgan navy emas, o‘z rangida');
 }
 ok(/^radial-gradient\(\d+%/.test(bgLayers('aurora', '#2745e8', true).l[0]) && bgLayers('aurora', '#2745e8', true).l.filter(x => /^radial-gradient\(\d+%/.test(x)).every(x => x.endsWith('no-repeat')), 'aurora: barcha radial qatlamlar no-repeat');
@@ -218,7 +218,7 @@ const adh = readFileSync(new URL('../public/admin.html', import.meta.url), 'utf8
 ok(v1.includes('function promoBox(') && v1.includes('function promoBind(') && v1.includes("'/api/promo/redeem'") && (v1.match(/\$\{promoBox\(\)\}/g) || []).length === 2 && (v1.match(/promoBind\(el\)/g) || []).length === 3 && v1.includes('id="promo-i"'), 'tariflar: promo kod qatori ikkala ko‘rinishda ham bor va ulangan');
 ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=64'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
 ok(adh.includes('data-v="promos"') && adh.includes('id="v-promos"') && ['mk', 'mp', 'md', 'mx', 'mu', 'mn', 'mb', 'ml'].every(i => adh.includes(`id="${i}"`)) && /promos: 'Promo kodlar'/.test(adj) && ['/api/admin/promos', '/api/admin/promo', '/api/admin/promo/set', '/api/admin/promo/delete'].every(u => adj.includes(`'${u}'`)) && (adc.match(/{/g) || []).length === (adc.match(/}/g) || []).length && adc.includes('.pm-form{'), 'admin: Promo kodlar bo‘limi (forma, ro‘yxat, to‘xtatish, limit, o‘chirish)');
-ok(swj.includes("'unidoue-v85'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
+ok(swj.includes("'unidoue-v86'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
 const cssFiles = ['app.css', 'atlas.css', 'coach.css', 'portfolio.css', 'tiers.css', 'landing.css', 'admin.css', 'controls.css'].map(f => [f, readFileSync(new URL('../public/' + f, import.meta.url), 'utf8')]);
 const sbBad = cssFiles.filter(([f, c]) => /scrollbar-(width|color)/.test(f === 'app.css' ? c.replace(/@supports not selector\(::-webkit-scrollbar\)\{[^}]*\}[^}]*\}/, '') : c)).map(x => x[0]);
 ok(sbBad.length === 0 && acss.includes('*::-webkit-scrollbar-thumb{') && acss.includes('@supports not selector(::-webkit-scrollbar)'), 'scrollbar: yagona uslub (app.css); boshqa joyda scrollbar-width/color yo‘q — Chrome ::-webkit-scrollbar uslubini o‘chirib qo‘yadi' + (sbBad.length ? ': ' + sbBad : ''));
@@ -334,6 +334,41 @@ ok(/from '\.\/tiers\.js'/.test(lpj) && /crownHTML/.test(lpj) && /liveGlass/.test
 }
 { const es = readFileSync('public/js/esc.js', 'utf8'), mj3 = readFileSync('public/js/main.js', 'utf8');
   ok(/initEsc\(\)/.test(mj3) && /markRoute\(\);/.test(mj3) && /addEventListener\('keydown'[\s\S]*, true\)/.test(es) && /\.modal-bg:not\(\.out\)/.test(es) && /history\.back\(\)/.test(es) && /#\/dashboard/.test(es), 'esc: modal yopadi, panellarga tegmaydi, aks holda ilova ichida orqaga'); }
+/* ---- dizayn muharriri (studiya): tarif qulfi, ranglar uyg‘unligi, tasodifiy kombinatsiya ---- */
+{ const stub = (k, v) => { if (!(k in globalThis)) globalThis[k] = v; }; // pfstudio -> core.js brauzer global'lariga tayanadi
+  stub('document', { documentElement: {}, addEventListener() {}, removeEventListener() {}, body: null, querySelector: () => null }); stub('localStorage', { getItem: () => null, setItem() {}, removeItem() {} }); stub('addEventListener', () => {}); stub('removeEventListener', () => {}); stub('location', { hash: '', href: '', pathname: '/' }); stub('matchMedia', () => ({ matches: false, addEventListener() {} }));
+  const PM = await import('../public/js/pfmy.js'), PS = await import('../public/js/pfstudio.js');
+  eq([PM.normHex('#FFF'), PM.normHex('abc'), PM.normHex(' #A1B2C3 '), PM.normHex('zzz'), PM.normHex('#12345'), PM.normHex(null), PM.normHex('red')], ['#ffffff', '#aabbcc', '#a1b2c3', '', '', '', ''], 'normHex: 3/6 xonali hex, notoʻgʻri qiymat bo‘sh');
+  const hm = PM.harmony('#2745e8'); eq(Object.keys(hm), PM.HARMONY, 'harmony: 5 ta uyg‘unlik'); ok(Object.values(hm).every(PM.hexOk) && hm.comp !== '#2745e8' && hm.mono !== '#2745e8', 'harmony: hammasi to‘g‘ri hex'); eq(PM.harmony('nope'), {}, 'harmony: noto‘g‘ri rang → bo‘sh');
+  ok(!allow('free').studio && !allow('plus').studio && allow('pro').studio, 'allow().studio: muharrir faqat Pro');
+  const mk = (tpl = 'ledger') => ({ pf: { tpl, accent: '#2745e8', dz: { ...defaultDz(), acc2: '#7c5cff' } } });
+  // Free/Plus: faqat shablon va tayyor ranglar
+  for (const plan of ['free', 'plus']) for (const key of ['font:mono', 'bg:aurora', 'bg:paper', 'fx:tilt', 'fx:reveal', 'mode:dark', 'shape:round', 'dens:compact', 'sb:thin', 'sbc:ink', 'harm:comp', 'swap:x', 'custom:accent']) {
+    const st = mk(), before = JSON.stringify(st.pf); eq([PS.dzApply(st, key, plan), JSON.stringify(st.pf) === before], [{ lock: 2 }, true], `${plan}: ${key} → Pro qulfi, holat o‘zgarmaydi`);
+  }
+  { const st = mk(); eq(PS.dzApply(st, 'tpl:nova', 'free'), { lock: 1 }, 'free: nova → Plus taklifi'); ok(st.pf.tpl === 'ledger', 'free: shablon o‘zgarmadi'); }
+  { const st = mk(); eq(PS.dzApply(st, 'tpl:nova', 'plus'), { ok: 1 }, 'plus: nova ochiq'); ok(st.pf.tpl === 'nova', 'plus: shablon qo‘llandi'); for (const k of TPLS) eq(PS.dzApply(mk(), 'tpl:' + k, 'plus'), { ok: 1 }, `plus: ${k} ochiq`); }
+  { const st = mk(); const i = PALETTES.findIndex(p => p[3] === 2); eq(PS.dzApply(st, 'pal:' + i, 'plus'), { lock: 2 }, 'plus: Pro palitrasi yopiq'); eq(PS.dzApply(st, 'pal:5', 'plus'), { ok: 1 }, 'plus: Plus palitrasi ochiq'); ok(st.pf.accent === PALETTES[5][0] && st.pf.dz.acc2 === PALETTES[5][1], 'plus: palitra qo‘llandi'); eq(PS.dzApply(mk(), 'pal:999', 'plus'), {}, 'pal: noto‘g‘ri indeks'); eq(PS.dzApply(mk(), 'tpl:__proto__', 'pro'), {}, 'tpl: noto‘g‘ri kalit'); }
+  // Pro
+  { const st = mk(); eq(PS.dzApply(st, 'font:mono', 'pro'), { ok: 1 }, 'pro: shrift'); eq(PS.dzApply(st, 'bg:aurora', 'pro'), { ok: 1 }, 'pro: fon'); eq(PS.dzApply(st, 'fx:tilt', 'pro'), { ok: 1 }, 'pro: effekt'); ok(st.pf.dz.font === 'mono' && st.pf.dz.bg === 'aurora' && st.pf.dz.fx.includes('tilt'), 'pro: qiymatlar qo‘llandi'); eq(PS.dzApply(st, 'fx:tilt', 'pro'), { ok: 1 }, 'pro: effekt o‘chadi'); ok(!st.pf.dz.fx.includes('tilt'), 'pro: effekt o‘chirildi');
+    eq(PS.dzApply(st, 'harm:comp', 'pro'), { ok: 1 }, 'pro: uyg‘unlik'); ok(st.pf.dz.acc2 === PM.harmony(st.pf.accent).comp, 'pro: ikkinchi rang uyg‘unlikdan');
+    const a = st.pf.accent, b = st.pf.dz.acc2; eq(PS.dzApply(st, 'swap:x', 'pro'), { ok: 1 }, 'pro: almashtirish'); ok(st.pf.accent === b && st.pf.dz.acc2 === a, 'pro: ranglar almashdi'); eq(PS.dzApply(st, 'font:__proto__', 'pro'), {}, 'pro: noto‘g‘ri shrift kaliti'); eq(PS.dzApply(st, 'custom:accent', 'pro'), { lock: 2 }, 'custom: faqat panel orqali'); }
+  // toolHTML: Free/Plus faqat shablonlar, qolgani Pro taklifi; Pro to‘liq panel
+  for (const plan of ['free', 'plus']) {
+    const t = PS.toolHTML(mk(), plan, 'templates'); ok(/data-dz="tpl:nova"/.test(t) && /data-dz="pal:0"/.test(t) && /pfs-pro/.test(t) && !/data-dz="font:/.test(t) && !/data-hex=/.test(t), `${plan}: shablonlar + Pro taklifi, tahrirlash asboblari yo‘q`);
+    ok((t.match(/class="[^"]*\blk\b[^"]*"[^>]*data-dz="tpl:/g) || []).length === (plan === 'free' ? 6 : 0), `${plan}: yopiq shablonlar soni`);
+    for (const tool of PS.toolIds.filter(x => x !== 'templates')) { const g = PS.toolHTML(mk(), plan, tool); ok(/pfs-gate-c/.test(g) && /href="#\/pricing"/.test(g) && /data-pfs-tool="templates"/.test(g), `${plan}/${tool}: Pro taklifi paneli`); }
+  }
+  for (const tool of PS.toolIds) { const h = PS.toolHTML(mk(), 'pro', tool); ok(h.length > 200 && !/pfs-gate-c/.test(h) && !/undefined|NaN|\[object/.test(h), `pro/${tool}: to‘liq panel`); }
+  ok(/data-hex="cc:accent"/.test(PS.toolHTML(mk(), 'pro', 'colors')) && /data-dz="harm:comp"/.test(PS.toolHTML(mk(), 'pro', 'colors')), 'pro/colors: hex maydon va uyg‘unlik');
+  // tasodifiy kombinatsiya
+  for (const plan of ['free', 'plus', 'pro']) for (const r of [0, 0.37, 0.999]) {
+    const st = mk('atlas'); st.pf.dz.fx = ['reveal']; const seq = [0.11, 0.52, 0.83, 0.27, 0.64, 0.95, 0.04, 0.71, 0.38, 0.59]; let i = 0; const rnd = () => (seq[i++ % seq.length] + r) % 1;
+    eq(PS.shuffleDz(st, plan, rnd), { ok: 1 }, `shuffle ${plan}`); const e = effective(st.pf, plan);
+    ok(e.tpl === st.pf.tpl && e.accent === st.pf.accent && e.dz.font === st.pf.dz.font && e.dz.bg === st.pf.dz.bg && e.dz.shape === st.pf.dz.shape, `shuffle ${plan}: natija tarif chegarasida`);
+    if (!allow(plan).studio) ok(st.pf.dz.font === 'auto' && st.pf.dz.bg === 'none' && st.pf.dz.shape === 'soft', `shuffle ${plan}: faqat shablon va rang o‘zgaradi`);
+  }
+}
 // "O‘z dizayn" va AI yaratadigan shaxsiy shablon
 { const PM = await import('../public/js/pfmy.js'), PD = await import('../public/js/pfdesign.js'), PDOC = await import('../public/js/pfdoc.js'), PMOD = await import('../public/js/pfmodel.js');
   const bad = { on: true, base: 'rail', bg: '#ffffff', card: '#ffffff', ink: '#bbbbbb', mut: '#dddddd', line: '#ffffff', hf: 'unbounded', bf: 'manrope', r: 99, hw: 950, hcase: 'x', h2: 'pill', card2: 'glass', name: '<b>Mening</b>' };
@@ -344,13 +379,16 @@ ok(/from '\.\/tiers\.js'/.test(lpj) && /crownHTML/.test(lpj) && /liveGlass/.test
   ok(dk.dark && PM.contrast(dk.ink, dk.bg) >= 7 && PM.contrast(dk.mut, dk.card) >= 4.5 && dk.line !== '#0b1020', 'o‘z dizayn: qorong‘i fon ham o‘qiladi');
   const pf = PMOD.normalize({ name: 'Ali', tpl: 'nova', accent: '#c4561b', dz: { acc2: '#f2a33a', bg: 'aurora', fx: ['reveal', 'tilt'], my: { on: true, base: 'folio', bg: '#fbf6ee', card: '#ffffff', ink: '#2a1d12', mut: '#6e5a48', line: '#ecdfcf', hf: 'dmserif', bf: 'manrope' } }, designs: [{ name: 'Qaymoq', tpl: 'folio', accent: '#c4561b', dz: { my: { on: true, base: 'folio' } } }], acts: [{ title: 'Robotics' }] });
   const ef = PD.effective(pf, 'free');
-  ok(pf.dz.my && pf.designs.length === 1 && pf.designs[0].dz.my && ef.tpl === 'folio' && ef.my && ef.accent === '#c4561b' && ef.dz.bg === 'none' && !ef.dz.fx.includes('tilt'), 'o‘z dizayn: hamma tarifda ishlaydi, fon/effekt tarif bo‘yicha');
-  const hw = PDOC.docHTML(pf, {}, { mode: 'web', plan: 'pro' }), hp = PDOC.docHTML(pf, {}, { mode: 'print', plan: 'free' });
-  ok(/class="[^"]*\bmy\b/.test(hw) && /class="[^"]*\bmy\b/.test(hp) && /DM\+Serif\+Display/.test(hw) && /Manrope/.test(hp) && /--ink:#2a1d12/.test(hw) && /body\.my h2/.test(hp) && !/<script/.test(hp), 'o‘z dizayn: PDF va veb-saytda qo‘llanadi');
+  const ep = PD.effective(pf, 'plus'), er = PD.effective(pf, 'pro');
+  ok(pf.dz.my && pf.designs.length === 1 && pf.designs[0].dz.my && !ef.my && !ep.my && ef.tpl === 'rail' && ep.tpl === 'nova' && er.my && er.tpl === 'folio' && er.accent === '#c4561b' && ef.dz.bg === 'none' && !ef.dz.fx.includes('tilt'), 'o‘z dizayn: faqat Pro tarifda ishlaydi (Free/Plus da e’tiborga olinmaydi)');
+  const hw = PDOC.docHTML(pf, {}, { mode: 'web', plan: 'pro' }), hp = PDOC.docHTML(pf, {}, { mode: 'print', plan: 'pro' }), hf = PDOC.docHTML(pf, {}, { mode: 'print', plan: 'free' });
+  ok(!/class="[^"]*\bmy\b/.test(hf) && /class="[^"]*\bmy\b/.test(hw) && /class="[^"]*\bmy\b/.test(hp) && /DM\+Serif\+Display/.test(hw) && /Manrope/.test(hp) && /--ink:#2a1d12/.test(hw) && /body\.my h2/.test(hp) && !/<script/.test(hp), 'o‘z dizayn: PDF va veb-saytda qo‘llanadi');
   const ai = PD.designFromAI({ name: 'Robot sohili', base: 'rail', bg: '#0b1020', card: '#131a2e', ink: '#e9edff', muted: '#9aa5c8', line: '#232c47', accent: '#5b3df5', accent2: '#36d1dc', headingFont: 'unbounded', bodyFont: 'inter', headingWeight: 800, headingCase: 'upper', sectionStyle: 'bar', cardStyle: 'glass', radius: 20, pattern: 'stars', effects: ['reveal', 'tilt', 'evil'], why: 'x' }, 'pro');
   ok(ai.tpl === 'rail' && ai.dz.my && ai.dz.my.hf === 'unbounded' && ai.dz.my.h2 === 'bar' && ai.dz.bg === 'stars' && ai.dz.fx.includes('tilt') && !ai.dz.fx.includes('evil') && ai.name === 'Robot sohili', 'AI: shaxsiy shablon tokenlari qabul qilinadi');
-  const st = readFileSync('public/js/pfstudio.js', 'utf8'), pj = readFileSync('public/js/portfolio.js', 'utf8'), pcs = readFileSync('public/portfolio.css', 'utf8');
-  ok(/data-do="my-new"/.test(st) && /data-myc=/.test(st) && /data-myf=/.test(st) && /data-my-set=/.test(st) && /data-do="my-save"/.test(st) && /k === 'my-use'/.test(pj) && /my-use:/.test(st) && /saveDesign\(d\.name/.test(pj) && pcs.includes('.pf-myc{') && /portfolio\.css\?v=50/.test(pj), 'o‘z dizayn: interfeys va AI natijasini saqlash ulangan');
+  const st = readFileSync('public/js/pfstudio.js', 'utf8'), pj = readFileSync('public/js/portfolio.js', 'utf8'), pcs = readFileSync('public/portfolio.css', 'utf8'), pe = readFileSync('public/js/pfeditor.js', 'utf8');
+  ok(/data-do="my-new"/.test(st) && /data-\$\{kind\}="\$\{key\}"/.test(st) && /data-hex=/.test(st) && /data-my-set=/.test(st) && /data-do="my-save"/.test(st) && /data-do="my-use:/.test(st) && /k === 'my-use'/.test(pj) && /saveDesign\(d\.name/.test(pj) && pcs.includes('.pfs-hex') && /portfolio\.css\?v=51/.test(pj), 'o‘z dizayn: interfeys va AI natijasini saqlash ulangan');
+  ok(/'my-new', 'my-off', 'my-save', 'my-use', 'my-del'\]\.includes\(k\) && !isPro\(\)\) lockPrompt\(2\)/.test(pj) && /if \(!A\.studio && kind !== 'tpl' && kind !== 'pal'\) return \{ lock: 2 \}/.test(st) && /if \(!allow\(plan\)\.studio\) return tool === 'templates'/.test(st), 'muharrir: Free/Plus uchun Pro qulfi (UI va dzApply himoyasi)');
+  ok(/export function openStudio/.test(pe) && /history\.pushState\([\s\S]{0,60}pfs: 1/.test(pe) && /addEventListener\('popstate'/.test(pe) && /inertOthers|inert/.test(pe) && /document\.body\.appendChild\(root\)|document\.body\.append\(root\)/.test(pe) && /defaultPrevented/.test(pe), 'muharrir: tugma Orqaga (popstate), fon inert, body ga o‘rnatiladi, Esc modal bilan to‘qnashmaydi');
   { const W = await import('../public/js/pfwebcss.js');
     const d0 = PD.cleanDz({}), d1 = PD.cleanDz({ sb: 'bold', sbc: 'gradient' }), d2 = PD.cleanDz({ sb: 'evil', sbc: 'x' });
     ok(d0.sb === 'normal' && d0.sbc === 'accent' && d1.sb === 'bold' && d1.sbc === 'gradient' && d2.sb === 'normal' && d2.sbc === 'accent', 'scrollbar: sozlamalar tozalanadi');

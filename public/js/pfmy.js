@@ -27,6 +27,18 @@ export function fixContrast(fg, bg, min) {
 /** Bir nechta fon ustida birdaniga talabga yetkazish. */
 const fixOn = (fg, bgs, min) => { let c = fg; for (let k = 0; k < 4; k++) for (const b of bgs) c = fixContrast(c, b, min); return c; };
 
+/** "#abc", "ABC", "#AABBCC" -> "#aabbcc"; noto‘g‘ri bo‘lsa ''. */
+export function normHex(v) { let s = String(v == null ? '' : v).trim().toLowerCase().replace(/^#/, ''); if (/^[0-9a-f]{3}$/.test(s)) s = s.replace(/./g, c => c + c); return /^[0-9a-f]{6}$/.test(s) ? '#' + s : ''; }
+const toHsl = h => { const [r, g, b] = rgb(h).map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn; let hh = 0, ss = 0; if (d) { ss = d / (1 - Math.abs(2 * l - 1)); hh = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; hh = (hh * 60 + 360) % 360; } return [hh, ss, l]; };
+const fromHsl = (h, s, l) => { const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = l - c / 2, [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x]; return toHex([(r + m) * 255, (g + m) * 255, (b + m) * 255]); };
+export const HARMONY = ['analog', 'comp', 'triad', 'split', 'mono'];
+/** Asosiy rangga mos [asosiy, ikkinchi] juftliklar (rang g‘ildiragi bo‘yicha). Natija: { analog, comp, triad, split, mono } -> ikkinchi rang. */
+export function harmony(hex) {
+  if (!hexOk(hex)) return {};
+  const [h, s, l] = toHsl(hex), cl = v => Math.max(0.08, Math.min(0.92, v)), rot = d => fromHsl((h + d + 360) % 360, Math.max(0.35, s), cl(l));
+  return { analog: rot(35), comp: rot(180), triad: rot(120), split: rot(150), mono: fromHsl(h, s, cl(l > 0.55 ? l - 0.24 : l + 0.26)) };
+}
+
 /** Tayyor boshlang‘ich ranglar: [nomi, fon, karta, matn, ikkinchi matn, chiziq] */
 export const MY_PRESETS = [
   ['Oq qog‘oz', '#ffffff', '#f6f7f9', '#14161c', '#5b6270', '#e3e6eb'],

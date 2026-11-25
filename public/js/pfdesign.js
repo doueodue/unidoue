@@ -8,16 +8,16 @@ import { cleanMy, MY_BASES } from './pfmy.js';
 export const RANK = { free: 0, plus: 1, pro: 2 };
 export const rankOf = plan => RANK[plan] ?? 0;
 
-/* t — shablon ochiladigan eng past tarif (0 Free, 1 Plus, 2 Pro); fam — A4 maket oilasi; hf/bf — standart shrift (sarlavha/matn); dark — tabiatan qorongʻi */
+/* t — shablon ochiladigan eng past tarif (0 Free, 1 Plus, 2 Pro). Plus tarifida HAMMA shablon ochiq; dizayn muharriri (studiya) esa faqat Pro'da; fam — A4 maket oilasi; hf/bf — standart shrift (sarlavha/matn); dark — tabiatan qorongʻi */
 export const TPL = {
   ledger: { t: 0, fam: 'ledger', hf: 'serif', bf: 'serif', fb: 'ledger' },
   rail: { t: 0, fam: 'rail', hf: 'sans', bf: 'sans', fb: 'rail' },
   atlas: { t: 1, fam: 'ledger', hf: 'mono', bf: 'sans', fb: 'ledger' },
   folio: { t: 1, fam: 'folio', hf: 'display', bf: 'sans', fb: 'rail' },
   poster: { t: 1, fam: 'folio', hf: 'grotesk', bf: 'sans', fb: 'rail' },
-  noir: { t: 2, fam: 'rail', hf: 'grotesk', bf: 'sans', dark: 1, fb: 'rail' },
-  nova: { t: 2, fam: 'folio', hf: 'grotesk', bf: 'sans', dark: 1, fb: 'folio' },
-  timeline: { t: 2, fam: 'ledger', hf: 'editorial', bf: 'sans', fb: 'ledger' }
+  noir: { t: 1, fam: 'rail', hf: 'grotesk', bf: 'sans', dark: 1, fb: 'rail' },
+  nova: { t: 1, fam: 'folio', hf: 'grotesk', bf: 'sans', dark: 1, fb: 'folio' },
+  timeline: { t: 1, fam: 'ledger', hf: 'editorial', bf: 'sans', fb: 'ledger' }
 };
 export const TPLS = Object.keys(TPL);
 
@@ -78,17 +78,17 @@ export function cleanDz(d) {
 
 const dist = (a, b) => { const n = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const x = n(a), y = n(b); return x.reduce((s, v, i) => s + (v - y[i]) ** 2, 0); };
 
-/** Tarif ruxsat beradigan imkoniyatlar. custom — ixtiyoriy rang tanlash (Pro). */
+/** Tarif ruxsat beradigan imkoniyatlar. custom/studio — dizayn muharriri: ixtiyoriy rang, o‘z dizayni, shrift, fon, effekt (faqat Pro). */
 export function allow(plan) {
   const r = rankOf(plan);
   const ok = (kind, id) => (TIERS[kind] && Object.hasOwn(TIERS[kind], id) ? TIERS[kind][id] <= r : false);
-  return { rank: r, ok, custom: r >= 2, ai: r >= 2, palettes: PALETTES.filter(p => p[3] <= r), tpls: TPLS.filter(k => TPL[k].t <= r) };
+  return { rank: r, ok, custom: r >= 2, studio: r >= 2, ai: r >= 2, palettes: PALETTES.filter(p => p[3] <= r), tpls: TPLS.filter(k => TPL[k].t <= r) };
 }
 
 /** Joriy tarifga moslashtirilgan dizayn. pf — normalize qilingan model. Natija: { tpl, accent, dz } (pf nusxasi o'zgarmaydi). */
 export function effective(pf, plan) {
   const A = allow(plan), dz = cleanDz(pf && pf.dz);
-  if (dz.my) { // o‘z dizayni: hamma tarifda; asos tuzilma, ranglar va shriftlar foydalanuvchiniki. Fon, effekt va zichlik tarif bo‘yicha.
+  if (dz.my && A.studio) { // o‘z dizayni (muharrir, faqat Pro): asos tuzilma, ranglar va shriftlar foydalanuvchiniki. Tarif pastga tushsa, oddiy shablon yo‘liga o‘tiladi.
     const out = { ...dz, mode: 'light', font: 'auto', shape: 'soft' };
     if (!A.ok('bg', out.bg)) out.bg = 'none'; if (!A.ok('dens', out.dens)) out.dens = 'cozy'; out.fx = out.fx.filter(x => A.ok('fx', x));
     return { tpl: MY_BASES.includes(dz.my.base) ? dz.my.base : 'ledger', accent: hex(pf && pf.accent, PALETTES[0][0]), dz: out, my: dz.my };

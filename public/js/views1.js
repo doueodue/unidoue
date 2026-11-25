@@ -177,9 +177,9 @@ export async function tracker(el) {
 
 /* ================= TARIFLAR ================= */
 const FEAT = {
-  plus: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Esse murabbiyi: darslar, tekshiruv va AI fikri', 'Portfolio dizayni: 5 ta shablon, 10 rang, fon va effektlar', '4 ta universitetni solishtirish', '175 AI kredit / oy'],
+  plus: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Esse murabbiyi: darslar, tekshiruv va AI fikri', 'Portfolio dizayni: barcha 8 ta shablon va 10 ta rang', '4 ta universitetni solishtirish', '175 AI kredit / oy'],
   free: ['Barcha universitetlar + nima uchun mos ekanligi', 'Universitet haqida ma’lumot (manbalar bilan)', 'Stipendiya qidiruvi', 'To‘liq moslik tahlili va maslahatlar', 'Cheksiz arizalar kuzatuvi', 'Portfolio quruvchi: PDF, Word, veb-sahifa (2 ta shablon)', '3 ta universitetni solishtirish', '50 AI kredit / oy'],
-  pro: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Shaxsiy qabul strategiyasi', 'Chuqur esse tahlili', 'Universitet hisobotlari', 'Portfolio dizayn studiyasi: 8 shablon, fon va effektlar, o‘z ranglaringiz, AI dizayner', 'Esse murabbiyi: darslar, tekshiruv va AI fikri', '4 ta universitetni solishtirish', '300 AI kredit / oy', 'Ustuvor yordam']
+  pro: ['Bepul tarifdagi hamma imkoniyatlar', 'Ilg‘or AI mentor (uzunroq suhbat va batafsil javob)', 'Shaxsiy qabul strategiyasi', 'Chuqur esse tahlili', 'Universitet hisobotlari', 'Dizayn muharriri: shriftlar, fon, effektlar, o‘z ranglaringiz va AI dizayner', 'Esse murabbiyi: darslar, tekshiruv va AI fikri', '4 ta universitetni solishtirish', '300 AI kredit / oy', 'Ustuvor yordam']
 };
 const ORDER = { free: 0, plus: 1, pro: 2 };
 function payBox(a, cur, online) {

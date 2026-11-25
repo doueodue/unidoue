@@ -4,8 +4,10 @@ import { $, $$, S, ls, esc, toast, modal, credits, aiFlag, upsell, hasFeature } 
 import { md } from './markdown.js';
 import { lang, t as tr } from './i18n.js';
 import { normalize, emptyPf, seedFromProfile, evaluate, canExport, uid, MAX, DIM_L, TIPS } from './pfmodel.js';
-import { studioHTML, dzApply, aiRes, myApply, myPreset, myNew } from './pfstudio.js';
-import { effective, allow } from './pfdesign.js';
+import { dzApply, aiRes, myApply, myPreset, myNew } from './pfstudio.js';
+import { openStudio } from './pfeditor.js';
+import { normHex } from './pfmy.js';
+import { allow } from './pfdesign.js';
 import { liveGlass } from './tiers.js';
 import { docHTML, fileBase } from './pfdoc.js';
 import { docxBytes } from './pfdocx.js';
@@ -116,9 +118,12 @@ function makeWeb(host, h, big) {
   return { stop() { if (ro) ro.disconnect(); }, measure: fit, update(x) { f.srcdoc = x; } };
 }
 const plan = () => (S.account && S.account.plan) || 'free';
+const qs = sel => $(sel, st.studio ? st.studio.root : st.el) || $(sel, st.el); // studiya <body> da turadi, shu sabab uning ichidagi elementlar alohida qidiriladi
 const html = guides => docHTML(st.pf, st.imgs, { guides, plan: plan() });
 const webHTML = (o = {}) => docHTML(st.pf, st.imgs, { mode: 'web', plan: plan(), ...o });
-const pvHTML = () => (st.view === 'web' ? webHTML({ jsSrc: '/js/pfweb.js' }) : html(true));
+/* Studiyada "solishtirish": studiya ochilgandagi dizayn (st.base) bilan hozirgisini almashtirib ko‘rsatadi. Eksport doim hozirgi dizaynda. */
+const pvPf = () => { if (!st.cmp || !st.base) return st.pf; try { const o = JSON.parse(st.base); return { ...st.pf, tpl: o.tpl, accent: o.accent, dz: o.dz }; } catch (e) { return st.pf; } };
+const pvHTML = () => { const pf = pvPf(); return st.view === 'web' ? docHTML(pf, st.imgs, { mode: 'web', plan: plan(), jsSrc: '/js/pfweb.js' }) : docHTML(pf, st.imgs, { guides: st.guides !== false, plan: plan() }); };
 
 /* ---------- saqlash va yangilash ---------- */
 let saveT = 0, prevT = 0, scT = 0, wired = false;
@@ -138,26 +143,27 @@ function paintScore() {
 function mountScore(ev) { const sb = $('#pf-score', st.el); sb.innerHTML = scoreHTML(ev || evaluate(st.pf)); const pre = $('#pf-rv .pre', sb); if (pre) aiFlag(pre, 'portfolio', st.rvText); }
 const chip = s => { const p = normalize(st.pf), n = { about: [p.name, p.headline, p.summary, p.photo].filter(Boolean).length + '/4', edu: p.edu.length + p.tests.length, acts: p.acts.length, awards: p.awards.length, projects: p.projects.length, extra: p.skills.length + p.langs.length + p.targets.length, docs: p.att.length }[s]; return String(n); };
 
-const previewNow = () => { clearTimeout(prevT); save(); if (st.paper) st.paper.update(pvHTML()); };
+const previewNow = () => { clearTimeout(prevT); save(); if (st.studio) st.studio.track(); if (st.paper) st.paper.update(pvHTML()); };
 function mountPreview() {
-  const host = $('#pf-paper', st.el); if (st.paper && st.paper.stop) st.paper.stop();
+  const host = $('#pf-paper', st.el); if (!host) return; if (st.paper && st.paper.stop) st.paper.stop();
   st.paper = st.view === 'web' ? makeWeb(host, pvHTML()) : makePaper(host, pvHTML());
   host.classList.toggle('web', st.view === 'web'); $('#pf-pg', st.el).hidden = st.view === 'web';
   $$('[data-pv]', st.el).forEach(b => b.setAttribute('aria-selected', String(b.dataset.pv === st.view)));
 }
 const setView = v => { if (st.view === v) return; st.view = v; mountPreview(); };
-function renderDesign() { const d = $('#pf-design', st.el); if (!d) return; const y = window.scrollY; d.innerHTML = studioHTML(st, plan()); if (Math.abs(window.scrollY - y) > 2) window.scrollTo({ top: y }); }
-const lockPrompt = tier => upsell('pf_design', tier === 1 ? 'Bu variant Plus va Pro tarifida ochiladi.' : 'Bu variant faqat Pro tarifida ochiladi. Pro tarifida hamma shablon, fon va effekt, o‘z ranglaringiz va AI dizayner bor.', tier === 1 ? 'plus' : 'pro');
+const renderDesign = () => { if (st.studio) st.studio.renderPanel(); };
+const lockPrompt = tier => (tier === 1 ? upsell('pf_design', 'Bu variant Plus va Pro tarifida ochiladi.', 'plus') : upsell('pf_studio', '', 'pro'));
+const isPro = () => allow(plan()).studio; // dizayn muharriri faqat Pro'da
 function dzClick(btn) {
   const key = btn.dataset.dz, r = dzApply(st, key, plan());
   if (r.lock) { lockPrompt(r.lock); return; }
   if (!r.ok) return;
-  const y = btn.closest('.pf-main') ? window.scrollY : 0; renderDesign(); const nb = $(`[data-dz="${key}"]`, st.el); if (nb) nb.focus({ preventScroll: true }); if (y) window.scrollTo({ top: y }); previewNow(); paintScore();
+  renderDesign(); previewNow(); paintScore();
 }
 const snap = () => JSON.stringify({ tpl: st.pf.tpl, accent: st.pf.accent, dz: st.pf.dz });
 async function aiDesign(btn) {
   if (!hasFeature('pf_studio')) { upsell('pf_studio'); return; }
-  st.wish = (($('#pf-wish', st.el) || {}).value || '').trim().slice(0, 200); const prev = snap();
+  st.wish = ((qs('#pf-wish') || {}).value || '').trim().slice(0, 200); const prev = snap();
   await design(st, st.wish, d => {
     st.dzPrev = prev; st.pf.tpl = d.tpl; st.pf.accent = d.accent; st.pf.dz = d.dz; st.aiWhy = { text: d.why, name: d.name || '' };
     if (d.dz.my) saveDesign(d.name || tr('AI dizayn'), true); // AI yaratgan shaxsiy shablon "Mening dizaynlarim"ga tushadi
@@ -232,10 +238,16 @@ function goto(sec) {
   setTab('build'); renderBuild();
   const d = $(`[data-s="${sec}"]`, st.el); if (d) { d.scrollIntoView({ behavior: 'smooth', block: 'start' }); const i = $$('input:not([type=file]):not([type=checkbox]),textarea,select', d).find(x => !x.value); if (i) setTimeout(() => i.focus({ preventScroll: true }), 350); }
 }
+/** Dizayn studiyasi: to‘liq ekranli muharrir (Canva uslubida). Yopilganda avvalgi sahifa va jonli ko‘rinish tiklanadi. */
+function openDesign() {
+  if (st.studio) return; flush();
+  openStudio({ st, plan, previewNow, pvHTML, wire: r => st.wire(r), slug: () => fileBase(st.pf), onClose: () => { st.base = ''; st.cmp = false; mountPreview(); flush(); save(); paintScore(); const b = $('.pf-dzo', st.el); if (b) b.focus({ preventScroll: true }); } });
+}
 function setTab(t) {
+  if (t === 'design') { openDesign(); return; }
   st.tab = t; $('.pf', st.el).dataset.t = t; $$('[data-tab]', st.el).forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
-  const sb = $('#pf-score', st.el), bb = $('#pf-build', st.el), db = $('#pf-design', st.el); bb.hidden = t !== 'build' && t !== 'view'; sb.hidden = t !== 'score'; db.hidden = t !== 'design';
-  if (t === 'score') mountScore(); if (t === 'design') renderDesign(); if (t === 'view' && st.paper) setTimeout(st.paper.measure, 30);
+  const sb = $('#pf-score', st.el), bb = $('#pf-build', st.el); bb.hidden = t !== 'build' && t !== 'view'; sb.hidden = t !== 'score';
+  if (t === 'score') mountScore(); if (t === 'view' && st.paper) setTimeout(st.paper.measure, 30);
 }
 async function pickPhoto(file) {
   let im; try { im = await loadImage(file); } catch (e) { toast(e.message, 'err'); return; }
@@ -284,11 +296,13 @@ async function act(d, el) {
   else if (k === 'polish-projects') await polish(st, { kinds: ['projects'] }, refreshAll, el);
   else if (k === 'polish-all') await polish(st, { kinds: ['acts', 'projects'], need: ['headline', 'summary'] }, () => { st.mode = 'edit'; refreshAll(true); }, el);
   else if (k === 'extract') await extract(st, refreshAll, el);
+  else if (k === 'studio') openDesign();
   else if (k === 'ai-design') await aiDesign(el);
   else if (k === 'ai-undo') aiUndo();
+  else if (['my-new', 'my-off', 'my-save', 'my-use', 'my-del'].includes(k) && !isPro()) lockPrompt(2);
   else if (k === 'my-new') { myNew(st); renderDesign(); previewNow(); }
   else if (k === 'my-off') { delete st.pf.dz.my; if (!allow(plan()).ok('tpl', st.pf.tpl)) st.pf.tpl = 'ledger'; renderDesign(); previewNow(); }
-  else if (k === 'my-save') { const nm = (($('#pf-myname', st.el) || {}).value || '').trim(); const it = saveDesign(nm, false); renderDesign(); toast(`${tr('Dizayn saqlandi:')} ${it.name}`); }
+  else if (k === 'my-save') { const nm = ((qs('#pf-myname') || {}).value || '').trim(); const it = saveDesign(nm, false); renderDesign(); toast(`${tr('Dizayn saqlandi:')} ${it.name}`); }
   else if (k === 'my-use') { const d = (st.pf.designs || []).find(x => x.id === a); if (!d) return; st.dzPrev = snap(); st.pf.tpl = d.tpl; st.pf.accent = d.accent; st.pf.dz = JSON.parse(JSON.stringify(d.dz)); renderDesign(); previewNow(); toast(`${tr('Qo‘llandi:')} ${d.name}`); }
   else if (k === 'my-del') { const d = (st.pf.designs || []).find(x => x.id === a); if (!d) return; if (await modal({ title: 'O‘chirasizmi?', body: `<p>${esc(d.name)} — ${esc(tr('saqlangan dizayn o‘chiriladi. Hujjatdagi joriy dizayn o‘zgarmaydi.'))}</p>`, actions: [{ label: 'Bekor', value: 0 }, { label: 'O‘chirish', value: 1, cls: 'danger' }] }) !== 1) return; st.pf.designs = st.pf.designs.filter(x => x.id !== a); if (!st.pf.designs.length) delete st.pf.designs; save(); renderDesign(); }
   else if (k === 'review') await review(st, () => $('#pf-rv', st.el), el);
@@ -297,7 +311,8 @@ async function act(d, el) {
 /* ---------- kirish nuqtasi ---------- */
 const emTitle = x => { const y = tr(x), i = y.lastIndexOf(' '); return i < 0 ? '<em>' + esc(y) + '</em>' : esc(y.slice(0, i)) + ' <em>' + esc(y.slice(i + 1)) + '</em>'; };
 export async function portfolio(el) {
-  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=50'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
+  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=51'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
+  if (st.studio) st.studio.close('hash'); // oldingi studiya (agar sahifa qayta chizilsa) qolib ketmasin
   Object.keys(st).forEach(k => delete st[k]);
   liveGlass(el);
   const saved = ls.get(KEY, null), fresh = !saved;
@@ -306,12 +321,24 @@ export async function portfolio(el) {
   st.mode = canExport(st.pf) && !fresh ? 'edit' : 'ask';
   await Promise.all(st.pf.att.map(async a => { const v = await store.get(a.id); if (v && v.url) st.imgs[a.id] = v; }));
   el.innerHTML = `<div class="page-h"><div><h2>${emTitle('Portfolio quruvchi')}</h2><p>Yutuqlaringizni bir hujjatga jamlang: PDF, Word yoki veb-sahifa. Sayt kerakli ma’lumotni so‘raydi, rasmlaringizni o‘qiydi va portfolioni baholaydi.</p></div><span class="badge" data-cr="badge">${credits().left} / ${credits().limit} kredit qoldi</span></div>
-  <div class="pf" data-t="build"><div class="tabs pf-tabs" role="tablist"><button type="button" role="tab" data-tab="build" aria-selected="true">Tuzish</button><button type="button" role="tab" data-tab="design" aria-selected="false">Dizayn</button><button type="button" role="tab" class="t-view" data-tab="view" aria-selected="false">Ko‘rinish</button><button type="button" role="tab" data-tab="score" aria-selected="false">Baho</button></div>
-  <div class="pf-grid"><div class="pf-main"><div id="pf-build"></div><div id="pf-design" hidden></div><div id="pf-score" hidden></div></div>
-  <aside class="pf-aside"><div id="pf-sc"></div>${expHTML()}<div class="pf-pvw"><div class="pf-vt" role="group" aria-label="Ko‘rinish turi"><button type="button" data-pv="a4" aria-selected="true">A4 (PDF)</button><button type="button" data-pv="web" aria-selected="false">Veb-sayt</button><button type="button" class="pf-dzb" data-tab="design">Dizaynni sozlash</button></div><div class="pf-desk"><div class="pf-paper" id="pf-paper"></div></div><div class="pf-pg" id="pf-pg"></div></div>${langHTML()}</aside></div></div>`;
+  <div class="pf" data-t="build"><div class="pf-tabrow"><div class="tabs pf-tabs" role="tablist"><button type="button" role="tab" data-tab="build" aria-selected="true">Tuzish</button><button type="button" role="tab" class="t-view" data-tab="view" aria-selected="false">Ko‘rinish</button><button type="button" role="tab" data-tab="score" aria-selected="false">Baho</button></div><button type="button" class="btn sm pf-dzo" data-do="studio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C7 3 3 6.8 3 11.4 3 15.2 6 17 8.6 17H10a2 2 0 011.4 3.4 1.6 1.6 0 001.2 2.6C18.5 23 21 18 21 12.4 21 7 17 3 12 3z"/><circle cx="7.6" cy="10.6" r="1.1"/><circle cx="11.2" cy="7.3" r="1.1"/><circle cx="15.9" cy="8.5" r="1.1"/></svg><span>Dizayn studiyasi</span></button></div>
+  <div class="pf-grid"><div class="pf-main"><div id="pf-build"></div><div id="pf-score" hidden></div></div>
+  <aside class="pf-aside"><div id="pf-sc"></div>${expHTML()}<div class="pf-pvw"><div class="pf-vt" role="group" aria-label="Ko‘rinish turi"><button type="button" data-pv="a4" aria-selected="true">A4 (PDF)</button><button type="button" data-pv="web" aria-selected="false">Veb-sayt</button><button type="button" class="pf-dzb" data-do="studio">Dizaynni sozlash</button></div><div class="pf-desk"><div class="pf-paper" id="pf-paper"></div></div><div class="pf-pg" id="pf-pg"></div></div>${langHTML()}</aside></div></div>`;
   renderBuild(); paintScore();
   mountPreview(); $('#pf-paper', el).addEventListener('pf:pages', () => { const pp = $('#pf-paper', el), pg = $('#pf-pg', el); if (!pp || !pg) return; const n = +pp.dataset.pages; pg.textContent = `≈ ${n} ${tr(n === 1 ? 'sahifa' : 'sahifalar')}`; });
+  /** HEX maydoni: to‘g‘ri rang yozilsa darrov qo‘llanadi, noto‘g‘ri bo‘lsa belgilanadi (qiymat o‘zgarmaydi). */
+  const hexInput = hx => {
+    const [kind, key] = hx.dataset.hex.split(':'), v = normHex(hx.value);
+    if (!v) { hx.setAttribute('aria-invalid', 'true'); return; }
+    hx.removeAttribute('aria-invalid');
+    if (kind === 'cc') { if (!hasFeature('pf_studio')) return; if (key === 'accent') st.pf.accent = v; else st.pf.dz.acc2 = v; }
+    else if (kind === 'myc' && st.pf.dz.my) { if (key === '@a') st.pf.accent = v; else if (key === '@a2') st.pf.dz.acc2 = v; else st.pf.dz.my[key] = v; }
+    else return;
+    const c = qs(`[data-${kind}="${key}"]`); if (c) { c.value = v; const lab = c.closest('.pfs-cs'); if (lab) lab.style.setProperty('--c', v); }
+    myLater();
+  };
   const onInput = e => {
+    const hx = e.target.closest('[data-hex]'); if (hx) { hexInput(hx); return; }
     const mc = e.target.closest('[data-myc]'); if (mc && st.pf.dz.my) { const k = mc.dataset.myc, v = mc.value.toLowerCase(); if (k === '@a') st.pf.accent = v; else if (k === '@a2') st.pf.dz.acc2 = v; else st.pf.dz.my[k] = v; myLater(); return; }
     const mr = e.target.closest('[data-myr]'); if (mr && st.pf.dz.my) { const v = +mr.value; st.pf.dz.my[mr.dataset.myr] = v; const b = mr.parentElement.querySelector('b'); if (b) b.textContent = mr.dataset.myr === 'r' ? v + 'px' : v; myLater(); return; }
     const cc = e.target.closest('[data-cc]'); if (cc) { if (!hasFeature('pf_studio')) return; if (cc.dataset.cc === 'accent') st.pf.accent = cc.value.toLowerCase(); else st.pf.dz.acc2 = cc.value.toLowerCase(); previewNow(); return; }
@@ -320,23 +347,24 @@ export async function portfolio(el) {
     const it = x.closest('.pf-item'); if (it && /\.(title|school)$/.test(p)) { const b = $('header b', it); if (b) b.textContent = x.value.trim() || tr('Yangi yozuv'); }
     changed();
   };
-  el.addEventListener('input', onInput); el.addEventListener('change', e => {
+  const onChange = e => {
     const f = e.target.closest('[data-file]');
     if (f) { const fs = [...f.files]; f.value = ''; if (fs.length) (f.dataset.file === 'photo' ? pickPhoto(fs[0]) : addDocs(fs)); return; }
     const pk = e.target.closest('[data-pick]'); if (pk) { if (pk.checked && st.pick.size >= 3) { pk.checked = false; toast('Bir vaqtda 3 tagacha rasm o‘qitish mumkin.'); return; } pk.checked ? st.pick.add(pk.dataset.pick) : st.pick.delete(pk.dataset.pick); const bt = $('[data-do=extract]', el); if (bt) bt.disabled = !st.pick.size; return; }
-    const mf = e.target.closest('[data-myf]'); if (mf && st.pf.dz.my) { st.pf.dz.my[mf.dataset.myf] = mf.value; previewNow(); return; }
-    if (e.target.closest('[data-myc]') && st.pf.dz.my) { renderDesign(); previewNow(); return; }
+    if (e.target.closest('[data-myc],[data-cc],[data-hex]')) { renderDesign(); previewNow(); return; }
     if (e.target.matches('select[data-p]')) onInput(e);
-  });
-  el.addEventListener('click', e => {
+  };
+  const onClick = e => {
     const t = e.target.closest('[data-tab]'); if (t) { setTab(t.dataset.tab); return; }
-    const ms = e.target.closest('[data-my-set]'); if (ms) { if (myApply(st, ms.dataset.mySet).ok) { renderDesign(); const nb = $(`[data-my-set="${ms.dataset.mySet}"]`, st.el); if (nb) nb.focus({ preventScroll: true }); previewNow(); } return; }
-    const mp = e.target.closest('[data-my-preset]'); if (mp) { myPreset(st, mp.dataset.myPreset); renderDesign(); previewNow(); return; }
+    const ms = e.target.closest('[data-my-set]'); if (ms) { if (!isPro()) { lockPrompt(2); return; } if (myApply(st, ms.dataset.mySet).ok) { renderDesign(); const nb = $(`[data-my-set="${ms.dataset.mySet}"]`, st.el); if (nb) nb.focus({ preventScroll: true }); previewNow(); } return; }
+    const mp = e.target.closest('[data-my-preset]'); if (mp) { if (!isPro()) { lockPrompt(2); return; } myPreset(st, mp.dataset.myPreset); renderDesign(); previewNow(); return; }
     const dzb = e.target.closest('[data-dz]'); if (dzb) { dzClick(dzb); return; }
     const pvb = e.target.closest('[data-pv]'); if (pvb) { setView(pvb.dataset.pv); return; }
     const dl = e.target.closest('[data-dl]'); if (dl) { st.pf.lang = dl.dataset.dl; $('.pf-ctl', el).outerHTML = langHTML(); changed(); previewNow(); return; }
     const d = e.target.closest('[data-do]'); if (d && !d.disabled) act(d.dataset.do, d).catch(er => toast(er.message || 'Xatolik yuz berdi.', 'err'));
-  });
+  };
+  el.addEventListener('input', onInput); el.addEventListener('change', onChange); el.addEventListener('click', onClick);
+  st.wire = r => { r.addEventListener('input', onInput); r.addEventListener('change', onChange); r.addEventListener('click', onClick); };
   $('#pf-build', el).addEventListener('toggle', e => { const s = e.target.dataset && e.target.dataset.s; if (s) e.target.open ? st.open.add(s) : st.open.delete(s); }, true);
   addEventListener('hashchange', flush, { once: true }); if (!wired) { wired = true; document.addEventListener('visibilitychange', () => document.hidden && st.pf && flush()); addEventListener('pagehide', () => st.pf && flush()); }
   changed(true);

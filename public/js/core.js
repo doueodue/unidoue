@@ -207,12 +207,12 @@ export const uniOptions = (list, pick = () => true, sel = '') => {
 
 /** Qaysi imkoniyat qaysi tarifdan boshlanadi (mijoz tomoni; haqiqiy tekshiruv serverda). */
 export const NEED_PLAN = { coach: 'Plus' };
-const UPSELL_TEXT = { coach: 'Esse murabbiyi Plus va Pro tarifida mavjud.', pf_studio: 'AI dizayner va to‘liq dizayn studiyasi (hamma shablon, fon, effekt va o‘z ranglaringiz) Pro tarifida mavjud.' };
+const UPSELL_TEXT = { coach: 'Esse murabbiyi Plus va Pro tarifida mavjud.', pf_studio: 'Dizayn muharriri (ranglar, shriftlar, fon, effektlar, o‘z dizayningiz va AI dizayner) Pro tarifida mavjud. Plus tarifida hamma shablon ochiq.' };
 export const hasFeature = f => !!(S.account && S.account.features && S.account.features.includes(f));
 
 /** Plan yetishmasa chiroyli taklif oynasi. */
 export async function upsell(feature, text, tier) {
-  const names = { scholarships: 'Stipendiya qidiruvi', predictor: 'To‘liq moslik tahlili', strategy: 'Shaxsiy qabul strategiyasi', reports: 'Universitet hisobotlari', essay_adv: 'Chuqur esse tahlili', tracker: 'Cheksiz arizalar', compare: 'Ko‘proq universitetni solishtirish', finder_adv: 'Kengaytirilgan qidiruv', coach: 'Esse murabbiyi', pf_studio: 'AI dizayner', pf_design: 'Portfolio dizayni' };
+  const names = { scholarships: 'Stipendiya qidiruvi', predictor: 'To‘liq moslik tahlili', strategy: 'Shaxsiy qabul strategiyasi', reports: 'Universitet hisobotlari', essay_adv: 'Chuqur esse tahlili', tracker: 'Cheksiz arizalar', compare: 'Ko‘proq universitetni solishtirish', finder_adv: 'Kengaytirilgan qidiruv', coach: 'Esse murabbiyi', pf_studio: 'Dizayn muharriri', pf_design: 'Portfolio dizayni' };
   const plan = S.account && S.account.plan, top = plan === 'pro', tr = tier || (plan === 'plus' || top ? 'pro' : ({ coach: 'plus', tracker: 'plus', compare: 'plus' })[feature] || 'pro'); // qaysi tarif ochadi: Plus (kumush) yoki Pro (oltin); Plus/Pro egasi uchun doim Pro (oltin)
   const v = await modal({ title: names[feature] || 'Yuqoriroq tarif kerak', tier: tr, body: `<p>${esc(text || UPSELL_TEXT[feature] || 'Bu imkoniyat Pro tarifida mavjud.')}</p>`, actions: top ? [{ label: 'Yopish', value: 0, cls: 'tier-pro' }] : [{ label: 'Keyinroq', value: 0 }, { label: 'Tariflarni ko‘rish', value: 1, cls: 'tier-' + tr }] });
   if (v === 1) location.hash = '#/pricing';
