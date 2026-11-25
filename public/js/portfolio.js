@@ -311,7 +311,7 @@ async function act(d, el) {
 /* ---------- kirish nuqtasi ---------- */
 const emTitle = x => { const y = tr(x), i = y.lastIndexOf(' '); return i < 0 ? '<em>' + esc(y) + '</em>' : esc(y.slice(0, i)) + ' <em>' + esc(y.slice(i + 1)) + '</em>'; };
 export async function portfolio(el) {
-  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=51'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
+  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=53'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
   if (st.studio) st.studio.close('hash'); // oldingi studiya (agar sahifa qayta chizilsa) qolib ketmasin
   Object.keys(st).forEach(k => delete st[k]);
   liveGlass(el);
