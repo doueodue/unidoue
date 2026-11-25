@@ -4,6 +4,7 @@ import { normalize, actText, range, splitBullets } from './pfmodel.js';
 import { effective, fontPair, FF, GF, TPL } from './pfdesign.js';
 import { printCSS, pageBg } from './pfcss.js';
 import { webCSS } from './pfwebcss.js';
+import { myTokens, myPrintCSS } from './pfmy.js';
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const DL = {
@@ -118,8 +119,8 @@ function bodyWeb(p, imgs, d, e, o) {
 <main>${stripHTML}${sections}${cta}<footer><a href="https://unidoue.uz" target="_blank" rel="noopener noreferrer">${esc(d.web)}</a></footer></main></div>`;
 }
 
-const fontsHref = (tpl, font) => {
-  const fp = fontPair(tpl, font), fam = [...new Set([GF[fp.h], GF[fp.b]].filter(Boolean))];
+const fontsHref = (tpl, font, my) => {
+  const fp = fontPair(tpl, font, my), fam = [...new Set([GF[fp.h], GF[fp.b]].filter(Boolean))];
   return `https://fonts.googleapis.com/css2?${fam.map(f => 'family=' + f).join('&')}&display=swap`;
 };
 const GUIDE = { ledger: ['265mm', '16mm'], rail: ['297mm', '0mm'], folio: ['273mm', '12mm'] };
@@ -130,17 +131,18 @@ const GUIDE = { ledger: ['265mm', '16mm'], rail: ['297mm', '0mm'], folio: ['273m
  * imgs: { [attId]: { url } } */
 export function docHTML(pf, imgs = {}, opts = {}) {
   const p = normalize(pf), d = DL[p.lang] || DL.en, web = opts.mode === 'web';
-  const e = effective(p, opts.plan || 'free'), t = TPL[e.tpl], fp = fontPair(e.tpl, e.dz.font);
-  const vars = `:root{--a:${e.accent};--a2:${e.dz.acc2};--hf:${FF[fp.h]};--bf:${FF[fp.b]}}`;
-  const bodyCls = [`t-${e.tpl}`, `b-${e.dz.bg}`, e.dz.shape !== 'soft' ? `r-${e.dz.shape}` : '', e.dz.dens === 'compact' ? 'dense' : '', web && opts.still ? 'nofx' : ''].filter(Boolean).join(' ');
-  const head = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(p.name || 'Portfolio')}</title>${p.headline ? `<meta name="description" content="${esc(p.headline)}">` : ''}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="${fontsHref(e.tpl, e.dz.font)}">`;
+  const e = effective(p, opts.plan || 'free'), t = TPL[e.tpl], my = e.my || null, fp = fontPair(e.tpl, e.dz.font, my);
+  const tk = my ? myTokens(my, e.accent, e.dz.acc2) : null; // o‘z dizayni: o‘qiladigan yakuniy ranglar
+  const vars = `:root{--a:${tk ? tk.a : e.accent};--a2:${e.dz.acc2};--hf:${FF[fp.h]};--bf:${FF[fp.b]}}`;
+  const bodyCls = [`t-${e.tpl}`, `b-${e.dz.bg}`, my ? 'my' : '', e.dz.shape !== 'soft' ? `r-${e.dz.shape}` : '', e.dz.dens === 'compact' ? 'dense' : '', web && opts.still ? 'nofx' : ''].filter(Boolean).join(' ');
+  const head = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(p.name || 'Portfolio')}</title>${p.headline ? `<meta name="description" content="${esc(p.headline)}">` : ''}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="${fontsHref(e.tpl, e.dz.font, my)}">`;
   if (web) {
     const dk = e.dz.mode === 'dark' || (e.dz.mode === 'tpl' && t.dark);
     const hc = [dk ? 'dk' : '', e.dz.mode === 'system' ? 'sys' : '', ...e.dz.fx.map(x => 'fx-' + x)].filter(Boolean).join(' ');
     const js = opts.js ? `<script>${String(opts.js).replace(/<\/(script)/gi, '<\\/$1')}</script>` : opts.jsSrc ? `<script src="${esc(opts.jsSrc)}" defer></script>` : '';
     return `<!DOCTYPE html><html lang="${esc(p.lang)}" class="${hc}"><head>${head}<style>${vars}${webCSS(e)}</style></head><body class="${bodyCls}">${bodyWeb(p, imgs, d, e, opts)}${js}</body></html>`;
   }
-  const fam = t.fam, css = printCSS(e.tpl, fam) + pageBg(e.tpl, fam, e.dz.bg, e.accent);
+  const fam = t.fam, css = printCSS(e.tpl, fam) + pageBg(e.tpl, fam, e.dz.bg, tk ? tk.a : e.accent, tk ? tk.bg : '') + (my ? myPrintCSS(my, fam, tk) : '');
   const body = { ledger: bodyLedger, rail: bodyRail, folio: bodyFolio }[fam](p, imgs, d);
   const printFix = `@media print{.sheet{width:auto;${fam === 'folio' ? 'min-height:0' : 'padding:0'}}}`;
   const G = GUIDE[fam];

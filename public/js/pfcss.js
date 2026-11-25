@@ -1,6 +1,7 @@
 /* Portfolio hujjatlari uchun CSS: fon qatlamlari, A4 (PDF) maketlari va skinlari, hamda veb-sayt uslublari.
  * Rang va shriftlar CSS o'zgaruvchilari orqali keladi: --a (asosiy), --a2 (ikkinchi), --hf (sarlavha shrifti), --bf (matn shrifti). */
 
+const isDarkHex = h => { const v = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2] < 0.35; };
 const ink = dk => (dk ? '255,255,255' : '15,23,42');
 const mix = (v, n) => `color-mix(in srgb,var(${v}) ${n}%,transparent)`;
 const uri = s => `url("data:image/svg+xml,${encodeURIComponent(s)}")`;
@@ -111,11 +112,11 @@ const FAM = { ledger: LEDGER, rail: RAIL, folio: FOLIO };
 /** Sahifa foni (<html>). Yorugʻlik dogʻlari va yon ustun faqat BIR marta chiziladi (no-repeat), toʻr/nuqta kabi naqshlar esa takrorlanadi.
  *  html balandligi kontentdan oshmasa (1 sahifadan qisqa hujjat), fon bloki takrorlanib sahifa oʻrtasida keskin chiziq hosil qilardi —
  *  shuning uchun html kamida sahifa (oyna) balandligida boʻladi. */
-export function pageBg(tpl, fam, bg, a) {
-  const dk = tpl === 'noir', L = bgLayers(bg, a, dk), top = [];
+export function pageBg(tpl, fam, bg, a, base) {
+  const dk = tpl === 'noir' || (base && isDarkHex(base)), L = bgLayers(bg, a, dk), top = [];
   if (fam === 'rail') top.push((dk ? 'linear-gradient(90deg,#0d1322 0 68mm,transparent 68mm 100%)' : 'linear-gradient(90deg,color-mix(in srgb,var(--a) 80%,#0a0d14) 0 68mm,transparent 68mm 100%)') + ' no-repeat');
   if (tpl === 'noir') top.push('radial-gradient(70mm 70mm at 0 0,color-mix(in srgb,var(--a) 50%,transparent),transparent) no-repeat', 'radial-gradient(90mm 80mm at 100% 100%,color-mix(in srgb,var(--a2) 28%,transparent),transparent) no-repeat');
-  return `html{min-height:100%;background:${[...top, ...L.l, L.base || (dk ? '#080b13' : '#fff')].join(',')}}`;
+  return `html{min-height:100%;background:${[...top, ...L.l, base || L.base || (dk ? '#080b13' : '#fff')].join(',')}}`;
 }
 
 export const printCSS = (tpl, fam) => PRINT_BASE + FAM[fam] + (SKIN[tpl] || '');

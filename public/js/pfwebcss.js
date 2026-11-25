@@ -1,6 +1,7 @@
 /* Portfolio veb-sayti (mustaqil HTML) uchun CSS. Effektlar faqat <html class="js"> bo'lganda (pfweb.js ishga tushgach) yoqiladi:
  * skriptsiz ham barcha kontent ko'rinadi. Animatsiyalar prefers-reduced-motion da o'chadi. */
 import { bgLayers } from './pfcss.js';
+import { myTokens, myWebCSS } from './pfmy.js';
 
 /* [fon, karta, matn, xira matn, chiziq] */
 const T = {
@@ -101,5 +102,6 @@ export function webCSS(e) {
   const r = dz.shape === 'sharp' ? RAD.sharp : dz.shape === 'round' ? RAD.round : t.r;
   const pack = (a, ly) => `${tok(a)};${ly.base ? `--bg:${ly.base};` : ''}--lay:${ly.l.length ? ly.l.join(',') : 'none'}`;
   const L = pack(t.L, lyL), D = pack(t.D, lyD);
+  if (e.my) { const tk = myTokens(e.my, e.accent, dz.acc2), ly = bgLayers(dz.bg, tk.a, tk.dark); return `${CORE}${SK[tpl] || ''}:root{${L};--sp:${dz.dens === 'compact' ? 0.7 : 1};--lay:${ly.l.length ? ly.l.join(',') : 'none'}}${myWebCSS(e.my, tk)}`; }
   return `${CORE}${SK[tpl] || ''}:root{${L};--at:var(--a);--r:${r}px;--sp:${dz.dens === 'compact' ? 0.7 : 1}}html.dk{${D};--at:color-mix(in srgb,var(--a) 52%,#fff)}@media(prefers-color-scheme:dark){html.sys:not(.lt):not(.dk){${D};--at:color-mix(in srgb,var(--a) 52%,#fff)}}`;
 }

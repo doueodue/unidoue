@@ -4,8 +4,8 @@ import { $, $$, S, ls, esc, toast, modal, credits, aiFlag, upsell, hasFeature } 
 import { md } from './markdown.js';
 import { lang, t as tr } from './i18n.js';
 import { normalize, emptyPf, seedFromProfile, evaluate, canExport, uid, MAX, DIM_L, TIPS } from './pfmodel.js';
-import { studioHTML, dzApply, aiRes } from './pfstudio.js';
-import { effective } from './pfdesign.js';
+import { studioHTML, dzApply, aiRes, myApply, myPreset, myNew } from './pfstudio.js';
+import { effective, allow } from './pfdesign.js';
 import { liveGlass } from './tiers.js';
 import { docHTML, fileBase } from './pfdoc.js';
 import { docxBytes } from './pfdocx.js';
@@ -146,7 +146,7 @@ function mountPreview() {
   $$('[data-pv]', st.el).forEach(b => b.setAttribute('aria-selected', String(b.dataset.pv === st.view)));
 }
 const setView = v => { if (st.view === v) return; st.view = v; mountPreview(); };
-function renderDesign() { const d = $('#pf-design', st.el); if (d) d.innerHTML = studioHTML(st, plan()); }
+function renderDesign() { const d = $('#pf-design', st.el); if (!d) return; const y = window.scrollY; d.innerHTML = studioHTML(st, plan()); if (Math.abs(window.scrollY - y) > 2) window.scrollTo({ top: y }); }
 const lockPrompt = tier => upsell('pf_design', tier === 1 ? 'Bu variant Plus va Pro tarifida ochiladi.' : 'Bu variant faqat Pro tarifida ochiladi. Pro tarifida hamma shablon, fon va effekt, o‘z ranglaringiz va AI dizayner bor.', tier === 1 ? 'plus' : 'pro');
 function dzClick(btn) {
   const key = btn.dataset.dz, r = dzApply(st, key, plan());
@@ -158,8 +158,22 @@ const snap = () => JSON.stringify({ tpl: st.pf.tpl, accent: st.pf.accent, dz: st
 async function aiDesign(btn) {
   if (!hasFeature('pf_studio')) { upsell('pf_studio'); return; }
   st.wish = (($('#pf-wish', st.el) || {}).value || '').trim().slice(0, 200); const prev = snap();
-  await design(st, st.wish, d => { st.dzPrev = prev; st.pf.tpl = d.tpl; st.pf.accent = d.accent; st.pf.dz = d.dz; st.aiWhy = { text: d.why }; renderDesign(); previewNow(); toast('AI dizayni qo‘llandi. Xohlasangiz, o‘zingiz o‘zgartiring.'); }, btn);
+  await design(st, st.wish, d => {
+    st.dzPrev = prev; st.pf.tpl = d.tpl; st.pf.accent = d.accent; st.pf.dz = d.dz; st.aiWhy = { text: d.why, name: d.name || '' };
+    if (d.dz.my) saveDesign(d.name || tr('AI dizayn'), true); // AI yaratgan shaxsiy shablon "Mening dizaynlarim"ga tushadi
+    renderDesign(); previewNow(); toast(d.dz.my ? 'AI siz uchun shaxsiy shablon yaratdi. Xohlasangiz, o‘zingiz o‘zgartiring.' : 'AI dizayni qo‘llandi. Xohlasangiz, o‘zingiz o‘zgartiring.');
+  }, btn);
 }
+/** Joriy dizaynni "Mening dizaynlarim"ga saqlaydi (bir xil nom bo‘lsa yangilanadi, eng ko‘pi 12 ta). */
+function saveDesign(name, ai) {
+  const ds = st.pf.designs || (st.pf.designs = []), nm = String(name || '').trim().slice(0, 40) || `${tr('Dizayn')} ${ds.length + 1}`;
+  const item = { id: uid(), name: nm, tpl: st.pf.tpl, accent: st.pf.accent, dz: JSON.parse(JSON.stringify(st.pf.dz)), ai: !!ai };
+  if (item.dz.my) item.dz.my.name = nm;
+  const i = ds.findIndex(d => d.name === nm); if (i >= 0) { item.id = ds[i].id; ds[i] = item; } else { if (ds.length >= 12) ds.shift(); ds.push(item); }
+  if (st.pf.dz.my) st.pf.dz.my.name = nm; save(); return item;
+}
+let myT = 0;
+const myLater = () => { clearTimeout(myT); myT = setTimeout(previewNow, 140); };
 function aiUndo() { if (!st.dzPrev) return; const o = JSON.parse(st.dzPrev); st.pf.tpl = o.tpl; st.pf.accent = o.accent; st.pf.dz = o.dz; st.dzPrev = ''; st.aiWhy = null; renderDesign(); previewNow(); }
 
 /* ---------- ko'rinishlar ---------- */
@@ -272,13 +286,18 @@ async function act(d, el) {
   else if (k === 'extract') await extract(st, refreshAll, el);
   else if (k === 'ai-design') await aiDesign(el);
   else if (k === 'ai-undo') aiUndo();
+  else if (k === 'my-new') { myNew(st); renderDesign(); previewNow(); }
+  else if (k === 'my-off') { delete st.pf.dz.my; if (!allow(plan()).ok('tpl', st.pf.tpl)) st.pf.tpl = 'ledger'; renderDesign(); previewNow(); }
+  else if (k === 'my-save') { const nm = (($('#pf-myname', st.el) || {}).value || '').trim(); const it = saveDesign(nm, false); renderDesign(); toast(`${tr('Dizayn saqlandi:')} ${it.name}`); }
+  else if (k === 'my-use') { const d = (st.pf.designs || []).find(x => x.id === a); if (!d) return; st.dzPrev = snap(); st.pf.tpl = d.tpl; st.pf.accent = d.accent; st.pf.dz = JSON.parse(JSON.stringify(d.dz)); renderDesign(); previewNow(); toast(`${tr('Qo‘llandi:')} ${d.name}`); }
+  else if (k === 'my-del') { const d = (st.pf.designs || []).find(x => x.id === a); if (!d) return; if (await modal({ title: 'O‘chirasizmi?', body: `<p>${esc(d.name)} — ${esc(tr('saqlangan dizayn o‘chiriladi. Hujjatdagi joriy dizayn o‘zgarmaydi.'))}</p>`, actions: [{ label: 'Bekor', value: 0 }, { label: 'O‘chirish', value: 1, cls: 'danger' }] }) !== 1) return; st.pf.designs = st.pf.designs.filter(x => x.id !== a); if (!st.pf.designs.length) delete st.pf.designs; save(); renderDesign(); }
   else if (k === 'review') await review(st, () => $('#pf-rv', st.el), el);
 }
 
 /* ---------- kirish nuqtasi ---------- */
 const emTitle = x => { const y = tr(x), i = y.lastIndexOf(' '); return i < 0 ? '<em>' + esc(y) + '</em>' : esc(y.slice(0, i)) + ' <em>' + esc(y.slice(i + 1)) + '</em>'; };
 export async function portfolio(el) {
-  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=48'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
+  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=49'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
   Object.keys(st).forEach(k => delete st[k]);
   liveGlass(el);
   const saved = ls.get(KEY, null), fresh = !saved;
@@ -293,6 +312,8 @@ export async function portfolio(el) {
   renderBuild(); paintScore();
   mountPreview(); $('#pf-paper', el).addEventListener('pf:pages', () => { const pp = $('#pf-paper', el), pg = $('#pf-pg', el); if (!pp || !pg) return; const n = +pp.dataset.pages; pg.textContent = `≈ ${n} ${tr(n === 1 ? 'sahifa' : 'sahifalar')}`; });
   const onInput = e => {
+    const mc = e.target.closest('[data-myc]'); if (mc && st.pf.dz.my) { const k = mc.dataset.myc, v = mc.value.toLowerCase(); if (k === '@a') st.pf.accent = v; else if (k === '@a2') st.pf.dz.acc2 = v; else st.pf.dz.my[k] = v; myLater(); return; }
+    const mr = e.target.closest('[data-myr]'); if (mr && st.pf.dz.my) { const v = +mr.value; st.pf.dz.my[mr.dataset.myr] = v; const b = mr.parentElement.querySelector('b'); if (b) b.textContent = mr.dataset.myr === 'r' ? v + 'px' : v; myLater(); return; }
     const cc = e.target.closest('[data-cc]'); if (cc) { if (!hasFeature('pf_studio')) return; if (cc.dataset.cc === 'accent') st.pf.accent = cc.value.toLowerCase(); else st.pf.dz.acc2 = cc.value.toLowerCase(); previewNow(); return; }
     const x = e.target.closest('[data-p]'); if (!x) return; const p = x.dataset.p;
     if (p === '@skills') st.pf.skills = fromList(x.value).slice(0, MAX.skills); else if (p === '@targets') st.pf.targets = fromList(x.value).slice(0, MAX.targets); else setP(st.pf, p, x.value);
@@ -303,10 +324,14 @@ export async function portfolio(el) {
     const f = e.target.closest('[data-file]');
     if (f) { const fs = [...f.files]; f.value = ''; if (fs.length) (f.dataset.file === 'photo' ? pickPhoto(fs[0]) : addDocs(fs)); return; }
     const pk = e.target.closest('[data-pick]'); if (pk) { if (pk.checked && st.pick.size >= 3) { pk.checked = false; toast('Bir vaqtda 3 tagacha rasm o‘qitish mumkin.'); return; } pk.checked ? st.pick.add(pk.dataset.pick) : st.pick.delete(pk.dataset.pick); const bt = $('[data-do=extract]', el); if (bt) bt.disabled = !st.pick.size; return; }
+    const mf = e.target.closest('[data-myf]'); if (mf && st.pf.dz.my) { st.pf.dz.my[mf.dataset.myf] = mf.value; previewNow(); return; }
+    if (e.target.closest('[data-myc]') && st.pf.dz.my) { renderDesign(); previewNow(); return; }
     if (e.target.matches('select[data-p]')) onInput(e);
   });
   el.addEventListener('click', e => {
     const t = e.target.closest('[data-tab]'); if (t) { setTab(t.dataset.tab); return; }
+    const ms = e.target.closest('[data-my-set]'); if (ms) { if (myApply(st, ms.dataset.mySet).ok) { renderDesign(); const nb = $(`[data-my-set="${ms.dataset.mySet}"]`, st.el); if (nb) nb.focus({ preventScroll: true }); previewNow(); } return; }
+    const mp = e.target.closest('[data-my-preset]'); if (mp) { myPreset(st, mp.dataset.myPreset); renderDesign(); previewNow(); return; }
     const dzb = e.target.closest('[data-dz]'); if (dzb) { dzClick(dzb); return; }
     const pvb = e.target.closest('[data-pv]'); if (pvb) { setView(pvb.dataset.pv); return; }
     const dl = e.target.closest('[data-dl]'); if (dl) { st.pf.lang = dl.dataset.dl; $('.pf-ctl', el).outerHTML = langHTML(); changed(); previewNow(); return; }

@@ -3,6 +3,8 @@
  * Tarif cheklovi HAR DOIM effective() orqali qo'llanadi: saqlangan tanlov yuqori tarifdan qolgan bo'lsa ham,
  * hujjat (ko'rinish, PDF, Word, veb) joriy tarifga ruxsat etilgan eng yaqin variantda chiqadi. */
 
+import { cleanMy, MY_BASES } from './pfmy.js';
+
 export const RANK = { free: 0, plus: 1, pro: 2 };
 export const rankOf = plan => RANK[plan] ?? 0;
 
@@ -34,12 +36,21 @@ export const FF = {
   display: 'Fraunces,"Source Serif 4",Georgia,serif',
   grotesk: '"Space Grotesk","DM Sans",system-ui,sans-serif',
   mono: '"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace',
-  editorial: '"Playfair Display","Source Serif 4",Georgia,serif'
+  editorial: '"Playfair Display","Source Serif 4",Georgia,serif',
+  /* "Mening dizaynim" uchun qo‘shimcha shriftlar (hamma tarifda) */
+  inter: 'Inter,system-ui,"Segoe UI",Arial,sans-serif', manrope: 'Manrope,system-ui,sans-serif', outfit: 'Outfit,system-ui,sans-serif', montserrat: 'Montserrat,system-ui,sans-serif',
+  unbounded: 'Unbounded,"Space Grotesk",system-ui,sans-serif', syne: 'Syne,"Space Grotesk",system-ui,sans-serif', bricolage: '"Bricolage Grotesque",system-ui,sans-serif', plexsans: '"IBM Plex Sans",system-ui,sans-serif',
+  lora: 'Lora,Georgia,serif', merriweather: 'Merriweather,Georgia,serif', cormorant: '"Cormorant Garamond",Georgia,serif', dmserif: '"DM Serif Display",Georgia,serif', plexmono: '"IBM Plex Mono",ui-monospace,Menlo,monospace'
 };
+export const MY_FONTS = Object.keys(FF);
+export const FONT_LABEL = { serif: 'Source Serif', sans: 'DM Sans', display: 'Fraunces', grotesk: 'Space Grotesk', mono: 'JetBrains Mono', editorial: 'Playfair Display', inter: 'Inter', manrope: 'Manrope', outfit: 'Outfit', montserrat: 'Montserrat', unbounded: 'Unbounded', syne: 'Syne', bricolage: 'Bricolage Grotesque', plexsans: 'IBM Plex Sans', lora: 'Lora', merriweather: 'Merriweather', cormorant: 'Cormorant Garamond', dmserif: 'DM Serif Display', plexmono: 'IBM Plex Mono' };
 export const FONTS = { auto: { t: 0 }, serif: { t: 1, h: 'serif', b: 'serif' }, sans: { t: 1, h: 'sans', b: 'sans' }, grotesk: { t: 2, h: 'grotesk', b: 'sans' }, display: { t: 2, h: 'display', b: 'sans' }, editorial: { t: 2, h: 'editorial', b: 'serif' }, mono: { t: 2, h: 'mono', b: 'sans' } };
 export const GF = {
   serif: 'Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400', sans: 'DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700',
-  display: 'Fraunces:opsz,wght@9..144,500;9..144,600', grotesk: 'Space+Grotesk:wght@500;600;700', mono: 'JetBrains+Mono:wght@400;600', editorial: 'Playfair+Display:ital,wght@0,600;0,700;1,500'
+  display: 'Fraunces:opsz,wght@9..144,500;9..144,600', grotesk: 'Space+Grotesk:wght@500;600;700', mono: 'JetBrains+Mono:wght@400;600', editorial: 'Playfair+Display:ital,wght@0,600;0,700;1,500',
+  inter: 'Inter:wght@400;500;600;700;800', manrope: 'Manrope:wght@400;500;600;700;800', outfit: 'Outfit:wght@400;500;600;700;800', montserrat: 'Montserrat:wght@400;500;600;700;800',
+  unbounded: 'Unbounded:wght@400;500;600;700;800', syne: 'Syne:wght@400;500;600;700;800', bricolage: 'Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800', plexsans: 'IBM+Plex+Sans:wght@400;500;600;700',
+  lora: 'Lora:ital,wght@0,400;0,600;0,700;1,400', merriweather: 'Merriweather:wght@400;700;900', cormorant: 'Cormorant+Garamond:wght@500;600;700', dmserif: 'DM+Serif+Display', plexmono: 'IBM+Plex+Mono:wght@400;600;700'
 };
 
 export const BGS = { none: 0, paper: 1, grid: 1, dots: 1, mesh: 1, aurora: 2, waves: 2, noise: 2, stars: 2, topo: 2, blueprint: 2 };
@@ -58,6 +69,7 @@ export function cleanDz(d) {
   const o = defaultDz(), pick = (v, set, f) => (typeof v === 'string' && Object.hasOwn(set, v) ? v : f);
   o.acc2 = hex(d.acc2, o.acc2); o.font = pick(d.font, FONTS, 'auto'); o.bg = pick(d.bg, BGS, 'none'); o.mode = pick(d.mode, MODES, 'tpl'); o.dens = pick(d.dens, DENS, 'cozy'); o.shape = pick(d.shape, SHAPES, 'soft');
   o.fx = Array.isArray(d.fx) ? [...new Set(d.fx.filter(x => typeof x === 'string' && Object.hasOwn(FXS, x)))].slice(0, 9) : o.fx;
+  const my = cleanMy(d.my, MY_FONTS); if (my) o.my = my; // foydalanuvchining o‘z dizayni (bo‘lmasa kalit yo‘q)
   return o;
 }
 
@@ -73,6 +85,11 @@ export function allow(plan) {
 /** Joriy tarifga moslashtirilgan dizayn. pf — normalize qilingan model. Natija: { tpl, accent, dz } (pf nusxasi o'zgarmaydi). */
 export function effective(pf, plan) {
   const A = allow(plan), dz = cleanDz(pf && pf.dz);
+  if (dz.my) { // o‘z dizayni: hamma tarifda; asos tuzilma, ranglar va shriftlar foydalanuvchiniki. Fon, effekt va zichlik tarif bo‘yicha.
+    const out = { ...dz, mode: 'light', font: 'auto', shape: 'soft' };
+    if (!A.ok('bg', out.bg)) out.bg = 'none'; if (!A.ok('dens', out.dens)) out.dens = 'cozy'; out.fx = out.fx.filter(x => A.ok('fx', x));
+    return { tpl: MY_BASES.includes(dz.my.base) ? dz.my.base : 'ledger', accent: hex(pf && pf.accent, PALETTES[0][0]), dz: out, my: dz.my };
+  }
   let tpl = TPL[pf && pf.tpl] ? pf.tpl : 'ledger';
   while (!A.ok('tpl', tpl)) tpl = TPL[tpl].fb;
   let accent = hex(pf && pf.accent, PALETTES[0][0]), acc2 = dz.acc2;
@@ -88,11 +105,18 @@ export function effective(pf, plan) {
 }
 
 /** Shablon + shrift tanlovidan haqiqiy shrift to'plami: { h, b } (FF kalitlari). */
-export function fontPair(tpl, font) { const t = TPL[tpl] || TPL.ledger, f = FONTS[font]; return f && f.h ? { h: f.h, b: f.b } : { h: t.hf, b: t.bf }; }
+export function fontPair(tpl, font, my) { if (my) return { h: my.hf, b: my.bf }; const t = TPL[tpl] || TPL.ledger, f = FONTS[font]; return f && f.h ? { h: f.h, b: f.b } : { h: t.hf, b: t.bf }; }
 
 /** AI javobi (JSON) -> xavfsiz dizayn taklifi. Faqat oq roʻyxatdagi qiymatlar; tarif keyin effective() da qoʻllanadi. */
 export function designFromAI(j, plan = 'pro') {
   j = j && typeof j === 'object' ? j : {};
+  if (j.ink || j.base || (typeof j.bg === 'string' && j.bg[0] === '#')) { // AI yaratgan shaxsiy shablon (to‘liq ranglar, shriftlar, uslub)
+    const my = cleanMy({ on: true, base: j.base || j.layout || j.template, bg: j.bg || j.background_color, card: j.card || j.surface, ink: j.ink || j.text, mut: j.muted || j.mut, line: j.line || j.border,
+      hf: j.headingFont || j.hf, bf: j.bodyFont || j.bf, r: j.radius, hw: j.headingWeight || j.hw, hcase: j.headingCase || j.hcase, h2: j.sectionStyle || j.h2, card2: j.cardStyle || j.card2, name: j.name }, MY_FONTS);
+    const dz = cleanDz({ acc2: j.accent2 || j.acc2, bg: j.pattern || j.bgPattern, fx: j.fx || j.effects, dens: j.density || j.dens, my });
+    const e = effective({ tpl: my.base, accent: hex(j.accent, PALETTES[0][0]), dz }, plan);
+    return { tpl: e.tpl, accent: e.accent, dz: { ...dz, fx: e.dz.fx, bg: e.dz.bg, dens: e.dz.dens }, why: String(j.why || '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').trim().slice(0, 240), name: my.name };
+  }
   const dz = cleanDz({ acc2: j.accent2 || j.acc2, font: j.font, bg: j.bg || j.background, fx: j.fx || j.effects, mode: j.mode, dens: j.density || j.dens, shape: j.shape });
   const tpl = typeof j.template === 'string' && TPL[j.template] ? j.template : typeof j.tpl === 'string' && TPL[j.tpl] ? j.tpl : 'ledger';
   const accent = hex(j.accent, PALETTES[0][0]);

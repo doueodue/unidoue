@@ -34,6 +34,9 @@ export function normalize(p) {
   o.langs = arr(p.langs, MAX.langs).map(x => x && ({ n: str(x.n, 30), lv: str(x.lv, 20) })).filter(x => x && x.n);
   o.targets = arr(p.targets, MAX.targets).map(x => str(x, 80)).filter(Boolean);
   o.att = arr(p.att, MAX.att).map(x => x && ({ id: str(x.id, 12), cap: str(x.cap, 100) })).filter(x => x && x.id);
+  // Saqlangan dizaynlar ("Mening dizaynlarim"): foydalanuvchi o‘zi yoki AI yaratgan, qayta qo‘llash uchun
+  const ds = arr(p.designs, 12).map(x => x && ({ id: str(x.id, 12) || uid(), name: str(x.name, 40) || 'Dizayn', tpl: TPLS.includes(x.tpl) ? x.tpl : 'ledger', accent: safeColor(x.accent), dz: cleanDz(x.dz), ai: !!x.ai })).filter(Boolean);
+  if (ds.length) o.designs = ds;
   return o;
 }
 
