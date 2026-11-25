@@ -43,7 +43,10 @@ body{background:transparent;color:#15181e;-webkit-font-smoothing:antialiased;tex
 .m span+span::before{content:"";display:inline-block;width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.55;margin:0 .55em;vertical-align:middle}
 .ct{display:flex;flex-wrap:wrap;gap:1pt 13pt}.ct span{min-width:0;max-width:100%}
 .e{break-inside:avoid}h2{break-after:avoid}figure{break-inside:avoid}
-body.r-sharp .ph{border-radius:0!important}body.r-round .ph{border-radius:16pt!important}`;
+/* Shakl (A4): qirrali = burchaklar tik, yumshoq = shablon o‘zi, dumaloq = eng yumaloq. Dumaloq “yumshoq”dan hech qachon tikroq bo‘lmasligi uchun doira fotosuratli shablonlarda doira qoladi. */
+body.r-sharp .ph,body.r-sharp .gal figure img,body.r-sharp .tg span,body.r-sharp.t-poster .strip,body.r-sharp.t-nova .strip .fig{border-radius:0!important}
+body.r-round .ph{border-radius:16pt!important}body.r-round .rail .ph,body.r-round.t-rail .ph,body.r-round.t-timeline .ph,body.r-round.t-poster .ph,body.r-round.t-nova .ph{border-radius:50%!important}
+body.r-round .gal figure img{border-radius:12pt!important}body.r-round .tg span{border-radius:99pt!important}body.r-round.t-poster .strip,body.r-round.t-nova .strip .fig{border-radius:14pt!important}`;
 
 const LEDGER = `@page{size:A4;margin:0}
 body{font:10pt/1.5 var(--bf)}.sheet{width:210mm;padding:16mm 17mm;-webkit-box-decoration-break:clone;box-decoration-break:clone}

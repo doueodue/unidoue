@@ -293,6 +293,7 @@ html[data-theme=dark] .lp-pl.is-hot{box-shadow:inset 0 1px 0 rgba(255,255,255,.1
 .lp-fl{display:flex;flex-wrap:wrap;gap:8px 22px;margin-inline:auto}
 .lp-fl a{color:var(--ink-2);font-size:14px}
 .lp-fl a:hover{color:var(--brand-600)}
+@media(pointer:coarse){.lp-fl a{display:inline-flex;align-items:center;min-height:40px}.lp-scroll{width:30px;height:46px;margin-left:-15px}}
 .lp-copy{color:var(--muted);font-size:13.5px}
 
 /* ---------- kirish animatsiyalari (bir marta, sahifa ochilganda) ---------- */

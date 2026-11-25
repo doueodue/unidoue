@@ -383,7 +383,7 @@ html[data-theme=dark] .pfs-seg button[aria-selected=true]{background:rgba(255,25
   .pfs-rail{order:3;flex:none;width:auto;flex-direction:row;gap:2px;align-self:stretch;max-height:none;margin:0 10px calc(10px + env(safe-area-inset-bottom,0px));padding:6px;overflow-x:auto;overflow-y:hidden;border-radius:30px}
   .pfs-tl{flex:1 0 68px;padding:5px 2px 4px;gap:3px;font-size:11px;border-radius:22px}.pfs-tli{width:42px;height:32px;border-radius:14px}.pfs-tli svg{width:19px;height:19px}
   .pfs-ph{margin-bottom:16px;padding-bottom:12px}.pfs-ph h3{font-size:26px}
-  .pfs-tb{margin:8px 8px 0;padding:4px 6px;gap:6px;overflow-x:auto;max-width:calc(100% - 16px);justify-content:flex-start}
+  .pfs-tb{margin:8px 8px 0;padding:4px 6px;gap:4px 6px;flex-wrap:wrap;max-width:calc(100% - 16px);justify-content:center}.pfs-sep{display:none}
   .pfs-seg button{padding:0 11px;height:30px;font-size:12.5px}.pfs-dv2 button{width:34px;padding:0}
   .pfs-bar{padding:0 10px 10px}.pfs-chip{min-height:38px;padding-left:12px}.pfs-gd span{display:none}.pfs-zv{min-width:54px}
   .pfs-cmpb{top:64px}
@@ -391,4 +391,20 @@ html[data-theme=dark] .pfs-seg button[aria-selected=true]{background:rgba(255,25
   .pfs-gate-c{top:30px}
 }
 @media(max-width:420px){.pfs-pal{grid-template-columns:repeat(4,minmax(0,1fr))}.pfs-fl{grid-template-columns:minmax(0,1fr)}.pfs-bgl{grid-template-columns:repeat(2,minmax(0,1fr))}.pfs-exp .btn span{display:none}.pfs-exp .btn{width:40px;padding:0}}
+/* telefon yotiq (landscape): bosh ekran past, shuning uchun asboblar chapda, panel o‘rtada, jonli ko‘rinish o‘ngda */
+@media(max-width:1000px) and (max-height:520px) and (orientation:landscape){
+  .pfs{--pw:292px}
+  .pfs-top{height:46px}
+  .pfs-body{flex-direction:row}
+  .pfs-rail{order:0;flex-direction:column;gap:2px;width:66px;align-self:stretch;max-height:none;margin:8px 0 8px 8px;padding:6px 4px;overflow-x:hidden;overflow-y:auto;border-radius:24px}
+  .pfs-tl{flex:none;width:100%;padding:3px 0;gap:0;border-radius:18px}.pfs-tli{width:42px;height:34px;border-radius:13px}.pfs-tli svg{width:19px;height:19px}
+  .pfs-tln{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .pfs-panel{order:1;flex:none;width:var(--pw);height:auto;margin:8px 0 8px 8px;padding:14px 14px 24px;border-radius:22px;box-shadow:var(--sh-2)}
+  .pfs-stage{order:2;flex:1 1 0;min-width:0}
+  .pfs-tb{margin:6px 8px 0}.pfs-ph{margin-bottom:10px;padding-bottom:8px}.pfs-ph h3{font-size:22px}
+  .pfs-bar{padding:0 8px 6px}.pfs-chip{min-height:34px}.pfs-zoom{padding:2px}.pfs-zv{height:30px}
+  .pfs-tpls{grid-template-columns:repeat(2,minmax(0,1fr))}.pfs-pal{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+/* sensorli ekran: ko‘rinish va qurilma tugmalari barmoq uchun yetarlicha katta */
+@media(pointer:coarse){.pfs-seg button{height:36px}.pfs-dv2 button{width:40px}.pfs-gd{height:36px}.pfs-grp .pfs-b{width:40px;height:40px}}
 @media(prefers-reduced-motion:reduce){.pfs,.pfs-panel,.pfs-menu,.pfs-sav[data-s=w]::before{animation:none}.pfs *{transition:none!important}}

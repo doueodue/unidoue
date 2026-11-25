@@ -200,6 +200,14 @@ export function openStudio(ctx) {
     if (pushed && how !== 'pop' && how !== 'hash' && history.state && history.state.pfs) { try { history.back(); } catch (e) {} }
     if (how !== 'hash') ctx.onClose(); // boshqa sahifaga o‘tilganda ko‘rinishni tiklash shart emas
   }
+  /** Faqat veb-sahifada ko‘rinadigan sozlama (rejim, effektlar, scrollbar) A4 ko‘rinishda hech narsani o‘zgartirmaydi: foydalanuvchi natijani ko‘rishi uchun veb ko‘rinishga o‘tamiz. */
+  const WEBONLY = new Set(['mode', 'fx', 'sb', 'sbc', 'sbt']);
+  function webOnly(kind) {
+    let need = WEBONLY.has(kind);
+    if (kind === 'shape') { try { need = !$('#pfs-host iframe', root).contentDocument.querySelector('.ph,.gal figure,.strip'); } catch (e) {} } // A4 da shakl faqat fotosurat, galereya va kartalarga ta’sir qiladi
+    if (!need) return;
+    setView('web'); toast(tr(kind === 'shape' ? 'Bu hujjatda shakl veb-sahifada ko‘rinadi. Veb ko‘rinishga o‘tildi.' : 'Bu sozlama veb-sahifada ishlaydi. Veb ko‘rinishga o‘tildi.'));
+  }
   const onHash = () => close('hash'), onPop = () => close('pop');
 
   root.addEventListener('click', e => {
@@ -215,6 +223,7 @@ export function openStudio(ctx) {
     const tl = t.closest('[data-pfs-tool]'); if (tl) setTool(tl.dataset.pfsTool);
     const v = t.closest('[data-pfs-view]'); if (v) setView(v.dataset.pfsView);
     const d = t.closest('[data-pfs-dev]'); if (d) setDevice(d.dataset.pfsDev);
+    const dzb = t.closest('[data-dz]'); if (dzb && st.view === 'a4' && !dzb.classList.contains('lk')) webOnly(dzb.dataset.dz.split(':')[0]);
     if (!t.closest('.pfs-exp') || t.closest('.pfs-menu [data-do]')) menu(false);
   });
   root.addEventListener('input', e => {

@@ -109,7 +109,7 @@ const SK = {
 export function webCSS(e) {
   const tpl = e.tpl, dz = e.dz, t = T[tpl] || T.ledger;
   const lyL = bgLayers(dz.bg, e.accent, false), lyD = bgLayers(dz.bg, e.accent, true);
-  const r = dz.shape === 'sharp' ? RAD.sharp : dz.shape === 'round' ? RAD.round : t.r;
+  const r = dz.shape === 'sharp' ? Math.min(RAD.sharp, t.r) : dz.shape === 'round' ? Math.max(RAD.round, t.r + 8) : t.r; // yumshoq = shablon radiusi; qirrali hech qachon undan yumaloq emas, dumaloq hech qachon undan tik emas
   const pack = (a, ly) => `${tok(a)};${ly.base ? `--bg:${ly.base};` : ''}--lay:${ly.l.length ? ly.l.join(',') : 'none'}`;
   const L = pack(t.L, lyL), D = pack(t.D, lyD);
   if (e.my) { const tk = myTokens(e.my, e.accent, dz.acc2), ly = bgLayers(dz.bg, tk.a, tk.dark); return `${CORE}${SK[tpl] || ''}:root{${L};--sp:${dz.dens === 'compact' ? 0.7 : 1};--lay:${ly.l.length ? ly.l.join(',') : 'none'}}${myWebCSS(e.my, tk)}${sbCSS(dz)}`; }
