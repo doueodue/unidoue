@@ -48,7 +48,7 @@ const fld = (label, path, o = {}) => {
 };
 const cols = (...x) => `<div class="pf-cols pf-c${x.length}">${x.join('')}</div>`;
 const ops = (kind, i, n) => `<div class="pf-ops"><button type="button" class="pf-ico" data-do="mv:${kind}:${i}:-1" aria-label="Yuqoriga"${i ? '' : ' disabled'}>↑</button><button type="button" class="pf-ico" data-do="mv:${kind}:${i}:1" aria-label="Pastga"${i < n - 1 ? '' : ' disabled'}>↓</button><button type="button" class="pf-ico bad" data-do="del:${kind}:${i}" aria-label="O‘chirish">×</button></div>`;
-const addBtn = (kind, label, max) => (st.pf[kind].length < max ? `<button type="button" class="btn sm" data-do="add:${kind}">+ ${label}</button>` : `<span class="hint">${tr('Eng ko‘pi bilan')} ${max}</span>`);
+const addBtn = (kind, label, max) => (st.pf[kind].length < max ? `<button type="button" class="btn sm" data-do="add:${kind}">+ ${tr(label)}</button>` : `<span class="hint">${tr('Eng ko‘pi bilan')} ${max}</span>`);
 
 function actFields(kind, i) {
   const a = st.pf[kind][i], P = `${kind}.${i}`, pj = kind === 'projects';
@@ -311,7 +311,7 @@ async function act(d, el) {
 /* ---------- kirish nuqtasi ---------- */
 const emTitle = x => { const y = tr(x), i = y.lastIndexOf(' '); return i < 0 ? '<em>' + esc(y) + '</em>' : esc(y.slice(0, i)) + ' <em>' + esc(y.slice(i + 1)) + '</em>'; };
 export async function portfolio(el) {
-  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=56'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
+  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=57'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
   if (unwire) { unwire(); unwire = null; }
   if (st.studio) st.studio.close('hash'); // oldingi studiya (agar sahifa qayta chizilsa) qolib ketmasin
   Object.keys(st).forEach(k => delete st[k]);

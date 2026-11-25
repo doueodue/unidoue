@@ -184,6 +184,8 @@ html[data-season=kuz] .grad-card{background:linear-gradient(120deg,#fff 0%,#fff3
 @keyframes leaf-sway{from{transform:translateX(-30px) rotate(-35deg) rotateY(0)}to{transform:translateX(40px) rotate(150deg) rotateY(70deg)}}
 .tg-card{display:flex;margin:0;align-items:center;gap:14px;padding:14px 18px;text-decoration:none;color:inherit}
 .tg-card span:nth-child(2){flex:1;display:flex;flex-direction:column;gap:2px}.tg-card small{color:var(--muted)}
+.tg-card span:nth-child(2){min-width:0}.tg-card>.btn{flex:none;white-space:nowrap}.tg-card .tg-ic{flex:none}
+@media(max-width:380px){.tg-card{flex-wrap:wrap}.tg-card span:nth-child(2){flex:1 1 140px}}
 .tg-ic{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--brand);color:#fff;font-size:20px}
 .nav-tg{display:block;margin:8px 12px;padding:10px 12px;border-radius:10px;color:#fff;text-decoration:none;font-size:14px;background:rgba(255,255,255,.08)}
 .nav-tg:hover{background:rgba(255,255,255,.16)}

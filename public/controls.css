@@ -77,6 +77,8 @@ html[data-theme=dark] .pop{box-shadow:var(--sh-3),inset 0 1px 0 rgba(255,255,255
 .cn-s button:active{background:color-mix(in srgb,var(--brand) 28%,transparent)}
 .cn-s svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .cn input:disabled~.cn-s{display:none}
+/* sensorli ekran: + / − yonma-yon, barmoq uchun yetarlicha katta */
+@media(pointer:coarse){.cn input[type=number]{padding-right:92px}.cn-s{width:82px;flex-direction:row;top:4px;right:4px;bottom:4px}.cn-s button{min-width:40px}.cn-s button+button{border-left:1px solid color-mix(in srgb,var(--brand) 14%,transparent)}}
 
 /* ---- izoh (title oʻrniga) ---- */
 .tip{position:fixed;z-index:300;max-width:260px;padding:7px 11px;border-radius:9px;background:var(--navy-900,#0d1637);color:#fff;font:500 12.5px/1.4 var(--font,inherit);box-shadow:0 10px 24px -8px rgba(0,0,0,.45);pointer-events:none;overflow-wrap:anywhere}
