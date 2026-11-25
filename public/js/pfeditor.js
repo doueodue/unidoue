@@ -15,7 +15,7 @@ export const ZOOMS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 2];
 const HMAX = 100;
 const svg = d => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${d}</svg>`;
 const I = {
-  back: '<path d="M14.5 5.5L8 12l6.5 6.5"/>', undo: '<path d="M9 7L4.5 11.5 9 16"/><path d="M5 11.5h8.5a5.5 5.5 0 010 11H11" transform="translate(0 -3)"/>', redo: '<path d="M15 7l4.5 4.5L15 16"/><path d="M19 11.5h-8.5a5.5 5.5 0 000 11H13" transform="translate(0 -3)"/>',
+  back: '<path d="M14.5 5.5L8 12l6.5 6.5"/>', undo: '<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/>', redo: '<path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 000 11H13"/>',
   minus: '<path d="M5 12h14"/>', plus: '<path d="M12 5v14M5 12h14"/>', eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
   shuffle: '<path d="M3 7h3.5c2.2 0 3.6 1.2 5 3.2l1 1.6c1.4 2 2.8 3.2 5 3.2H21M3 17h3.5c2.2 0 3.6-1.2 5-3.2M13.5 8.2C14.9 6.7 16 6 17.5 6H21"/><path d="M18.5 3.5L21 6l-2.5 2.5M18.5 12.5L21 15l-2.5 2.5"/>',
   reset: '<path d="M4 12a8 8 0 108-8H8"/><path d="M11 1.5L7.5 4.2 11 7"/>', save: '<path d="M6 3.5h12v17l-6-4-6 4z"/>', down: '<path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 20h14"/>',
@@ -188,7 +188,7 @@ export function openStudio(ctx) {
   function setView(v) { if (st.view === v) return; st.view = v; st.zoom = null; mountStage(); }
   function setDevice(d) { if (!DEV[d] || st.device === d) return; st.device = d; st.zoom = null; if (st.view === 'web') mountStage(); else bar(); }
   const menu = open => { const m = $('.pfs-menu', root), b = $('[data-pfs=exp]', root); m.hidden = !open; b.setAttribute('aria-expanded', String(open)); };
-  function toggleCmp() { st.cmp = !st.cmp; ctx.previewNow(); bar(); }
+  function toggleCmp() { const on = !st.cmp; track(); st.cmp = on; ctx.previewNow(); bar(); } // track() kutilmagan o‘zgarishni yozib, cmp ni o‘chirib qo‘yishi mumkin: shuning uchun oldin chaqiramiz
   function doReset() { st.pf.tpl = 'ledger'; st.pf.accent = PALETTES[0][0]; st.pf.dz = defaultDz(); renderPanel(); ctx.previewNow(); toast(tr('Standart dizayn qo‘llandi. Ctrl+Z bilan qaytarasiz.')); }
   function doShuffle() { shuffleDz(st, ctx.plan()); renderPanel(); ctx.previewNow(); }
   /** how: 'pop' — brauzer "orqaga" tugmasi, 'hash' — boshqa sahifaga o‘tildi (tarix yozuviga tegilmaydi). */

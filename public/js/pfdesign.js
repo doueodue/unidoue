@@ -61,16 +61,18 @@ export const DENS = { cozy: 0, compact: 2 };
 /* Veb-sayt aylantirish chizig‘i (scrollbar): o‘lchami va rangi, hamma tarifda */
 export const SBS = { normal: 0, thin: 0, bold: 0, hidden: 0 };
 export const SBCS = { accent: 0, gradient: 0, ink: 0, soft: 0 };
-export const TIERS = { tpl: Object.fromEntries(TPLS.map(k => [k, TPL[k].t])), font: Object.fromEntries(Object.entries(FONTS).map(([k, v]) => [k, v.t])), bg: BGS, fx: FXS, mode: MODES, shape: SHAPES, dens: DENS, sb: SBS, sbc: SBCS };
+/* Scrollbar orqa foni (track): shaffof | sokin | asosiy rang | karta | matn rangi */
+export const SBTS = { none: 0, soft: 0, accent: 0, card: 0, ink: 0 };
+export const TIERS = { tpl: Object.fromEntries(TPLS.map(k => [k, TPL[k].t])), font: Object.fromEntries(Object.entries(FONTS).map(([k, v]) => [k, v.t])), bg: BGS, fx: FXS, mode: MODES, shape: SHAPES, dens: DENS, sb: SBS, sbc: SBCS, sbt: SBTS };
 
-export const defaultDz = () => ({ acc2: '#7c5cff', font: 'auto', bg: 'none', fx: ['reveal'], mode: 'tpl', dens: 'cozy', shape: 'soft', sb: 'normal', sbc: 'accent' });
+export const defaultDz = () => ({ acc2: '#7c5cff', font: 'auto', bg: 'none', fx: ['reveal'], mode: 'tpl', dens: 'cozy', shape: 'soft', sb: 'normal', sbc: 'accent', sbt: 'none' });
 
 const hex = (c, d) => (typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c) ? c.toLowerCase() : d);
 /** Saqlangan/AI dan kelgan dizaynni oq roʻyxat boʻyicha tozalaydi (tarifga qaramaydi). */
 export function cleanDz(d) {
   d = d && typeof d === 'object' ? d : {};
   const o = defaultDz(), pick = (v, set, f) => (typeof v === 'string' && Object.hasOwn(set, v) ? v : f);
-  o.acc2 = hex(d.acc2, o.acc2); o.font = pick(d.font, FONTS, 'auto'); o.bg = pick(d.bg, BGS, 'none'); o.mode = pick(d.mode, MODES, 'tpl'); o.dens = pick(d.dens, DENS, 'cozy'); o.shape = pick(d.shape, SHAPES, 'soft'); o.sb = pick(d.sb, SBS, 'normal'); o.sbc = pick(d.sbc, SBCS, 'accent');
+  o.acc2 = hex(d.acc2, o.acc2); o.font = pick(d.font, FONTS, 'auto'); o.bg = pick(d.bg, BGS, 'none'); o.mode = pick(d.mode, MODES, 'tpl'); o.dens = pick(d.dens, DENS, 'cozy'); o.shape = pick(d.shape, SHAPES, 'soft'); o.sb = pick(d.sb, SBS, 'normal'); o.sbc = pick(d.sbc, SBCS, 'accent'); o.sbt = pick(d.sbt, SBTS, 'none');
   o.fx = Array.isArray(d.fx) ? [...new Set(d.fx.filter(x => typeof x === 'string' && Object.hasOwn(FXS, x)))].slice(0, 9) : o.fx;
   const my = cleanMy(d.my, MY_FONTS); if (my) o.my = my; // foydalanuvchining o‘z dizayni (bo‘lmasa kalit yo‘q)
   return o;

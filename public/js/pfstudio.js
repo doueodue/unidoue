@@ -2,7 +2,7 @@
  * Tarif cheklovi pfdesign.js dagi allow()/effective() orqali; yopiq variant bosilsa, taklif oynasi chiqadi (tanlov saqlanmaydi). */
 import { esc } from './core.js';
 import { t as tr } from './i18n.js';
-import { TPLS, TPL, PALETTES, FF, FONTS, BGS, FXS, MODES, SHAPES, DENS, SBS, SBCS, TIERS, allow, effective, fontPair, MY_FONTS, FONT_LABEL } from './pfdesign.js';
+import { TPLS, TPL, PALETTES, FF, FONTS, BGS, FXS, MODES, SHAPES, DENS, SBS, SBCS, SBTS, TIERS, allow, effective, fontPair, MY_FONTS, FONT_LABEL } from './pfdesign.js';
 import { MY_BASES, MY_H2, MY_CARD, MY_PRESETS, HARMONY, defaultMy, myTokens, myAdjusted, harmony } from './pfmy.js';
 import { bgLayers } from './pfcss.js';
 import { tierIcon, tierOf } from './tiers.js';
@@ -16,6 +16,7 @@ const SHAPE_N = { soft: 'Yumshoq', sharp: 'Qirrali', round: 'Dumaloq' };
 const DENS_N = { cozy: 'Qulay', compact: 'Zich' };
 const SB_N = { normal: 'Odatiy', thin: 'Ingichka', bold: 'Qalin', hidden: 'Yashirin' };
 const SBC_N = { accent: 'Asosiy rang', gradient: 'Gradient', ink: 'Matn rangi', soft: 'Sokin' };
+const SBT_N = { none: 'Shaffof', soft: 'Sokin', accent: 'Asosiy rang', card: 'Karta rangi', ink: 'Matn rangi' };
 const TIER_N = ['', 'Plus', 'Pro'];
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 017 0v3"/></svg>';
 
@@ -113,7 +114,7 @@ function tFonts(st, plan) {
   const card = (key, fam, name, sub, on, attr, need) => `<button type="button" class="pfs-fc${need ? ' lk' : ''}" role="radio" aria-checked="${on}" ${attr}${need ? ` data-need="${need}"` : ''} data-n="${esc((name + ' ' + sub).toLowerCase())}"><b style="font-family:${esc(FF[fam])}" aria-hidden="true">Aa</b><span class="pfs-fn"><em>${esc(name)}</em><small>${esc(sub)}</small></span>${tag(need)}</button>`;
   if (!my) {
     const cards = Object.keys(FONTS).map(k => { const pr = fontPair(E.tpl, k), nm = k === 'auto' ? tr('Avtomatik') : tr(FONT_N[k]); return card(k, pr.h, nm, `${FONT_LABEL[pr.h]} + ${FONT_LABEL[pr.b]}`, E.dz.font === k, `data-dz="font:${k}"`, L(FONTS[k].t)); }).join('');
-    return head('fonts') + q + `<div class="pfs-fl" role="radiogroup" aria-label="${esc(tr('Shrift'))}">${cards}</div><p class="pfs-none" hidden>${esc(tr('Hech narsa topilmadi'))}</p>`;
+    return head('fonts') + q + `<div class="pfs-fl pfs-fl1" role="radiogroup" aria-label="${esc(tr('Shrift'))}">${cards}</div><p class="pfs-none" hidden>${esc(tr('Hech narsa topilmadi'))}</p>`;
   }
   const list = key => MY_FONTS.map(k => card(k, k, FONT_LABEL[k] || k, '', my[key] === k, `data-my-set="${key}:${k}"`, 0)).join('');
   return head('fonts') + q + sec('Sarlavha shrifti', '', `<div class="pfs-fl" role="radiogroup">${list('hf')}</div>`) + sec('Matn shrifti', '', `<div class="pfs-fl" role="radiogroup">${list('bf')}</div>`) + `<p class="pfs-none" hidden>${esc(tr('Hech narsa topilmadi'))}</p>`;
@@ -138,7 +139,7 @@ function tStyle(st, plan) {
 
 function tBackground(st, plan) {
   const { E, L, a, sv } = ctxOf(st, plan);
-  const bgs = Object.keys(BGS).map(k => { const ly = bgLayers(k, a, false), bg = ly.l.length ? `background:${[...ly.l, ly.base || '#fff'].join(',')};` : 'background:#fff;'; return `<button type="button" class="pfs-bt${L(BGS[k]) ? ' lk' : ''}" role="radio" aria-checked="${E.dz.bg === k}" data-dz="bg:${k}"${L(BGS[k]) ? ` data-need="${BGS[k]}"` : ''}><em class="pf-bgs" style="${esc(sv + ';' + bg)}"></em><span>${esc(tr(BG_N[k]))}</span>${tag(L(BGS[k]))}</button>`; }).join('');
+  const bgs = Object.keys(BGS).map(k => { const ly = bgLayers(k, a, false), bg = ly.l.length ? `background:${[...ly.l, ly.base || '#fff'].join(',')};` : 'background:#fff;'; return `<button type="button" class="pfs-bt${L(BGS[k]) ? ' lk' : ''}" role="radio" aria-checked="${E.dz.bg === k}" data-dz="bg:${k}"${L(BGS[k]) ? ` data-need="${BGS[k]}"` : ''}><span class="pfs-bgw" style="${esc(sv)}"><em class="pf-bgs" style="${esc(bg)}"></em></span><span>${esc(tr(BG_N[k]))}</span>${tag(L(BGS[k]))}</button>`; }).join('');
   return head('background') + `<div class="pfs-bgl" role="radiogroup" aria-label="${esc(tr('Fon'))}">${bgs}</div><p class="hint">${esc(tr('Veb-sahifada fon harakatlanadi.'))}</p>`;
 }
 
@@ -147,8 +148,9 @@ function tEffects(st, plan) {
   const fxs = Object.keys(FXS).map(k => sw('fx:' + k, FX_N[k], E.dz.fx.includes(k), L(FXS[k]))).join('');
   const sbs = Object.keys(SBS).map(k => chip('sb:' + k, SB_N[k], E.dz.sb === k, 0, `<em class="pf-sbi sb-${k}" aria-hidden="true"></em>`)).join('');
   const sbcs = Object.keys(SBCS).map(k => chip('sbc:' + k, SBC_N[k], E.dz.sbc === k, 0, `<em class="pf-sbc sbc-${k}" style="${sv}" aria-hidden="true"></em>`)).join('');
+  const sbts = Object.keys(SBTS).map(k => chip('sbt:' + k, SBT_N[k], E.dz.sbt === k, 0, `<em class="pf-sbt sbt-${k}" style="${sv}" aria-hidden="true"></em>`)).join('');
   return head('effects') + sec('Veb-sayt effektlari', 'Effektlar faqat veb-sahifada ishlaydi.', `<div class="pfs-rows">${fxs}</div>`)
-    + sec('Aylantirish chizig‘i', 'Veb-saytning o‘ng tomonidagi scroll chizig‘i. Faqat veb-sahifada ko‘rinadi.', `<div class="pf-chs" role="radiogroup" aria-label="${esc(tr('O‘lchami'))}">${sbs}</div><div class="pf-chs" role="radiogroup" aria-label="${esc(tr('Rangi'))}" style="margin-top:10px">${sbcs}</div>`);
+    + sec('Aylantirish chizig‘i', 'Veb-saytning o‘ng tomonidagi scroll chizig‘i. Faqat veb-sahifada ko‘rinadi.', [['O‘lchami', sbs], ['Rangi', sbcs], ['Chiziq orqa foni', sbts]].map(([l, h]) => `<p class="pfs-cap">${esc(tr(l))}</p><div class="pf-chs" role="radiogroup" aria-label="${esc(tr(l))}">${h}</div>`).join(''));
 }
 
 function tAi(st, plan) {
@@ -231,6 +233,6 @@ export function dzApply(st, key, plan) {
     if (!A.ok('fx', id)) return { lock: FXS[id] };
     dz.fx = [...dz.fx, id]; return { ok: 1 };
   }
-  if (['font', 'bg', 'mode', 'shape', 'dens', 'sb', 'sbc'].includes(kind)) { const need = Object.hasOwn(TIERS[kind], id) ? TIERS[kind][id] : null; if (need == null) return {}; if (need > A.rank) return { lock: need }; dz[kind] = id; return { ok: 1 }; }
+  if (['font', 'bg', 'mode', 'shape', 'dens', 'sb', 'sbc', 'sbt'].includes(kind)) { const need = Object.hasOwn(TIERS[kind], id) ? TIERS[kind][id] : null; if (need == null) return {}; if (need > A.rank) return { lock: need }; dz[kind] = id; return { ok: 1 }; }
   return {};
 }

@@ -126,7 +126,7 @@ const pvPf = () => { if (!st.cmp || !st.base) return st.pf; try { const o = JSON
 const pvHTML = () => { const pf = pvPf(); return st.view === 'web' ? docHTML(pf, st.imgs, { mode: 'web', plan: plan(), jsSrc: '/js/pfweb.js' }) : docHTML(pf, st.imgs, { guides: st.guides !== false, plan: plan() }); };
 
 /* ---------- saqlash va yangilash ---------- */
-let saveT = 0, prevT = 0, scT = 0, wired = false;
+let saveT = 0, prevT = 0, scT = 0, wired = false, unwire = null; // #view bitta doimiy element: oldingi tinglovchilarni olib tashlamasak, har kirishda yig‘ilib, tugma bir necha marta ishlaydi
 const save = () => { clearTimeout(saveT); saveT = setTimeout(flush, 700); };
 function flush() { if (!saveT) return; clearTimeout(saveT); saveT = 0; const v = normalize(st.pf); const s = JSON.stringify(v); if (s !== st.last) { st.last = s; ls.set(KEY, v); } }
 function changed(structural) { save(); clearTimeout(prevT); prevT = setTimeout(() => st.paper && st.paper.update(pvHTML()), st.view === 'web' ? 700 : 260); clearTimeout(scT); scT = setTimeout(paintScore, 200); if (structural) paintScore(); }
@@ -311,7 +311,8 @@ async function act(d, el) {
 /* ---------- kirish nuqtasi ---------- */
 const emTitle = x => { const y = tr(x), i = y.lastIndexOf(' '); return i < 0 ? '<em>' + esc(y) + '</em>' : esc(y.slice(0, i)) + ' <em>' + esc(y.slice(i + 1)) + '</em>'; };
 export async function portfolio(el) {
-  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=53'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
+  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=55'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
+  if (unwire) { unwire(); unwire = null; }
   if (st.studio) st.studio.close('hash'); // oldingi studiya (agar sahifa qayta chizilsa) qolib ketmasin
   Object.keys(st).forEach(k => delete st[k]);
   liveGlass(el);
@@ -364,6 +365,7 @@ export async function portfolio(el) {
     const d = e.target.closest('[data-do]'); if (d && !d.disabled) act(d.dataset.do, d).catch(er => toast(er.message || 'Xatolik yuz berdi.', 'err'));
   };
   el.addEventListener('input', onInput); el.addEventListener('change', onChange); el.addEventListener('click', onClick);
+  unwire = () => { el.removeEventListener('input', onInput); el.removeEventListener('change', onChange); el.removeEventListener('click', onClick); };
   st.wire = r => { r.addEventListener('input', onInput); r.addEventListener('change', onChange); r.addEventListener('click', onClick); };
   $('#pf-build', el).addEventListener('toggle', e => { const s = e.target.dataset && e.target.dataset.s; if (s) e.target.open ? st.open.add(s) : st.open.delete(s); }, true);
   addEventListener('hashchange', flush, { once: true }); if (!wired) { wired = true; document.addEventListener('visibilitychange', () => document.hidden && st.pf && flush()); addEventListener('pagehide', () => st.pf && flush()); }

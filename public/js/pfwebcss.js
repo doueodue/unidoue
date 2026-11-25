@@ -16,14 +16,15 @@ const T = {
 };
 const tok = a => `--bg:${a[0]};--card:${a[1]};--ink:${a[2]};--mut:${a[3]};--line:${a[4]}`;
 const RAD = { sharp: 4, round: 34 };
-/** Aylantirish chizig‘i: o‘lcham (normal | thin | bold | hidden) va rang (accent | gradient | ink | soft). */
+/** Aylantirish chizig‘i: o‘lcham (normal | thin | bold | hidden), rang (accent | gradient | ink | soft) va orqa fon (none | soft | accent | card | ink). */
 export function sbCSS(dz) {
-  const sz = dz.sb || 'normal', c = dz.sbc || 'accent';
+  const sz = dz.sb || 'normal', c = dz.sbc || 'accent', t = dz.sbt || 'none';
   if (sz === 'hidden') return 'html{scrollbar-width:none}*::-webkit-scrollbar{width:0!important;height:0!important}';
-  if (sz === 'normal' && c === 'accent') return '';
+  if (sz === 'normal' && c === 'accent' && t === 'none') return '';
   const W = { thin: [7, 1], normal: [12, 3], bold: [16, 3] }[sz], col = { accent: 'color-mix(in srgb,var(--a) 55%,transparent)', gradient: 'var(--a)', ink: 'color-mix(in srgb,var(--ink) 34%,transparent)', soft: 'color-mix(in srgb,var(--mut) 30%,transparent)' }[c];
+  const trk = { none: 'transparent', soft: 'color-mix(in srgb,var(--mut) 16%,transparent)', accent: 'color-mix(in srgb,var(--a) 18%,transparent)', card: 'var(--card)', ink: 'color-mix(in srgb,var(--ink) 20%,transparent)' }[t] || 'transparent';
   const hov = { accent: 'var(--a)', gradient: 'var(--a2)', ink: 'color-mix(in srgb,var(--ink) 60%,transparent)', soft: 'color-mix(in srgb,var(--mut) 55%,transparent)' }[c];
-  return `*::-webkit-scrollbar{width:${W[0]}px;height:${W[0]}px}*::-webkit-scrollbar-thumb{border-width:${W[1]}px;background-color:${col};${c === 'gradient' ? 'background-image:linear-gradient(180deg,var(--a),var(--a2));' : 'background-image:none;'}}*::-webkit-scrollbar-thumb:hover{background-color:${hov}}@supports not selector(::-webkit-scrollbar){html{scrollbar-width:${sz === 'bold' ? 'auto' : 'thin'};scrollbar-color:${c === 'gradient' ? 'var(--a)' : col} transparent}}`;
+  return `*::-webkit-scrollbar{width:${W[0]}px;height:${W[0]}px}*::-webkit-scrollbar-track{background:${trk};border-radius:99px}*::-webkit-scrollbar-thumb{border-width:${W[1]}px;background-color:${col};${c === 'gradient' ? 'background-image:linear-gradient(180deg,var(--a),var(--a2));' : 'background-image:none;'}}*::-webkit-scrollbar-thumb:hover{background-color:${hov}}@supports not selector(::-webkit-scrollbar){html{scrollbar-width:${sz === 'bold' ? 'auto' : 'thin'};scrollbar-color:${c === 'gradient' ? 'var(--a)' : col} ${trk}}}`;
 }
 
 const CORE = `*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;color-scheme:light}html.dk{color-scheme:dark}*::-webkit-scrollbar{width:12px;height:12px}*::-webkit-scrollbar-track,*::-webkit-scrollbar-corner{background:transparent}*::-webkit-scrollbar-thumb{background-color:color-mix(in srgb,var(--a,#7a7a7a) 45%,transparent);background-clip:padding-box;border:3px solid transparent;border-radius:99px;min-height:44px}*::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--a,#7a7a7a) 80%,transparent)}@supports not selector(::-webkit-scrollbar){html{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--a,#7a7a7a) 50%,transparent) transparent}}

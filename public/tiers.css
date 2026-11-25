@@ -77,7 +77,7 @@ html[data-theme=dark] .tg{box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0
 
 /* ---------- narxlar sahifasi ---------- */
 .tier-stage{position:relative;isolation:isolate;padding:44px 0 8px}
-.tier-stage::before{content:"";position:absolute;inset:0 -3% -3% -3%;z-index:-1;pointer-events:none;filter:blur(6px);
+.tier-stage::before{content:"";position:absolute;inset:0 max(-3%,-16px) -3% max(-3%,-16px);z-index:-1;pointer-events:none;filter:blur(6px);
   background:radial-gradient(34% 48% at 15% 46%,rgba(92,128,255,.52),transparent 72%),radial-gradient(32% 46% at 50% 58%,rgba(146,158,188,.58),transparent 72%),radial-gradient(36% 54% at 86% 40%,rgba(255,186,46,.6),transparent 72%)}
 html[data-theme=dark] .tier-stage::before{background:radial-gradient(32% 44% at 15% 48%,rgba(92,128,255,.34),transparent 70%),radial-gradient(30% 42% at 50% 60%,rgba(170,182,215,.26),transparent 70%),radial-gradient(34% 50% at 86% 42%,rgba(255,186,46,.34),transparent 70%)}
 @media(max-width:1100px){.tier-stage::before{background:radial-gradient(60% 18% at 50% 14%,rgba(92,128,255,.40),transparent 70%),radial-gradient(60% 18% at 50% 50%,rgba(146,158,188,.46),transparent 70%),radial-gradient(60% 20% at 50% 88%,rgba(255,186,46,.48),transparent 70%)}.tier-stage{gap:34px}.tier-stage .plan[data-tier=pro]{margin-top:34px}}
