@@ -2,7 +2,7 @@
  * Tarif cheklovi pfdesign.js dagi allow()/effective() orqali; yopiq variant bosilsa, taklif oynasi chiqadi (tanlov saqlanmaydi). */
 import { esc } from './core.js';
 import { t as tr } from './i18n.js';
-import { TPLS, TPL, PALETTES, FONTS, BGS, FXS, MODES, SHAPES, DENS, TIERS, allow, effective, lockedCount, MY_FONTS, FONT_LABEL } from './pfdesign.js';
+import { TPLS, TPL, PALETTES, FONTS, BGS, FXS, MODES, SHAPES, DENS, SBS, SBCS, TIERS, allow, effective, lockedCount, MY_FONTS, FONT_LABEL } from './pfdesign.js';
 import { MY_BASES, MY_H2, MY_CARD, MY_PRESETS, defaultMy, myTokens, myAdjusted } from './pfmy.js';
 import { bgLayers } from './pfcss.js';
 import { tierIcon, tierMedal, tierOf } from './tiers.js';
@@ -14,6 +14,8 @@ const FX_N = { reveal: 'Silliq paydo bo‘lish', count: 'Raqam sanash', progress
 const MODE_N = { tpl: 'Shablon bo‘yicha', light: 'Kunduzgi', dark: 'Tungi', system: 'Qurilmaga qarab' };
 const SHAPE_N = { soft: 'Yumshoq', sharp: 'Qirrali', round: 'Dumaloq' };
 const DENS_N = { cozy: 'Qulay', compact: 'Zich' };
+const SB_N = { normal: 'Odatiy', thin: 'Ingichka', bold: 'Qalin', hidden: 'Yashirin' };
+const SBC_N = { accent: 'Asosiy rang', gradient: 'Gradient', ink: 'Matn rangi', soft: 'Sokin' };
 const TIER_N = ['', 'Plus', 'Pro'];
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 017 0v3"/></svg>';
 
@@ -98,6 +100,8 @@ export function studioHTML(st, plan) {
   const modes = Object.keys(MODES).map(k => chip('mode:' + k, MODE_N[k], E.dz.mode === k, L(MODES[k]))).join('');
   const shapes = Object.keys(SHAPES).map(k => chip('shape:' + k, SHAPE_N[k], E.dz.shape === k, L(SHAPES[k]))).join('');
   const denss = Object.keys(DENS).map(k => chip('dens:' + k, DENS_N[k], E.dz.dens === k, L(DENS[k]))).join('');
+  const sbs = Object.keys(SBS).map(k => chip('sb:' + k, SB_N[k], E.dz.sb === k, 0, `<em class="pf-sbi sb-${k}" aria-hidden="true"></em>`)).join('');
+  const sbcs = Object.keys(SBCS).map(k => chip('sbc:' + k, SBC_N[k], E.dz.sbc === k, 0, `<em class="pf-sbc sbc-${k}" style="${sv}" aria-hidden="true"></em>`)).join('');
   const n = lockedCount(plan);
   const ai = `<section class="pf-ai card"><div class="pf-ai-h"><h3>${esc(tr('AI dizayner'))}</h3>${A.ai ? '' : tag(2)}</div><p class="sub">${esc(tr('AI ma’lumotingiz va xohishingizga qarab siz uchun shaxsiy shablon yaratadi: ranglar, shriftlar, sarlavha va karta uslubi. Shablon “Mening dizaynlarim”ga saqlanadi, uni xohlagancha tahrirlaysiz.'))}</p>
     <div class="field"><label class="f" for="pf-wish">${esc(tr('Qanday ko‘rinish xohlaysiz? (ixtiyoriy)'))}</label><input id="pf-wish" type="text" maxlength="200" value="${esc(st.wish || '')}" placeholder="${esc(tr('Masalan: jiddiy, zamonaviy, qora fon'))}" autocomplete="off"></div>
@@ -106,7 +110,7 @@ export function studioHTML(st, plan) {
   return `${n ? `<div class="pf-up tg" data-tier="${nx}" data-live>${tierMedal(nx)}<div><b>${esc(tr('Tarifingizda yopiq variantlar:'))} ${n}</b><p>${esc(tr('Plus va Pro tarifida ko‘proq shablon, rang, fon va effekt ochiladi. Pro tarifida hammasi va o‘z ranglaringiz.'))}</p></div><a class="btn sm tier-${nx}" href="#/pricing">${esc(tr('Tariflarni ko‘rish'))}</a></div>` : `<div class="pf-up tg" data-tier="pro" data-live data-sweep>${tierMedal('pro')}<div><b>${esc(tr('Pro: hamma dizayn ochiq'))}</b><p>${esc(tr('Barcha shablon, fon, effekt va shriftlar, o‘z ranglaringiz va AI dizayner sizniki.'))}</p></div></div>`}
   ${ai}${myHTML(st)}<div class="card pf-dz">${st.pf.dz.my ? '' : sec('Shablon', '', `<div class="pf-tpls">${tpls}</div>`) + sec('Rang', '', `<div class="pf-pal" role="radiogroup" aria-label="${esc(tr('Rang'))}">${pals}</div>${custom}`) + sec('Shrift', '', `<div class="pf-chs" role="radiogroup">${fonts}</div>`)}
   ${sec('Fon', 'Fon PDF da ham, veb-sahifada ham ko‘rinadi. Veb-sahifada harakatlanadi.', `<div class="pf-chs pf-bgl" role="radiogroup">${bgs}</div>`)}${sec('Veb-sayt effektlari', 'Effektlar faqat veb-sahifada ishlaydi.', `<div class="pf-chs">${fxs}</div>`)}
-  ${st.pf.dz.my ? '' : sec('Rejim', 'Tungi va kunduzgi rejim veb-sahifada ishlaydi.', `<div class="pf-chs" role="radiogroup">${modes}</div>`) + sec('Shakl', '', `<div class="pf-chs" role="radiogroup">${shapes}</div>`)}${sec('Zichlik', '', `<div class="pf-chs" role="radiogroup">${denss}</div>`)}</div>`;
+  ${st.pf.dz.my ? '' : sec('Rejim', 'Tungi va kunduzgi rejim veb-sahifada ishlaydi.', `<div class="pf-chs" role="radiogroup">${modes}</div>`) + sec('Shakl', '', `<div class="pf-chs" role="radiogroup">${shapes}</div>`)}${sec('Zichlik', '', `<div class="pf-chs" role="radiogroup">${denss}</div>`)}${sec('Aylantirish chizig‘i', 'Veb-saytning o‘ng tomonidagi scroll chizig‘i. Faqat veb-sahifada ko‘rinadi.', `<div class="pf-chs" role="radiogroup" aria-label="${esc(tr('O‘lchami'))}">${sbs}</div><div class="pf-chs" role="radiogroup" aria-label="${esc(tr('Rangi'))}" style="margin-top:10px">${sbcs}</div>`)}</div>`;
 }
 export const aiRes = why => `<div class="pf-ai-r"><b>${esc(tr('AI yaratgan shablon'))}${why.name ? ': ' + esc(why.name) : ''}</b>${why.text ? `<p>${esc(why.text)}</p>` : ''}<button type="button" class="btn sm" data-do="ai-undo">${esc(tr('Oldingisiga qaytarish'))}</button></div>`;
 
@@ -122,6 +126,6 @@ export function dzApply(st, key, plan) {
     if (!A.ok('fx', id)) return { lock: FXS[id] };
     dz.fx = [...dz.fx, id]; return { ok: 1 };
   }
-  if (['font', 'bg', 'mode', 'shape', 'dens'].includes(kind)) { const need = TIERS[kind][id]; if (need == null) return {}; if (need > A.rank) return { lock: need }; dz[kind] = id; return { ok: 1 }; }
+  if (['font', 'bg', 'mode', 'shape', 'dens', 'sb', 'sbc'].includes(kind)) { const need = TIERS[kind][id]; if (need == null) return {}; if (need > A.rank) return { lock: need }; dz[kind] = id; return { ok: 1 }; }
   return {};
 }

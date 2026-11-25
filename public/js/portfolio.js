@@ -109,7 +109,7 @@ function makePaper(host, html) {
 }
 /* Veb-sayt ko'rinishi: haqiqiy 1280 px kenglikdagi sahifa (skriptlar ishlaydi, kursor effektlari sinab ko'riladi). big — modalda to'liq o'lchamda. */
 function makeWeb(host, h, big) {
-  host.innerHTML = `<div class="pf-web${big ? ' big' : ''}"><iframe sandbox="allow-scripts" title="Veb-sayt ko‘rinishi"></iframe></div>`;
+  host.innerHTML = `<div class="pf-web${big ? ' big' : ''}"><iframe sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" title="Veb-sayt ko‘rinishi"></iframe></div>`;
   const box = host.firstChild, f = box.firstChild; let ro;
   const fit = () => { if (big) return; const k = Math.min(1, (host.clientWidth || 372) / 1280); box.style.setProperty('--k', k); box.style.height = Math.round(860 * k) + 'px'; };
   f.srcdoc = h; fit(); if (!big && typeof ResizeObserver === 'function') { ro = new ResizeObserver(fit); ro.observe(host); }
@@ -297,7 +297,7 @@ async function act(d, el) {
 /* ---------- kirish nuqtasi ---------- */
 const emTitle = x => { const y = tr(x), i = y.lastIndexOf(' '); return i < 0 ? '<em>' + esc(y) + '</em>' : esc(y.slice(0, i)) + ' <em>' + esc(y.slice(i + 1)) + '</em>'; };
 export async function portfolio(el) {
-  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=49'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
+  if (!$('link[data-pf]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/portfolio.css?v=50'; l.dataset.pf = ''; document.head.appendChild(l); await new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 2500); }); }
   Object.keys(st).forEach(k => delete st[k]);
   liveGlass(el);
   const saved = ls.get(KEY, null), fresh = !saved;

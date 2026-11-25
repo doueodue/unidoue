@@ -22,6 +22,24 @@
     for (var i = 0; i < d.styleSheets.length; i++) { try { walk(d.styleSheets[i].cssRules); } catch (e) {} }
   })();
 
+  /* ---- havolalar ilova ichidagi ko‘rinishda (iframe) ham ishlasin ----
+   * Ko‘rinish sandbox iframe ichida: mailto/tashqi havola iframe'ning o‘zini ochsa, xato sahifasi chiqadi.
+   * Shuning uchun ramka ichida tashqi havolalar yangi oynada ochiladi, #bo‘lim havolalari esa sahifa ichida silliq aylantiriladi. */
+  var framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
+  d.addEventListener('click', function (ev) {
+    var a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null; if (!a || ev.defaultPrevented) return;
+    var href = a.getAttribute('href') || '';
+    if (href.charAt(0) === '#') {
+      if (href.length < 2) return;
+      var t = d.getElementById(decodeURIComponent(href.slice(1)));
+      if (!t) return;
+      if (t.classList && t.classList.contains('lb')) { if (framed) { ev.preventDefault(); $('.lb.on').forEach(function (x) { x.classList.remove('on'); }); t.classList.add('on'); } return; }
+      if (framed) { ev.preventDefault(); $('.lb.on').forEach(function (x) { x.classList.remove('on'); }); t.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' }); }
+      return;
+    }
+    if (framed && /^(mailto:|tel:|https?:)/i.test(href)) { a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener noreferrer'); }
+  }, true);
+
   /* ---- rang rejimi ---- */
   var th = $('.th')[0];
   if (th) {
@@ -138,11 +156,16 @@
 
   /* ---- galereya: klaviatura ---- */
   d.addEventListener('keydown', function (ev) {
-    var m = /^#lb(\d+)$/.exec(location.hash || '');
+    var on = framed ? $('.lb.on')[0] : null;
+    var m = /^#?lb(\d+)$/.exec(on ? on.id : (location.hash || ''));
     if (!m) return;
-    var n = $('.lb').length, i = +m[1];
-    if (ev.key === 'ArrowRight') location.hash = '#lb' + ((i + 1) % n);
-    else if (ev.key === 'ArrowLeft') location.hash = '#lb' + ((i + n - 1) % n);
-    else if (ev.key === 'Escape') location.hash = '#gallery';
+    var n = $('.lb').length, i = +m[1], go = function (id) {
+      if (!framed) { location.hash = '#' + id; return; }
+      $('.lb.on').forEach(function (x) { x.classList.remove('on'); });
+      var t = d.getElementById(id); if (t && t.classList.contains('lb')) t.classList.add('on');
+    };
+    if (ev.key === 'ArrowRight') go('lb' + ((i + 1) % n));
+    else if (ev.key === 'ArrowLeft') go('lb' + ((i + n - 1) % n));
+    else if (ev.key === 'Escape') go('gallery');
   });
 })();

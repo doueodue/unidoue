@@ -184,3 +184,8 @@ button.pf-cc{border:1.5px dashed var(--line-2);border-radius:12px;background:tra
 .pf-aib{font-style:normal;font-size:10px;font-weight:800;padding:1px 6px;border-radius:99px;background:var(--brand);color:#fff;vertical-align:1px}
 .pf-myx{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;border:1px solid var(--line-2);background:var(--surface);color:var(--muted);font-size:17px;line-height:1;cursor:pointer;display:grid;place-items:center;box-shadow:0 4px 10px -4px rgba(0,0,0,.25)}.pf-myx:hover,.pf-myx:focus-visible{color:var(--bad);border-color:var(--bad)}
 @media(max-width:560px){.pf-my-h .btn{width:100%}.pf-mycs{grid-template-columns:repeat(2,minmax(0,1fr))}.pf-my3{max-width:none}.pf-mysv .btn{width:100%}.pf-myr input{max-width:none}}
+/* aylantirish chizig‘i namunasi */
+.pf-sbi,.pf-sbc{display:inline-block;flex:none;border-radius:99px;background:var(--line-2)}
+.pf-sbi{width:6px;height:18px;position:relative;background:color-mix(in srgb,var(--ink) 10%,transparent)}.pf-sbi::after{content:"";position:absolute;left:50%;top:2px;height:9px;border-radius:99px;background:var(--brand);transform:translateX(-50%)}
+.pf-sbi.sb-normal::after{width:4px}.pf-sbi.sb-thin::after{width:2px}.pf-sbi.sb-bold::after{width:6px}.pf-sbi.sb-hidden::after{display:none}.pf-sbi.sb-hidden{background:repeating-linear-gradient(180deg,var(--line-2) 0 2px,transparent 2px 4px)}
+.pf-sbc{width:6px;height:18px}.pf-sbc.sbc-accent{background:var(--a)}.pf-sbc.sbc-gradient{background:linear-gradient(180deg,var(--a),var(--a2))}.pf-sbc.sbc-ink{background:var(--ink-2)}.pf-sbc.sbc-soft{background:var(--muted);opacity:.55}

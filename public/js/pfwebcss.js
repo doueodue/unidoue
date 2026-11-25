@@ -16,6 +16,15 @@ const T = {
 };
 const tok = a => `--bg:${a[0]};--card:${a[1]};--ink:${a[2]};--mut:${a[3]};--line:${a[4]}`;
 const RAD = { sharp: 4, round: 34 };
+/** Aylantirish chizig‘i: o‘lcham (normal | thin | bold | hidden) va rang (accent | gradient | ink | soft). */
+export function sbCSS(dz) {
+  const sz = dz.sb || 'normal', c = dz.sbc || 'accent';
+  if (sz === 'hidden') return 'html{scrollbar-width:none}*::-webkit-scrollbar{width:0!important;height:0!important}';
+  if (sz === 'normal' && c === 'accent') return '';
+  const W = { thin: [7, 1], normal: [12, 3], bold: [16, 3] }[sz], col = { accent: 'color-mix(in srgb,var(--a) 55%,transparent)', gradient: 'var(--a)', ink: 'color-mix(in srgb,var(--ink) 34%,transparent)', soft: 'color-mix(in srgb,var(--mut) 30%,transparent)' }[c];
+  const hov = { accent: 'var(--a)', gradient: 'var(--a2)', ink: 'color-mix(in srgb,var(--ink) 60%,transparent)', soft: 'color-mix(in srgb,var(--mut) 55%,transparent)' }[c];
+  return `*::-webkit-scrollbar{width:${W[0]}px;height:${W[0]}px}*::-webkit-scrollbar-thumb{border-width:${W[1]}px;background-color:${col};${c === 'gradient' ? 'background-image:linear-gradient(180deg,var(--a),var(--a2));' : 'background-image:none;'}}*::-webkit-scrollbar-thumb:hover{background-color:${hov}}@supports not selector(::-webkit-scrollbar){html{scrollbar-width:${sz === 'bold' ? 'auto' : 'thin'};scrollbar-color:${c === 'gradient' ? 'var(--a)' : col} transparent}}`;
+}
 
 const CORE = `*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;color-scheme:light}html.dk{color-scheme:dark}*::-webkit-scrollbar{width:12px;height:12px}*::-webkit-scrollbar-track,*::-webkit-scrollbar-corner{background:transparent}*::-webkit-scrollbar-thumb{background-color:color-mix(in srgb,var(--a,#7a7a7a) 45%,transparent);background-clip:padding-box;border:3px solid transparent;border-radius:99px;min-height:44px}*::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--a,#7a7a7a) 80%,transparent)}@supports not selector(::-webkit-scrollbar){html{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--a,#7a7a7a) 50%,transparent) transparent}}
 body{font:16px/1.65 var(--bf);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;overflow-wrap:anywhere}img{display:block;max-width:100%}a{color:inherit;text-decoration:none}ul{list-style:none}
@@ -102,6 +111,6 @@ export function webCSS(e) {
   const r = dz.shape === 'sharp' ? RAD.sharp : dz.shape === 'round' ? RAD.round : t.r;
   const pack = (a, ly) => `${tok(a)};${ly.base ? `--bg:${ly.base};` : ''}--lay:${ly.l.length ? ly.l.join(',') : 'none'}`;
   const L = pack(t.L, lyL), D = pack(t.D, lyD);
-  if (e.my) { const tk = myTokens(e.my, e.accent, dz.acc2), ly = bgLayers(dz.bg, tk.a, tk.dark); return `${CORE}${SK[tpl] || ''}:root{${L};--sp:${dz.dens === 'compact' ? 0.7 : 1};--lay:${ly.l.length ? ly.l.join(',') : 'none'}}${myWebCSS(e.my, tk)}`; }
-  return `${CORE}${SK[tpl] || ''}:root{${L};--at:var(--a);--r:${r}px;--sp:${dz.dens === 'compact' ? 0.7 : 1}}html.dk{${D};--at:color-mix(in srgb,var(--a) 52%,#fff)}@media(prefers-color-scheme:dark){html.sys:not(.lt):not(.dk){${D};--at:color-mix(in srgb,var(--a) 52%,#fff)}}`;
+  if (e.my) { const tk = myTokens(e.my, e.accent, dz.acc2), ly = bgLayers(dz.bg, tk.a, tk.dark); return `${CORE}${SK[tpl] || ''}:root{${L};--sp:${dz.dens === 'compact' ? 0.7 : 1};--lay:${ly.l.length ? ly.l.join(',') : 'none'}}${myWebCSS(e.my, tk)}${sbCSS(dz)}`; }
+  return `${CORE}${SK[tpl] || ''}:root{${L};--at:var(--a);--r:${r}px;--sp:${dz.dens === 'compact' ? 0.7 : 1}}html.dk{${D};--at:color-mix(in srgb,var(--a) 52%,#fff)}@media(prefers-color-scheme:dark){html.sys:not(.lt):not(.dk){${D};--at:color-mix(in srgb,var(--a) 52%,#fff)}}${sbCSS(dz)}`;
 }
