@@ -67,6 +67,14 @@ export function myTokens(my, acc, acc2) {
   const at = fixOn(a, [bg, card], 4.6); // matndagi urg‘u (sanalar, sarlavha ostidagi yozuv)
   return { bg, card, ink, mut, line, a, a2, at, dark: isDark(bg) };
 }
+/** A4 (PDF) "rail" shablonidagi yon ustun rangi: qorong‘i dizaynda karta rangi (fondan ajralib turadigan), yorug‘da asosiy rangning to‘qroq tusi.
+ *  Ustundagi yozuv oq, shuning uchun rang oq ustida kamida 7:1 (qorong‘i) / 4.5:1 (yorug‘) kontrastga ega bo‘ladi. */
+export function mySide(t) {
+  if (!t.dark) return mixHex(t.a, '#0a0d14', 0.2);
+  let s = contrast(t.card, t.bg) >= 1.08 ? t.card : mixHex(t.bg, t.ink, 0.09);
+  for (let k = 0; k < 14 && contrast('#ffffff', s) < 7; k++) s = mixHex(s, '#000000', 0.15);
+  return s;
+}
 /** Foydalanuvchiga ko‘rsatish uchun: qaysi ranglar o‘qilishi uchun o‘zgartirildi. */
 export function myAdjusted(my, acc) {
   const t = myTokens(my, acc, acc), out = [];

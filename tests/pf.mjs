@@ -158,7 +158,20 @@ for (const t of TPLS) for (const bg of Object.keys(BGS)) for (const fam of ['led
 }
 ok(true, 'pageBg: barcha shablon/fon/oila uchun html{min-height:100%} va qavslar muvozanati');
 const nb = pageBg('noir', 'rail', 'dots', '#2745e8');
-ok((nb.match(/transparent\) no-repeat/g) || []).length === 2 && /transparent 68mm 100%\) no-repeat/.test(nb) && /1\.4px\) 0 0\/20px 20px,#080b13\}$/.test(nb), 'Noir: yoritish dogʻlari va yon panel no-repeat, pikselli naqsh takrorlanadi (sahifa oxirida chok yoʻq)');
+ok((nb.match(/transparent\) no-repeat/g) || []).length === 2 && /transparent 68mm 100%\) no-repeat/.test(nb) && /1\.4px\) 0 0\/20px 20px,#080b13\}@media print\{body::before\{[^}]*left:0;width:68mm;background:#0d1322;z-index:-1\}\}$/.test(nb), 'Noir: yoritish dogʻlari va yon panel no-repeat, pikselli naqsh takrorlanadi (sahifa oxirida chok yoʻq)');
+{ // PDF: fon sahifa chetigacha (Chrome @page chekkasini bo‘yamaydi), yon ustun har sahifada, o‘z dizaynda yon ustun ranglari
+  const css = (await import('../public/js/pfcss.js')), M = await import('../public/js/pfmy.js'), PDOC = await import('../public/js/pfdoc.js');
+  const L = css.printCSS('ledger', 'ledger'), F = css.printCSS('folio', 'folio'), R = css.printCSS('rail', 'rail');
+  ok(/@page\{size:A4;margin:0\}/.test(L) && /@page\{size:A4;margin:0\}/.test(F) && /@page\{size:A4;margin:0\}/.test(R) && !/@page:first/.test(F), 'PDF: hamma maketda @page chekkasi 0 (fon oq chetsiz)');
+  ok(/\.sheet\{width:210mm;padding:16mm 17mm;[^}]*box-decoration-break:clone/.test(L) && /\.sheet\{[^}]*padding:12mm 0;[^}]*box-decoration-break:clone/.test(F) && /\.hero\{margin-top:-12mm/.test(F), 'PDF: chekka sahifa bo‘ylab padding+clone orqali saqlanadi');
+  const dk = M.myTokens({ ...M.defaultMy('#d4561b'), bg: '#1c130e', card: '#271b14', ink: '#f6ece4', mut: '#c2ab9b', line: '#3a2a20' }, '#d4561b', '#d4561b'), lt = M.myTokens(M.defaultMy('#2745e8'), '#2745e8', '#2745e8');
+  const sd = M.mySide(dk), sl = M.mySide(lt), eq = M.defaultMy('#2745e8'); Object.assign(eq, { bg: '#0b1020', card: '#0b1020', ink: '#e9edff', mut: '#9aa5c8', line: '#232c47' });
+  const se = M.mySide(M.myTokens(eq, '#2745e8', '#2745e8'));
+  ok(sd === '#271b14' && M.contrast('#ffffff', sd) >= 7 && M.contrast('#ffffff', sl) >= 4.5 && se !== '#0b1020' && M.contrast(se, '#0b1020') >= 1.05 && M.contrast('#ffffff', se) >= 7, 'o‘z dizayn: yon ustun rangi (qorong‘i = karta, yorug‘ = asosiy rang) oq yozuv uchun yetarli kontrast');
+  const myd = { ...M.defaultMy('#d4561b'), base: 'rail', bg: '#1c130e', card: '#271b14', ink: '#f6ece4', mut: '#c2ab9b', line: '#3a2a20' };
+  const hp3 = PDOC.docHTML({ v: 1, name: 'A B', email: 'a@b.c', tpl: 'rail', accent: '#d4561b', dz: { my: myd } }, {}, { mode: 'print', plan: 'free' });
+  ok(!/#0d1322/.test(hp3) && /linear-gradient\(90deg,#271b14 0 68mm/.test(hp3) && /body::before\{content:"";position:fixed;[^}]*background:#271b14/.test(hp3), 'o‘z dizayn: PDF yon ustuni qotirilgan navy emas, o‘z rangida');
+}
 ok(/^radial-gradient\(\d+%/.test(bgLayers('aurora', '#2745e8', true).l[0]) && bgLayers('aurora', '#2745e8', true).l.filter(x => /^radial-gradient\(\d+%/.test(x)).every(x => x.endsWith('no-repeat')), 'aurora: barcha radial qatlamlar no-repeat');
 ok(!bgLayers('dots', '#2745e8', true).l.some(x => /^radial-gradient\(\d+%/.test(x)), 'dots: pikselli naqsh takrorlanishda qoladi');
 ok(/body\{[^}]*overflow-wrap:anywhere/.test(printCSS('noir', 'rail')) && !/\.ct span\{white-space:nowrap/.test(printCSS('ledger', 'ledger')), 'A4: uzun URL/email sahifadan chiqib ketmaydi (overflow-wrap, nowrap yoʻq)');
@@ -205,7 +218,7 @@ const adh = readFileSync(new URL('../public/admin.html', import.meta.url), 'utf8
 ok(v1.includes('function promoBox(') && v1.includes('function promoBind(') && v1.includes("'/api/promo/redeem'") && (v1.match(/\$\{promoBox\(\)\}/g) || []).length === 2 && (v1.match(/promoBind\(el\)/g) || []).length === 3 && v1.includes('id="promo-i"'), 'tariflar: promo kod qatori ikkala ko‘rinishda ham bor va ulangan');
 ok(['.promo{', '.promo-ic{', '.promo-in{', '.promo.ok{'].every(k => acs.includes(k)) && (acs.match(/{/g) || []).length === (acs.match(/}/g) || []).length && html0.includes('/atlas.css?v=64'), 'atlas.css: promo qatori uslublari bor, qavslar muvozanatda, versiya yangilangan');
 ok(adh.includes('data-v="promos"') && adh.includes('id="v-promos"') && ['mk', 'mp', 'md', 'mx', 'mu', 'mn', 'mb', 'ml'].every(i => adh.includes(`id="${i}"`)) && /promos: 'Promo kodlar'/.test(adj) && ['/api/admin/promos', '/api/admin/promo', '/api/admin/promo/set', '/api/admin/promo/delete'].every(u => adj.includes(`'${u}'`)) && (adc.match(/{/g) || []).length === (adc.match(/}/g) || []).length && adc.includes('.pm-form{'), 'admin: Promo kodlar bo‘limi (forma, ro‘yxat, to‘xtatish, limit, o‘chirish)');
-ok(swj.includes("'unidoue-v84'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
+ok(swj.includes("'unidoue-v85'") && !/<script(?![^>]*src=)[^>]*>/.test(adh), 'sw: v60; admin.html: inline skript yo‘q');
 const cssFiles = ['app.css', 'atlas.css', 'coach.css', 'portfolio.css', 'tiers.css', 'landing.css', 'admin.css', 'controls.css'].map(f => [f, readFileSync(new URL('../public/' + f, import.meta.url), 'utf8')]);
 const sbBad = cssFiles.filter(([f, c]) => /scrollbar-(width|color)/.test(f === 'app.css' ? c.replace(/@supports not selector\(::-webkit-scrollbar\)\{[^}]*\}[^}]*\}/, '') : c)).map(x => x[0]);
 ok(sbBad.length === 0 && acss.includes('*::-webkit-scrollbar-thumb{') && acss.includes('@supports not selector(::-webkit-scrollbar)'), 'scrollbar: yagona uslub (app.css); boshqa joyda scrollbar-width/color yo‘q — Chrome ::-webkit-scrollbar uslubini o‘chirib qo‘yadi' + (sbBad.length ? ': ' + sbBad : ''));

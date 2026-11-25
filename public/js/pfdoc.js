@@ -4,7 +4,7 @@ import { normalize, actText, range, splitBullets } from './pfmodel.js';
 import { effective, fontPair, FF, GF, TPL } from './pfdesign.js';
 import { printCSS, pageBg } from './pfcss.js';
 import { webCSS } from './pfwebcss.js';
-import { myTokens, myPrintCSS } from './pfmy.js';
+import { myTokens, myPrintCSS, mySide } from './pfmy.js';
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const DL = {
@@ -142,9 +142,9 @@ export function docHTML(pf, imgs = {}, opts = {}) {
     const js = opts.js ? `<script>${String(opts.js).replace(/<\/(script)/gi, '<\\/$1')}</script>` : opts.jsSrc ? `<script src="${esc(opts.jsSrc)}" defer></script>` : '';
     return `<!DOCTYPE html><html lang="${esc(p.lang)}" class="${hc}"><head>${head}<style>${vars}${webCSS(e)}</style></head><body class="${bodyCls}">${bodyWeb(p, imgs, d, e, opts)}${js}</body></html>`;
   }
-  const fam = t.fam, css = printCSS(e.tpl, fam) + pageBg(e.tpl, fam, e.dz.bg, tk ? tk.a : e.accent, tk ? tk.bg : '') + (my ? myPrintCSS(my, fam, tk) : '');
+  const fam = t.fam, css = printCSS(e.tpl, fam) + pageBg(e.tpl, fam, e.dz.bg, tk ? tk.a : e.accent, tk ? tk.bg : '', tk ? mySide(tk) : '') + (my ? myPrintCSS(my, fam, tk) : '');
   const body = { ledger: bodyLedger, rail: bodyRail, folio: bodyFolio }[fam](p, imgs, d);
-  const printFix = `@media print{.sheet{width:auto;${fam === 'folio' ? 'min-height:0' : 'padding:0'}}}`;
+  const printFix = `@media print{.sheet{width:auto;${fam === 'folio' ? 'min-height:0' : fam === 'rail' ? 'padding:0' : ''}}}`;
   const G = GUIDE[fam];
   const screen = opts.guides ? `body{position:relative}body::after{content:"";position:absolute;inset:${G[1]} 0 0 0;pointer-events:none;background:linear-gradient(to bottom,transparent calc(100% - 1px),rgba(110,120,150,.55) 0) 0 0/100% ${G[0]} repeat-y}` : '';
   return `<!DOCTYPE html><html lang="${esc(p.lang)}"><head>${head}<style>${vars}${css}${printFix}${screen}</style></head><body class="${bodyCls}">${body}</body></html>`;

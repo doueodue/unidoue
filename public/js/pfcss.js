@@ -45,8 +45,8 @@ body{background:transparent;color:#15181e;-webkit-font-smoothing:antialiased;tex
 .e{break-inside:avoid}h2{break-after:avoid}figure{break-inside:avoid}
 body.r-sharp .ph{border-radius:0!important}body.r-round .ph{border-radius:16pt!important}`;
 
-const LEDGER = `@page{size:A4;margin:16mm 17mm}
-body{font:10pt/1.5 var(--bf)}.sheet{width:210mm;padding:16mm 17mm}
+const LEDGER = `@page{size:A4;margin:0}
+body{font:10pt/1.5 var(--bf)}.sheet{width:210mm;padding:16mm 17mm;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .hd{display:flex;justify-content:space-between;align-items:flex-end;gap:14pt;padding-bottom:11pt;border-bottom:2.2pt solid var(--a)}
 h1{font:700 27pt/1.05 var(--hf);letter-spacing:-.015em}.hl{font-size:11.5pt;margin-top:5pt;color:#3d4452}.ct{margin-top:7pt;font-size:9pt;color:#5b6472}
 .ph{width:27mm;height:34mm;object-fit:cover;flex:none;border-radius:1.5pt}
@@ -67,9 +67,9 @@ section{margin-top:calc(12pt*var(--sp))}h2{font:700 11pt/1.15 var(--hf);margin-b
 .b p,.b li{margin-top:1.5pt;color:#262b34}.b li{position:relative;padding-left:9pt}.b li::before{content:"";position:absolute;left:0;top:.58em;width:3.5pt;height:3.5pt;border-radius:50%;background:var(--a)}
 .gal{display:grid;grid-template-columns:repeat(3,1fr);gap:8pt}.gal figure img{width:100%;height:30mm;object-fit:cover;border-radius:3pt}.gal figcaption{font-size:8pt;color:#667085;margin-top:2pt;line-height:1.3}`;
 
-const FOLIO = `@page{size:A4;margin:12mm 0}@page:first{margin:0 0 12mm}
-body{font:9.6pt/1.5 var(--bf)}.sheet{width:210mm;min-height:297mm}
-.hero{display:flex;justify-content:space-between;gap:12mm;padding:16mm 16mm 11mm;background:color-mix(in srgb,var(--a) 9%,#fff)}
+const FOLIO = `@page{size:A4;margin:0}
+body{font:9.6pt/1.5 var(--bf)}.sheet{width:210mm;min-height:297mm;padding:12mm 0;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.hero{margin-top:-12mm;display:flex;justify-content:space-between;gap:12mm;padding:16mm 16mm 11mm;background:color-mix(in srgb,var(--a) 9%,#fff)}
 h1{font:600 34pt/1 var(--hf);letter-spacing:-.025em;color:#12151d}.hl{margin-top:7pt;font-size:12pt;font-weight:500;color:var(--a)}.ct{margin-top:9pt;font-size:8.9pt;color:#4a5262}.sm{margin-top:10pt;font-size:9.8pt;color:#262b34;max-width:112mm}
 .ph{width:36mm;height:45mm;object-fit:cover;flex:none;box-shadow:3.2mm 3.2mm 0 var(--a)}
 .strip{display:flex;border-top:1.4pt solid var(--a);border-bottom:.6pt solid #d9dee6;margin:0 16mm}.strip .fig{flex:1;padding:8pt 10pt 8pt 0}.strip .fig+.fig{padding-left:12pt;border-left:.6pt solid #d9dee6}.strip b{display:block;font:600 19pt/1 var(--hf);color:var(--a)}.strip span{font-size:8.3pt;color:#667085}
@@ -112,11 +112,14 @@ const FAM = { ledger: LEDGER, rail: RAIL, folio: FOLIO };
 /** Sahifa foni (<html>). Yorugʻlik dogʻlari va yon ustun faqat BIR marta chiziladi (no-repeat), toʻr/nuqta kabi naqshlar esa takrorlanadi.
  *  html balandligi kontentdan oshmasa (1 sahifadan qisqa hujjat), fon bloki takrorlanib sahifa oʻrtasida keskin chiziq hosil qilardi —
  *  shuning uchun html kamida sahifa (oyna) balandligida boʻladi. */
-export function pageBg(tpl, fam, bg, a, base) {
+export function pageBg(tpl, fam, bg, a, base, side) {
   const dk = tpl === 'noir' || (base && isDarkHex(base)), L = bgLayers(bg, a, dk), top = [];
-  if (fam === 'rail') top.push((dk ? 'linear-gradient(90deg,#0d1322 0 68mm,transparent 68mm 100%)' : 'linear-gradient(90deg,color-mix(in srgb,var(--a) 80%,#0a0d14) 0 68mm,transparent 68mm 100%)') + ' no-repeat');
+  const sc = side || (dk ? '#0d1322' : 'color-mix(in srgb,var(--a) 80%,#0a0d14)');
+  if (fam === 'rail') top.push(`linear-gradient(90deg,${sc} 0 68mm,transparent 68mm 100%) no-repeat`);
   if (tpl === 'noir') top.push('radial-gradient(70mm 70mm at 0 0,color-mix(in srgb,var(--a) 50%,transparent),transparent) no-repeat', 'radial-gradient(90mm 80mm at 100% 100%,color-mix(in srgb,var(--a2) 28%,transparent),transparent) no-repeat');
-  return `html{min-height:100%;background:${[...top, ...L.l, base || L.base || (dk ? '#080b13' : '#fff')].join(',')}}`;
+  /* Yon ustun: html fonida u faqat kontent balandligicha chiziladi (oxirgi sahifa yarmigacha qolardi) — chop etishda har sahifada to‘liq balandlikda qayta chiziladi */
+  const rail = fam === 'rail' ? `@media print{body::before{content:"";position:fixed;top:0;bottom:0;left:0;width:68mm;background:${sc};z-index:-1}}` : '';
+  return `html{min-height:100%;background:${[...top, ...L.l, base || L.base || (dk ? '#080b13' : '#fff')].join(',')}}${rail}`;
 }
 
 export const printCSS = (tpl, fam) => PRINT_BASE + FAM[fam] + (SKIN[tpl] || '');
