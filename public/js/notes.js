@@ -77,7 +77,7 @@ export function paintBell() {
 }
 
 function itemHTML(n, i) {
-  const inner = `<span class="nt-d" aria-hidden="true"></span><span class="nt-b"><b>${esc(n.title)}</b><span>${esc(String(n.body).replace(/\s+/g, ' '))}</span><small>${esc(ago(n.t))}</small></span>`;
+  const inner = `<span class="nt-d" aria-hidden="true"></span><span class="nt-b"><b>${esc(n.title)}</b><span>${esc(String(n.body).slice(0, 300).replace(/\s+/g, ' '))}</span><small>${esc(ago(n.t))}</small></span>`;
   return `<li><button type="button" class="nt${n.new ? ' new' : ''}" data-i="${i}" aria-haspopup="dialog">${inner}</button></li>`;
 }
 function render(d) {

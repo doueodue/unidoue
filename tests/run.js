@@ -316,6 +316,20 @@ class Client {
       r = await n1.call('GET', '/api/notes'); ok(r.j.unread === 1 && r.j.notes[0].title === 'Faqat sizga', 'shaxsiy xabar egasiga tushdi');
       r = await n2.call('GET', '/api/notes'); ok(!r.j.notes.some(x => x.title === 'Faqat sizga'), 'shaxsiy xabar boshqaga koʻrinmaydi');
 
+      // uzun matn: avvalgi 2000 belgilik cheklov olib tashlandi (endi 60 000 gacha)
+      const LONG = Array.from({ length: 3000 }, (_, i) => 'soz' + i).join(' ') + ' OXIR';
+      ok(LONG.length > 20000 && NM.LIMITS.body === 60000, 'uzun matn sinovi: ~3000 soʻz, cheklov 60 000 belgi', LONG.length);
+      r = await NF({ title: 'Uzun xabar', body: LONG, audience: 'email', email: 'note1@gmail.com', channels: { app: true } }); ok(r.s === 200 && r.j.st.app === 1, 'admin notify: uzun matn (3000 soʻz) qabul qilinadi', r.j);
+      r = await n1.call('GET', '/api/notes'); const ln = r.j.notes.find(x => x.title === 'Uzun xabar'); ok(ln && ln.body === LONG, 'uzun matn foydalanuvchiga TOʻLIQ yetadi (kesilmaydi)', ln && ln.body.length);
+      r = await anon.call('GET', '/api/admin/notes', null, ADMH); const al = r.j.notes.find(x => x.title === 'Uzun xabar'); ok(r.s === 200 && al && al.body.length <= 300 && r.j.bodyMax === 60000, 'admin roʻyxati: uzun matnning faqat boshi (javob ogʻirlashmaydi), bodyMax qaytadi', al && al.body.length);
+      r = await NF({ title: 'Juda uzun', body: 'a'.repeat(70000), audience: 'email', email: 'note1@gmail.com', channels: { app: true } }); ok(r.s === 200, 'admin notify: 70 000 belgi — qabul qilinadi (60 000 gacha qisqartiriladi)', r.s);
+      r = await n1.call('GET', '/api/notes'); const ll = r.j.notes.find(x => x.title === 'Juda uzun'); ok(ll && ll.body.length === 60000, 'chegaradan ortigʻi 60 000 belgida toʻxtatiladi', ll && ll.body.length);
+      { let sz; try { sz = (await NF({ title: 'Ulkan', body: 'a'.repeat(400000), audience: 'email', email: 'note1@gmail.com', channels: { app: true } })).s; } catch (e) { sz = 'uzildi'; } // server haddan katta soʻrovda ulanishni uzadi
+        r = await n1.call('GET', '/api/notes'); ok((sz === 413 || sz === 'uzildi') && !r.j.notes.some(x => x.title === 'Ulkan'), 'soʻrov hajmi chegarasi (300 KB) saqlanadi: ulkan matn rad etiladi', sz); }
+      ok(NM.preview(LONG).length <= 200 && NM.preview(LONG).endsWith('…') && NM.preview('qisqa matn') === 'qisqa matn' && NM.preview('  bir\n\n ikki  ') === 'bir ikki', 'push preview: uzun matn ~200 belgigacha, qisqasi oʻzgarmaydi');
+      const pe = NM.preview('😀'.repeat(300), 10); ok(Array.from(pe).length === 10 && !/[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/.test(pe), 'push preview: emoji juftligi oʻrtasidan kesilmaydi', pe);
+      ok(NM.mailHtml({ title: 'x', body: LONG, link: 'http://x/', unsub: 'http://x/u' }).includes('OXIR'), 'email: uzun matn TOʻLIQ xatga kiradi');
+
       // email kanali
       mails.length = 0;
       r = await NF({ title: 'Email sinovi', body: 'Salom <b>dunyo</b> & hamma', url: '/app#/pricing', audience: 'email', email: 'note1@gmail.com', channels: { mail: true } });
@@ -1050,6 +1064,11 @@ class Client {
       q = await u('GET', '/api/notes'); ok(q.j.notes[0].title === 'Ikki kanal' && q.j.unread === 1, 'notify: bir xabar panelda ham bor', q.j);
       q = await NFY({ title: 'Faqat push', body: 'Matn', audience: 'all', channels: { push: true } }); ok(q.j.ok && q.j.st.app === undefined && q.j.st.push.ok === 2, 'notify: faqat push', q.j);
       q = await u('GET', '/api/notes'); ok(!q.j.notes.some(x => x.title === 'Faqat push'), 'faqat push xabari panelda koʻrinmaydi');
+      { const LP = Array.from({ length: 3000 }, (_, i) => 'soz' + i).join(' ') + ' OXIR'; got.length = 0;
+        q = await NFY({ title: 'Uzun push', body: LP, audience: 'all', channels: { app: true, push: true } });
+        ok(q.s === 200 && q.j.st.push.ok === 2 && q.j.st.push.failed === 0, 'notify: uzun matn bilan push ham yetkaziladi (yuk hajmi oshib ketmaydi)', q.j);
+        pm = msgOf(got.find(x => x.url === '/ok/9'), dv9); ok(pm && pm.body.length <= 200 && pm.body.endsWith('…') && pm.title === 'Uzun push', 'push ga faqat matnning boshi ketadi', pm && pm.body.length);
+        q = await u('GET', '/api/notes'); ok(q.j.notes[0].title === 'Uzun push' && q.j.notes[0].body === LP, 'sayt ichida esa matn toʻliq', q.j.notes[0].body.length); }
       q = await NFY({ title: 'Email', body: 'Matn', audience: 'all', channels: { mail: true } }); ok(q.s === 400 && /sozlanmagan/.test(q.j.error), 'notify: email sozlanmagan serverda aniq xato', q.j);
       q = await NFY({ title: 'Plus push', body: 'Matn', audience: 'plus', channels: { app: true, push: true } }); ok(q.s === 200 && q.j.ok === false && q.j.st.app === undefined, 'notify: qabul qiluvchi yoʻq → hech narsa yaratilmaydi', q.j);
       q = await NFY({ title: 'Sinov', body: 'Matn', audience: 'admin', channels: { push: true } }); ok(q.s === 200 && q.j.ok === false && q.j.st.push.targets === 0, 'notify: admin qurilmasi yoʻq', q.j);

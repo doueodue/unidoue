@@ -190,7 +190,9 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 
 /* ---------- modal (confirm) ---------- */
 .modal .acts .btn{min-width:96px}
-.modal.dg h3{display:flex;align-items:center;gap:10px}
+.modal.dg h3,.modal.ra h3{display:flex;align-items:center;gap:10px}
+.modal h3 svg{width:22px;height:22px;flex:none;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.modal.ra h3 svg,.modal.dg h3 svg{color:var(--warn)}
 
 /* ---------- moslashuvchan ---------- */
 @media(max-width:1000px){.ad-grid,.push-grid{grid-template-columns:1fr}}

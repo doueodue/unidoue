@@ -11,6 +11,9 @@ const EP_KEY = 'unidoue:adm-ep'; // shu brauzer admin qurilmasi sifatida yozilga
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const MON = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'], p2 = n => String(n).padStart(2, '0');
 const when = v => { const d = new Date(v); return isNaN(d) ? '' : `${d.getDate()}-${MON[d.getMonth()]}, ${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+/* «Ko‘rildi» belgisi (nishonlar): shu brauzerda bo‘limni oxirgi ochgan vaqt. Faqat undan keyingi yangi hodisalar nishonda sanaladi. */
+const seenAt = k => { try { return +localStorage.getItem('unidoue:adm-seen:' + k) || 0; } catch (e) { return 0; } };
+const markSeen = k => { try { localStorage.setItem('unidoue:adm-seen:' + k, String(Date.now())); } catch (e) {} };
 const whenS = v => { const d = new Date(v); return isNaN(d) ? '' : `${d.getDate()}-${MON[d.getMonth()]}, ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
 const dm = d => d ? d.slice(8) + '.' + d.slice(5, 7) : '—';
 const dlong = d => d ? `${+d.slice(8)}-${MON[+d.slice(5, 7) - 1]}` : '';
@@ -107,6 +110,8 @@ function route() {
   document.body.classList.remove('nav-open'); window.scrollTo(0, 0);
   const sec = $('#v-' + v); if (sec) fx.scan(sec);
   if (v === 'push') adminDevice();
+  if (v === 'attempts') { markSeen('att'); if (ATT) renderAttempts(); }
+  if (v === 'security') { markSeen('sec'); if (SEC) renderSecurity(); }
 }
 addEventListener('hashchange', () => { if (!$('#shell').hidden) route(); });
 
@@ -480,7 +485,8 @@ function estimate() {
   return { app: a === 'admin' ? 0 : us ? us.length : null, push: pn, mail: mn };
 }
 function preview() {
-  $('#nt-n').textContent = $('#nt').value.length + '/60'; $('#nb-n').textContent = $('#nb').value.length + '/2000';
+  const bv = $('#nb').value, bw = (bv.trim().match(/\S+/g) || []).length, bm = NH.bodyMax || 60000;
+  $('#nt-n').textContent = $('#nt').value.length + '/60'; $('#nb-n').textContent = bw + ' so‘z · ' + bv.length + '/' + bm; $('#nb').maxLength = bm;
   $('#pv-t').textContent = $('#nt').value.trim() || 'Sarlavha'; $('#pv-b').textContent = $('#nb').value.trim().slice(0, 240) || 'Xabar matni shu yerda ko‘rinadi.';
 }
 const chipN = (ok, tg) => `${ok}/${tg}`;
@@ -675,6 +681,8 @@ const bar = (used, max) => { const pc = Math.min(100, Math.round((used || 0) / M
 function renderSecurity() {
   const sc = SEC; if (!sc) { $('#sc-k').innerHTML = ''; $('#sc-mq').innerHTML = emptyBox('info', 'Himoya holati yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#sc-e').innerHTML = ''; $('#sc-c').textContent = ''; $('#sc-ec').textContent = ''; $('#sc-sw').hidden = true; return; }
   const m = sc.mail || {}, ch = sc.chain || {}, ev = sc.events || [], alerts = ev.filter(e => e.ev.startsWith('alert.') && Date.now() - new Date(e.t).getTime() < 864e5).length;
+  if (location.hash === '#security' && !$('#shell').hidden) markSeen('sec'); // bo‘lim ochiq — ko‘rilgan hisoblanadi
+  const alertsNew = ev.filter(e => e.ev.startsWith('alert.') && Date.now() - new Date(e.t).getTime() < 864e5 && new Date(e.t).getTime() > seenAt('sec')).length;
   $('#sc-c').textContent = ch.ok ? 'Jurnal butun' : 'Jurnal buzilgan';
   $('#sc-k').innerHTML = kpi('check', ch.ok ? 'Butun' : 'BUZILGAN', 'Jurnal zanjiri (' + (ch.count || 0) + ' yozuv)', ch.ok ? 'ok' : 'warn', !ch.ok)
     + kpi('mail', m.off ? 'To‘xtatilgan' : 'Yoqiq', 'Foydalanuvchilarga email' + (m.envOff ? ' (serverda o‘chirilgan)' : ''), m.off ? 'warn' : 'ok', m.off)
@@ -694,7 +702,7 @@ function renderSecurity() {
   $('#sc-e').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Vaqt</th><th>Voqea</th><th>Kim</th><th>IP</th><th>Tafsilot</th></tr></thead><tbody>${list.map(e => `<tr>
     <td data-l="Vaqt">${esc(when(e.t))}</td><td data-l="Voqea"><span class="badge ${secTone(e.ev) || 'mute'}">${esc(secLabel(e.ev))}</span></td>
     <td data-l="Kim">${esc(e.who || '—')}</td><td data-l="IP">${esc(e.ip || '—')}</td><td data-l="Tafsilot" title="${esc(e.ua || '')}">${e.title ? '<b>' + esc(e.title) + '</b> ' : ''}${det(e)}</td></tr>`).join('')}</tbody></table></div>` : emptyBox('check', 'Voqea yo‘q', 'Bu turdagi voqea hali yozilmagan.');
-  const nn = $('#sec-nn'); nn.hidden = !(alerts || !ch.ok); nn.textContent = ch.ok ? alerts : '!';
+  const nn = $('#sec-nn'); nn.hidden = !(alertsNew || !ch.ok); nn.textContent = ch.ok ? alertsNew : '!';
   fx.scan($('#v-security'));
 }
 async function toggleMail() {
@@ -723,7 +731,8 @@ function renderAttempts() {
   const d24 = all.filter(a => now - a.last < 864e5 && attSev(a) > 0 && !a.me), sum = k => d24.reduce((n, a) => n + a.c[k], 0), tot = d24.reduce((n, a) => n + attSev(a), 0), blocked = all.filter(a => a.now && !a.me).length;
   $('#at-k').innerHTML = kpi('warn', fmt(tot), 'urinish (24 soat)', tot ? 'warn' : 'mut', tot) + kpi('users', d24.length, 'turli IP (24 soat)', d24.length ? 'warn' : 'mut', d24.length)
     + kpi('act', fmt(sum('bad')), 'noto‘g‘ri kod (24 soat)', sum('bad') ? 'warn' : 'mut', sum('bad')) + kpi('clock', blocked, 'hozir cheklangan IP', blocked ? 'warn' : 'mut', blocked);
-  const nn = $('#at-nn'); nn.hidden = !d24.length; nn.textContent = d24.length;
+  if (location.hash === '#attempts' && !$('#shell').hidden) markSeen('att'); // bo‘lim ochiq — ko‘rilgan hisoblanadi
+  const newIps = d24.filter(a => a.last > seenAt('att')).length, nn = $('#at-nn'); nn.hidden = !newIps; nn.textContent = newIps;
   $('#at-c').textContent = ATT.lockdown ? 'Favqulodda rejim yoqilgan' : (all.length ? all.length + ' ta IP yozilgan' : '');
   const list = inP.filter(a => f[2](a) && (!q || (a.ip + ' ' + a.em.map(x => x.e).join(' ')).toLowerCase().includes(q)));
   $('#at-n').textContent = list.length;

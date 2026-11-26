@@ -10,12 +10,15 @@
  */
 const crypto = require('node:crypto');
 
-const LIMITS = { title: 60, body: 2000, keepAdmin: 150, keepSys: 300, show: 30, mailBulk: 500 };
+const LIMITS = { title: 60, body: 60000, keepAdmin: 150, keepSys: 300, show: 30, mailBulk: 500 };
 const AUDS = ['all', 'free', 'plus', 'pro', 'email', 'admin'];
 const URL_RE = /^\/(?!\/)[\w\-./#?=&%]*$/;
 /** Xat matni: abzatslar (boʻsh qator) saqlanadi, ortiqcha boʻshliq va boshqaruv belgilari olib tashlanadi */
 const para = (s, n) => String(s == null ? '' : s).replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ' ').replace(/[ \t]+/g, ' ').replace(/ ?\n ?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, n);
 const txt = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
+
+/** Push uchun qisqa koʻrinish: Web Push yuki ~4 KB bilan cheklangan, shuning uchun uzun matnning faqat boshi push ga ketadi (xat va sayt ichida — toʻliq matn). */
+const preview = (s, n = 200) => { const a = Array.from(String(s == null ? '' : s).replace(/\s+/g, ' ').trim()); return a.length > n ? a.slice(0, n - 1).join('').trimEnd() + '…' : a.join(''); };
 
 /** Admin shaklini tekshiradi: { error } yoki { title, body, url, aud, email, ch:{app,push,mail} } */
 function check(b) {
@@ -91,4 +94,4 @@ function replyHtml({ body, quote, replyable }) {
 </table></td></tr></table></body></html>`;
 }
 
-module.exports = { LIMITS, AUDS, check, seenOf, visible, unread, list, add, remove, sig, sigOk, mailHtml, replyHtml, URL_RE };
+module.exports = { LIMITS, AUDS, preview, check, seenOf, visible, unread, list, add, remove, sig, sigOk, mailHtml, replyHtml, URL_RE };

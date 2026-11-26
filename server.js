@@ -1280,9 +1280,9 @@ async function api(req, res, pathname) {
     if (!admGate(req, res, ip, 'notify', 20)) return;
     const v = NOTES.check(await readJson(req));
     if (v.error) return fail(res, 400, v.error);
-    const { title, body, url, aud, ch } = v, m = { title, body, url, tag: 'news' };
+    const { title, body, url, aud, ch } = v, m = { title, body, url, tag: 'news' }, pm = { ...m, body: NOTES.preview(body) }; // xat va sayt ichida — toʻliq matn; push ga faqat boshi (Web Push yuki ~4 KB)
     if (aud === 'admin') {
-      const n = db.adminPush.length, r = await pushTo(db.adminPush, m);
+      const n = db.adminPush.length, r = await pushTo(db.adminPush, pm);
       return send(res, 200, { ok: r.ok > 0, audience: aud, st: { push: { targets: n, devices: r.ok + r.gone + r.failed, ...r } } });
     }
     let users;
@@ -1300,7 +1300,7 @@ async function api(req, res, pathname) {
     const rec = NOTES.add(db, { title, body, url, aud, ...(aud === 'email' ? { to: [users[0].id] } : {}), app: ch.app, push: ch.push, mail: ch.mail, st: {} });
     if (ch.app) rec.st.app = users.length;
     if (ch.push) {
-      const r = await pushMany(pushTo_, m); for (const x of pushTo_) if (x.push && !x.push.length) delete x.push;
+      const r = await pushMany(pushTo_, pm); for (const x of pushTo_) if (x.push && !x.push.length) delete x.push;
       rec.st.push = { targets: pushTo_.length, devices: r.ok + r.gone + r.failed, ...r };
     }
     if (ch.mail) { const r = await mailMany(mailTo, m, admWho(req) || 'admin'); rec.st.mail = { targets: mailTo.length, ...r, skipped: users.length - mailTo.length }; }
@@ -1310,8 +1310,8 @@ async function api(req, res, pathname) {
   }
   if (pathname === '/api/admin/notes' && method === 'GET') {
     if (!admGate(req, res, ip, 'notes', 300)) return;
-    const notes = db.notes.filter(n => !n.sys).slice(-30).reverse().map(n => ({ id: n.id, t: n.t, title: n.title, body: n.body, url: n.url, aud: n.aud, who: n.to && db.users[n.to[0]] ? db.users[n.to[0]].email : '', app: !!n.app, push: !!n.push, mail: !!n.mail, st: n.st || {} }));
-    return send(res, 200, { notes, mail: !!MAIL_PROVIDER, mailMax: MAIL_BULK_MAX });
+    const notes = db.notes.filter(n => !n.sys).slice(-30).reverse().map(n => ({ id: n.id, t: n.t, title: n.title, body: n.body.slice(0, 300), url: n.url, aud: n.aud, who: n.to && db.users[n.to[0]] ? db.users[n.to[0]].email : '', app: !!n.app, push: !!n.push, mail: !!n.mail, st: n.st || {} }));
+    return send(res, 200, { notes, mail: !!MAIL_PROVIDER, mailMax: MAIL_BULK_MAX, bodyMax: NOTES.LIMITS.body, titleMax: NOTES.LIMITS.title });
   }
   if (pathname === '/api/admin/note/delete' && method === 'POST') { // faqat foydalanuvchilar panelidan olib tashlaydi; yuborilgan push/emailni qaytarib boʻlmaydi
     if (!admGate(req, res, ip, 'note-del', 60)) return;
