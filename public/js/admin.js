@@ -4,14 +4,9 @@ import * as wp from '/js/webpush.js';
 import '/js/ui.js';
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-let TOKEN = '';
-try { TOKEN = sessionStorage.getItem('unidoue:adm') || ''; } catch (e) {}
-const EM_KEY = 'unidoue:adm-email'; // admin emaili: Jurnalda «kim kirdi» deb yoziladi (ASCII — sarlavhada yuboriladi)
-const ADM_EMAIL = /^[^\s@<>\x00-\x20\x7f-\uffff]{1,64}@[^\s@<>\x00-\x20\x7f-\uffff]+\.[^\s@<>\x00-\x20\x7f-\uffff]{2,}$/;
-let EMAIL = '';
-try { EMAIL = (localStorage.getItem(EM_KEY) || '').trim().toLowerCase(); } catch (e) {}
-if (!ADM_EMAIL.test(EMAIL)) EMAIL = '';
-const authHdr = () => ({ Authorization: 'Bearer ' + TOKEN, ...(EMAIL ? { 'X-Admin-Email': EMAIL } : {}) });
+let ME = ''; // kirgan admin emaili (seans cookie'si HttpOnly: JS tokenni koʻrmaydi)
+const MAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+try { sessionStorage.removeItem('unidoue:adm'); localStorage.removeItem('unidoue:adm-email'); } catch (e) {} // eski token rejimidan qolgan qiymatlarni tozalash
 const EP_KEY = 'unidoue:adm-ep'; // shu brauzer admin qurilmasi sifatida yozilgan obuna manzili
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const MON = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'], p2 = n => String(n).padStart(2, '0');
@@ -41,7 +36,7 @@ const IC = {
 
 /* ---------- tarmoq ---------- */
 async function call(method, url, body) {
-  const r = await fetch(url, { method, headers: { ...authHdr(), ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  const r = await fetch(url, { method, credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { const e = new Error(j.error || 'Xato (' + r.status + ')'); e.status = r.status; throw e; }
   return j;
@@ -194,7 +189,7 @@ function deviceOf(ua) {
 const FBURL = new Map();
 async function fbBlob(id, n) {
   const k = id + ':' + n; if (FBURL.has(k)) return FBURL.get(k);
-  const r = await fetch(`/api/admin/feedback/img?id=${encodeURIComponent(id)}&n=${n}`, { headers: authHdr() });
+  const r = await fetch(`/api/admin/feedback/img?id=${encodeURIComponent(id)}&n=${n}`, { credentials: 'same-origin' });
   if (!r.ok) throw new Error('Rasm yuklanmadi');
   const bl = await r.blob(); /* CSP blob: rasmlarga ruxsat bermaydi — data: URL ishlatamiz */
   const u = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(new Error('Rasm o‘qilmadi')); fr.readAsDataURL(bl); });
@@ -484,7 +479,7 @@ function estimate() {
   return { app: a === 'admin' ? 0 : us ? us.length : null, push: pn, mail: mn };
 }
 function preview() {
-  $('#nt-n').textContent = $('#nt').value.length + '/60'; $('#nb-n').textContent = $('#nb').value.length + '/300';
+  $('#nt-n').textContent = $('#nt').value.length + '/60'; $('#nb-n').textContent = $('#nb').value.length + '/2000';
   $('#pv-t').textContent = $('#nt').value.trim() || 'Sarlavha'; $('#pv-b').textContent = $('#nb').value.trim().slice(0, 240) || 'Xabar matni shu yerda ko‘rinadi.';
 }
 const chipN = (ok, tg) => `${ok}/${tg}`;
@@ -493,7 +488,7 @@ function renderNotes() {
   $('#nh-l').innerHTML = l.length ? `<ul class="nh">${l.map(n => {
     const st = n.st || {}, who = n.aud === 'email' ? (n.who || 'o‘chirilgan hisob') : AUD_S[n.aud] || n.aud;
     const chips = [n.app ? `<span class="badge">${svg(IC.inbox, 'mini')}Sayt ichida · ${st.app || 0}</span>` : '', n.push && st.push ? `<span class="badge">${svg(IC.bell, 'mini')}Push · ${chipN(st.push.ok, st.push.targets)}</span>` : '', n.mail && st.mail ? `<span class="badge${st.mail.failed ? ' warn' : ''}">${svg(IC.mail, 'mini')}Email · ${chipN(st.mail.ok, st.mail.targets)}</span>` : ''].join('');
-    return `<li><div class="nh-t"><b>${esc(n.title)}</b><span>${esc(n.body)}</span></div><div class="nh-m"><span class="mut">${esc(when(n.t))} · ${esc(who)}</span><span class="nh-c">${chips}</span>${n.app ? `<button class="btn sm danger" type="button" data-nd="${esc(n.id)}" title="Foydalanuvchilar panelidan olib tashlash">O‘chirish</button>` : ''}</div></li>`;
+    return `<li><div class="nh-t"><b>${esc(n.title)}</b><span>${esc(n.body.length > 260 ? n.body.slice(0, 260) + '…' : n.body)}</span></div><div class="nh-m"><span class="mut">${esc(when(n.t))} · ${esc(who)}</span><span class="nh-c">${chips}</span>${n.app ? `<button class="btn sm danger" type="button" data-nd="${esc(n.id)}" title="Foydalanuvchilar panelidan olib tashlash">O‘chirish</button>` : ''}</div></li>`;
   }).join('')}</ul>` : '<p class="mut" style="margin-top:12px">Hali xabar yuborilmagan.</p>';
   $$('#nh-l [data-nd]').forEach(b => (b.onclick = async () => {
     if (!await ask({ title: 'Xabar o‘chirilsinmi?', text: 'U foydalanuvchilar bildirishnomalar panelidan yo‘qoladi. Allaqachon yuborilgan push va email qaytmaydi.', ok: 'O‘chirish', danger: true })) return;
@@ -560,13 +555,24 @@ async function adminDevice() {
 let AUDIT = null, ACF = 'today';
 const dayStart = back => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime() - back * 864e5; };
 const AC_FILTERS = [['today', 'Bugun', e => e.t >= dayStart(0)], ['yday', 'Kecha', e => e.t >= dayStart(1) && e.t < dayStart(0)], ['week', 'So‘nggi 7 kun', e => e.t >= dayStart(6)], ['all', 'Hammasi', () => true]];
-const accessRow = e => `<tr>
-    <td data-l="Kirgan vaqti">${esc(when(e.t))}${e.seen && e.seen - e.t > 120000 ? `<br><small>oxirgi faollik: ${esc(rel(e.seen))}</small>` : ''}</td>
-    <td data-l="Email">${e.who ? '<b>' + esc(e.who) + '</b>' : '<span class="badge mute">email yozilmagan</span>'}${e.cur ? ' <span class="badge ok">Siz</span>' : ''}</td>
+const EV = { in: ['ok', 'Kod bilan kirdi'], use: ['ok', 'Seans bilan faol'], tok: ['mute', 'Token (rejalashtiruvchi)'], ask: ['mute', 'Kod so‘raldi'], bad: ['bad', 'Noto‘g‘ri kod'], deny: ['bad', 'Seanssiz urinish'] };
+const whoCell = (who, cur) => (who ? (who[0] === '(' ? `<span class="badge mute">${esc(who.slice(1, -1))}</span>` : '<b>' + esc(who) + '</b>') : '<span class="badge mute">noma’lum</span>') + (cur ? ' <span class="badge ok">Siz</span>' : '');
+const accessRow = e => { const [tone, label] = EV[e.ev] || (e.ok ? EV.in : EV.deny); return `<tr>
+    <td data-l="Vaqt">${esc(when(e.t))}${e.seen && e.seen - e.t > 120000 ? `<br><small>oxirgi faollik: ${esc(rel(e.seen))}</small>` : ''}</td>
+    <td data-l="Email">${whoCell(e.who, e.cur)}</td>
     <td data-l="IP">${esc(e.ip)}</td><td data-l="Qurilma" title="${esc(e.ua)}">${esc(deviceOf(e.ua) || e.ua || '—')}</td>
-    <td data-l="Natija">${e.ok ? '<span class="badge ok">Kirdi</span>' : '<span class="badge bad">Noto‘g‘ri token</span>'}</td></tr>`;
+    <td data-l="Natija"><span class="badge ${tone}">${label}${e.n > 1 ? ' ×' + e.n : ''}</span></td></tr>`; };
+async function revoke(id, self) {
+  const all = id === 'all';
+  if (!await ask({ title: all ? 'Hamma qurilmalardan chiqarilsinmi?' : self ? 'Shu qurilmadan chiqasizmi?' : 'Seans yopilsinmi?', text: all ? 'Barcha seanslar yopiladi, jumladan shu qurilma. Qayta kirish uchun emailga yangi kod kerak bo‘ladi.' : self ? 'Qayta kirish uchun emailga yangi kod kerak bo‘ladi.' : 'Bu qurilma panelga qayta kirishi uchun emailga yangi kod kerak bo‘ladi.', ok: all ? 'Hammasini yopish' : self ? 'Chiqish' : 'Yopish', danger: true })) return;
+  try {
+    const r = await call('POST', '/api/admin/session/revoke', all ? { all: true } : { id });
+    if (r.self) { ME = ''; USERS = []; AUDIT = null; showLogin('', 1); return; }
+    toast('Seans yopildi.'); load(true);
+  } catch (e) { toast(e.message, 'err'); }
+}
 function renderAccess() {
-  if (!AUDIT) { const e = emptyBox('info', 'Kirishlar yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#ac-p').innerHTML = e; $('#ac-h').innerHTML = e; $('#ac-k').innerHTML = ''; $('#ac-c').textContent = ''; $('#ac-pc').textContent = ''; $('#ac-hc').textContent = ''; return; }
+  if (!AUDIT) { const e = emptyBox('info', 'Kirishlar yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#ac-p').innerHTML = e; $('#ac-h').innerHTML = e; $('#ac-k').innerHTML = ''; $('#ac-c').textContent = ''; $('#ac-pc').textContent = ''; $('#ac-hc').textContent = ''; $('#se-l').innerHTML = ''; $('#se-c').textContent = '0'; return; }
   const all = AUDIT.access || [], q = ($('#ac-q').value || '').trim().toLowerCase(), f = AC_FILTERS.find(x => x[0] === ACF) || AC_FILTERS[0];
   $('#ac-f').innerHTML = AC_FILTERS.map(([k, l, fn]) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${k === ACF}">${l}<small>${all.filter(fn).length}</small></button>`).join('');
   $$('#ac-f [data-f]').forEach(b => (b.onclick = () => { ACF = b.dataset.f; renderAccess(); }));
@@ -579,17 +585,23 @@ function renderAccess() {
     p.n++; p.first = Math.min(p.first, e.t); p.last = Math.max(p.last, e.t); p.seen = Math.max(p.seen, e.seen || e.t); p.cur = p.cur || !!e.cur;
     p.dev.add(deviceOf(e.ua) || 'noma’lum'); p.ips.add(e.ip); ppl.set(k, p);
   }
-  const people = [...ppl.values()].sort((a, b) => b.last - a.last);
+  const people = [...ppl.values()].sort((a, b) => b.last - a.last), badN = bad.reduce((n, e) => n + (e.n || 1), 0);
+  const ses = AUDIT.sessions || []; $('#se-c').textContent = ses.length;
+  $('#se-l').innerHTML = ses.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Email</th><th>Kirgan</th><th>Oxirgi faollik</th><th>Qurilma</th><th>IP</th><th></th></tr></thead><tbody>${ses.map(x => `<tr>
+    <td data-l="Email">${whoCell(x.email, x.cur)}</td><td data-l="Kirgan">${esc(when(x.t))}</td><td data-l="Faollik">${esc(rel(x.seen))}</td>
+    <td data-l="Qurilma" title="${esc(x.ua)}">${esc(deviceOf(x.ua) || '—')}</td><td data-l="IP">${esc(x.ip)}</td>
+    <td class="a-td"><div class="row-a"><button class="btn sm danger" type="button" data-sv="${esc(x.id)}" data-cur="${x.cur ? 1 : 0}">${x.cur ? 'Chiqish' : 'Yopish'}</button></div></td></tr>`).join('')}</tbody></table></div>` : emptyBox('users', 'Faol seans yo‘q', 'Kod bilan kirganlar shu yerda ko‘rinadi.');
+  $$('#se-l [data-sv]').forEach(b => (b.onclick = () => revoke(b.dataset.sv, b.dataset.cur === '1')));
   $('#ac-c').textContent = f[1];
-  $('#ac-k').innerHTML = kpi('users', people.length, 'kirgan odam', 'ok') + kpi('act', okL.length, 'kirish (sessiya)') + kpi('warn', bad.length, 'noto‘g‘ri token urinishi', bad.length ? 'warn' : 'mut', bad.length) + kpi('clock', okL.length ? rel(okL[0].t) : '—', 'oxirgi kirish', 'mut');
+  $('#ac-k').innerHTML = kpi('users', people.length, 'kirgan odam', 'ok') + kpi('act', okL.length, 'kirish (sessiya)') + kpi('warn', badN, 'rad etilgan urinish', badN ? 'warn' : 'mut', badN) + kpi('clock', okL.length ? rel(okL[0].t) : '—', 'oxirgi kirish', 'mut');
   $('#ac-pc').textContent = people.length; $('#ac-hc').textContent = list.length;
   const none = all.length ? ['Bu davrda kirish yo‘q', 'Davrni yoki qidiruvni o‘zgartirib ko‘ring.'] : ['Hali kirish yozilmagan', 'Funksiya yoqilgandan keyingi kirishlar shu yerda ko‘rinadi.'];
   $('#ac-p').innerHTML = people.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Kim</th><th class="num">Kirishlar</th><th>Birinchi kirish</th><th>Oxirgi kirish</th><th>Qurilma</th><th>IP</th></tr></thead><tbody>${people.map(p => `<tr>
-    <td data-l="Kim">${p.who ? '<b>' + esc(p.who) + '</b>' : '<span class="badge mute">email yozilmagan</span>'}${p.cur ? ' <span class="badge ok">Siz</span>' : ''}</td>
+    <td data-l="Kim">${whoCell(p.who, p.cur)}</td>
     <td class="num" data-l="Kirishlar">${p.n}</td><td data-l="Birinchi kirish">${esc(when(p.first))}</td>
     <td data-l="Oxirgi kirish">${esc(when(p.last))}<br><small>faollik: ${esc(rel(p.seen))}</small></td>
     <td data-l="Qurilma">${esc([...p.dev].join(', '))}</td><td data-l="IP">${esc([...p.ips].join(', '))}</td></tr>`).join('')}</tbody></table></div>` : emptyBox('users', none[0], none[1]);
-  $('#ac-h').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Kirgan vaqti</th><th>Email</th><th>IP</th><th>Qurilma</th><th>Natija</th></tr></thead><tbody>${list.map(accessRow).join('')}</tbody></table></div>` : emptyBox('clock', none[0], none[1]);
+  $('#ac-h').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Vaqt</th><th>Email</th><th>IP</th><th>Qurilma</th><th>Natija</th></tr></thead><tbody>${list.map(accessRow).join('')}</tbody></table></div>` : emptyBox('clock', none[0], none[1]);
   fx.scan($('#v-access'));
 }
 
@@ -609,10 +621,27 @@ function renderLog() {
 }
 
 /* ---------- yuklash ---------- */
-function showLogin(msg) {
-  $('#ae').value = EMAIL || $('#ae').value;
+let LEM = '', resendTimer = 0;
+/** Kirish oynasi: 1 — email, 2 — emailga kelgan kod */
+function showLogin(msg, step = 1) {
   $('#shell').hidden = true; $('#lg').hidden = false; document.title = 'Admin — UniDoue';
-  const m = $('#lm'); m.className = 'msg err'; m.textContent = msg || ''; $('#lb').disabled = false; if (!msg) m.className = 'msg';
+  $('#lf').hidden = step !== 1; $('#lf2').hidden = step !== 2;
+  const m = $(step === 1 ? '#lm' : '#lm2'); m.className = msg ? 'msg err' : 'msg'; m.textContent = msg || '';
+  $('#lb').disabled = false; $('#lb2').disabled = false;
+}
+function resendCooldown(sec = 30) {
+  clearInterval(resendTimer); const b = $('#lr'); let n = sec; b.disabled = true;
+  const tick = () => { if (n <= 0) { clearInterval(resendTimer); b.disabled = false; b.textContent = 'Kodni qayta yuborish'; return; } b.textContent = `Qayta yuborish (${n--} s)`; };
+  tick(); resendTimer = setInterval(tick, 1000);
+}
+async function askCode(email, again) {
+  const step = again ? 2 : 1, m = $(again ? '#lm2' : '#lm'), btn = $(again ? '#lr' : '#lb');
+  m.className = 'msg'; m.textContent = ''; btn.disabled = true;
+  try {
+    await call('POST', '/api/admin/login/start', { email });
+    LEM = email; showLogin('', 2); $('#lf2-s').textContent = 'Agar bu email admin sifatida ruxsat etilgan bo‘lsa, unga 6 xonali kod yuborildi. Kod 10 daqiqa amal qiladi va bir marta ishlaydi.';
+    $('#ac').value = ''; $('#ac').focus(); resendCooldown(30);
+  } catch (e) { showLogin(e.message, step); if (again) $('#lr').disabled = false; }
 }
 let busy = false;
 async function load(silent) {
@@ -628,11 +657,11 @@ async function load(silent) {
       call('GET', '/api/admin/audit').catch(e => { if (e.status === 401) throw e; return null; })]);
     REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; FBK = fk; AUDIT = au; if (nh) NH = nh; loadedAt = Date.now();
     const first = $('#shell').hidden; $('#lg').hidden = true; $('#shell').hidden = false;
-    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); renderAccess(); renderLog(); audienceUi(); $('#me').textContent = EMAIL || 'Admin';
+    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); renderAccess(); renderLog(); audienceUi(); $('#me').textContent = ME || 'Admin';
     $('#st').textContent = 'Yangilandi: ' + when(Date.now()).split(', ')[1].split(' ').pop();
     if (first) route(); else fx.scan($('#kpis'));
   } catch (e) {
-    if (e.status === 401) { try { sessionStorage.removeItem('unidoue:adm'); } catch (x) {} TOKEN = ''; showLogin('Token noto‘g‘ri.'); }
+    if (e.status === 401) { ME = ''; showLogin('Seans tugagan yoki yopilgan. Qayta kiring.'); }
     else if ($('#shell').hidden) showLogin(e.message);
     else { $('#st').textContent = 'Yangilab bo‘lmadi'; if (!silent) toast(e.message, 'err'); }
   }
@@ -642,20 +671,27 @@ async function load(silent) {
 /* ---------- hodisalar ---------- */
 $('#lf').onsubmit = ev => {
   ev.preventDefault();
-  const em = $('#ae').value.trim().toLowerCase(), v = $('#tk').value.trim() || TOKEN, m = $('#lm');
-  if (!ADM_EMAIL.test(em)) { m.className = 'msg err'; m.textContent = 'Emailni to‘g‘ri kiriting (masalan, ism@gmail.com).'; return $('#ae').focus(); }
-  if (!v) { m.className = 'msg err'; m.textContent = 'Admin tokenni kiriting.'; return $('#tk').focus(); }
-  TOKEN = v; EMAIL = em; m.className = 'msg'; m.textContent = '';
-  try { sessionStorage.setItem('unidoue:adm', TOKEN); localStorage.setItem(EM_KEY, EMAIL); } catch (e) {}
-  $('#tk').value = ''; $('#lb').disabled = true; load();
+  const em = $('#ae').value.trim().toLowerCase();
+  if (!MAIL_RE.test(em)) { const m = $('#lm'); m.className = 'msg err'; m.textContent = 'Emailni to‘g‘ri kiriting (masalan, ism@gmail.com).'; return $('#ae').focus(); }
+  askCode(em, false);
 };
-$('#tk-eye').onclick = () => { const i = $('#tk'), s = i.type === 'password'; i.type = s ? 'text' : 'password'; $('#tk-eye').setAttribute('aria-pressed', s); };
+$('#lf2').onsubmit = async ev => {
+  ev.preventDefault();
+  const code = $('#ac').value.replace(/\D/g, ''), m = $('#lm2');
+  if (code.length !== 6) { m.className = 'msg err'; m.textContent = '6 xonali kodni kiriting.'; return $('#ac').focus(); }
+  m.className = 'msg'; m.textContent = ''; $('#lb2').disabled = true;
+  try { const j = await call('POST', '/api/admin/login/verify', { email: LEM, code }); ME = j.email || LEM; clearInterval(resendTimer); $('#ac').value = ''; load(); }
+  catch (e) { showLogin(e.message, 2); $('#ac').value = ''; $('#ac').focus(); }
+};
+$('#ac').oninput = () => { const v = $('#ac').value.replace(/\D/g, '').slice(0, 6); $('#ac').value = v; if (v.length === 6) $('#lf2').requestSubmit(); };
+$('#lr').onclick = () => askCode(LEM, true);
+$('#lx').onclick = () => { clearInterval(resendTimer); showLogin('', 1); $('#ae').focus(); };
 $('#rf').onclick = () => load();
-$('#lo').onclick = () => { try { sessionStorage.removeItem('unidoue:adm'); } catch (e) {} TOKEN = ''; USERS = []; showLogin(''); $('#tk').focus(); };
+$('#lo').onclick = async () => { try { await call('POST', '/api/admin/logout'); } catch (e) {} ME = ''; USERS = []; AUDIT = null; showLogin('', 1); $('#ae').focus(); };
 $('#bg').onclick = () => document.body.classList.toggle('nav-open');
 $('#scrim').onclick = () => document.body.classList.remove('nav-open');
 $('#uq').oninput = () => { ULIM = 100; renderUsers(); };
-$('#ac-q').oninput = renderAccess;
+$('#ac-q').oninput = renderAccess; $('#se-all').onclick = () => revoke('all', true);
 $('#pg').onclick = () => { const e = $('#pe').value.trim().toLowerCase(); if (!e) { $('#pm').className = 'msg err'; $('#pm').textContent = 'Emailni kiriting.'; return; } give(e, $('#pp').value, parseInt($('#pd').value, 10) || 30, $('#pm')); };
 $('#un-s').onclick = saveUni; $('#un-x').onclick = uniReset; $('#un-q').oninput = () => { ULM = 40; renderUnis(); };
 $('#mb').onclick = createPromo; $('#mk-r').onclick = () => { $('#mk').value = pmRand(); $('#mk').focus(); };
@@ -664,8 +700,9 @@ $('#mk').onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); crea
 $('#na').innerHTML = AUD.map(([k, l]) => `<option value="${k}">${l}</option>`).join('');
 $('#na').onchange = audienceUi; $('#nq').oninput = estimate; $('#nt').oninput = preview; $('#nb').oninput = preview; $('#ns').onclick = sendNote; $$('#nch input').forEach(i => (i.onchange = estimate));
 preview();
-setInterval(() => { if (TOKEN && !document.hidden && !$('#shell').hidden && Date.now() - loadedAt > 55000) load(true); }, 30000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden && TOKEN && !$('#shell').hidden && Date.now() - loadedAt > 30000) load(true); });
-if (TOKEN && EMAIL) load();
-else if (TOKEN) { showLogin('Kim kirganini Jurnalda ko‘rsatish uchun emailingizni kiriting.'); $('#ae').focus(); }
-else { $('#ae').value = EMAIL; (EMAIL ? $('#tk') : $('#ae')).focus(); }
+setInterval(() => { if (ME && !document.hidden && !$('#shell').hidden && Date.now() - loadedAt > 55000) load(true); }, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && ME && !$('#shell').hidden && Date.now() - loadedAt > 30000) load(true); });
+(async () => { // panel ochilganda: seans bormi? Bor boʻlsa — kod soʻralmaydi (chiqmaguncha)
+  try { const r = await fetch('/api/admin/session', { credentials: 'same-origin' }); if (r.ok) { const j = await r.json(); ME = j.email || ''; if (ME) return load(); } } catch (e) {}
+  showLogin('', 1); $('#ae').focus();
+})();

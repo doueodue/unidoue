@@ -2,6 +2,8 @@
 const P = [
   ["Bildirishnomalar", "Уведомления", "Notifications"],
   ["yangi", "новых", "new"],
+  ["Yopish", "Закрыть", "Close"],
+  ["Ochish", "Открыть", "Open"],
   ["Hozircha xabar yo‘q.", "Пока сообщений нет.", "No messages yet."],
   ["Yangiliklar, tarif va muddat eslatmalari shu yerda ko‘rinadi.", "Новости, тариф и напоминания о сроках появятся здесь.", "News, plan updates and deadline reminders will show up here."],
   ["Yangiliklarni emailga ham yuborish", "Присылать новости и на email", "Also send news by email"],

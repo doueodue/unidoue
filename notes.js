@@ -10,15 +10,17 @@
  */
 const crypto = require('node:crypto');
 
-const LIMITS = { title: 60, body: 300, keepAdmin: 150, keepSys: 300, show: 30, mailBulk: 500 };
+const LIMITS = { title: 60, body: 2000, keepAdmin: 150, keepSys: 300, show: 30, mailBulk: 500 };
 const AUDS = ['all', 'free', 'plus', 'pro', 'email', 'admin'];
 const URL_RE = /^\/(?!\/)[\w\-./#?=&%]*$/;
+/** Xat matni: abzatslar (boʻsh qator) saqlanadi, ortiqcha boʻshliq va boshqaruv belgilari olib tashlanadi */
+const para = (s, n) => String(s == null ? '' : s).replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ' ').replace(/[ \t]+/g, ' ').replace(/ ?\n ?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, n);
 const txt = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
 
 /** Admin shaklini tekshiradi: { error } yoki { title, body, url, aud, email, ch:{app,push,mail} } */
 function check(b) {
   b = b && typeof b === 'object' ? b : {};
-  const title = txt(b.title, LIMITS.title), body = txt(b.body, LIMITS.body), aud = String(b.audience || 'all');
+  const title = txt(b.title, LIMITS.title), body = para(b.body, LIMITS.body), aud = String(b.audience || 'all');
   if (title.length < 2 || body.length < 2) return { error: 'Sarlavha va matnni kiriting.' };
   const url = b.url == null || b.url === '' ? '/app' : String(b.url);
   if (!URL_RE.test(url) || url.length > 200) return { error: 'Havola faqat sayt ichidagi yoʻl boʻlsin (masalan /app#/pricing).' };
@@ -70,7 +72,7 @@ function mailHtml({ title, body, link, unsub }) {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border:1px solid #e8e1d8;border-radius:14px">
 <tr><td style="padding:18px 24px;border-bottom:1px solid #eee5da;font:700 17px Georgia,serif;color:#c2521b">✦ UniDoue</td></tr>
 <tr><td style="padding:24px"><h1 style="margin:0 0 10px;font:600 21px/1.3 Georgia,serif;color:#1d1a16">${esc(title)}</h1>
-<p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#3b352e">${esc(body)}</p>
+${String(body).split(/\n{2,}/).map(x => `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#3b352e">${esc(x).replace(/\n/g, '<br>')}</p>`).join('')}<div style="height:6px"></div>
 <a href="${esc(link)}" style="display:inline-block;background:#c2521b;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 20px;border-radius:10px">UniDoueʼda ochish</a></td></tr>
 <tr><td style="padding:14px 24px;background:#faf7f2;border-radius:0 0 14px 14px;font-size:12px;line-height:1.5;color:#8a8175">Bu xatni UniDoue hisobingiz boʻlgani uchun oldingiz. <a href="${esc(unsub)}" style="color:#8a8175">Bunday xatlarni olishni toʻxtatish</a></td></tr>
 </table></td></tr></table></body></html>`;

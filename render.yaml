@@ -13,6 +13,9 @@ services:
         value: "1"
       - key: ADMIN_TOKEN
         generateValue: true
+      # Admin paneliga kira oladigan email (kod shu emailga boradi). Qiymatni Render panelida oʻzingiz kiriting.
+      - key: ADMIN_EMAILS
+        sync: false
       # Doimiy saqlash kerak boʻlganda: plan: starter va quyidagini qoʻshing
       #   - key: DATA_DIR
       #     value: /data

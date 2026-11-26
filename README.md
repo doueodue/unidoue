@@ -3,7 +3,7 @@
 Xorijda oʻqish platformasi: universitet qidiruvi (Safety/Target/Reach), moslik tahlili, solishtirish, arizalar kuzatuvchisi, esse yordamchisi, AI mentor, tariflar.
 
 - `/` va `/app` — UniDoue platformasi (hisob, dashboard, tariflar, AI vositalar). Eski bosh sahifa olib tashlangan
-- `/admin` — sayt egasi uchun boshqaruv paneli (`ADMIN_TOKEN` bilan): umumiy statistika va 14 kunlik grafik, soʻrovlar, foydalanuvchilar, toʻlovlar, push xabar yuborish. Kun/tun rejimi, telefonda ham ishlaydi
+- `/admin` — sayt egasi uchun boshqaruv paneli (faqat `ADMIN_EMAILS` dagi email, har safar shu emailga kelgan kod bilan): umumiy statistika va 14 kunlik grafik, soʻrovlar, foydalanuvchilar, toʻlovlar, push xabar yuborish. Kun/tun rejimi, telefonda ham ishlaydi
 
 ## Ishga tushirish
 ```bash
@@ -11,12 +11,23 @@ node server.js     # Node 18+, paket oʻrnatish shart emas → http://localhost:
 node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 ```
 
+## Admin kirishi va xavfsizlik
+
+- **Faqat `ADMIN_EMAILS` dagi email** admin paneliga kira oladi. Kirish: `/admin` → email → shu emailga kelgan 6 xonali kod (10 daqiqa, bir martalik, 5 ta xato urinishdan soʻng bekor). Har kirishda yangi kod soʻraladi.
+- Kod tasdiqlangach **HttpOnly + SameSite=Strict (+ Secure)** cookie seansi ochiladi. Seans **faqat «Chiqish» bosilganda** (yoki **Kirishlar → Faol seanslar** da yopilganda) tugaydi; server qayta ishga tushsa ham saqlanadi (doimiy saqlash — Neon yoki disk — sozlangan boʻlsa). Bazada tokenning oʻzi emas, faqat hash saqlanadi.
+- Ruxsat etilmagan emailga kod yuborilmaydi va javob bir xil (kim admin ekani aniqlanmaydi). Kod soʻrash va tekshirish IP/soat/sutka boʻyicha cheklangan. `ADMIN_EMAILS` boʻsh boʻlsa — hamma uchun yopiq.
+- Admin jurnali: kim (email), qachon, qaysi IP/qurilmadan kirdi, kim qaysi xatni yubordi. Notoʻgʻri kod va ruxsatsiz urinishlar ham yoziladi.
+- Barcha sahifalarda qattiq CSP (inline skript yoʻq), HSTS, `X-Frame-Options: DENY`, Permissions-Policy, noindex; HTTP → HTTPS.
+- Agar token/kalit sizib chiqqan boʻlsa: Render → Environment da `ADMIN_TOKEN` (va kerak boʻlsa API kalitlari) qiymatini almashtiring; **Faol seanslar** → «Hamma qurilmalardan chiqarish».
+
 ## Sozlamalar (environment variables)
 | Oʻzgaruvchi | Vazifasi |
 |---|---|
 | `COOKIE_SECURE=1`, `TRUST_PROXY=1` | HTTPS va proksi ortida (production uchun **majburiy**) |
 | `DATA_DIR=/data` | Maʼlumotlar papkasi. Doimiy disk ulang, aks holda hisoblar yoʻqoladi |
-| `ADMIN_TOKEN` | Admin API: soʻrovlarni koʻrish, tarif berish |
+| `ADMIN_EMAILS` | **Admin paneliga kira oladigan email** (bitta yoki vergul bilan bir nechta). Qoʻyilmasa — admin kirishi hamma uchun yopiq. Email kodga yozilmaydi, faqat shu yerda |
+| `ADMIN_TOKEN` | Faqat rejalashtiruvchi uchun (`POST /api/admin/remind`). Paneldan kirish uchun **ishlatilmaydi** |
+| `ADMIN_ALLOW_TOKEN` | `1` boʻlsa `ADMIN_TOKEN` yana butun admin API ni ochadi — faqat favqulodda/sinov uchun, **standart: oʻchiq** |
 | `BREVO_API_KEY`, `MAIL_FROM` | Parolni tiklash xati (Brevo, domen talab qilmaydi). `MAIL_FROM` = Brevo'da tasdiqlangan joʻnatuvchi, masalan `UniDoue <sizning@gmail.com>` |
 | `DATABASE_URL` | Neon (bepul Postgres) ulanish manzili. **Bepul Render'da hisoblar o'chib ketmasligi uchun kerak.** Kalitsiz ma'lumotlar faqat serverdagi faylda turadi |
 | `ANTHROPIC_API_KEY` | AI mentor, esse tahlili, strategiya, hisobot. **Kalitsiz AI "ulanmagan" holatida turadi** |
@@ -67,7 +78,7 @@ Payme kassasida buyurtma kodi uchun **hisob (account) maydoni** boʻlishi kerak,
 - Buyurtma summasi yaratilgan paytdagi kurs bilan qotiriladi (keyin `USD_UZS_RATE` oʻzgarsa ham, ochiq buyurtma oʻz summasida toʻlanadi).
 - Plus → Pro ga oʻtganda Pro yangi 30 kunga yoqiladi (Plusning qolgan kunlari qoʻshilmaydi). Pro egasi Plus sota olmaydi.
 - Toʻlov qaytarilsa (Payme kabinetidan bekor qilish), qoʻshilgan 30 kun tarifdan olib tashlanadi.
-- Buyurtmalar roʻyxati: `curl -H "Authorization: Bearer $ADMIN_TOKEN" https://SAYT/api/admin/orders`. Har bir muvaffaqiyatli toʻlov `TG_BOT_TOKEN` sozlangan boʻlsa Telegramga ham yuboriladi.
+- Buyurtmalar roʻyxati: `curl --cookie "ud_adm=SEANS" https://SAYT/api/admin/orders (admin seansi; favqulodda ADMIN_ALLOW_TOKEN=1 boʻlsa `-H "Authorization: Bearer $ADMIN_TOKEN"`)`. Har bir muvaffaqiyatli toʻlov `TG_BOT_TOKEN` sozlangan boʻlsa Telegramga ham yuboriladi.
 - Imzo/kalit tekshiruvi: Payme — `Authorization: Basic Paycom:KALIT`, Click — MD5 `sign_string`. Notoʻgʻri soʻrovlar rad etiladi. Provayder xabarlari uchun cookie/CSRF talab qilinmaydi (faqat shu ikki manzil uchun).
 - Kod: `payments.js`; testlar: `node tests/run.js` (“Onlayn toʻlov” boʻlimi provayder chaqiruvlarini simulyatsiya qiladi).
 
@@ -100,7 +111,7 @@ Admin yangi kod yaratadi, **nechta kishiga** berilishini va **necha kunlik** Plu
 ## Bildirishnomalar (sayt ichida, push va email)
 Mantiq: `notes.js` (sof funksiyalar, testlanadi). Xabarlar `db.notes` da turadi.
 - **Foydalanuvchi**: sarlavhadagi qo‘ng‘iroqcha → ixcham panel (oxirgi xabarlar, o‘qilmaganlar belgisi). Panel ochilganda hammasi o‘qilgan hisoblanadi (bitta `noteSeen` belgisi). Pastida «Yangiliklarni emailga ham yuborish» tugmasi va push yoqilmagan bo‘lsa Profilga havola. Faqat **hisob ochilgandan keyingi** xabarlar ko‘rinadi.
-- **Admin**: `/admin` → **Xabarlar**. Sarlavha + matn (300 belgigacha), ixtiyoriy havola (faqat sayt ichidagi yo‘l), auditoriya (Hammaga / Free / Plus / Pro / bitta foydalanuvchi / admin qurilmalari — sinov uchun) va **kanallar**: sayt ichida, push, email. Yuborishdan oldin har kanal bo‘yicha nechta kishiga borishi ko‘rsatiladi; natija ham kanal bo‘yicha. Pastda tarix va o‘chirish (o‘chirilsa panelda ham yo‘qoladi).
+- **Admin**: `/admin` → **Xabarlar**. Sarlavha + matn (2000 belgigacha, abzatslar saqlanadi; foydalanuvchi xabarni bosib katta xat shaklida oʻqiydi), ixtiyoriy havola (faqat sayt ichidagi yo‘l), auditoriya (Hammaga / Free / Plus / Pro / bitta foydalanuvchi / admin qurilmalari — sinov uchun) va **kanallar**: sayt ichida, push, email. Yuborishdan oldin har kanal bo‘yicha nechta kishiga borishi ko‘rsatiladi; natija ham kanal bo‘yicha. Pastda tarix va o‘chirish (o‘chirilsa panelda ham yo‘qoladi).
 - **Email**: faqat email **tasdiqlangan** va xabarlardan **chiqmagan** foydalanuvchilarga ketadi (`MAIL_PROVIDER` — Resend/Brevo — sozlanmagan bo‘lsa kanal o‘chiq). Har xatda «obunani bekor qilish» havolasi bor: `/unsub?u=…&s=…` (HMAC imzo, kirish talab qilinmaydi; xuddi shu sahifadan qayta yoqish mumkin). Bir yuborishdagi chegarasi — `MAIL_BULK_MAX`.
 - **Tizim xabarlari**: tarif yoqilganda yoki promo kod qabul qilinganda foydalanuvchining o‘ziga xabar tushadi (adminning tarixida ko‘rinmaydi).
 - API: foydalanuvchi — `GET /api/notes`, `POST /api/notes/read`, `POST /api/notes/mail`, `POST /api/mail/unsub`; admin (Bearer) — `POST /api/admin/notify`, `GET /api/admin/notes`, `POST /api/admin/note/delete`.

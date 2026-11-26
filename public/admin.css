@@ -329,3 +329,10 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 /* Jurnal: kirgan admin emaili va jadval ichidagi kichik izoh */
 .side-foot .me{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .adm table.tbl td small{color:var(--muted);font-size:12px}
+
+/* Kodli kirish: ikkinchi bosqich */
+.lg-alt{display:flex;justify-content:space-between;gap:8px;margin-top:12px;flex-wrap:wrap}
+.lg-alt .btn.ghost{color:var(--muted);border:1px solid var(--line-2);background:transparent}
+.lg-alt .btn.ghost:hover:not(:disabled){color:var(--ink,inherit);background:color-mix(in srgb,var(--muted) 10%,transparent)}
+.lg-alt .btn.ghost:disabled{opacity:.7;cursor:default}
+#ac{width:100%}

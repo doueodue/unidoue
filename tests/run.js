@@ -31,7 +31,7 @@ class Client {
   const ai = await mock((q, b, r) => { aiLast = JSON.parse(b); if (aiMode === 'fail') { r.statusCode = 500; return r.end('{"error":{"type":"x"}}'); } r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ content: [{ type: 'text', text: 'Test javobi' }] })); });
   const mail = await mock((q, b, r) => { mails.push(JSON.parse(b)); r.setHeader('content-type', 'application/json'); r.end('{"id":"1"}'); });
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-'));
-  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', MAIL_REPLY_TO: 'help@unidoue.uz', REG_RATE_MAX: '30', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, REQUIRE_EMAIL_VERIFY: '0', MAIL_BULK_MAX: '3', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
+  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', ADMIN_ALLOW_TOKEN: '1', MAIL_REPLY_TO: 'help@unidoue.uz', REG_RATE_MAX: '30', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, REQUIRE_EMAIL_VERIFY: '0', MAIL_BULK_MAX: '3', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
   for (let i = 0; i < 40; i++) { try { if ((await fetch(B + '/healthz')).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
   const PROFILE = { gpa: 4.6, sc: 5, sat: 1480, ielts: 7, ex: 2 };
   try {
@@ -257,22 +257,20 @@ class Client {
     const token = mails[0] && (mails[0].html.match(/token=([\w-]+)/) || [])[1]; ok(r.s === 200 && token && mails[0].to[0] === 'reset@gmail.com', 'xat yuborildi', mails.length);
     mails.length = 0; r = await new Client().call('POST', '/api/admin/mail-test', { to: 'sinov@gmail.com' }, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200 && r.j.ok === true && mails.length === 1 && mails[0].to[0] === 'sinov@gmail.com' && typeof mails[0].text === 'string' && mails[0].text.length > 5, 'admin: sinov xati yuboriladi (HTML + oddiy matn)', r.j); mails.length = 0;
     r = await new Client().call('POST', '/api/admin/mail-test', { to: 'x@y.com' }); ok(r.s === 401, 'admin: sinov xati tokensiz yopiq', r.s);
-    { // Jurnal: kim xat yubordi, kim panelga kirdi
-      const AE = { Authorization: 'Bearer adm-secret', 'X-Admin-Email': 'Boss@UniDoue.uz' }, jc = () => new Client();
+    { // Jurnal: kim xat yubordi, kim panelga kirdi (token rejimi: ADMIN_ALLOW_TOKEN=1 — favqulodda yoʻl)
+      const AE = { Authorization: 'Bearer adm-secret' }, jc = () => new Client();
       let q = await jc().call('POST', '/api/admin/mail-test', { to: 'jurnal@gmail.com' }, AE);
       q = await jc().call('GET', '/api/admin/audit'); ok(q.s === 401, 'jurnal: tokensiz yopiq', q.s);
       q = await jc().call('GET', '/api/admin/audit', null, AE);
-      ok(q.s === 200 && q.j.me === 'boss@unidoue.uz', 'jurnal: admin emaili aniqlanadi (kichik harfga oʻtkaziladi)', q.j && q.j.me);
+      ok(q.s === 200 && q.j.me === '(token)', 'jurnal: token orqali kirgan «(token)» deb belgilanadi', q.j && q.j.me);
       const sm = q.j.mail.find(m => m.to === 'jurnal@gmail.com'), fg = q.j.mail.find(m => m.to === 'reset@gmail.com');
-      ok(sm && sm.by === 'boss@unidoue.uz' && sm.kind === 'test' && sm.ok === true && /@/.test(sm.from), 'jurnal: sinov xatini kim yuborgani yoziladi', sm);
+      ok(sm && sm.by === '(token)' && sm.kind === 'test' && sm.ok === true && /@/.test(sm.from), 'jurnal: sinov xatini kim yuborgani yoziladi', sm);
       ok(fg && fg.by === 'system' && fg.kind === 'reset' && fg.ok === true, 'jurnal: avtomatik xat «system» deb yoziladi', fg);
       ok(q.j.mail.every(m => !('html' in m) && !('text' in m) && !('body' in m)), 'jurnal: xat matni saqlanmaydi');
-      const my = q.j.access.filter(e => e.ok && e.who === 'boss@unidoue.uz');
-      ok(my.length === 1 && my[0].cur === true && my[0].ip && my[0].ua, 'jurnal: kirish yozuvi bitta (takroriy soʻrovlar birlashadi), «Siz» belgisi, IP va qurilma bor', my);
-      ok(q.j.access.some(e => !e.ok), 'jurnal: notoʻgʻri token bilan urinish ham yoziladi');
-      await jc().call('GET', '/api/admin/users', null, { Authorization: 'Bearer adm-secret', 'X-Admin-Email': 'yomon email' });
-      q = await jc().call('GET', '/api/admin/audit', null, AE);
-      ok(!q.j.access.some(e => /yomon/.test(e.who)), 'jurnal: notoʻgʻri formatdagi email qabul qilinmaydi');
+      const my = q.j.access.filter(e => e.ok && e.who === '(token)');
+      ok(my.length === 1 && my[0].cur === true && my[0].ip && my[0].ua, 'jurnal: token faolligi bitta yozuvga birlashadi, «Siz» belgisi, IP va qurilma bor', my);
+      ok(q.j.access.some(e => !e.ok && e.ev === 'deny'), 'jurnal: ruxsatsiz urinish ham yoziladi');
+      ok(Array.isArray(q.j.sessions) && q.j.sessions.length === 0, 'jurnal: cookie seanslari yoʻq (token rejimi)');
       // hisob oʻchirilsa, uning emaili yuborilgan xatlar jurnalidan ham olib tashlanadi
       const pg = jc(); await pg.call('POST', '/api/register', { email: 'jurnalpurge@gmail.com', password: 'parol12345', name: 'JP' });
       await jc().call('POST', '/api/password/forgot', { email: 'jurnalpurge@gmail.com' }); await new Promise(r => setTimeout(r, 300));
@@ -521,7 +519,7 @@ class Client {
   {
     let last = null; const ma = await mock((q, b, r) => { last = JSON.parse(b); r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ content: [{ type: 'text', text: 'Test javobi' }] })); });
     const dirC = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), PC = PORT + 13;
-    const sC = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: PC, DATA_DIR: dirC, ADMIN_TOKEN: 'adm', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ma.address().port}/v1/messages` }, stdio: 'ignore' });
+    const sC = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: PC, DATA_DIR: dirC, ADMIN_TOKEN: 'adm', ADMIN_ALLOW_TOKEN: '1', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ma.address().port}/v1/messages` }, stdio: 'ignore' });
     for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${PC}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
     console.log('Esse murabbiyi va portfolio (AI)');
     const mkc = () => { let ck = ''; return async (m, u, b, h = {}) => { const r = await fetch(`http://localhost:${PC}${u}`, { method: m, headers: { 'Content-Type': 'application/json', ...(ck ? { Cookie: ck } : {}), ...h }, body: b ? JSON.stringify(b) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) ck = sc.split(';')[0]; return { s: r.status, j: await r.json().catch(() => null) }; }; };
@@ -601,7 +599,7 @@ class Client {
   {
     let last = null; const oa = await mock((q, b, r) => { last = JSON.parse(b); r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ choices: [{ message: { content: '{"items":[]}' } }] })); });
     const dirV = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), PV = PORT + 12;
-    const sV = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: PV, DATA_DIR: dirV, ANTHROPIC_API_KEY: '', AI_API_KEY: 'kv', AI_BASE_URL: `http://localhost:${oa.address().port}/v1`, AI_MODEL: 'vision-model', AI_VISION: '1', ADMIN_TOKEN: 'adm' }, stdio: 'ignore' });
+    const sV = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: PV, DATA_DIR: dirV, ANTHROPIC_API_KEY: '', AI_API_KEY: 'kv', AI_BASE_URL: `http://localhost:${oa.address().port}/v1`, AI_MODEL: 'vision-model', AI_VISION: '1', ADMIN_TOKEN: 'adm', ADMIN_ALLOW_TOKEN: '1' }, stdio: 'ignore' });
     for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${PV}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
     console.log('AI_VISION=1 (OpenAI-mos)');
     try {
@@ -619,7 +617,7 @@ class Client {
   {
     let last = null; const oa = await mock((q, b, r) => { last = JSON.parse(b); r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ choices: [{ message: { content: 'Luna javobi' } }], usage: { prompt_tokens: 120, completion_tokens: 80 } })); });
     const dir4 = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), P4 = PORT + 9;
-    const s4 = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: P4, DATA_DIR: dir4, ANTHROPIC_API_KEY: '', AI_API_KEY: 'k3', AI_BASE_URL: `http://localhost:${oa.address().port}/v1`, AI_MODEL: 'gpt-6-luna', AI_REASONING: '1', ADMIN_TOKEN: 'adm' }, stdio: 'ignore' });
+    const s4 = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: P4, DATA_DIR: dir4, ANTHROPIC_API_KEY: '', AI_API_KEY: 'k3', AI_BASE_URL: `http://localhost:${oa.address().port}/v1`, AI_MODEL: 'gpt-6-luna', AI_REASONING: '1', ADMIN_TOKEN: 'adm', ADMIN_ALLOW_TOKEN: '1' }, stdio: 'ignore' });
     for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${P4}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
     console.log('AI modeli: reasoning (gpt-6-luna)');
     try {
@@ -769,7 +767,7 @@ class Client {
       const mm = await mock((q, b, r) => { sent.push(JSON.parse(b)); r.setHeader('content-type', 'application/json'); r.end('{"id":"1"}'); });
       const gm = await mock((q, b, r) => { r.setHeader('content-type', 'application/json'); if (tokFail) { r.statusCode = 400; return r.end('{"error":"invalid_grant"}'); } r.end(JSON.stringify({ id_token: 'h.' + Buffer.from(JSON.stringify(claims)).toString('base64url') + '.s' })); });
       const d = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), port = PORT + 21;
-      const sp = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: port, DATA_DIR: d, ANTHROPIC_API_KEY: '', ADMIN_TOKEN: 'adm-secret', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mm.address().port}/emails`, GOOGLE_CLIENT_ID: 'gid', GOOGLE_CLIENT_SECRET: 'gsec', GOOGLE_TOKEN_URL: `http://localhost:${gm.address().port}/token`, REQUIRE_EMAIL_VERIFY: '', APP_URL: `http://localhost:${port}` }, stdio: 'ignore' });
+      const sp = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: port, DATA_DIR: d, ANTHROPIC_API_KEY: '', ADMIN_TOKEN: 'adm-secret', ADMIN_ALLOW_TOKEN: '1', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mm.address().port}/emails`, GOOGLE_CLIENT_ID: 'gid', GOOGLE_CLIENT_SECRET: 'gsec', GOOGLE_TOKEN_URL: `http://localhost:${gm.address().port}/token`, REQUIRE_EMAIL_VERIFY: '', APP_URL: `http://localhost:${port}` }, stdio: 'ignore' });
       await wait(port);
       const gl = async (c, st, extra = '') => { const r = await fetch(`http://localhost:${port}/api/auth/google/callback?code=abc&state=${st}${extra}`, { redirect: 'manual', headers: { Cookie: 'gst=' + (c.gst === undefined ? st : c.gst) } }); const set = r.headers.getSetCookie(); const sid = set.map(x => x.split(';')[0]).find(x => x.startsWith('sid=')); return { s: r.status, loc: r.headers.get('location') || '', sid }; };
       const good = (o = {}) => ({ aud: 'gid', iss: 'https://accounts.google.com', exp: Math.floor(Date.now() / 1000) + 3600, sub: 'sub-1', email: 'gulom@gmail.com', email_verified: true, name: 'Gulom Karimov', ...o });
@@ -846,7 +844,7 @@ class Client {
     }
     // 2) kalitlar bilan
     const pd = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), pp = PORT + 6, PB = `http://localhost:${pp}`;
-    const ps = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: pp, DATA_DIR: pd, ANTHROPIC_API_KEY: '', RESEND_API_KEY: '', BREVO_API_KEY: '', ADMIN_TOKEN: 'adm-secret', APP_URL: 'https://unidoue.uz', USD_UZS_RATE: '12700', PAYME_MERCHANT_ID: 'merch123', PAYME_KEY: 'payme-secret', CLICK_SERVICE_ID: '555', CLICK_MERCHANT_ID: '777', CLICK_SECRET_KEY: 'click-secret' }, stdio: 'ignore' });
+    const ps = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: pp, DATA_DIR: pd, ANTHROPIC_API_KEY: '', RESEND_API_KEY: '', BREVO_API_KEY: '', ADMIN_TOKEN: 'adm-secret', ADMIN_ALLOW_TOKEN: '1', APP_URL: 'https://unidoue.uz', USD_UZS_RATE: '12700', PAYME_MERCHANT_ID: 'merch123', PAYME_KEY: 'payme-secret', CLICK_SERVICE_ID: '555', CLICK_MERCHANT_ID: '777', CLICK_SECRET_KEY: 'click-secret' }, stdio: 'ignore' });
     for (let i = 0; i < 40; i++) { try { if ((await fetch(PB + '/healthz')).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
     const mkc = () => { let ck = ''; return async (m, u, bd) => { const r = await fetch(PB + u, { method: m, headers: { ...(bd ? { 'Content-Type': 'application/json' } : {}), ...(ck ? { Cookie: ck } : {}) }, body: bd ? JSON.stringify(bd) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) ck = sc.split(';')[0]; let j = null; try { j = await r.json(); } catch (e) {} return { s: r.status, j }; }; };
     const PAYME_AUTH = 'Basic ' + Buffer.from('Paycom:payme-secret').toString('base64');
@@ -983,7 +981,7 @@ class Client {
     const d = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), port = PORT + 11, BU = `http://localhost:${port}`, sleep = ms => new Promise(r => setTimeout(r, ms));
     const got = [], svc = http.createServer((q, r) => { const ch = []; q.on('data', c => ch.push(c)); q.on('end', () => { got.push({ url: q.url, h: q.headers, body: Buffer.concat(ch) }); r.statusCode = q.url.startsWith('/gone') ? 410 : q.url.startsWith('/err') ? 500 : 201; r.end(); }); });
     await new Promise(res => svc.listen(0, res)); const sp = svc.address().port;
-    const boot = p2 => spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: p2, DATA_DIR: d, ANTHROPIC_API_KEY: '', ADMIN_TOKEN: 'adm-secret', PUSH_EXTRA_HOSTS: 'localhost:' + sp, REQUIRE_EMAIL_VERIFY: '0' }, stdio: 'ignore' });
+    const boot = p2 => spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: p2, DATA_DIR: d, ANTHROPIC_API_KEY: '', ADMIN_TOKEN: 'adm-secret', ADMIN_ALLOW_TOKEN: '1', PUSH_EXTRA_HOSTS: 'localhost:' + sp, REQUIRE_EMAIL_VERIFY: '0' }, stdio: 'ignore' });
     const waitUp = async b => { for (let i = 0; i < 40; i++) { try { if ((await fetch(b + '/healthz')).ok) return; } catch (e) {} await sleep(100); } };
     const down = p2 => new Promise(r => { p2.once('exit', r); p2.kill(); setTimeout(r, 2000); });
     let proc = boot(port); await waitUp(BU);
@@ -1100,5 +1098,130 @@ class Client {
     await down(proc); svc.close();
     try { fs.rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); } catch (e) {}
   }
+  /* ---------------- Admin: emailga kod bilan kirish, seans, xavfsizlik ---------------- */
+  console.log('Admin kodli kirish (faqat ruxsat etilgan email)');
+  {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-')), sleep = ms => new Promise(r => setTimeout(r, ms)), OWNER = 'owner@example.test';
+    const am = [], msvc = await mock((q, b, r) => { am.push(JSON.parse(b)); r.setHeader('content-type', 'application/json'); r.end('{"id":"1"}'); });
+    const boot = (p2, extra = {}) => spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: p2, DATA_DIR: d, ANTHROPIC_API_KEY: '', ADMIN_TOKEN: 'sched-tok', ADMIN_ALLOW_TOKEN: '', ADMIN_EMAILS: ' Owner@Example.Test ', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${msvc.address().port}/emails`, COOKIE_SECURE: '1', ADM_COOLDOWN_MS: '400', ADM_START_MAX: '60', REQUIRE_EMAIL_VERIFY: '0', APP_URL: 'https://unidoue.test', ...extra }, stdio: 'ignore' });
+    const waitUp = async b => { for (let i = 0; i < 40; i++) { try { if ((await fetch(b + '/healthz')).ok) return; } catch (e) {} await sleep(100); } };
+    const down = p2 => new Promise(r => { p2.once('exit', r); p2.kill(); setTimeout(r, 2000); });
+    // cookie-aware klient: barcha Set-Cookie larni ushlab turadi
+    const mkc = b => { const jar = {}; const f = async (m, u, bd, hd = {}) => { const ck = Object.entries(jar).map(([k, v]) => k + '=' + v).join('; '); const r = await fetch(b + u, { method: m, redirect: 'manual', headers: { ...(bd ? { 'Content-Type': 'application/json' } : {}), ...(ck ? { Cookie: ck } : {}), ...hd }, body: bd ? JSON.stringify(bd) : undefined }); const scs = r.headers.getSetCookie ? r.headers.getSetCookie() : []; for (const sc of scs) { const [kv] = sc.split(';'), i = kv.indexOf('='), k = kv.slice(0, i), v = kv.slice(i + 1); if (/Max-Age=0/i.test(sc) || !v) delete jar[k]; else jar[k] = v; } let j = null; try { j = await r.json(); } catch (e) {} return { s: r.status, j, h: r.headers, sc: scs }; }; f.jar = jar; return f; };
+    const lastCode = () => { const m = am.filter(x => x.to && x.to[0] === OWNER && /kirish kodi/.test(x.subject)).pop(); return m ? (/<b>(\d{6})<\/b>/.exec(m.html) || [])[1] : null; };
+    const login = async (c, wait = true) => { if (wait) await sleep(450); const n = am.length; let q = await c('POST', '/api/admin/login/start', { email: OWNER }); if (q.s !== 200) return q; for (let i = 0; i < 40 && am.length === n; i++) await sleep(50); return c('POST', '/api/admin/login/verify', { email: OWNER, code: lastCode() }); };
+    const port = PORT + 14, BU = `http://localhost:${port}`; let proc = boot(port); await waitUp(BU);
+    try {
+      const anon = mkc(BU), A = mkc(BU), Bc = mkc(BU), TK = { Authorization: 'Bearer sched-tok' };
+      let q = await anon('GET', '/api/admin/session'); ok(q.s === 401, 'admin: kirmagan → seans yoʻq (401)', q.s);
+      for (const [m, u] of [['GET', '/api/admin/users'], ['GET', '/api/admin/stats'], ['GET', '/api/admin/audit'], ['GET', '/api/admin/requests'], ['POST', '/api/admin/plan'], ['POST', '/api/admin/notify'], ['POST', '/api/admin/mail-test'], ['POST', '/api/admin/push/send']]) { q = await anon(m, u, m === 'POST' ? { email: 'x@y.uz', plan: 'plus' } : undefined, TK); ok(q.s === 401, `admin: ADMIN_TOKEN endi ${u} ni ochmaydi`, q.s); }
+      q = await anon('POST', '/api/admin/remind', null, TK); ok(q.s === 200, 'admin: ADMIN_TOKEN faqat rejalashtiruvchi (remind) uchun ishlaydi', q.s);
+      q = await anon('POST', '/api/admin/remind'); ok(q.s === 401, 'remind: tokensiz → 401', q.s);
+
+      // notoʻgʻri email: bir xil javob, xat ketmaydi
+      const same = JSON.stringify((await anon('POST', '/api/admin/login/start', { email: 'boshqa@example.test' })).j);
+      await anon('POST', '/api/admin/login/start', { email: 'yaroqsiz' }); await anon('POST', '/api/admin/login/start', {}); await anon('POST', '/api/admin/login/start', { email: { a: 1 } });
+      await sleep(300); ok(am.length === 0, 'kod: ruxsat etilmagan/yaroqsiz emailga xat yuborilmaydi', am.length);
+      q = await anon('POST', '/api/admin/login/start', { email: OWNER }); ok(q.s === 200 && JSON.stringify(q.j) === same, 'kod: javob ruxsat etilgan va etilmagan email uchun bir xil (email aniqlanmaydi)', q.j);
+      for (let i = 0; i < 40 && !am.length; i++) await sleep(50);
+      ok(am.length === 1 && am[0].to[0] === OWNER && /kirish kodi/.test(am[0].subject) && /^\d{6}$/.test(lastCode() || ''), 'kod: faqat ruxsat etilgan emailga 6 xonali kod yuborildi', am.map(x => x.to));
+      ok(/Toshkent/.test(am[0].html) && /Soʻrov:/.test(am[0].html), 'kod xati: soʻrov IP/qurilma/vaqti koʻrsatiladi');
+      q = await anon('POST', '/api/admin/login/start', { email: OWNER }); ok(q.s === 429, 'kod: ketma-ket soʻrash oraligʻi (cooldown)', q.s);
+      // notoʻgʻri kodlar
+      const good = lastCode(), wrong = good === '000000' ? '111111' : '000000';
+      q = await A('POST', '/api/admin/login/verify', { email: OWNER, code: wrong }); ok(q.s === 401 && !q.sc.length, 'kirish: notoʻgʻri kod → 401, cookie yoʻq', q.s);
+      q = await A('POST', '/api/admin/login/verify', { email: 'boshqa@example.test', code: good }); ok(q.s === 401, 'kirish: boshqa email bilan toʻgʻri kod ham ishlamaydi', q.s);
+      q = await A('POST', '/api/admin/login/verify', { email: OWNER, code: '12' }); ok(q.s === 401, 'kirish: qisqa kod rad etiladi', q.s);
+      q = await A('POST', '/api/admin/login/verify', { email: OWNER, code: { $ne: 1 } }); ok(q.s === 401, 'kirish: obyekt koʻrinishidagi kod rad etiladi', q.s);
+      // toʻgʻri kod
+      q = await A('POST', '/api/admin/login/verify', { email: OWNER, code: good });
+      const ck = (q.sc.find(x => /^ud_adm=/.test(x)) || '');
+      ok(q.s === 200 && q.j.ok && q.j.email === OWNER, 'kirish: toʻgʻri kod bilan kirildi (email kichik harfda)', q.j);
+      ok(/HttpOnly/i.test(ck) && /Secure/i.test(ck) && /SameSite=Strict/i.test(ck) && /Path=\/api\/admin/.test(ck) && +((/Max-Age=(\d+)/.exec(ck) || [])[1]) > 300 * 86400, 'cookie: HttpOnly + Secure + SameSite=Strict + Path=/api/admin + uzoq muddat', ck);
+      ok(!JSON.stringify(q.j).includes(A.jar.ud_adm), 'seans tokeni javob tanasida chiqmaydi');
+      q = await anon('POST', '/api/admin/login/verify', { email: OWNER, code: good }); ok(q.s === 401, 'kod bir martalik: qayta ishlatib boʻlmaydi', q.s);
+      q = await A('GET', '/api/admin/session'); ok(q.s === 200 && q.j.email === OWNER, 'seans: cookie bilan tanildi', q.j);
+      q = await A('GET', '/api/admin/stats'); ok(q.s === 200, 'admin: seans bilan statistika ochiladi', q.s);
+      q = await A('GET', '/api/admin/audit'); ok(q.s === 200 && q.j.me === OWNER && q.j.sessions.length === 1 && q.j.sessions[0].cur === true && q.j.sessions[0].email === OWNER, 'jurnal: seanslar roʻyxati, «hozirgi» belgisi', q.j.sessions);
+      ok(q.j.access.some(e => e.ev === 'in' && e.who === OWNER && e.ok) && q.j.access.some(e => e.ev === 'bad' && !e.ok) && q.j.access.some(e => e.ev === 'ask'), 'jurnal: kirish, notoʻgʻri kod va kod soʻrovi yoziladi');
+      ok(!JSON.stringify(q.j).includes(good), 'jurnal: kod oʻzi hech qayerda koʻrinmaydi');
+      q = await A('POST', '/api/admin/mail-test', { to: 'sinov@example.test' }); ok(q.s === 200, 'admin: seans bilan xat yuborish ishlaydi', q.s);
+      q = await A('GET', '/api/admin/audit'); ok(q.j.mail.some(m => m.to === 'sinov@example.test' && m.by === OWNER), 'jurnal: xatni kim yuborgani — admin emaili', q.j.mail.slice(0, 2));
+      // soxta/buzuq cookie
+      for (const bad of ['ud_adm=abc', 'ud_adm=' + 'x'.repeat(300), 'ud_adm=%E0%A4%A', 'ud_adm=; ud_adm=', 'sid=1; ud_adm=' + 'a'.repeat(43)]) { q = await anon('GET', '/api/admin/stats', null, { Cookie: bad }); ok(q.s === 401, 'soxta cookie rad etiladi: ' + bad.slice(0, 18), q.s); }
+      ok((await anon('GET', '/healthz')).s === 200, 'buzuq cookie serverni yiqitmaydi');
+      // CSRF
+      q = await A('POST', '/api/admin/logout', {}, { Origin: 'https://evil.example' }); ok(q.s === 403, 'CSRF: begona Origin bilan chiqish/oʻzgartirish rad etiladi', q.s);
+      // bazada tokenning oʻzi emas, hash saqlanadi
+      await sleep(900); const raw = fs.readFileSync(path.join(d, 'db.json'), 'utf8'), tokVal = A.jar.ud_adm;
+      ok(!raw.includes(tokVal) && /adminSessions/.test(raw), 'baza: seans tokeni ochiq koʻrinishda saqlanmaydi (faqat hash)');
+      ok(!raw.includes(good), 'baza: kod saqlanmaydi');
+
+      // server qayta ishga tushganda seans saqlanadi (chiqmaguncha tugamaydi)
+      await down(proc); proc = boot(port); await waitUp(BU);
+      q = await A('GET', '/api/admin/session'); ok(q.s === 200 && q.j.email === OWNER, 'seans server qayta ishga tushgandan keyin ham saqlanadi');
+
+      // ikkinchi qurilma: boshqa seansni yopish
+      q = await login(Bc); ok(q.s === 200, 'ikkinchi qurilma ham kod bilan kirdi', q);
+      q = await A('GET', '/api/admin/audit'); ok(q.j.sessions.length === 2 && q.j.sessions.filter(x => x.cur).length === 1, 'seanslar: 2 ta, bittasi «hozirgi»', q.j.sessions.length);
+      const other = q.j.sessions.find(x => !x.cur);
+      q = await A('POST', '/api/admin/session/revoke', { id: 'zz' }); ok(q.s === 400, 'seans yopish: notoʻgʻri id rad etiladi', q.s);
+      q = await A('POST', '/api/admin/session/revoke', { id: other.id }); ok(q.s === 200 && q.j.revoked === 1 && q.j.self === false, 'seans yopish: boshqa qurilma yopildi', q.j);
+      q = await Bc('GET', '/api/admin/stats'); ok(q.s === 401, 'yopilgan seans darhol ishlamay qoladi', q.s);
+      q = await A('GET', '/api/admin/stats'); ok(q.s === 200, 'hozirgi seans ishlashda davom etadi', q.s);
+      // chiqish: shu qurilma; eski cookie qayta ishlamaydi
+      const oldTok = A.jar.ud_adm;
+      q = await A('POST', '/api/admin/logout', {}); ok(q.s === 200 && q.sc.some(x => /^ud_adm=;/.test(x) && /Max-Age=0/i.test(x)), 'chiqish: cookie oʻchiriladi', q.sc);
+      q = await anon('GET', '/api/admin/stats', null, { Cookie: 'ud_adm=' + oldTok }); ok(q.s === 401, 'chiqishdan keyin eski cookie serverda ham yaroqsiz (qayta ishlatib boʻlmaydi)', q.s);
+      // hamma seanslarni yopish
+      await login(A); await login(Bc); q = await A('POST', '/api/admin/session/revoke', { all: true }); ok(q.s === 200 && q.j.revoked === 2 && q.j.self === true, 'hamma seanslarni yopish', q.j);
+      q = await Bc('GET', '/api/admin/stats'); ok(q.s === 401, 'hammasi yopilgach boshqa qurilma ham chiqib ketadi', q.s);
+
+      // 5 ta xato urinishdan soʻng kod bekor boʻladi
+      await sleep(450); const n0 = am.length; await anon('POST', '/api/admin/login/start', { email: OWNER }); for (let i = 0; i < 40 && am.length === n0; i++) await sleep(50);
+      const g2 = lastCode(), w2 = g2 === '000000' ? '111111' : '000000';
+      for (let i = 0; i < 5; i++) await anon('POST', '/api/admin/login/verify', { email: OWNER, code: w2 });
+      q = await anon('POST', '/api/admin/login/verify', { email: OWNER, code: g2 }); ok(q.s === 401, '5 ta xato urinishdan soʻng toʻgʻri kod ham bekor boʻladi', q.s);
+
+      // seans faqat ruxsat etilgan emailga: ADMIN_EMAILS oʻzgarsa eski seans yaroqsiz
+      q = await login(A); ok(q.s === 200, 'qayta kirildi'); await sleep(900);
+      await down(proc); proc = boot(port, { ADMIN_EMAILS: 'boshqa@example.test' }); await waitUp(BU);
+      q = await A('GET', '/api/admin/stats'); ok(q.s === 401, 'ADMIN_EMAILS dan chiqarilgan email seansi darhol yaroqsiz', q.s);
+      const nOwn = am.filter(x => x.to[0] === OWNER).length; await sleep(450); q = await anon('POST', '/api/admin/login/start', { email: OWNER }); await sleep(300); ok(q.s === 200 && am.filter(x => x.to[0] === OWNER).length === nOwn, 'ADMIN_EMAILS dan chiqarilgan email: kod yuborilmaydi (javob bir xil)', q.s);
+
+      // ADMIN_EMAILS boʻsh → yopiq (fail-closed), token bilan ham ochilmaydi
+      await down(proc); proc = boot(port, { ADMIN_EMAILS: '' }); await waitUp(BU);
+      q = await anon('POST', '/api/admin/login/start', { email: OWNER }); ok(q.s === 503, 'ADMIN_EMAILS yoʻq → admin kirishi yopiq (503)', q.s);
+      q = await A('GET', '/api/admin/stats'); ok(q.s === 401, 'ADMIN_EMAILS yoʻq → eski seanslar ham ishlamaydi', q.s);
+      q = await anon('GET', '/api/admin/stats', null, TK); ok(q.s === 401, 'ADMIN_EMAILS yoʻq → token ham ochmaydi', q.s);
+
+      // kod yuborish chegaralari va verify limiti (IP boʻyicha)
+      await down(proc); proc = boot(port, { ADM_START_MAX: '60' }); await waitUp(BU);
+      let last; for (let i = 0; i < 12; i++) last = await anon('POST', '/api/admin/login/verify', { email: OWNER, code: '123456' });
+      ok(last.s === 429, 'kodni topishga urinish: 10 tadan keyin IP bloklanadi', last.s);
+      q = await anon('POST', '/api/admin/login/verify', { email: OWNER, code: '123456' }); ok(q.s === 429, 'bloklangan IP toʻgʻri kod bilan ham kira olmaydi', q.s);
+      await down(proc); proc = boot(port, { ADM_COOLDOWN_MS: '0' }); await waitUp(BU);
+      let st = []; for (let i = 0; i < 8; i++) st.push((await anon('POST', '/api/admin/login/start', { email: OWNER })).s);
+      ok(st.filter(x => x === 200).length === 6 && st.slice(6).every(x => x === 429), 'kod yuborish: soatiga 6 tadan oshmaydi', st);
+
+      // sarlavhalar va sahifalar
+      await down(proc); proc = boot(port); await waitUp(BU);
+      const h = async (u, hd = {}) => { const r = await fetch(BU + u, { redirect: 'manual', headers: hd }); return { s: r.status, h: r.headers, t: await r.text() }; };
+      let pg = await h('/admin'); const csp = pg.h.get('content-security-policy') || '';
+      ok(pg.s === 200 && /script-src 'self';/.test(csp) && !/script-src[^;]*unsafe-inline/.test(csp) && /frame-ancestors 'none'/.test(csp) && /object-src 'none'/.test(csp) && /base-uri 'none'/.test(csp), 'admin sahifa: qattiq CSP (inline skript yoʻq)', csp);
+      ok(pg.h.get('x-frame-options') === 'DENY' && /noindex/.test(pg.h.get('x-robots-tag') || '') && /max-age=\d{7,}/.test(pg.h.get('strict-transport-security') || '') && /camera=\(\)/.test(pg.h.get('permissions-policy') || '') && pg.h.get('x-content-type-options') === 'nosniff' && pg.h.get('cross-origin-opener-policy'), 'admin sahifa: X-Frame, noindex, HSTS, Permissions-Policy, nosniff, COOP');
+      ok(!/<script(?![^>]*\bsrc=)[^>]*>[^<]/i.test(pg.t) && !/\son[a-z]+\s*=/i.test(pg.t), 'admin.html: inline skript va on* handlerlar yoʻq');
+      const fs2 = require('node:fs'), pub = path.join(__dirname, '..', 'public');
+      for (const f of fs2.readdirSync(pub).filter(x => x.endsWith('.html'))) { const t = fs2.readFileSync(path.join(pub, f), 'utf8'); ok(!/<script(?![^>]*(\bsrc=|type=["']application\/(ld\+)?json))[^>]*>\s*[^<\s]/i.test(t) && !/\son(click|change|input|submit|load|error|focus|blur|keydown|keyup)\s*=/i.test(t) && !/href=["']javascript:/i.test(t), `CSP: ${f} da inline skript/handler yoʻq (qattiq CSP buzmaydi)`); }
+      for (const f of fs2.readdirSync(path.join(pub, 'js')).filter(x => x.endsWith('.js'))) { const t = fs2.readFileSync(path.join(pub, 'js', f), 'utf8'); ok(!/\son(click|change|input|submit)=["'\\]/.test(t.replace(/\.on(click|change|input|submit)\s*=/g, '')), `CSP: js/${f} HTML ichida on* handler yaratmaydi`); }
+      pg = await h('/admin', { 'X-Forwarded-Proto': 'http' }); ok(pg.s === 308 && /^https:\/\//.test(pg.h.get('location') || ''), 'HTTP → HTTPS (308) sahifalar uchun', pg.s);
+      pg = await h('/healthz', { 'X-Forwarded-Proto': 'http' }); ok(pg.s === 200, '/healthz yoʻnaltirilmaydi');
+      pg = await h('/api/admin/session', { 'X-Forwarded-Proto': 'http' }); ok(pg.s === 401, 'API HTTP orqali yoʻnaltirilmaydi (401 javob)', pg.s);
+      pg = await h('/'); ok(/script-src 'self'/.test(pg.h.get('content-security-policy') || '') && pg.h.get('x-frame-options') === 'DENY', 'bosh sahifa ham qattiq CSP bilan');
+    } catch (e) { failN++; console.log('XATO:', e); }
+    await down(proc); msvc.close();
+    try { fs.rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); } catch (e) {}
+  }
+
   console.log(`\n${pass} ta oʻtdi, ${failN} ta yiqildi`); process.exit(failN ? 1 : 0);
 })();

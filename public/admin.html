@@ -20,7 +20,7 @@
 <body class="adm">
 
 <!-- ============ Kirish ============ -->
-<main class="lg" id="lg">
+<main class="lg" id="lg" hidden>
   <aside class="lg-art" aria-hidden="true">
     <div class="brand" style="padding:0"><i>U</i>UniDoue</div>
     <div class="lg-copy">
@@ -39,13 +39,21 @@
     <form id="lf" class="lg-card card" novalidate>
       <div class="lg-ic"><svg viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></div>
       <h1>Admin kirishi</h1>
-      <p class="sub">Emailingizni va Render’dagi <code>ADMIN_TOKEN</code> qiymatini kiriting. Email Jurnalda «kim kirdi» deb yoziladi.</p>
-      <label class="f" for="ae">Sizning emailingiz</label>
+      <p class="sub">Ruxsat etilgan admin emailini kiriting. Unga 6 xonali kod yuboriladi.</p>
+      <label class="f" for="ae">Admin emaili</label>
       <input id="ae" type="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="ism@gmail.com" style="margin-bottom:14px">
-      <label class="f" for="tk">Admin token</label>
-      <div class="pw"><input id="tk" type="password" autocomplete="off" maxlength="200" placeholder="••••••••••••"><button type="button" id="tk-eye" class="pw-eye" aria-label="Tokenni ko‘rsatish" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
       <div class="msg" id="lm" role="alert"></div>
-      <button class="btn primary" type="submit" id="lb">Kirish</button>
+      <button class="btn primary" type="submit" id="lb">Kod yuborish</button>
+    </form>
+    <form id="lf2" class="lg-card card" novalidate hidden>
+      <div class="lg-ic"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg></div>
+      <h1>Kodni kiriting</h1>
+      <p class="sub" id="lf2-s">Emailga yuborilgan 6 xonali kodni kiriting. Kod 10 daqiqa amal qiladi.</p>
+      <label class="f" for="ac">Kirish kodi</label>
+      <input id="ac" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" pattern="[0-9 ]*" placeholder="000000" aria-describedby="lm2" style="margin-bottom:14px;text-align:center;font-size:26px;letter-spacing:.45em;font-variant-numeric:tabular-nums">
+      <div class="msg" id="lm2" role="alert"></div>
+      <button class="btn primary" type="submit" id="lb2">Tasdiqlash va kirish</button>
+      <div class="lg-alt"><button type="button" class="btn ghost sm" id="lr">Kodni qayta yuborish</button><button type="button" class="btn ghost sm" id="lx">Boshqa email</button></div>
     </form>
   </section>
 </main>
@@ -231,8 +239,8 @@
             <h3>Yangi xabar</h3><p class="sub">Bitta xabarni foydalanuvchilarning bildirishnomalar bo‘limiga, telefoniga (push) va emailiga yuboring.</p>
             <label class="f" for="nt">Sarlavha <span class="cnt" id="nt-n">0/60</span></label>
             <input id="nt" type="text" maxlength="60" placeholder="Masalan: Yangi universitetlar qo‘shildi" autocomplete="off">
-            <label class="f" for="nb" style="margin-top:12px">Matn <span class="cnt" id="nb-n">0/300</span></label>
-            <textarea id="nb" rows="3" maxlength="300" placeholder="Qisqa va aniq yozing — push’da birinchi ~200 belgi ko‘rinadi."></textarea>
+            <label class="f" for="nb" style="margin-top:12px">Matn <span class="cnt" id="nb-n">0/2000</span></label>
+            <textarea id="nb" rows="5" maxlength="2000" placeholder="Xabar matni. Foydalanuvchi bosganda to‘liq xat bo‘lib ochiladi (abzatslar saqlanadi). Push’da faqat birinchi ~200 belgi ko‘rinadi."></textarea>
             <div class="row" style="margin-top:12px">
               <div><label class="f" for="nu">Havola (sayt ichida)</label><input id="nu" type="text" maxlength="200" list="nu-l" value="/app" autocomplete="off"><datalist id="nu-l"><option value="/app"><option value="/app#/pricing"><option value="/app#/profile"></datalist></div>
               <div><label class="f" for="na">Kimga</label><select id="na"></select></div>
@@ -266,18 +274,24 @@
       <section class="view" id="v-access" hidden>
         <div class="sec-h"><h2>Kim qachon kirgan</h2><span class="badge mute" id="ac-c"></span></div>
         <div class="kpis kpis-s" id="ac-k"></div>
+        <section class="card">
+          <div class="card-h"><h3>Faol seanslar</h3><span class="badge mut" id="se-c">0</span></div>
+          <p class="sub">Seans «Chiqish» bosilmaguncha o‘zi tugamaydi. Noma’lum yoki yo‘qotilgan qurilmani shu yerdan yoping.</p>
+          <div id="se-l"></div>
+          <div class="grant-f"><button class="btn danger sm" id="se-all" type="button">Hamma qurilmalardan chiqarish</button></div>
+        </section>
         <div class="toolbar">
           <div class="srch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg><input id="ac-q" type="search" placeholder="Email yoki IP bo‘yicha qidirish" maxlength="100" aria-label="Qidirish"></div>
           <div class="chips" id="ac-f" role="group" aria-label="Davr"></div>
         </div>
         <section class="card">
           <div class="card-h"><h3>Kimlar kirgan</h3><span class="badge mut" id="ac-pc">0</span></div>
-          <p class="sub">Tanlangan davrda panelga kirgan odamlar. Email — kirishda yozilgan manzil: token umumiy bo‘lgani uchun uni tasdiqlab bo‘lmaydi. Email yozmaganlar IP bo‘yicha ko‘rsatiladi.</p>
+          <p class="sub">Tanlangan davrda panelga kirgan odamlar. Email — emailga kelgan kod bilan tasdiqlangan manzil.</p>
           <div id="ac-p"></div>
         </section>
         <section class="card">
           <div class="card-h"><h3>Kirishlar tarixi</h3><span class="badge mut" id="ac-hc">0</span></div>
-          <p class="sub">Har bir kirish: qachon, qaysi qurilmadan va IP’dan. Noto‘g‘ri token bilan urinishlar ham shu yerda. So‘nggi 300 ta yozuv saqlanadi.</p>
+          <p class="sub">Har bir kirish va urinish: qachon, qaysi qurilma va IP’dan. Kod so‘rash, noto‘g‘ri kod va seanssiz urinishlar ham shu yerda. So‘nggi 300 ta yozuv saqlanadi.</p>
           <div id="ac-h"></div>
         </section>
       </section>

@@ -39,7 +39,7 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [], adminLog: Array.isArray(raw.adminLog) ? raw.adminLog : [], mailLog: Array.isArray(raw.mailLog) ? raw.mailLog : [] });
+const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [], adminLog: Array.isArray(raw.adminLog) ? raw.adminLog : [], mailLog: Array.isArray(raw.mailLog) ? raw.mailLog : [], adminSessions: raw.adminSessions && typeof raw.adminSessions === 'object' && !Array.isArray(raw.adminSessions) ? raw.adminSessions : {} });
 let db = normDb({});
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
@@ -307,7 +307,7 @@ function parseCookies(req) {
   const o = {};
   String(req.headers.cookie || '').split(';').forEach(p => {
     const i = p.indexOf('=');
-    if (i > 0) o[p.slice(0, i).trim()] = decodeURIComponent(p.slice(i + 1).trim());
+    if (i > 0) { const v = p.slice(i + 1).trim(); try { o[p.slice(0, i).trim()] = decodeURIComponent(v); } catch (e) { o[p.slice(0, i).trim()] = v; } }
   });
   return o;
 }
@@ -342,13 +342,16 @@ function createSession(req, res, uid) {
   save();
 }
 
-function secHeaders(res, strict) {
+function secHeaders(res, https) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'same-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), accelerometer=(), gyroscope=(), magnetometer=()');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  if (https) res.setHeader('Strict-Transport-Security', 'max-age=31536000'); // brauzer shu domenga 1 yil faqat HTTPS bilan ulanadi
   res.setHeader('Content-Security-Policy',
-    "default-src 'self'; script-src 'self'" + (strict ? '' : " 'unsafe-inline'") + "; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" + (https ? '; upgrade-insecure-requests' : ''));
 }
 function send(res, code, obj) {
   res.statusCode = code;
@@ -413,26 +416,49 @@ const pushSubject = () => process.env.VAPID_SUBJECT || (/^https:\/\//.test(proce
 const pushUrl = v => (typeof v === 'string' && /^\/(?!\/)[\w\-./#?=&%]*$/.test(v) ? v.slice(0, 200) : '/app');
 const pushMsg = m => ({ title: clean(m.title, 80) || 'UniDoue', body: clean(m.body, 240), url: pushUrl(m.url), tag: clean(m.tag, 40) || undefined });
 const parseSub = b => { const ep = b && b.endpoint, k = b && b.keys; return PUSH.validEndpoint(ep) && PUSH.validKeys(k) ? { ep, p: k.p256dh, a: k.auth } : null; };
-const isAdmin = req => { const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, ''); return !!tok && crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok))); };
-// Admin kimligi: kirish oynasida yozilgan email (X-Admin-Email). Token umumiy boʻlgani uchun bu tasdiqlanmagan — kim kirganini yozib borish uchun, himoya emas.
-const ADM_EMAIL_RE = /^[^\s@<>\x00-\x20\x7f-\uffff]{1,64}@[^\s@<>\x00-\x20\x7f-\uffff]+\.[^\s@<>\x00-\x20\x7f-\uffff]{2,}$/;
-const admWho = req => { const v = String(req.headers['x-admin-email'] || '').trim().toLowerCase().slice(0, 254); return ADM_EMAIL_RE.test(v) ? v : ''; };
-const ADMLOG_MAX = 300;
-/** Admin kirishlari jurnali. Bir xil (email, IP, qurilma) uchun 30 daqiqa ichida bitta yozuv (faollik vaqti `seen` yangilanadi); xato urinishlar 10 daqiqada bir marta. */
-function logAdmin(req, ip, ok) {
-  const who = admWho(req), ua = clean(req.headers['user-agent'], 160), now = Date.now(), win = ok ? 30 * 60 * 1000 : 10 * 60 * 1000;
-  const e = db.adminLog.find(x => x.ok === ok && x.ip === ip && x.who === who && x.ua === ua && now - (x.seen || x.t) < win);
-  if (e) { e.seen = now; return; }
-  db.adminLog.unshift({ t: now, seen: now, ok, who, ip: String(ip).slice(0, 64), ua });
+/* ---------------- Admin kirishi ----------------
+ * Faqat ADMIN_EMAILS (vergul bilan) dagi email kira oladi, har safar shu emailga kelgan 6 xonali kod bilan. ADMIN_EMAILS qoʻyilmasa — admin kirishi yopiq.
+ * Kod tasdiqlangach HttpOnly cookie bilan seans ochiladi va faqat «Chiqish» bosilganda (yoki Kirishlar sahifasida yopilganda) tugaydi.
+ * ADMIN_TOKEN endi panelni ochmaydi: u faqat /api/admin/remind (rejalashtiruvchi) uchun. Favqulodda (ADMIN_ALLOW_TOKEN=1) — eski token rejimi; standart OFF. */
+const ADMIN_EMAILS = String(process.env.ADMIN_EMAILS || '').split(',').map(x => x.trim().toLowerCase()).filter(x => EMAIL_RE.test(x));
+const ADM_COOKIE = 'ud_adm', ADM_COOKIE_AGE = 400 * 86400, ADM_REFRESH = 864e5; // brauzerlar cookie'ni 400 kundan ortiq saqlamaydi; har kuni yangilanadi
+const ADM_CODE_TTL = 10 * 60 * 1000, ADM_CODE_TRIES = 5, ADM_SESSIONS_MAX = 20;
+const ADM_COOLDOWN = Math.max(0, parseInt(process.env.ADM_COOLDOWN_MS, 10) >= 0 ? parseInt(process.env.ADM_COOLDOWN_MS, 10) : 30000); // ketma-ket kod soʻrash oraligʻi (ms)
+const ADM_START_MAX = Math.max(1, parseInt(process.env.ADM_START_MAX, 10) || 4); // bir IP dan 15 daqiqada nechta kod soʻrash mumkin
+const admCodes = new Map(); // email → { h, exp, tries, sent } (xotirada: server qayta ishga tushsa, kutilayotgan kod bekor boʻladi)
+const admCodeHash = (email, code) => sha256('admcode:' + email + ':' + code);
+const tokenOk = req => { const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, ''); return !!tok && !!got && crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok))); };
+const admCookie = (req, val, age) => `${ADM_COOKIE}=${val}; Path=/api/admin; HttpOnly; SameSite=Strict; Max-Age=${age}` + (isHttps(req) ? '; Secure' : '');
+/** Hozirgi admin: { k, s, who, raw } (cookie seansi) | { who: '(token)' } (faqat ruxsat berilsa) | null */
+function admAuth(req, opt = {}) {
+  const c = parseCookies(req)[ADM_COOKIE];
+  if (c && c.length < 100) { const k = sha256(c), s = db.adminSessions[k]; if (s && ADMIN_EMAILS.includes(s.email)) return { k, s, who: s.email, raw: c }; }
+  if ((opt.token || process.env.ADMIN_ALLOW_TOKEN === '1') && tokenOk(req)) return { who: '(token)' };
+  return null;
+}
+const admWho = req => (req.adm && req.adm.who) || '';
+const ADMLOG_MAX = 300, ADM_OK = new Set(['in', 'use', 'tok']);
+/** Admin jurnali. ev: in — kod bilan kirdi · use — seansi bilan faol · tok — token (rejalashtiruvchi) · ask — kod soʻraldi · bad — notoʻgʻri kod · deny — seanssiz urinish.
+ *  Bir xil (email, IP, qurilma) faolligi 30 daqiqa ichida bitta yozuv; takroriy xato urinishlar 10 daqiqada bitta yozuv (n — soni). Har bir kod bilan kirish alohida yozuv. */
+function logAdmin(req, ip, ev, who = '') {
+  const ok = ADM_OK.has(ev), ua = clean(req.headers['user-agent'], 160), now = Date.now(), win = ok ? 30 * 60 * 1000 : 10 * 60 * 1000;
+  if (ev !== 'in') {
+    const e = db.adminLog.find(x => (ok ? x.ok : x.ev === ev) && x.ip === ip && x.who === who && x.ua === ua && now - (x.seen || x.t) < win);
+    if (e) { e.seen = now; if (!ok) e.n = (e.n || 1) + 1; return; }
+  }
+  db.adminLog.unshift({ t: now, seen: now, ev, ok, who, ip: String(ip).slice(0, 64), ua, ...(ok ? {} : { n: 1 }) });
   while (db.adminLog.length > ADMLOG_MAX) { let i = db.adminLog.length - 1; for (let k = i; k >= 0; k--) if (!db.adminLog[k].ok) { i = k; break; } db.adminLog.splice(i, 1); } // avval eng eski xato urinishlar siqib chiqariladi
   save();
 }
-// Admin: IP boʻyicha faqat XATO token sanaladi (20 ta / 15 daqiqa). Toʻgʻri tokenli soʻrovlar (yangilash, avto-yangilash, tarif berish) bir-biriga xalaqit bermaydi; har endpoint oʻz limitiga ega.
-function admGate(req, res, ip, name, max) {
+// Admin: seanssiz urinishlar IP boʻyicha sanaladi (20 ta / 15 daqiqa); har endpoint oʻz limitiga ega.
+function admGate(req, res, ip, name, max, opt) {
   if (peek('admf:' + ip) >= 20) { fail(res, 429, 'Juda koʻp urinish.'); return false; }
-  if (!isAdmin(req)) { limited('admf:' + ip, 20, 15 * 60 * 1000); logAdmin(req, ip, false); fail(res, 401, 'Ruxsat yoʻq.'); return false; }
-  logAdmin(req, ip, true);
+  const a = admAuth(req, opt);
+  if (!a) { limited('admf:' + ip, 20, 15 * 60 * 1000); logAdmin(req, ip, 'deny'); fail(res, 401, 'Ruxsat yoʻq.'); return false; }
+  logAdmin(req, ip, a.s ? 'use' : 'tok', a.who);
+  if (a.s) { const now = Date.now(); a.s.seen = now; if (now - (a.s.ck || 0) > ADM_REFRESH) { a.s.ck = now; res.setHeader('Set-Cookie', admCookie(req, a.raw, ADM_COOKIE_AGE)); save(); } } // faol seans cookie'si har kuni yangilanadi → chiqmaguncha davom etadi
   if (limited('adm:' + name + ':' + ip, max, 15 * 60 * 1000)) { fail(res, 429, 'Juda koʻp urinish.'); return false; }
+  req.adm = a;
   return true;
 }
 /** list — obunalar massivi (oʻzgartiriladi: oʻchirilgan qurilmalar olib tashlanadi). Hech qachon xato tashlamaydi. */
@@ -948,6 +974,68 @@ async function api(req, res, pathname) {
     save();
     return send(res, 200, { ok: true, on: !u.noMail });
   }
+  /* ---- Admin kirishi: emailga kod → HttpOnly seans (chiqmaguncha tugamaydi) ---- */
+  if (pathname === '/api/admin/login/start' && method === 'POST') {
+    if (!ADMIN_EMAILS.length) return fail(res, 503, 'Admin kirishi sozlanmagan: serverda ADMIN_EMAILS (ruxsat etilgan email) qoʻyilmagan.');
+    if (!MAIL_PROVIDER) return fail(res, 503, 'Xat yuborish ulanmagan: kod yuborib boʻlmaydi.');
+    if (limited('admls:' + ip, ADM_START_MAX, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. 15 daqiqadan soʻng qayta urining.');
+    const b = await readJson(req), em = clean(b.email, 254).toLowerCase();
+    logAdmin(req, ip, 'ask', EMAIL_RE.test(em) ? em : '');
+    if (!ADMIN_EMAILS.includes(em)) return send(res, 200, { ok: true }); // ruxsat etilmagan email: bir xil javob, xat yuborilmaydi
+    const prev = admCodes.get(em);
+    if (prev && Date.now() - prev.sent < ADM_COOLDOWN) return fail(res, 429, `Kod hozirgina yuborilgan. ${Math.max(1, Math.round(ADM_COOLDOWN / 1000))} soniyadan soʻng qayta urining.`);
+    if (limited('admls-g', 6, 60 * 60 * 1000) || limited('admls-d', 20, 24 * 60 * 60 * 1000)) return fail(res, 429, 'Kod yuborish chegarasiga yetildi (soatiga 6 ta, sutkasiga 20 ta). Keyinroq urinib koʻring.');
+    const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0'), when = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Tashkent', dateStyle: 'medium', timeStyle: 'short' }).format(new Date());
+    admCodes.set(em, { h: admCodeHash(em, code), exp: Date.now() + ADM_CODE_TTL, tries: 0, sent: Date.now() });
+    const eh = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    try {
+      await sendMail(em, 'UniDoue admin: kirish kodi',
+        `<p>UniDoue admin paneliga kirish kodi:</p><p style="font-size:30px;letter-spacing:7px"><b>${code}</b></p><p>Kod 10 daqiqa amal qiladi va faqat bir marta ishlaydi.</p><p style="color:#666;font-size:13px">Soʻrov: ${eh(ip)} · ${eh(clean(req.headers['user-agent'], 120) || 'noma’lum qurilma')} · ${eh(when)} (Toshkent)<br>Buni siz soʻramagan boʻlsangiz, kodni hech kimga bermang va xatni eʼtiborsiz qoldiring.</p>`, 'admin');
+    } catch (e) { admCodes.delete(em); return fail(res, 502, 'Kod yuborilmadi: ' + (mailHint(e.message) || 'xat xizmatiga ulanib boʻlmadi.')); }
+    return send(res, 200, { ok: true });
+  }
+  if (pathname === '/api/admin/login/verify' && method === 'POST') {
+    if (limited('admlv:' + ip, 10, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. 15 daqiqadan soʻng qayta urining.');
+    const b = await readJson(req), em = clean(b.email, 254).toLowerCase(), code = String(b.code == null ? '' : b.code).replace(/\D/g, '').slice(0, 6);
+    const bad = () => { logAdmin(req, ip, 'bad', EMAIL_RE.test(em) ? em : ''); return fail(res, 401, 'Kod notoʻgʻri yoki muddati tugagan.'); };
+    const c = ADMIN_EMAILS.includes(em) && admCodes.get(em);
+    if (!c || code.length !== 6) return bad();
+    if (c.exp < Date.now()) { admCodes.delete(em); return bad(); }
+    if (!crypto.timingSafeEqual(Buffer.from(admCodeHash(em, code)), Buffer.from(c.h))) { if (++c.tries >= ADM_CODE_TRIES) admCodes.delete(em); return bad(); } // 5 ta xato urinishdan soʻng kod bekor boʻladi
+    admCodes.delete(em); // kod bir martalik
+    const token = crypto.randomBytes(32).toString('base64url'), now = Date.now();
+    db.adminSessions[sha256(token)] = { email: em, t: now, seen: now, ck: now, ip: String(ip).slice(0, 64), ua: clean(req.headers['user-agent'], 160) };
+    const all = Object.entries(db.adminSessions).sort((x, y) => (y[1].seen || 0) - (x[1].seen || 0));
+    for (const [k] of all.slice(ADM_SESSIONS_MAX)) delete db.adminSessions[k];
+    res.setHeader('Set-Cookie', admCookie(req, token, ADM_COOKIE_AGE));
+    logAdmin(req, ip, 'in', em); save();
+    return send(res, 200, { ok: true, email: em });
+  }
+  if (pathname === '/api/admin/session' && method === 'GET') { // panel ochilganda: seans bormi?
+    if (limited('adms:' + ip, 120, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish.');
+    const a = admAuth(req);
+    return a && a.s ? send(res, 200, { ok: true, email: a.s.email }) : send(res, 401, { ok: false });
+  }
+  if (pathname === '/api/admin/logout' && method === 'POST') { // faqat shu qurilmadan chiqish
+    const a = admAuth(req); if (a && a.k) { delete db.adminSessions[a.k]; save(); }
+    res.setHeader('Set-Cookie', admCookie(req, '', 0));
+    return send(res, 200, { ok: true });
+  }
+  if (pathname === '/api/admin/session/revoke' && method === 'POST') { // boshqa qurilmani yoki hamma seanslarni yopish
+    if (!admGate(req, res, ip, 'revoke', 30)) return;
+    const b = await readJson(req), cur = req.adm.k; let n = 0;
+    if (b.all === true) { n = Object.keys(db.adminSessions).length; db.adminSessions = {}; }
+    else {
+      const id = String(b.id || ''); if (!/^[0-9a-f]{8,16}$/.test(id)) return fail(res, 400, 'Seans topilmadi.');
+      const k = Object.keys(db.adminSessions).find(x => x.startsWith(id)); if (!k) return fail(res, 404, 'Seans topilmadi.');
+      delete db.adminSessions[k]; n = 1;
+    }
+    save();
+    const self = !!(cur && !db.adminSessions[cur]);
+    if (self) res.setHeader('Set-Cookie', admCookie(req, '', 0));
+    return send(res, 200, { ok: true, revoked: n, self });
+  }
+
   if (pathname === '/api/admin/push/subscribe' && method === 'POST') {
     if (!admGate(req, res, ip, 'push-subscribe', 60)) return;
     const sub = parseSub(await readJson(req));
@@ -1279,7 +1367,7 @@ async function api(req, res, pathname) {
     return send(res, 200, { ok: true, account: accountInfo(u) });
   }
   if (pathname === '/api/admin/remind' && (method === 'POST' || method === 'GET')) {
-    if (!admGate(req, res, ip, 'remind', 60)) return;
+    if (!admGate(req, res, ip, 'remind', 60, { token: true })) return;
     const n = await runReminders(true);
     return send(res, 200, { ok: true, sent: n });
   }
@@ -1311,6 +1399,7 @@ async function api(req, res, pathname) {
     const me = admWho(req), ua = clean(req.headers['user-agent'], 160);
     return send(res, 200, {
       me, from: MAIL_FROM_ADDR, provider: MAIL_PROVIDER,
+      sessions: Object.entries(db.adminSessions).map(([k, x]) => ({ id: k.slice(0, 12), email: x.email, t: x.t, seen: x.seen || x.t, ip: x.ip, ua: x.ua, cur: k === (req.adm && req.adm.k) })).sort((x, y) => y.seen - x.seen),
       access: db.adminLog.map(e => ({ ...e, cur: e.ok && e.ip === ip && e.who === me && e.ua === ua })),
       mail: db.mailLog.slice(0, 150),
     });
@@ -1667,7 +1756,12 @@ async function tgInit() {
 const server = http.createServer(async (req, res) => {
   try {
     const pathname = new URL(req.url, 'http://x').pathname;
-    secHeaders(res, pathname === '/' || pathname === '/app' || pathname === '/reset' || pathname === '/unsub' || pathname === '/admin' || pathname.startsWith('/js/') || pathname === '/app.css' || pathname === '/atlas.css' || pathname === '/tiers.css');
+    secHeaders(res, isHttps(req));
+    if (pathname.startsWith('/api/') || pathname === '/admin' || pathname === '/reset' || pathname === '/unsub' || pathname === '/delete-account') res.setHeader('X-Robots-Tag', 'noindex, nofollow'); // qidiruv tizimlari bu sahifalarni indekslamasin
+    // HTTP orqali kelgan sahifa soʻrovi → HTTPS (Render/Cloudflare ham qiladi; bu qoʻshimcha himoya). Host sarlavhasi tekshiriladi.
+    if (process.env.COOKIE_SECURE === '1' && req.headers['x-forwarded-proto'] === 'http' && (req.method === 'GET' || req.method === 'HEAD') && pathname !== '/healthz' && !pathname.startsWith('/api/') && /^[a-z0-9.-]+(:\d{1,5})?$/i.test(String(APP_HOST || req.headers.host || ''))) {
+      res.statusCode = 308; res.setHeader('Location', 'https://' + (APP_HOST || req.headers.host) + req.url); return res.end();
+    }
     // Eski *.onrender.com manzilidan asosiy domenga (APP_URL) yoʻnaltirish — faqat sahifalar uchun (API, healthz, .well-known tegilmaydi)
     if (APP_HOST && (req.method === 'GET' || req.method === 'HEAD') && /\.onrender\.com$/i.test(String(req.headers.host || '').split(':')[0]) && !pathname.startsWith('/api/') && pathname !== '/healthz' && !pathname.startsWith('/.well-known/')) {
       res.statusCode = 301; res.setHeader('Location', APP_ORIGIN + req.url); return res.end();
@@ -1686,5 +1780,6 @@ const server = http.createServer(async (req, res) => {
     fail(res, 500, 'Server xatosi. Keyinroq urinib koʻring.');
   }
 });
+server.headersTimeout = 30000; server.requestTimeout = 120000; server.maxHeadersCount = 100; // sekin/katta soʻrovlar bilan band qilib qoʻyishdan himoya
 remoteInit().then(() => server.listen(PORT, HOST, () => { console.log(`UniDoue http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  (data: ${DATA_DIR}${DATABASE_URL ? ', Neon' : ''})`); tgInit(); setInterval(() => runReminders(false).catch(e => console.error('Eslatma xatosi', e.message)), 60 * 60 * 1000).unref(); }),
   e => { console.error('Neon bazasiga ulanib boʻlmadi — ustiga yozmaslik uchun toʻxtadim:', e.message); process.exit(1); });
