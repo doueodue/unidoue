@@ -66,7 +66,8 @@
       <div class="nav-sec">Xabarlar</div>
       <a href="#push" data-v="push"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M13.7 20a2 2 0 0 1-3.4 0"/></svg>Xabarlar</a>
       <div class="nav-sec">Xavfsizlik</div>
-      <a href="#log" data-v="log"><svg viewBox="0 0 24 24"><path d="M8 3.5h8l3.5 3.5v13a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1h2.5ZM15.5 3.5V7H19M8 12h8M8 15.5h8M8 8.5h3"/></svg>Jurnal</a>
+      <a href="#access" data-v="access"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M19 9v5.5M16.2 12h5.6"/></svg>Kirishlar</a>
+      <a href="#log" data-v="log"><svg viewBox="0 0 24 24"><path d="M8 3.5h8l3.5 3.5v13a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1h2.5ZM15.5 3.5V7H19M8 12h8M8 15.5h8M8 8.5h3"/></svg>Yuborilgan xatlar</a>
     </nav>
     <div class="side-foot">
       <b id="me" class="me">Admin</b><small id="st">Yuklanmoqda…</small>
@@ -261,13 +262,28 @@
         <section class="card nh-card"><div class="card-h"><h3>Yuborilganlar</h3><span class="badge mut" id="nh-c">0</span></div><p class="sub">Oxirgi 30 ta xabar. O‘chirish xabarni foydalanuvchilar panelidan olib tashlaydi; yuborilgan push va emailni qaytarib bo‘lmaydi.</p><div id="nh-l"></div></section>
       </section>
 
-      <!-- Jurnal -->
-      <section class="view" id="v-log" hidden>
+      <!-- Kirishlar -->
+      <section class="view" id="v-access" hidden>
+        <div class="sec-h"><h2>Kim qachon kirgan</h2><span class="badge mute" id="ac-c"></span></div>
+        <div class="kpis kpis-s" id="ac-k"></div>
+        <div class="toolbar">
+          <div class="srch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg><input id="ac-q" type="search" placeholder="Email yoki IP bo‘yicha qidirish" maxlength="100" aria-label="Qidirish"></div>
+          <div class="chips" id="ac-f" role="group" aria-label="Davr"></div>
+        </div>
         <section class="card">
-          <div class="card-h"><h3>Admin panelga kirganlar</h3><span class="badge mut" id="lg-ac">0</span></div>
-          <p class="sub">Panelga kim, qachon va qaysi qurilmadan kirgani. Email — kirishda yozilgan manzil: token umumiy bo‘lgani uchun uni tasdiqlab bo‘lmaydi. Noto‘g‘ri token bilan urinishlar ham ko‘rinadi.</p>
-          <div id="lg-a"></div>
+          <div class="card-h"><h3>Kimlar kirgan</h3><span class="badge mut" id="ac-pc">0</span></div>
+          <p class="sub">Tanlangan davrda panelga kirgan odamlar. Email — kirishda yozilgan manzil: token umumiy bo‘lgani uchun uni tasdiqlab bo‘lmaydi. Email yozmaganlar IP bo‘yicha ko‘rsatiladi.</p>
+          <div id="ac-p"></div>
         </section>
+        <section class="card">
+          <div class="card-h"><h3>Kirishlar tarixi</h3><span class="badge mut" id="ac-hc">0</span></div>
+          <p class="sub">Har bir kirish: qachon, qaysi qurilmadan va IP’dan. Noto‘g‘ri token bilan urinishlar ham shu yerda. So‘nggi 300 ta yozuv saqlanadi.</p>
+          <div id="ac-h"></div>
+        </section>
+      </section>
+
+      <!-- Yuborilgan xatlar -->
+      <section class="view" id="v-log" hidden>
         <section class="card">
           <div class="card-h"><h3>Foydalanuvchilarga yuborilgan xatlar</h3><span class="badge mut" id="lg-mc">0</span></div>
           <p class="sub" id="lg-ms">Har bir xat: kimga ketdi, kim yubordi va qaysi manzildan. Xat matni saqlanmaydi.</p>

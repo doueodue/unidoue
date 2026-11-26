@@ -102,7 +102,7 @@ let USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all
 const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
 
 /* ---------- yo‘naltirish ---------- */
-const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar', log: 'Jurnal' };
+const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar', access: 'Kirishlar', log: 'Yuborilgan xatlar' };
 function route() {
   const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
   $$('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
@@ -556,19 +556,50 @@ async function adminDevice() {
   if (t) t.onclick = async () => { t.disabled = true; try { const r = await call('POST', '/api/admin/push/send', { title: 'UniDoue admin', body: 'Admin bildirishnomalari ishlayapti ✓', url: '/admin#overview', audience: 'admin' }); say(r.ok ? 'Sinov xabari yuborildi — bir necha soniyada keladi.' : 'Yetkazib bo‘lmadi. O‘chirib, qayta yoqing.', r.ok ? 'ok' : 'err'); } catch (e) { say(e.message, 'err'); } t.disabled = false; };
 }
 
-/* ---------- Jurnal: kim kirdi, kim xat yubordi ---------- */
-let AUDIT = null;
+/* ---------- Kirishlar: kim qachon kirgan ---------- */
+let AUDIT = null, ACF = 'today';
+const dayStart = back => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime() - back * 864e5; };
+const AC_FILTERS = [['today', 'Bugun', e => e.t >= dayStart(0)], ['yday', 'Kecha', e => e.t >= dayStart(1) && e.t < dayStart(0)], ['week', 'So‘nggi 7 kun', e => e.t >= dayStart(6)], ['all', 'Hammasi', () => true]];
+const accessRow = e => `<tr>
+    <td data-l="Kirgan vaqti">${esc(when(e.t))}${e.seen && e.seen - e.t > 120000 ? `<br><small>oxirgi faollik: ${esc(rel(e.seen))}</small>` : ''}</td>
+    <td data-l="Email">${e.who ? '<b>' + esc(e.who) + '</b>' : '<span class="badge mute">email yozilmagan</span>'}${e.cur ? ' <span class="badge ok">Siz</span>' : ''}</td>
+    <td data-l="IP">${esc(e.ip)}</td><td data-l="Qurilma" title="${esc(e.ua)}">${esc(deviceOf(e.ua) || e.ua || '—')}</td>
+    <td data-l="Natija">${e.ok ? '<span class="badge ok">Kirdi</span>' : '<span class="badge bad">Noto‘g‘ri token</span>'}</td></tr>`;
+function renderAccess() {
+  if (!AUDIT) { const e = emptyBox('info', 'Kirishlar yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#ac-p').innerHTML = e; $('#ac-h').innerHTML = e; $('#ac-k').innerHTML = ''; $('#ac-c').textContent = ''; $('#ac-pc').textContent = ''; $('#ac-hc').textContent = ''; return; }
+  const all = AUDIT.access || [], q = ($('#ac-q').value || '').trim().toLowerCase(), f = AC_FILTERS.find(x => x[0] === ACF) || AC_FILTERS[0];
+  $('#ac-f').innerHTML = AC_FILTERS.map(([k, l, fn]) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${k === ACF}">${l}<small>${all.filter(fn).length}</small></button>`).join('');
+  $$('#ac-f [data-f]').forEach(b => (b.onclick = () => { ACF = b.dataset.f; renderAccess(); }));
+  const list = all.filter(e => f[2](e) && (!q || (e.who + ' ' + e.ip + ' ' + deviceOf(e.ua)).toLowerCase().includes(q)));
+  const okL = list.filter(e => e.ok), bad = list.filter(e => !e.ok);
+  // odamlar bo'yicha jamlama: email bo'lsa — email, bo'lmasa — IP
+  const ppl = new Map();
+  for (const e of okL) {
+    const k = e.who || 'ip:' + e.ip, p = ppl.get(k) || { who: e.who, n: 0, first: e.t, last: e.t, seen: 0, dev: new Set(), ips: new Set(), cur: false };
+    p.n++; p.first = Math.min(p.first, e.t); p.last = Math.max(p.last, e.t); p.seen = Math.max(p.seen, e.seen || e.t); p.cur = p.cur || !!e.cur;
+    p.dev.add(deviceOf(e.ua) || 'noma’lum'); p.ips.add(e.ip); ppl.set(k, p);
+  }
+  const people = [...ppl.values()].sort((a, b) => b.last - a.last);
+  $('#ac-c').textContent = f[1];
+  $('#ac-k').innerHTML = kpi('users', people.length, 'kirgan odam', 'ok') + kpi('act', okL.length, 'kirish (sessiya)') + kpi('warn', bad.length, 'noto‘g‘ri token urinishi', bad.length ? 'warn' : 'mut', bad.length) + kpi('clock', okL.length ? rel(okL[0].t) : '—', 'oxirgi kirish', 'mut');
+  $('#ac-pc').textContent = people.length; $('#ac-hc').textContent = list.length;
+  const none = all.length ? ['Bu davrda kirish yo‘q', 'Davrni yoki qidiruvni o‘zgartirib ko‘ring.'] : ['Hali kirish yozilmagan', 'Funksiya yoqilgandan keyingi kirishlar shu yerda ko‘rinadi.'];
+  $('#ac-p').innerHTML = people.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Kim</th><th class="num">Kirishlar</th><th>Birinchi kirish</th><th>Oxirgi kirish</th><th>Qurilma</th><th>IP</th></tr></thead><tbody>${people.map(p => `<tr>
+    <td data-l="Kim">${p.who ? '<b>' + esc(p.who) + '</b>' : '<span class="badge mute">email yozilmagan</span>'}${p.cur ? ' <span class="badge ok">Siz</span>' : ''}</td>
+    <td class="num" data-l="Kirishlar">${p.n}</td><td data-l="Birinchi kirish">${esc(when(p.first))}</td>
+    <td data-l="Oxirgi kirish">${esc(when(p.last))}<br><small>faollik: ${esc(rel(p.seen))}</small></td>
+    <td data-l="Qurilma">${esc([...p.dev].join(', '))}</td><td data-l="IP">${esc([...p.ips].join(', '))}</td></tr>`).join('')}</tbody></table></div>` : emptyBox('users', none[0], none[1]);
+  $('#ac-h').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Kirgan vaqti</th><th>Email</th><th>IP</th><th>Qurilma</th><th>Natija</th></tr></thead><tbody>${list.map(accessRow).join('')}</tbody></table></div>` : emptyBox('clock', none[0], none[1]);
+  fx.scan($('#v-access'));
+}
+
+/* ---------- Yuborilgan xatlar: kimga, kim yubordi ---------- */
 const MAIL_KIND = { verify: 'Tasdiqlash kodi', reset: 'Parolni tiklash', reply: 'Javob xati', test: 'Sinov xati', news: 'Xabar (yangilik)', mail: 'Xat' };
 const byName = b => b === 'system' ? '<span class="badge mute">Tizim (avtomatik)</span>' : b === 'admin' ? '<span class="badge mute">Admin (email yozilmagan)</span>' : `<b>${esc(b)}</b>`;
 function renderLog() {
-  if (!AUDIT) { const e = emptyBox('info', 'Jurnal yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#lg-a').innerHTML = e; $('#lg-m').innerHTML = e; $('#lg-ac').textContent = ''; $('#lg-mc').textContent = ''; return; }
-  const ac = AUDIT.access || [], ml = AUDIT.mail || [];
-  $('#lg-ac').textContent = ac.length; $('#lg-mc').textContent = ml.length;
-  $('#lg-a').innerHTML = ac.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Kirgan vaqti</th><th>Email</th><th>IP</th><th>Qurilma</th><th>Natija</th></tr></thead><tbody>${ac.map(e => `<tr>
-    <td data-l="Vaqt">${esc(when(e.t))}${e.seen && e.seen - e.t > 120000 ? `<br><small>oxirgi faollik: ${esc(rel(e.seen))}</small>` : ''}</td>
-    <td data-l="Email">${e.who ? '<b>' + esc(e.who) + '</b>' : '<span class="badge mute">email yozilmagan</span>'}${e.cur ? ' <span class="badge ok">Siz</span>' : ''}</td>
-    <td data-l="IP">${esc(e.ip)}</td><td data-l="Qurilma" title="${esc(e.ua)}">${esc(deviceOf(e.ua) || e.ua || '—')}</td>
-    <td data-l="Natija">${e.ok ? '<span class="badge ok">Kirdi</span>' : '<span class="badge bad">Noto‘g‘ri token</span>'}</td></tr>`).join('')}</tbody></table></div>` : emptyBox('users', 'Hali yozuv yo‘q', 'Panelga kirganlar shu yerda ko‘rinadi.');
+  if (!AUDIT) { $('#lg-m').innerHTML = emptyBox('info', 'Jurnal yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#lg-mc').textContent = ''; return; }
+  const ml = AUDIT.mail || [];
+  $('#lg-mc').textContent = ml.length;
   $('#lg-ms').innerHTML = 'Har bir xat: kimga ketdi, kim yubordi va qaysi manzildan' + (AUDIT.from ? ` (hozir: <b>${esc(AUDIT.from)}</b>${AUDIT.provider ? ', ' + esc(AUDIT.provider) : ''})` : '') + '. Xat matni saqlanmaydi.';
   $('#lg-m').innerHTML = ml.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Vaqt</th><th>Kimga</th><th>Mavzu</th><th>Turi</th><th>Kim yubordi</th><th>Kimdan</th><th>Holat</th></tr></thead><tbody>${ml.map(m => `<tr>
     <td data-l="Vaqt">${esc(when(m.t))}</td><td data-l="Kimga">${esc(m.to)}</td><td data-l="Mavzu">${esc(m.subject)}</td>
@@ -597,7 +628,7 @@ async function load(silent) {
       call('GET', '/api/admin/audit').catch(e => { if (e.status === 401) throw e; return null; })]);
     REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; FBK = fk; AUDIT = au; if (nh) NH = nh; loadedAt = Date.now();
     const first = $('#shell').hidden; $('#lg').hidden = true; $('#shell').hidden = false;
-    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); renderLog(); audienceUi(); $('#me').textContent = EMAIL || 'Admin';
+    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); renderAccess(); renderLog(); audienceUi(); $('#me').textContent = EMAIL || 'Admin';
     $('#st').textContent = 'Yangilandi: ' + when(Date.now()).split(', ')[1].split(' ').pop();
     if (first) route(); else fx.scan($('#kpis'));
   } catch (e) {
@@ -624,6 +655,7 @@ $('#lo').onclick = () => { try { sessionStorage.removeItem('unidoue:adm'); } cat
 $('#bg').onclick = () => document.body.classList.toggle('nav-open');
 $('#scrim').onclick = () => document.body.classList.remove('nav-open');
 $('#uq').oninput = () => { ULIM = 100; renderUsers(); };
+$('#ac-q').oninput = renderAccess;
 $('#pg').onclick = () => { const e = $('#pe').value.trim().toLowerCase(); if (!e) { $('#pm').className = 'msg err'; $('#pm').textContent = 'Emailni kiriting.'; return; } give(e, $('#pp').value, parseInt($('#pd').value, 10) || 30, $('#pm')); };
 $('#un-s').onclick = saveUni; $('#un-x').onclick = uniReset; $('#un-q').oninput = () => { ULM = 40; renderUnis(); };
 $('#mb').onclick = createPromo; $('#mk-r').onclick = () => { $('#mk').value = pmRand(); $('#mk').focus(); };

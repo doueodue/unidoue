@@ -1311,7 +1311,7 @@ async function api(req, res, pathname) {
     const me = admWho(req), ua = clean(req.headers['user-agent'], 160);
     return send(res, 200, {
       me, from: MAIL_FROM_ADDR, provider: MAIL_PROVIDER,
-      access: db.adminLog.slice(0, 100).map(e => ({ ...e, cur: e.ok && e.ip === ip && e.who === me && e.ua === ua })),
+      access: db.adminLog.map(e => ({ ...e, cur: e.ok && e.ip === ip && e.who === me && e.ua === ua })),
       mail: db.mailLog.slice(0, 150),
     });
   }
