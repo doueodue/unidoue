@@ -74,7 +74,7 @@ html[data-season] .nav-sec,.nav-sec{position:relative;font:italic 400 16px/1 var
 /* ---------------------------------------------------------------- yuqori panel va kontent */
 .top,html[data-season] .top{height:64px;padding:0 34px;background:color-mix(in srgb,var(--bg) 74%,transparent);-webkit-backdrop-filter:saturate(1.6) blur(16px);backdrop-filter:saturate(1.6) blur(16px);border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent);box-shadow:none}
 html[data-theme=dark] .top{box-shadow:none}
-.top h1{font:600 14px/1 var(--font);letter-spacing:0;color:var(--muted)}
+.top h1{font:600 14px/1 var(--font);letter-spacing:0;color:var(--muted);padding:5px;margin:-5px}
 .top h1::before{content:"";display:inline-block;width:8px;height:8px;margin:0 10px 1px 0;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px var(--brand-50)}
 .content{max-width:1280px;padding:32px 34px 64px}
 
