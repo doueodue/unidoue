@@ -1,0 +1,45 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read          # eng kam huquq: ish jarayoni repoga yozolmaydi
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Xavfsizlik regressiya testlari (har bir zaiflik uchun)
+        run: node tests/security.js
+      - name: Zaxira nusxa va tiklash
+        run: node tests/backup.js
+      - name: Integratsiya va funksional testlar
+        run: npm test
+  secrets:
+    # To'liq git tarixi bo'yicha sir/kalit qidirish. Topilsa — ish jarayoni yiqiladi.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: gitleaks
+        run: |
+          set -e
+          V=8.18.4
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${V}/gitleaks_${V}_linux_x64.tar.gz" | tar -xz gitleaks
+          ./gitleaks detect --source . --redact --no-banner --exit-code 1

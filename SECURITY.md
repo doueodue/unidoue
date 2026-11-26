@@ -1,0 +1,92 @@
+# UniDoue — xavfsizlik, hodisaga javob va tiklash
+
+Bu hujjat: (1) qanday himoya bor va u qaysi test bilan tekshiriladi, (2) hodisa (hujum shubhasi) boʻlsa qadam-baqadam nima qilish, (3) qoʻlda sozlanadigan qadamlar, (4) maʼlum cheklovlar.
+Sir/kalit qiymatlari hech qachon bu repoga, commit xabarlariga yoki hisobotlarga yozilmaydi.
+
+## 1. Himoya qatlamlari va ularni tekshiruvchi testlar
+
+`npm test` hammasini, `npm run test:security` faqat xavfsizlik testlarini ishga tushiradi. Testlar faqat mahalliy, izolyatsiyalangan serverga (vaqtinchalik papka, tasodifiy port, soxta email provayderi) uruladi.
+
+| Soha | Nazorat | Qanday tekshiriladi |
+|---|---|---|
+| **Admin kirishi** | Faqat `ADMIN_EMAILS`; har safar emailga 6 xonali kod (10 daq., bir martalik, 5 urinish); `ADMIN_EMAILS` boʻsh boʻlsa hamma uchun yopiq (fail-closed); statik `ADMIN_TOKEN` panelni ochmaydi (faqat `/api/admin/remind`) | `tests/run.js` «Admin kodli kirish», `tests/security.js` «Admin yoʻllari» |
+| **Seans** | HttpOnly + SameSite=Strict (+ Secure) cookie; serverda hash bilan saqlanadi; faqat «Chiqish»/bekor qilishda tugaydi; qurilmalar roʻyxati, bittasini yoki hammasini yopish | `tests/run.js`, UI testi |
+| **Deny-by-default** | Har bir `/api/admin/*` yoʻli `admGate/admAuth` orqali; yangi yoʻl himoyasiz qoʻshilsa test yiqiladi; soxta cookie, Bearer, `x-admin-token`, `?token=` ochmaydi | `tests/security.js` (statik + dinamik skan) |
+| **Brute-force** | Admin kodini taxmin qilish **hisob boʻyicha** sanaladi (IP almashtirish yordam bermaydi): 10 xatodan keyin 15 daqiqa blok; foydalanuvchi login lockout; IP/endpoint limitlari | `tests/security.js` |
+| **Step-up** | Ommaviy xat (>1 qabul qiluvchi) va xatni qayta yoqish uchun emailga yangi kod (10 daq. oyna) | `tests/security.js` |
+| **IP soxtalashtirish** | `X-Forwarded-For` chap tomoni hujumchi yozishi mumkin → faqat proksi (Cloudflare) sarlavhasi yoki XFF ning **oʻng** tomoni ishlatiladi | `tests/security.js` (qizil→yashil) |
+| **Host-header** | Parol tiklash havolasi faqat ishonchli domen asosida | `tests/security.js` |
+| **Prototip kalitlari** | `__proto__`, `constructor` kabi kalitlar bilan tarif/kredit limitini buzish yopilgan (null-prototip lugʻatlar) | `tests/security.js` |
+| **Email suiisteʼmoli** | Markaziy `mailGate`: manzil validatsiyasi, bitta manzilga/umumiy kvota, global oʻchirgich (`MAIL_DISABLED`, panel), admin xatlari faqat `ADMIN_EMAILS` ga, ommaviy xat limiti | `tests/security.js` |
+| **Jurnal** | Zanjirlangan (hash + prev + seq) xavfsizlik jurnali; oʻzgartirish/oʻchirish/almashtirish aniqlanadi; sir (kod, token, parol) yozilmaydi; stdout ga ham nusxa (Render loglari = ilovadan tashqari nusxa) | `tests/security.js` |
+| **Ogohlantirish** | Yangi qurilma, kodni taxmin qilish, cheklash, ommaviy xat, xat kvotasi tugashi, parol toʻldirish, trafik keskin oshishi → email (faqat `ADMIN_EMAILS`) + push; soatiga bir tur, sutkasiga 24 ta | `tests/security.js` |
+| **Favqulodda** | `ADMIN_LOCKDOWN=1`, `ADMIN_REVOKE_BEFORE`, `SESSIONS_REVOKE_BEFORE`, panelda «Hamma qurilmalardan chiqarish» | `tests/security.js` |
+| **Brauzer himoyasi** | Qattiq CSP (skriptlar uchun `unsafe-inline` yoʻq), HSTS, X-Frame-Options: DENY, nosniff, Referrer/Permissions-Policy; CORS ochilmagan; xato javoblarida stek/yoʻl yoʻq; `server.js`, `db.json`, `.git` va h.k. fayllar tarqatilmaydi | `tests/security.js` |
+| **Maʼlumot sizishi** | `/api/me` va admin javoblarida parol hashi, tasdiqlash kodi, token yoʻq | `tests/security.js` |
+| **XSS** | Admin panelda hamma foydalanuvchi/UA/xat matni `esc()` orqali; hujumchi UA sarlavhasidagi skript ishlamaydi | Headless Chrome tekshiruvi |
+| **Sirlar** | Repoda kalit koʻrinishlari yoʻq; `.gitignore`: `db.json`, `security.log`, `.env`; `render.yaml` da qiymatlar yoʻq (`sync:false`/`generateValue`) | `tests/security.js` «Sirlar»; CI: gitleaks (toʻliq tarix) |
+| **Zaxira** | `tools/backup.js`: manifest + SHA-256, ixtiyoriy AES-256-GCM (`BACKUP_PASSPHRASE`), verify, restore (buzilgan zaxira tiklanmaydi, eski fayl saqlanadi) | `tests/backup.js` (tiklangan maʼlumot bilan server ishga tushadi, foydalanuvchi kiradi) |
+| **Ta'minot zanjiri** | Tashqi paket yoʻq (zero-dependency); `package-lock.json`; Dependabot (Actions + npm); CodeQL (SAST); gitleaks; minimal huquqli workflow | `.github/` |
+
+### OWASP bilan moslik (qisqa)
+- **Top 10 2021:** A01 Broken Access Control (deny-by-default testi), A02 (parollar tuzli scrypt bilan, admin kodlari HMAC-hash bilan saqlanadi, taqqoslash timingSafeEqual), A03 Injection (tashqi SQL/shell yoʻq; JSON-fayl DB; Neon soʻrovlari parametrlangan), A04 (kvotalar, step-up), A05 Misconfiguration (sarlavhalar, fail-closed), A07 AuthN failures (OTP, lockout, seans), A09 Logging (zanjirlangan jurnal, ogohlantirish), A10 SSRF (serverning tashqi soʻrovlari faqat sozlangan provayderlarga; foydalanuvchi bergan yagona manzil — push obunasi — `push.js validEndpoint` roʻyxati (FCM/Mozilla/WNS/Apple, https, portsiz) bilan cheklangan, `tests/push.js` da tekshiriladi; `PUSH_EXTRA_HOSTS` faqat sinov uchun, productionda qoʻymang).
+- **API Top 10 2023:** API1 BOLA (foydalanuvchi yoʻllari resursni faqat sessiyadagi hisob orqali oladi, boshqa hisob identifikatori qabul qilinmaydi; yagona istisno — xatdagi obuna bekor qilish havolasi HMAC imzo + timingSafeEqual bilan; boshqa hisobga kirish `tests/run.js` da tekshiriladi), API2 Broken Auth, API3 (javoblarda maxfiy maydon yoʻq), API4 Resource consumption (hajm/limit/kvota), API5 BFLA (admin yoʻllari), API6 sensitive flows (roʻyxatdan oʻtish/parol tiklash/ommaviy xat limitlari), API8 Misconfiguration, API9 Inventory (yoʻllar manbadan skan qilinadi).
+- **ASVS 4 (V2, V3, V4, V7, V8, V14)** — yuqoridagi jadvaldagi nazoratlar orqali; toʻliq ASVS sertifikatsiyasi emas, oʻz-oʻzini baholash.
+
+## 2. Hodisaga javob (runbook)
+
+**Belgi:** «Himoya holati» sahifasida/emailda ogohlantirish; «Kirishlar» da notanish IP/qurilma; kutilmagan xat yuborish; panel «Jurnal buzilgan» deydi.
+
+### 2.1. Zudlik bilan toʻxtatish (5 daqiqa)
+1. **Render → Environment**: `ADMIN_LOCKDOWN=1` → Save (qayta deploy). Admin paneli va admin API butunlay yopiladi, mavjud seanslar ishlamaydi.
+2. Xat suiisteʼmoli boʻlsa: `MAIL_DISABLED=1` (yoki panel ochiq boʻlsa «Xat yuborishni toʻxtatish»).
+3. Foydalanuvchi sessiyalari ham shubhali boʻlsa: `SESSIONS_REVOKE_BEFORE=<hozirgi vaqt, ISO>` — hamma qayta kiradi.
+
+### 2.2. Dalillarni saqlash (sirlarni almashtirishdan OLDIN)
+- Render → Logs: `SEC {` bilan boshlanuvchi qatorlar zanjirlangan jurnal nusxasi. Butun logni faylga eksport qiling (Render log retention cheklangan).
+- `node tools/backup.js backup` (yoki Render shell dan `db.json` va `security.log` nusxasi). **Fayllarni oʻchirmang va tahrirlamang.**
+- Resend/Brevo dashboard → yuborilgan xatlar roʻyxati (kim, qachon, nechta); Neon → qoʻshimcha loglar; GitHub → Settings → Security log / Audit log.
+- Hujumchining IP/UA — «Kirishlar» sahifasi va `security.log` dagi `admin.login.*`, `admin.*` yozuvlari.
+
+### 2.3. Sirlarni almashtirish (har birini **siz** bajarasiz; bu yerda qiymat yozilmaydi)
+1. `ADMIN_TOKEN` — Render da yangi tasodifiy qiymat (≥32 belgi). Rejalashtiruvchi (cron) ishlatsa, unda ham yangilang.
+2. Email provayder API kaliti (Resend/Brevo) — dashboard da eskisini **bekor qiling** (revoke), yangisini Render ga qoʻying.
+3. `DATABASE_URL` (Neon) — parolni reset qiling → yangi ulanish manzilini Render ga.
+4. `ANTHROPIC_API_KEY`/`AI_API_KEY`, `TG_BOT_TOKEN`, Payme/Click kalitlari, `GOOGLE_CLIENT_SECRET` — tegishli kabinetda aylantiring.
+5. `VAPID_PRIVATE_KEY` — aylantirilsa mavjud push obunalari bekor boʻladi (foydalanuvchilar qayta yoqadi); faqat tarqalgan boʻlsa.
+6. GitHub: parol/2FA, Personal Access Token va Render ↔ GitHub ulanishini tekshiring; repoda Secret scanning/Push protection yoqilgan boʻlsin.
+7. Almashtirgach `ADMIN_REVOKE_BEFORE=<hozirgi vaqt>`, soʻng `ADMIN_LOCKDOWN` ni oʻchiring → faqat `ADMIN_EMAILS` dagi email yangi kod bilan kiradi.
+
+### 2.4. Tahlil
+- Kim kirdi: «Kirishlar» + `admin.login`, `admin.login.bad`, `admin.login.ask.denied`.
+- Nima qilindi: `admin.*` (notify, mail.switch, push.send, plan, …) yozuvlari — har bir oʻzgartiruvchi amal `who`, `ip` bilan yoziladi.
+- Qaysi maʼlumot koʻrilgan: admin GET lar `Kirishlar` jurnalida (`use`), lekin tarkibi yozilmaydi — admin kirgan boʻlsa, **foydalanuvchilar roʻyxati, fikrlar, xatlar jurnali va toʻlovlar koʻrilgan** deb hisoblang.
+- Foydalanuvchilarga taʼsir: parol hashlari admin javoblarida yoʻq; foydalanuvchi emaillari/ismlari koʻrilgan boʻlishi mumkin → qonun talab qilsa xabardor qiling.
+
+### 2.5. Tiklash
+1. `node tools/backup.js verify <zaxira>` → OK boʻlsa `restore <zaxira> --data <DATA_DIR> --force` (eski fayl `.pre-restore-<vaqt>` nomi bilan saqlanadi).
+2. Serverni ishga tushiring; `/healthz`, admin kirish (yangi kod), «Himoya holati» (jurnal zanjiri butun) ni tekshiring.
+3. Neon ishlatilsa: Neon konsolida point-in-time restore (branch) imkoniyatidan foydalaning; tiklangan branch ulanish manzilini `DATABASE_URL` ga qoʻying.
+4. `MAIL_DISABLED` va `ADMIN_LOCKDOWN` ni olib tashlang, hodisa hisobotini yozing (nima, qachon, qanday aniqlandi, nima oʻzgartirildi).
+
+## 3. Qoʻlda sozlanadigan (kod bilan hal boʻlmaydigan) qadamlar
+1. **Render → Environment:** `ADMIN_EMAILS` (admin emaili), `COOKIE_SECURE=1`, `TRUST_PROXY=1` (render.yaml da bor), `ADMIN_ALLOW_TOKEN` **qoʻymang**. `ADMIN_TOKEN` ni almashtiring (eski token tarqalgan deb hisoblang).
+2. **Email domeni (SPF/DKIM/DMARC):** Resend/Brevo da oʻz domeningizni tasdiqlang va DNS ga qoʻying (provayder aniq qiymatlarni beradi). Namuna:
+   - SPF (TXT, `@`): `v=spf1 include:<provayder-spf> ~all` (faqat bitta SPF yozuvi boʻlsin)
+   - DKIM: provayder bergan CNAME/TXT yozuvlari
+   - DMARC (TXT, `_dmarc`): avval `v=DMARC1; p=none; rua=mailto:<hisobot-emaili>`, 2–4 haftadan keyin `p=quarantine`, soʻng `p=reject`
+   `MAIL_FROM` shu domendan boʻlsin (Gmail manzilidan yuborish DMARC ni oʻtkazmaydi).
+3. **Cloudflare / WAF (ixtiyoriy, tavsiya):** domenni Cloudflare orqali ulang → Bot Fight Mode, `/api/*` uchun Rate Limiting qoidasi (masalan, IP boshiga 60 soʻrov/daq.), `/admin` va `/api/admin/*` uchun qoʻshimcha qoida (faqat sizning mamlakat/ASN yoki Cloudflare Access). Cloudflare ortida `CLIENT_IP_HEADER=cf-connecting-ip` qoʻying. Ilovadagi limitlar bitta instansiya xotirasida — WAF bu qatlamni toʻldiradi.
+4. **GitHub:** Settings → Branches → `main` uchun qoidalar (PR + CI «test» va «secrets» majburiy, force-push taqiqi); Code security → Secret scanning + Push protection + Dependabot alerts yoqing; barcha hisoblarda 2FA (GitHub, Render, Neon, Resend/Brevo, Cloudflare, Google).
+5. **Doimiy saqlash:** `DATABASE_URL` (Neon) yoki Render disk (`DATA_DIR=/data`) — aks holda bepul rejada server qayta ishga tushganda hisoblar, admin seanslari va `security.log` yoʻqoladi. `security.log` fayli ham shu diskda; tashqi nusxa — Render loglari (`SEC` qatorlari). Kerak boʻlsa Render Log Streams orqali tashqi tizimga yuboring.
+6. **Zaxira jadvali:** `BACKUP_PASSPHRASE` ni oʻzingizda saqlang; `npm run backup` ni muntazam (masalan haftalik) bajaring va faylni **serverdan tashqarida** saqlang; kamida chorakda bir marta `verify` + `restore` ni test papkasida sinab koʻring.
+7. **Resend/Brevo:** API kalitiga faqat «send» huquqi, yuborish limiti dashboard da ham qoʻyilsin.
+
+## 4. Maʼlum cheklovlar va qoldiq xavflar
+- Tezlik limitlari va ogohlantirish hisoblagichlari **bitta instansiya xotirasida** (qayta ishga tushganda nollanadi, koʻp instansiyada taqsimlanmaydi). Koʻp instansiyaga oʻtilsa — Redis/WAF kerak.
+- Admin kodi faqat email orqali (emailga kirish = adminga kirish). Email hisobingizda 2FA majburiy. TOTP/passkey hozircha yoʻq.
+- Admin roli bitta (RBAC/«faqat oʻqish» rolli adminlar yoʻq); qayta tasdiqlash faqat eng xavfli amallarga qoʻyilgan (ommaviy xat, xatni qayta yoqish).
+- Xavfsizlik jurnali — zanjirlangan, lekin bir xil serverda saqlanadi: serverga toʻliq egalik qilgan hujumchi uni boshidan qayta yozishi mumkin. Shu sababli stdout (Render loglari) nusxasi saqlanadi; tashqi log yigʻish tavsiya etiladi.
+- Maʼlumotlar bazasi — JSON fayl/Neon; saqlashda shifrlash (encryption at rest) provayder darajasida (Render disk, Neon). Zaxiralar `BACKUP_PASSPHRASE` bilan shifrlanadi.
+- Tashqi paket yoʻqligi uchun `npm audit` boʻsh; Node versiyasi va Render image yangilanishlari Render zimmasida (Node ≥18; tavsiya: LTS).
+- DDoS himoyasi ilova darajasida emas — Cloudflare/Render tarmogʻi darajasida (3-band).

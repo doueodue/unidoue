@@ -38,7 +38,7 @@ const IC = {
 async function call(method, url, body) {
   const r = await fetch(url, { method, credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) { const e = new Error(j.error || 'Xato (' + r.status + ')'); e.status = r.status; throw e; }
+  if (!r.ok) { const e = new Error(j.error || 'Xato (' + r.status + ')'); e.status = r.status; e.reauth = j.reauth === true; throw e; }
   return j;
 }
 
@@ -93,11 +93,11 @@ function replyDlg({ kind, id, name, to, subject, quote, done }) {
 const replied = r => (r.replies && r.replies.length ? `<span class="badge ok" title="${esc(r.replies.map(x => when(x.ts)).join(', '))}">Javob yuborilgan${r.replies.length > 1 ? ' ×' + r.replies.length : ''}</span>` : '');
 
 /* ---------- holat ---------- */
-let USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all', ULIM = 100, loadedAt = 0;
+let SEC = null, SCF = 'all', USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all', ULIM = 100, loadedAt = 0;
 const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
 
 /* ---------- yo‘naltirish ---------- */
-const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar', access: 'Kirishlar', log: 'Yuborilgan xatlar' };
+const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar', access: 'Kirishlar', security: 'Himoya holati', log: 'Yuborilgan xatlar' };
 function route() {
   const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
   $$('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
@@ -512,7 +512,7 @@ async function sendNote() {
   if (!await ask({ title: 'Xabar yuborilsinmi?', text: `“${title}” — ${audience === 'email' ? email : AUD_N[audience]} (${parts.join(', ')}). Yuborilgan xabarni qaytarib bo‘lmaydi.`, ok: 'Yuborish' })) return;
   const btn = $('#ns'); btn.disabled = true; m.className = 'msg'; m.textContent = ch.mail ? 'Yuborilmoqda… (email biroz vaqt olishi mumkin)' : 'Yuborilmoqda…';
   try {
-    const r = await call('POST', '/api/admin/notify', { title, body, url, audience, channels: ch, ...(audience === 'email' ? { email } : {}) }), st = r.st || {}, ln = [];
+    const r = await withReauth(() => call('POST', '/api/admin/notify', { title, body, url, audience, channels: ch, ...(audience === 'email' ? { email } : {}) })), st = r.st || {}, ln = [];
     m.textContent = '';
     if (st.app != null) ln.push(`<span>Sayt ichida: <strong>${st.app}</strong> ta foydalanuvchi</span>`);
     if (st.push) ln.push(`<span>Push: <strong>${st.push.ok}</strong> / ${st.push.targets} foydalanuvchi (${st.push.devices} qurilma)</span>${st.push.gone ? `<span>Eskirgan (o‘chirildi): <strong>${st.push.gone}</strong></span>` : ''}${st.push.failed ? `<span>Push xatosi: <strong>${st.push.failed}</strong></span>` : ''}`);
@@ -567,7 +567,7 @@ async function revoke(id, self) {
   if (!await ask({ title: all ? 'Hamma qurilmalardan chiqarilsinmi?' : self ? 'Shu qurilmadan chiqasizmi?' : 'Seans yopilsinmi?', text: all ? 'Barcha seanslar yopiladi, jumladan shu qurilma. Qayta kirish uchun emailga yangi kod kerak bo‘ladi.' : self ? 'Qayta kirish uchun emailga yangi kod kerak bo‘ladi.' : 'Bu qurilma panelga qayta kirishi uchun emailga yangi kod kerak bo‘ladi.', ok: all ? 'Hammasini yopish' : self ? 'Chiqish' : 'Yopish', danger: true })) return;
   try {
     const r = await call('POST', '/api/admin/session/revoke', all ? { all: true } : { id });
-    if (r.self) { ME = ''; USERS = []; AUDIT = null; showLogin('', 1); return; }
+    if (r.self) { ME = ''; USERS = []; AUDIT = null; SEC = null; showLogin('', 1); return; }
     toast('Seans yopildi.'); load(true);
   } catch (e) { toast(e.message, 'err'); }
 }
@@ -620,6 +620,91 @@ function renderLog() {
   fx.scan($('#v-log'));
 }
 
+
+/* ---------- Qayta tasdiqlash (step-up): xavfli amal oldidan emailga kelgan yangi kod ---------- */
+/** Natija: true — tasdiqlandi, false — bekor qilindi */
+function reauthDlg() {
+  return new Promise(res => {
+    const bg = document.createElement('div'); bg.className = 'modal-bg';
+    bg.innerHTML = `<div class="modal ra" role="dialog" aria-modal="true" aria-labelledby="ra-t"><h3 id="ra-t">${svg(IC.warn)}Amalni tasdiqlang</h3>
+      <p id="ra-s">Bu amal xavfli (ommaviy xat yoki xavfsizlik sozlamasi). Emailingizga yangi 6 xonali kod yuboramiz.</p>
+      <input id="ra-c" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" aria-label="6 xonali kod" hidden>
+      <div class="msg" id="ra-m" role="alert"></div>
+      <div class="acts"><button class="btn" type="button" data-x>Bekor</button><button class="btn primary" type="button" data-ok>Kod yuborish</button></div></div>`;
+    const prev = document.activeElement, inp = $('#ra-c', bg), msg = $('#ra-m', bg), okb = $('[data-ok]', bg), xb = $('[data-x]', bg); let step = 1, busy = false;
+    const out = v => { document.removeEventListener('keydown', key, true); bg.classList.add('out'); setTimeout(() => bg.remove(), 220); if (prev && prev.focus) try { prev.focus(); } catch (e) {} res(v); };
+    const err = t => { msg.className = 'msg err'; msg.textContent = t; };
+    const start = async () => {
+      busy = true; okb.disabled = true; msg.className = 'msg'; msg.textContent = '';
+      try { await call('POST', '/api/admin/reauth/start', {}); step = 2; inp.hidden = false; $('#ra-s', bg).textContent = 'Kod emailingizga yuborildi (10 daqiqa amal qiladi, bir marta ishlaydi). Uni kiriting.'; okb.textContent = 'Tasdiqlash'; inp.focus(); }
+      catch (e) { err(e.message); }
+      busy = false; okb.disabled = false;
+    };
+    const verify = async () => {
+      const code = inp.value.replace(/\D/g, ''); if (code.length !== 6) return err('6 xonali kodni kiriting.');
+      busy = true; okb.disabled = true; msg.className = 'msg'; msg.textContent = '';
+      try { await call('POST', '/api/admin/reauth/verify', { code }); out(true); return; }
+      catch (e) { err(e.message); inp.value = ''; inp.focus(); }
+      busy = false; okb.disabled = false;
+    };
+    const key = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (!busy) out(false); } };
+    inp.oninput = () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 6); if (inp.value.length === 6 && !busy) verify(); };
+    okb.onclick = () => { if (!busy) (step === 1 ? start() : verify()); }; xb.onclick = () => { if (!busy) out(false); };
+    bg.addEventListener('pointerdown', e => { if (e.target === bg && !busy) out(false); });
+    document.addEventListener('keydown', key, true); document.body.appendChild(bg); okb.focus();
+  });
+}
+/** fn() 403 {reauth:true} bilan rad etilsa — kod bilan tasdiqlatib, bir marta qayta urinadi */
+async function withReauth(fn) {
+  try { return await fn(); }
+  catch (e) { if (e.status === 403 && e.reauth) { if (await reauthDlg()) return fn(); const c = new Error('Amal tasdiqlanmadi — bekor qilindi.'); c.status = 0; throw c; } throw e; }
+}
+
+/* ---------- Himoya holati ---------- */
+const SEC_EV = {
+  'admin.login': ['Admin kirdi', 'ok'], 'admin.login.ask': ['Kirish kodi soʻraldi', ''], 'admin.login.ask.denied': ['Ruxsatsiz email bilan kod soʻraldi', 'warn'], 'admin.login.bad': ['Notoʻgʻri kod', 'warn'],
+  'admin.restrict': ['Admin kirishi cheklandi (15 daqiqa)', 'bad'], 'admin.logout': ['Admin chiqdi', ''], 'admin.session.revoke': ['Seans yopildi', 'warn'], 'admin.reauth.ask': ['Qayta tasdiqlash kodi soʻraldi', ''],
+  'admin.reauth.ok': ['Amal kod bilan tasdiqlandi', 'ok'], 'admin.reauth.bad': ['Qayta tasdiqlashda notoʻgʻri kod', 'warn'], 'admin.mail.switch': ['Email yuborish holati oʻzgartirildi', 'warn'], 'admin.notify': ['Xabar yuborildi', ''],
+  'mail.blocked': ['Xat bloklandi (kvota/oʻchirgich/manzil)', 'warn'], 'auth.lockout': ['Foydalanuvchi hisobi vaqtincha bloklandi', 'warn'], boot: ['Server ishga tushdi', ''],
+};
+const secLabel = ev => (SEC_EV[ev] && SEC_EV[ev][0]) || (ev.startsWith('alert.') ? 'Ogohlantirish' : ev.startsWith('admin.') ? 'Admin amali: ' + ev.slice(6) : ev);
+const secTone = ev => (SEC_EV[ev] && SEC_EV[ev][1]) || (ev.startsWith('alert.') ? 'bad' : '');
+const SC_FILTERS = [['all', 'Hammasi', () => true], ['alert', 'Ogohlantirishlar', e => e.ev.startsWith('alert.') || e.ev === 'admin.restrict'], ['login', 'Kirishlar', e => e.ev.startsWith('admin.login') || e.ev === 'admin.logout' || e.ev === 'admin.session.revoke'], ['mail', 'Email', e => e.ev.includes('mail') || e.ev === 'admin.notify']];
+const bar = (used, max) => { const pc = Math.min(100, Math.round((used || 0) / Math.max(1, max) * 100)); return `<div class="qb" role="img" aria-label="${used} / ${max}"><i style="width:${pc}%" class="${pc >= 90 ? 'hi' : pc >= 60 ? 'md' : ''}"></i></div>`; };
+function renderSecurity() {
+  const sc = SEC; if (!sc) { $('#sc-k').innerHTML = ''; $('#sc-mq').innerHTML = emptyBox('info', 'Himoya holati yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#sc-e').innerHTML = ''; $('#sc-c').textContent = ''; $('#sc-ec').textContent = ''; $('#sc-sw').hidden = true; return; }
+  const m = sc.mail || {}, ch = sc.chain || {}, ev = sc.events || [], alerts = ev.filter(e => e.ev.startsWith('alert.') && Date.now() - new Date(e.t).getTime() < 864e5).length;
+  $('#sc-c').textContent = ch.ok ? 'Jurnal butun' : 'Jurnal buzilgan';
+  $('#sc-k').innerHTML = kpi('check', ch.ok ? 'Butun' : 'BUZILGAN', 'Jurnal zanjiri (' + (ch.count || 0) + ' yozuv)', ch.ok ? 'ok' : 'warn', !ch.ok)
+    + kpi('mail', m.off ? 'To‘xtatilgan' : 'Yoqiq', 'Foydalanuvchilarga email' + (m.envOff ? ' (serverda o‘chirilgan)' : ''), m.off ? 'warn' : 'ok', m.off)
+    + kpi('warn', alerts, 'ogohlantirish (24 soat)', alerts ? 'warn' : 'mut', alerts)
+    + kpi('users', sc.lockdown ? 'YOQILGAN' : 'Oddiy', 'Favqulodda rejim (ADMIN_LOCKDOWN)', sc.lockdown ? 'warn' : 'mut', sc.lockdown);
+  $('#sc-mb').className = 'badge ' + (m.off ? 'bad' : 'ok'); $('#sc-mb').textContent = m.off ? 'To‘xtatilgan' : 'Yoqiq';
+  $('#sc-mq').innerHTML = `<div class="qg"><div><span>Shu soatda</span><b>${fmt(m.hour && m.hour.used)} / ${fmt(m.hour && m.hour.max)}</b>${bar(m.hour && m.hour.used, m.hour && m.hour.max)}</div>
+    <div><span>Shu sutkada</span><b>${fmt(m.day && m.day.used)} / ${fmt(m.day && m.day.max)}</b>${bar(m.day && m.day.used, m.day && m.day.max)}</div>
+    <div><span>24 soatda yuborilgan</span><b>${fmt(m.sent24)}</b></div><div><span>24 soatda bloklangan</span><b>${fmt(m.blocked24)}</b></div>
+    <div><span>Bitta manzilga</span><b>${fmt(m.rcpt && m.rcpt.hour)} / soat, ${fmt(m.rcpt && m.rcpt.day)} / sutka</b></div><div><span>Bir yuborishda</span><b>${fmt(m.bulkMax)} tagacha</b></div></div>`;
+  const sw = $('#sc-sw'); sw.hidden = !!m.envOff; sw.className = 'btn sm ' + (m.off ? 'primary' : 'danger'); sw.textContent = m.off ? 'Xat yuborishni yoqish (kod kerak)' : 'Xat yuborishni to‘xtatish';
+  const f = SC_FILTERS.find(x => x[0] === SCF) || SC_FILTERS[0];
+  $('#sc-f').innerHTML = SC_FILTERS.map(([k, l, fn]) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${k === SCF}">${l}<small>${ev.filter(fn).length}</small></button>`).join('');
+  $$('#sc-f [data-f]').forEach(b => (b.onclick = () => { SCF = b.dataset.f; renderSecurity(); }));
+  const list = ev.filter(f[2]); $('#sc-ec').textContent = list.length;
+  const det = e => Object.entries(e).filter(([k]) => !['t', 'ev', 'seq', 'who', 'ip', 'ua', 'title'].includes(k)).map(([k, v]) => `${esc(k)}: ${esc(v)}`).join(' · ');
+  $('#sc-e').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Vaqt</th><th>Voqea</th><th>Kim</th><th>IP</th><th>Tafsilot</th></tr></thead><tbody>${list.map(e => `<tr>
+    <td data-l="Vaqt">${esc(when(e.t))}</td><td data-l="Voqea"><span class="badge ${secTone(e.ev) || 'mute'}">${esc(secLabel(e.ev))}</span></td>
+    <td data-l="Kim">${esc(e.who || '—')}</td><td data-l="IP">${esc(e.ip || '—')}</td><td data-l="Tafsilot" title="${esc(e.ua || '')}">${e.title ? '<b>' + esc(e.title) + '</b> ' : ''}${det(e)}</td></tr>`).join('')}</tbody></table></div>` : emptyBox('check', 'Voqea yo‘q', 'Bu turdagi voqea hali yozilmagan.');
+  const nn = $('#sec-nn'); nn.hidden = !(alerts || !ch.ok); nn.textContent = ch.ok ? alerts : '!';
+  fx.scan($('#v-security'));
+}
+async function toggleMail() {
+  const off = !(SEC && SEC.mail && SEC.mail.off), msg = $('#sc-sm');
+  if (off && !await ask({ title: 'Xat yuborish to‘xtatilsinmi?', text: 'Foydalanuvchilarga (tasdiqlash kodi, parol tiklash, javoblar, xabarlar) xat ketmaydi. Sizning admin kirish kodlaringiz baribir keladi.', ok: 'To‘xtatish', danger: true })) return;
+  const b = $('#sc-sw'); b.disabled = true; msg.className = 'msg'; msg.textContent = '';
+  try { await withReauth(() => call('POST', '/api/admin/mail/switch', { off })); toast(off ? 'Xat yuborish to‘xtatildi.' : 'Xat yuborish yoqildi.'); await load(true); }
+  catch (e) { if (e.status === 401) return load(); msg.className = 'msg err'; msg.textContent = e.message; }
+  b.disabled = false;
+}
+
 /* ---------- yuklash ---------- */
 let LEM = '', resendTimer = 0;
 /** Kirish oynasi: 1 — email, 2 — emailga kelgan kod */
@@ -648,16 +733,17 @@ async function load(silent) {
   if (busy) return; busy = true;
   const rf = $('#rf'); rf.classList.add('spin'); if (!silent) $('#st').textContent = 'Yuklanmoqda…';
   try {
-    const [rq, us, st, od, pr, nh, un, fk, au] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
+    const [rq, us, st, od, pr, nh, un, fk, au, sc] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
       call('GET', '/api/admin/orders').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/promos').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/notes').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/unis').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/feedback').catch(e => { if (e.status === 401) throw e; return null; }),
-      call('GET', '/api/admin/audit').catch(e => { if (e.status === 401) throw e; return null; })]);
-    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; FBK = fk; AUDIT = au; if (nh) NH = nh; loadedAt = Date.now();
+      call('GET', '/api/admin/audit').catch(e => { if (e.status === 401) throw e; return null; }),
+      call('GET', '/api/admin/security').catch(e => { if (e.status === 401) throw e; return null; })]);
+    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; FBK = fk; AUDIT = au; SEC = sc; if (nh) NH = nh; loadedAt = Date.now();
     const first = $('#shell').hidden; $('#lg').hidden = true; $('#shell').hidden = false;
-    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); renderAccess(); renderLog(); audienceUi(); $('#me').textContent = ME || 'Admin';
+    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); renderAccess(); renderSecurity(); renderLog(); audienceUi(); $('#me').textContent = ME || 'Admin';
     $('#st').textContent = 'Yangilandi: ' + when(Date.now()).split(', ')[1].split(' ').pop();
     if (first) route(); else fx.scan($('#kpis'));
   } catch (e) {
@@ -687,11 +773,11 @@ $('#ac').oninput = () => { const v = $('#ac').value.replace(/\D/g, '').slice(0, 
 $('#lr').onclick = () => askCode(LEM, true);
 $('#lx').onclick = () => { clearInterval(resendTimer); showLogin('', 1); $('#ae').focus(); };
 $('#rf').onclick = () => load();
-$('#lo').onclick = async () => { try { await call('POST', '/api/admin/logout'); } catch (e) {} ME = ''; USERS = []; AUDIT = null; showLogin('', 1); $('#ae').focus(); };
+$('#lo').onclick = async () => { try { await call('POST', '/api/admin/logout'); } catch (e) {} ME = ''; USERS = []; AUDIT = null; SEC = null; showLogin('', 1); $('#ae').focus(); };
 $('#bg').onclick = () => document.body.classList.toggle('nav-open');
 $('#scrim').onclick = () => document.body.classList.remove('nav-open');
 $('#uq').oninput = () => { ULIM = 100; renderUsers(); };
-$('#ac-q').oninput = renderAccess; $('#se-all').onclick = () => revoke('all', true);
+$('#ac-q').oninput = renderAccess; $('#se-all').onclick = () => revoke('all', true); $('#sc-sw').onclick = toggleMail;
 $('#pg').onclick = () => { const e = $('#pe').value.trim().toLowerCase(); if (!e) { $('#pm').className = 'msg err'; $('#pm').textContent = 'Emailni kiriting.'; return; } give(e, $('#pp').value, parseInt($('#pd').value, 10) || 30, $('#pm')); };
 $('#un-s').onclick = saveUni; $('#un-x').onclick = uniReset; $('#un-q').oninput = () => { ULM = 40; renderUnis(); };
 $('#mb').onclick = createPromo; $('#mk-r').onclick = () => { $('#mk').value = pmRand(); $('#mk').focus(); };

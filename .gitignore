@@ -1,2 +1,9 @@
 /data/
 node_modules/
+.env
+.env.*
+*.log
+*.log.1
+db.json
+db.json.tmp
+security.log

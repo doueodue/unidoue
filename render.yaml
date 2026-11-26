@@ -11,11 +11,20 @@ services:
         value: "1"
       - key: TRUST_PROXY
         value: "1"
+      - key: NODE_ENV
+        value: production
+      # Faqat rejalashtiruvchi (/api/admin/remind) uchun. Panelga kirishni OCHMAYDI. Sizib chiqsa — Render'da qiymatini almashtiring.
       - key: ADMIN_TOKEN
         generateValue: true
       # Admin paneliga kira oladigan email (kod shu emailga boradi). Qiymatni Render panelida oʻzingiz kiriting.
       - key: ADMIN_EMAILS
         sync: false
+      # ---- Favqulodda tugmalar (kerak boʻlganda Render → Environment da qoʻyiladi; SECURITY.md ga qarang) ----
+      #   ADMIN_LOCKDOWN=1        admin paneli va admin API butunlay yopiladi (mavjud seanslar ham)
+      #   ADMIN_REVOKE_BEFORE=<ISO sana>   shu sanadan oldingi hamma admin seanslari yaroqsiz
+      #   SESSIONS_REVOKE_BEFORE=<ISO sana> shu sanadan oldingi hamma foydalanuvchi sessiyalari yaroqsiz
+      #   MAIL_DISABLED=1         foydalanuvchilarga email yuborish toʻxtatiladi (admin kodlari ketaveradi)
+      # Cloudflare ortida boʻlsangiz: CLIENT_IP_HEADER=cf-connecting-ip (aks holda True-Client-IP/XFF dan olinadi)
       # Doimiy saqlash kerak boʻlganda: plan: starter va quyidagini qoʻshing
       #   - key: DATA_DIR
       #     value: /data

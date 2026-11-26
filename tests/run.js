@@ -31,7 +31,7 @@ class Client {
   const ai = await mock((q, b, r) => { aiLast = JSON.parse(b); if (aiMode === 'fail') { r.statusCode = 500; return r.end('{"error":{"type":"x"}}'); } r.setHeader('content-type', 'application/json'); r.end(JSON.stringify({ content: [{ type: 'text', text: 'Test javobi' }] })); });
   const mail = await mock((q, b, r) => { mails.push(JSON.parse(b)); r.setHeader('content-type', 'application/json'); r.end('{"id":"1"}'); });
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'unidoue-'));
-  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', ADMIN_ALLOW_TOKEN: '1', MAIL_REPLY_TO: 'help@unidoue.uz', REG_RATE_MAX: '30', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, REQUIRE_EMAIL_VERIFY: '0', MAIL_BULK_MAX: '3', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
+  const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: dir, ADMIN_TOKEN: 'adm-secret', ADMIN_ALLOW_TOKEN: '1', ADMIN_EMAILS: 'sinov@gmail.com', MAIL_REPLY_TO: 'help@unidoue.uz', REG_RATE_MAX: '30', ANTHROPIC_API_KEY: 'k', ANTHROPIC_URL: `http://localhost:${ai.address().port}/v1/messages`, REQUIRE_EMAIL_VERIFY: '0', MAIL_BULK_MAX: '3', RESEND_API_KEY: 'k', RESEND_URL: `http://localhost:${mail.address().port}/emails`, APP_URL: 'http://app.test' }, stdio: 'ignore' });
   for (let i = 0; i < 40; i++) { try { if ((await fetch(B + '/healthz')).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); }
   const PROFILE = { gpa: 4.6, sc: 5, sat: 1480, ielts: 7, ex: 2 };
   try {
@@ -259,11 +259,11 @@ class Client {
     r = await new Client().call('POST', '/api/admin/mail-test', { to: 'x@y.com' }); ok(r.s === 401, 'admin: sinov xati tokensiz yopiq', r.s);
     { // Jurnal: kim xat yubordi, kim panelga kirdi (token rejimi: ADMIN_ALLOW_TOKEN=1 — favqulodda yoʻl)
       const AE = { Authorization: 'Bearer adm-secret' }, jc = () => new Client();
-      let q = await jc().call('POST', '/api/admin/mail-test', { to: 'jurnal@gmail.com' }, AE);
+      let q = await jc().call('POST', '/api/admin/mail-test', { to: 'sinov@gmail.com' }, AE);
       q = await jc().call('GET', '/api/admin/audit'); ok(q.s === 401, 'jurnal: tokensiz yopiq', q.s);
       q = await jc().call('GET', '/api/admin/audit', null, AE);
       ok(q.s === 200 && q.j.me === '(token)', 'jurnal: token orqali kirgan «(token)» deb belgilanadi', q.j && q.j.me);
-      const sm = q.j.mail.find(m => m.to === 'jurnal@gmail.com'), fg = q.j.mail.find(m => m.to === 'reset@gmail.com');
+      const sm = q.j.mail.find(m => m.to === 'sinov@gmail.com'), fg = q.j.mail.find(m => m.to === 'reset@gmail.com');
       ok(sm && sm.by === '(token)' && sm.kind === 'test' && sm.ok === true && /@/.test(sm.from), 'jurnal: sinov xatini kim yuborgani yoziladi', sm);
       ok(fg && fg.by === 'system' && fg.kind === 'reset' && fg.ok === true, 'jurnal: avtomatik xat «system» deb yoziladi', fg);
       ok(q.j.mail.every(m => !('html' in m) && !('text' in m) && !('body' in m)), 'jurnal: xat matni saqlanmaydi');
@@ -1145,8 +1145,9 @@ class Client {
       q = await A('GET', '/api/admin/audit'); ok(q.s === 200 && q.j.me === OWNER && q.j.sessions.length === 1 && q.j.sessions[0].cur === true && q.j.sessions[0].email === OWNER, 'jurnal: seanslar roʻyxati, «hozirgi» belgisi', q.j.sessions);
       ok(q.j.access.some(e => e.ev === 'in' && e.who === OWNER && e.ok) && q.j.access.some(e => e.ev === 'bad' && !e.ok) && q.j.access.some(e => e.ev === 'ask'), 'jurnal: kirish, notoʻgʻri kod va kod soʻrovi yoziladi');
       ok(!JSON.stringify(q.j).includes(good), 'jurnal: kod oʻzi hech qayerda koʻrinmaydi');
-      q = await A('POST', '/api/admin/mail-test', { to: 'sinov@example.test' }); ok(q.s === 200, 'admin: seans bilan xat yuborish ishlaydi', q.s);
-      q = await A('GET', '/api/admin/audit'); ok(q.j.mail.some(m => m.to === 'sinov@example.test' && m.by === OWNER), 'jurnal: xatni kim yuborgani — admin emaili', q.j.mail.slice(0, 2));
+      q = await A('POST', '/api/admin/mail-test', { to: OWNER }); ok(q.s === 200, 'admin: seans bilan oʻz emailiga sinov xati yuborish ishlaydi', q.s);
+      q = await A('POST', '/api/admin/mail-test', { to: 'boshqa@example.test' }); ok(q.s === 403, 'admin: sinov xati boshqa manzilga yuborilmaydi (suiisteʼmolga yoʻl yoʻq)', q.s);
+      q = await A('GET', '/api/admin/audit'); ok(q.j.mail.some(m => m.kind === 'test' && m.by === OWNER), 'jurnal: xatni kim yuborgani — admin emaili', q.j.mail.slice(0, 3));
       // soxta/buzuq cookie
       for (const bad of ['ud_adm=abc', 'ud_adm=' + 'x'.repeat(300), 'ud_adm=%E0%A4%A', 'ud_adm=; ud_adm=', 'sid=1; ud_adm=' + 'a'.repeat(43)]) { q = await anon('GET', '/api/admin/stats', null, { Cookie: bad }); ok(q.s === 401, 'soxta cookie rad etiladi: ' + bad.slice(0, 18), q.s); }
       ok((await anon('GET', '/healthz')).s === 200, 'buzuq cookie serverni yiqitmaydi');

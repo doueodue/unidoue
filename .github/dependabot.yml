@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions   # CI harakatlari versiyalarini yangilab turadi
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm              # hozir tashqi paket yoʻq; paket qoʻshilsa avtomatik kuzatiladi
+    directory: /
+    schedule:
+      interval: weekly

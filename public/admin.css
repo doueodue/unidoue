@@ -336,3 +336,15 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .lg-alt .btn.ghost:hover:not(:disabled){color:var(--ink,inherit);background:color-mix(in srgb,var(--muted) 10%,transparent)}
 .lg-alt .btn.ghost:disabled{opacity:.7;cursor:default}
 #ac{width:100%}
+
+/* Himoya holati */
+.qg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px 18px;margin:4px 0 6px}
+.qg>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.qg span{font-size:12.5px;color:var(--muted)}
+.qg b{font-size:15px;font-variant-numeric:tabular-nums}
+.qb{height:7px;border-radius:99px;background:color-mix(in srgb,var(--muted) 18%,transparent);overflow:hidden;margin-top:2px}
+.qb i{display:block;height:100%;border-radius:99px;background:var(--ok);transition:width .4s var(--fx-ease,ease)}
+.qb i.md{background:var(--warn)}.qb i.hi{background:var(--bad,#d33)}
+.modal.ra input{width:100%;margin:6px 0 4px;padding:12px 14px;font-size:24px;letter-spacing:8px;text-align:center;font-variant-numeric:tabular-nums;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);color:var(--text)}
+.modal.ra input[hidden]{display:none}
+#sc-sm{margin-left:10px}

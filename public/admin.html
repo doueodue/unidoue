@@ -75,6 +75,7 @@
       <a href="#push" data-v="push"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M13.7 20a2 2 0 0 1-3.4 0"/></svg>Xabarlar</a>
       <div class="nav-sec">Xavfsizlik</div>
       <a href="#access" data-v="access"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M19 9v5.5M16.2 12h5.6"/></svg>Kirishlar</a>
+      <a href="#security" data-v="security"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.8 12.2 2.3 2.3 4.2-4.6"/></svg>Himoya holati<i class="nav-n" id="sec-nn" hidden></i></a>
       <a href="#log" data-v="log"><svg viewBox="0 0 24 24"><path d="M8 3.5h8l3.5 3.5v13a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1h2.5ZM15.5 3.5V7H19M8 12h8M8 15.5h8M8 8.5h3"/></svg>Yuborilgan xatlar</a>
     </nav>
     <div class="side-foot">
@@ -293,6 +294,24 @@
           <div class="card-h"><h3>Kirishlar tarixi</h3><span class="badge mut" id="ac-hc">0</span></div>
           <p class="sub">Har bir kirish va urinish: qachon, qaysi qurilma va IP’dan. Kod so‘rash, noto‘g‘ri kod va seanssiz urinishlar ham shu yerda. So‘nggi 300 ta yozuv saqlanadi.</p>
           <div id="ac-h"></div>
+        </section>
+      </section>
+
+      <!-- Himoya holati -->
+      <section class="view" id="v-security" hidden>
+        <div class="sec-h"><h2>Himoya holati</h2><span class="badge mut" id="sc-c"></span></div>
+        <div class="kpis kpis-s" id="sc-k"></div>
+        <section class="card" id="sc-mail">
+          <div class="card-h"><h3>Email yuborish</h3><span class="badge" id="sc-mb"></span></div>
+          <p class="sub">Foydalanuvchilarga xat faqat server orqali, kvota doirasida ketadi. Shubhali holatda xatni bir bosishda to‘xtating (kirish kodlari adminga baribir keladi).</p>
+          <div id="sc-mq"></div>
+          <div class="grant-f"><button class="btn danger sm" id="sc-sw" type="button">Xat yuborishni to‘xtatish</button><span class="msg" id="sc-sm" role="alert"></span></div>
+        </section>
+        <section class="card">
+          <div class="card-h"><h3>Xavfsizlik jurnali</h3><span class="badge mut" id="sc-ec">0</span></div>
+          <p class="sub">Kirishlar, kodni taxmin qilish, xat yuborish va boshqa muhim amallar. Har yozuv oldingisi bilan zanjirlangan: o‘zgartirilsa yoki o‘chirilsa, yuqoridagi «Jurnal zanjiri» belgisi buziladi. So‘nggi 150 ta voqea.</p>
+          <div class="chips" id="sc-f" role="group" aria-label="Voqea turi"></div>
+          <div id="sc-e"></div>
         </section>
       </section>
 

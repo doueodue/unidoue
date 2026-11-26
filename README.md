@@ -18,6 +18,8 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 - Ruxsat etilmagan emailga kod yuborilmaydi va javob bir xil (kim admin ekani aniqlanmaydi). Kod soʻrash va tekshirish IP/soat/sutka boʻyicha cheklangan. `ADMIN_EMAILS` boʻsh boʻlsa — hamma uchun yopiq.
 - Admin jurnali: kim (email), qachon, qaysi IP/qurilmadan kirdi, kim qaysi xatni yubordi. Notoʻgʻri kod va ruxsatsiz urinishlar ham yoziladi.
 - Barcha sahifalarda qattiq CSP (inline skript yoʻq), HSTS, `X-Frame-Options: DENY`, Permissions-Policy, noindex; HTTP → HTTPS.
+- **Xavfsizlik chuqurligi:** qayta tasdiqlash (ommaviy xat va xatni qayta yoqish uchun emailga yangi kod), xat kvotalari va oʻchirgich, tamper-evident (zanjirlangan) xavfsizlik jurnali, admin hisobi boʻyicha urinishlar cheklovi (IP almashtirish yordam bermaydi), yangi qurilma/koʻp xato/ommaviy xat haqida darhol email+push ogohlantirish, favqulodda `ADMIN_LOCKDOWN`. Toʻliq tavsif, runbook va qoʻlda sozlanadigan qadamlar: **[SECURITY.md](SECURITY.md)**.
+- Testlar: `npm test` (hammasi), `npm run test:security` (zaiflik regressiya testlari + zaxira/tiklash). Zaxira: `npm run backup` (`tools/backup.js`).
 - Agar token/kalit sizib chiqqan boʻlsa: Render → Environment da `ADMIN_TOKEN` (va kerak boʻlsa API kalitlari) qiymatini almashtiring; **Faol seanslar** → «Hamma qurilmalardan chiqarish».
 
 ## Sozlamalar (environment variables)
@@ -28,6 +30,14 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 | `ADMIN_EMAILS` | **Admin paneliga kira oladigan email** (bitta yoki vergul bilan bir nechta). Qoʻyilmasa — admin kirishi hamma uchun yopiq. Email kodga yozilmaydi, faqat shu yerda |
 | `ADMIN_TOKEN` | Faqat rejalashtiruvchi uchun (`POST /api/admin/remind`). Paneldan kirish uchun **ishlatilmaydi** |
 | `ADMIN_ALLOW_TOKEN` | `1` boʻlsa `ADMIN_TOKEN` yana butun admin API ni ochadi — faqat favqulodda/sinov uchun, **standart: oʻchiq** |
+| `TRUST_PROXY_HOPS`, `CLIENT_IP_HEADER` | Mijoz IP si qanday aniqlanadi (`TRUST_PROXY=1` da). Standart: Cloudflare `True-Client-IP`/`CF-Connecting-IP`, boʻlmasa `X-Forwarded-For` ning **oʻng** tomonidan `TRUST_PROXY_HOPS`-chisi (standart 1 — Render). Aniq sarlavha: `CLIENT_IP_HEADER=cf-connecting-ip`. Sarlavhaga ishonish noto‘g‘ri sozlansa, hujumchi IP ni soxtalashtirib limitlarni aylanib o‘tadi |
+| `ADMIN_LOCKDOWN` | `1` — admin paneli va admin API **butunlay yopiladi** (mavjud seanslar ham). Favqulodda: avval shuni qoʻying, keyin sirlarni almashtiring. Qaytarish: oʻchiring (seanslar saqlanadi) |
+| `ADMIN_REVOKE_BEFORE`, `SESSIONS_REVOKE_BEFORE` | ISO sana (masalan `2026-11-26T12:00:00Z`): shu sanadan oldin ochilgan hamma **admin** / **foydalanuvchi** seanslari yaroqsiz. Server qayta ishga tushganda amal qiladi |
+| `MAIL_DISABLED` | `1` — foydalanuvchilarga email yuborish toʻxtatiladi (admin kirish kodlari va ogohlantirishlar ketaveradi). Panelda: Himoya holati → «Xat yuborishni toʻxtatish» |
+| `MAIL_HOURLY_MAX`, `MAIL_DAILY_MAX`, `MAIL_RCPT_HOURLY`, `MAIL_RCPT_DAILY` | Email kvotalari: umumiy soatiga/sutkasiga (standart 400/1500), bitta manzilga soatiga/sutkasiga (6/15). Oshsa xat ketmaydi va administratorga ogohlantirish yuboriladi |
+| `ADM_REAUTH_MS`, `ADM_COOLDOWN_MS`, `ADM_START_MAX` | Admin: xavfli amallar uchun qayta tasdiqlash oynasi (standart 10 daqiqa), kod soʻrash oraligʻi (30 s), IP dan soʻrovlar soni (4 / 15 daqiqa) |
+| `ALERT_RPM` | Bir daqiqada nechta API soʻrovdan keyin «trafik keskin oshdi» ogohlantirishi yuboriladi (standart 1500) |
+| `BACKUP_PASSPHRASE` | `tools/backup.js` zaxiralarini AES-256-GCM bilan shifrlash parolisi (repoga yozmang, Render yoki oʻzingizdagi parol menejerida saqlang) |
 | `BREVO_API_KEY`, `MAIL_FROM` | Parolni tiklash xati (Brevo, domen talab qilmaydi). `MAIL_FROM` = Brevo'da tasdiqlangan joʻnatuvchi, masalan `UniDoue <sizning@gmail.com>` |
 | `DATABASE_URL` | Neon (bepul Postgres) ulanish manzili. **Bepul Render'da hisoblar o'chib ketmasligi uchun kerak.** Kalitsiz ma'lumotlar faqat serverdagi faylda turadi |
 | `ANTHROPIC_API_KEY` | AI mentor, esse tahlili, strategiya, hisobot. **Kalitsiz AI "ulanmagan" holatida turadi** |
