@@ -257,6 +257,30 @@ class Client {
     const token = mails[0] && (mails[0].html.match(/token=([\w-]+)/) || [])[1]; ok(r.s === 200 && token && mails[0].to[0] === 'reset@gmail.com', 'xat yuborildi', mails.length);
     mails.length = 0; r = await new Client().call('POST', '/api/admin/mail-test', { to: 'sinov@gmail.com' }, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200 && r.j.ok === true && mails.length === 1 && mails[0].to[0] === 'sinov@gmail.com' && typeof mails[0].text === 'string' && mails[0].text.length > 5, 'admin: sinov xati yuboriladi (HTML + oddiy matn)', r.j); mails.length = 0;
     r = await new Client().call('POST', '/api/admin/mail-test', { to: 'x@y.com' }); ok(r.s === 401, 'admin: sinov xati tokensiz yopiq', r.s);
+    { // Jurnal: kim xat yubordi, kim panelga kirdi
+      const AE = { Authorization: 'Bearer adm-secret', 'X-Admin-Email': 'Boss@UniDoue.uz' }, jc = () => new Client();
+      let q = await jc().call('POST', '/api/admin/mail-test', { to: 'jurnal@gmail.com' }, AE);
+      q = await jc().call('GET', '/api/admin/audit'); ok(q.s === 401, 'jurnal: tokensiz yopiq', q.s);
+      q = await jc().call('GET', '/api/admin/audit', null, AE);
+      ok(q.s === 200 && q.j.me === 'boss@unidoue.uz', 'jurnal: admin emaili aniqlanadi (kichik harfga oʻtkaziladi)', q.j && q.j.me);
+      const sm = q.j.mail.find(m => m.to === 'jurnal@gmail.com'), fg = q.j.mail.find(m => m.to === 'reset@gmail.com');
+      ok(sm && sm.by === 'boss@unidoue.uz' && sm.kind === 'test' && sm.ok === true && /@/.test(sm.from), 'jurnal: sinov xatini kim yuborgani yoziladi', sm);
+      ok(fg && fg.by === 'system' && fg.kind === 'reset' && fg.ok === true, 'jurnal: avtomatik xat «system» deb yoziladi', fg);
+      ok(q.j.mail.every(m => !('html' in m) && !('text' in m) && !('body' in m)), 'jurnal: xat matni saqlanmaydi');
+      const my = q.j.access.filter(e => e.ok && e.who === 'boss@unidoue.uz');
+      ok(my.length === 1 && my[0].cur === true && my[0].ip && my[0].ua, 'jurnal: kirish yozuvi bitta (takroriy soʻrovlar birlashadi), «Siz» belgisi, IP va qurilma bor', my);
+      ok(q.j.access.some(e => !e.ok), 'jurnal: notoʻgʻri token bilan urinish ham yoziladi');
+      await jc().call('GET', '/api/admin/users', null, { Authorization: 'Bearer adm-secret', 'X-Admin-Email': 'yomon email' });
+      q = await jc().call('GET', '/api/admin/audit', null, AE);
+      ok(!q.j.access.some(e => /yomon/.test(e.who)), 'jurnal: notoʻgʻri formatdagi email qabul qilinmaydi');
+      // hisob oʻchirilsa, uning emaili yuborilgan xatlar jurnalidan ham olib tashlanadi
+      const pg = jc(); await pg.call('POST', '/api/register', { email: 'jurnalpurge@gmail.com', password: 'parol12345', name: 'JP' });
+      await jc().call('POST', '/api/password/forgot', { email: 'jurnalpurge@gmail.com' }); await new Promise(r => setTimeout(r, 300));
+      q = await jc().call('GET', '/api/admin/audit', null, AE); ok(q.j.mail.some(m => m.to === 'jurnalpurge@gmail.com'), 'jurnal: xat yozilgan');
+      await pg.call('DELETE', '/api/account', { password: 'parol12345' });
+      q = await jc().call('GET', '/api/admin/audit', null, AE); ok(!q.j.mail.some(m => m.to === 'jurnalpurge@gmail.com'), 'jurnal: hisob oʻchirilganda emaili jurnaldan ham ketadi');
+      mails.length = 0;
+    }
     r = await new Client().call('GET', '/api/admin/stats', null, { Authorization: 'Bearer adm-secret' }); ok(r.s === 200 && r.j.mailOk >= 1 && r.j.mailLast && r.j.mailLast.ok === true, 'admin stats: oxirgi xat holati', r.j.mailLast);
     r = await new Client().call('POST', '/api/password/reset', { token: 'notogri', password: 'yangi-parol1' }); ok(r.s === 400, 'notoʻgʻri token rad etiladi');
     r = await new Client().call('POST', '/api/password/reset', { token, password: 'yangi-parol1' }); ok(r.s === 200, 'parol yangilandi', r.s);

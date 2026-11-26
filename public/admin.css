@@ -325,3 +325,7 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .modal.rp .acts{margin-top:12px}
 .req-a .btn svg,.modal.rp .btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;margin-right:6px;vertical-align:-3px}
 @media(max-width:520px){.modal.rp{padding:20px 16px}}
+
+/* Jurnal: kirgan admin emaili va jadval ichidagi kichik izoh */
+.side-foot .me{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm table.tbl td small{color:var(--muted);font-size:12px}

@@ -39,7 +39,7 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [] });
+const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [], adminLog: Array.isArray(raw.adminLog) ? raw.adminLog : [], mailLog: Array.isArray(raw.mailLog) ? raw.mailLog : [] });
 let db = normDb({});
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
@@ -143,6 +143,13 @@ const MAIL_FROM = process.env.MAIL_FROM || 'UniDoue <onboarding@resend.dev>';
 const MAIL_REPLY_TO = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test((process.env.MAIL_REPLY_TO || '').trim()) ? process.env.MAIL_REPLY_TO.trim() : ''; // ixtiyoriy: foydalanuvchi administrator javobiga javob yozsa, shu manzilga boradi
 // Xat yuborish: Resend yoki Brevo (domen talab qilmaydi — faqat tasdiqlangan joʻnatuvchi email)
 const MAILSTAT = { ok: 0, fail: 0, last: null };
+const MAILLOG_MAX = 400;
+const MAIL_FROM_ADDR = ((/<([^>]+)>/.exec(MAIL_FROM) || [])[1] || MAIL_FROM).trim();
+/** Yuborilgan xatlar jurnali (admin panel → Jurnal): kimga, mavzu, kim yubordi (admin emaili yoki «system»), qaysi manzildan, natija. Xat matni saqlanmaydi. */
+function logMail(e) {
+  db.mailLog.unshift(e); if (db.mailLog.length > MAILLOG_MAX) db.mailLog.length = MAILLOG_MAX;
+  save();
+}
 const toText = h => String(h).replace(/<br\s*\/?>|<\/p>|<\/h\d>|<\/li>|<\/tr>/gi, '\n').replace(/<a [^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, '$2 ($1)').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\n{3,}/g, '\n\n').trim();
 /** Xat yuborilmagan sababini oddiy tilda tushuntiradi (admin panelda ko‘rsatiladi). */
 function mailHint(err) {
@@ -154,8 +161,9 @@ function mailHint(err) {
   if (/timeout|aborted|ENOTFOUND|ECONN/i.test(e)) return 'Xat xizmatiga ulanib bo‘lmadi (tarmoq yoki vaqt tugashi).';
   return '';
 }
-async function sendMail(to, subject, html, kind = 'mail', replyTo = '') {
+async function sendMail(to, subject, html, kind = 'mail', replyTo = '', by = 'system') {
   const text = toText(html);
+  const rec = { t: Date.now(), to: String(to).slice(0, 254), subject: String(subject).replace(/\s+/g, ' ').slice(0, 150), kind, by, from: MAIL_FROM_ADDR, prov: MAIL_PROVIDER };
   try {
     let r;
     if (MAIL_PROVIDER === 'resend') {
@@ -166,8 +174,10 @@ async function sendMail(to, subject, html, kind = 'mail', replyTo = '') {
     }
     if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(MAIL_PROVIDER + ' ' + r.status + ' ' + t.slice(0, 200)); }
     MAILSTAT.ok++; MAILSTAT.last = { at: Date.now(), ok: true, kind };
+    logMail({ ...rec, ok: true });
   } catch (e) {
     MAILSTAT.fail++; MAILSTAT.last = { at: Date.now(), ok: false, kind, err: String(e.message || e).slice(0, 300) };
+    logMail({ ...rec, ok: false, err: String(e.message || e).slice(0, 120) });
     throw e;
   }
 }
@@ -182,11 +192,11 @@ const GOOGLE_ON = !!(GOOGLE_ID && GOOGLE_SECRET);
 const GOOGLE_AUTH = process.env.GOOGLE_AUTH_URL || 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN = process.env.GOOGLE_TOKEN_URL || 'https://oauth2.googleapis.com/token';
 const authCfg = () => ({ google: GOOGLE_ON, email: !VERIFY_ON || !!MAIL_PROVIDER });
-async function issueCode(u) {
+async function issueCode(u, by) {
   const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
   u.vcode = { h: sha256(u.id + ':' + code), exp: Date.now() + 15 * 60000, tries: 0, sent: Date.now() };
   await sendMail(u.email, 'UniDoue: tasdiqlash kodi',
-    `<p>UniDoue tasdiqlash kodingiz:</p><p style="font-size:28px;letter-spacing:6px"><b>${code}</b></p><p>Kod 15 daqiqa amal qiladi. Bu soʻrovni siz yubormagan boʻlsangiz, xatni eʼtiborsiz qoldiring.</p>`, 'verify');
+    `<p>UniDoue tasdiqlash kodingiz:</p><p style="font-size:28px;letter-spacing:6px"><b>${code}</b></p><p>Kod 15 daqiqa amal qiladi. Bu soʻrovni siz yubormagan boʻlsangiz, xatni eʼtiborsiz qoldiring.</p>`, 'verify', '', by);
 }
 // Qoʻlda toʻlov: karta rekvizitlari faqat serverda sozlansa (PAY_CARD, PAY_HOLDER) koʻrsatiladi. Toʻlov avtomatik tekshirilmaydi: Pro administrator tomonidan qoʻlda yoqiladi.
 const PAY_CARD = (process.env.PAY_CARD || '').replace(/\s/g, '');
@@ -404,10 +414,24 @@ const pushUrl = v => (typeof v === 'string' && /^\/(?!\/)[\w\-./#?=&%]*$/.test(v
 const pushMsg = m => ({ title: clean(m.title, 80) || 'UniDoue', body: clean(m.body, 240), url: pushUrl(m.url), tag: clean(m.tag, 40) || undefined });
 const parseSub = b => { const ep = b && b.endpoint, k = b && b.keys; return PUSH.validEndpoint(ep) && PUSH.validKeys(k) ? { ep, p: k.p256dh, a: k.auth } : null; };
 const isAdmin = req => { const tok = process.env.ADMIN_TOKEN, got = String(req.headers.authorization || '').replace(/^Bearer\s+/i, ''); return !!tok && crypto.timingSafeEqual(Buffer.from(sha256(got)), Buffer.from(sha256(tok))); };
+// Admin kimligi: kirish oynasida yozilgan email (X-Admin-Email). Token umumiy boʻlgani uchun bu tasdiqlanmagan — kim kirganini yozib borish uchun, himoya emas.
+const ADM_EMAIL_RE = /^[^\s@<>\x00-\x20\x7f-\uffff]{1,64}@[^\s@<>\x00-\x20\x7f-\uffff]+\.[^\s@<>\x00-\x20\x7f-\uffff]{2,}$/;
+const admWho = req => { const v = String(req.headers['x-admin-email'] || '').trim().toLowerCase().slice(0, 254); return ADM_EMAIL_RE.test(v) ? v : ''; };
+const ADMLOG_MAX = 300;
+/** Admin kirishlari jurnali. Bir xil (email, IP, qurilma) uchun 30 daqiqa ichida bitta yozuv (faollik vaqti `seen` yangilanadi); xato urinishlar 10 daqiqada bir marta. */
+function logAdmin(req, ip, ok) {
+  const who = admWho(req), ua = clean(req.headers['user-agent'], 160), now = Date.now(), win = ok ? 30 * 60 * 1000 : 10 * 60 * 1000;
+  const e = db.adminLog.find(x => x.ok === ok && x.ip === ip && x.who === who && x.ua === ua && now - (x.seen || x.t) < win);
+  if (e) { e.seen = now; return; }
+  db.adminLog.unshift({ t: now, seen: now, ok, who, ip: String(ip).slice(0, 64), ua });
+  while (db.adminLog.length > ADMLOG_MAX) { let i = db.adminLog.length - 1; for (let k = i; k >= 0; k--) if (!db.adminLog[k].ok) { i = k; break; } db.adminLog.splice(i, 1); } // avval eng eski xato urinishlar siqib chiqariladi
+  save();
+}
 // Admin: IP boʻyicha faqat XATO token sanaladi (20 ta / 15 daqiqa). Toʻgʻri tokenli soʻrovlar (yangilash, avto-yangilash, tarif berish) bir-biriga xalaqit bermaydi; har endpoint oʻz limitiga ega.
 function admGate(req, res, ip, name, max) {
   if (peek('admf:' + ip) >= 20) { fail(res, 429, 'Juda koʻp urinish.'); return false; }
-  if (!isAdmin(req)) { limited('admf:' + ip, 20, 15 * 60 * 1000); fail(res, 401, 'Ruxsat yoʻq.'); return false; }
+  if (!isAdmin(req)) { limited('admf:' + ip, 20, 15 * 60 * 1000); logAdmin(req, ip, false); fail(res, 401, 'Ruxsat yoʻq.'); return false; }
+  logAdmin(req, ip, true);
   if (limited('adm:' + name + ':' + ip, max, 15 * 60 * 1000)) { fail(res, 429, 'Juda koʻp urinish.'); return false; }
   return true;
 }
@@ -438,12 +462,12 @@ const unsubLink = u => `${baseUrl()}/unsub?u=${u.id}&s=${NOTES.sig(vapid().priv,
 const canMail = u => !!u.email && u.verified !== false && !u.noMail;
 /** Tizim xabari (tarif yoqildi, promo qabul qilindi): faqat shu foydalanuvchining paneliga tushadi */
 const sysNote = (u, title, body, url) => NOTES.add(db, { title, body, url: url || '/app#/pricing', aud: 'email', to: [u.id], app: true, push: false, mail: false, sys: true });
-async function mailMany(users, m) {
+async function mailMany(users, m, by) {
   const out = { ok: 0, failed: 0 }; let i = 0;
   const worker = async () => {
     for (;;) {
       const u = users[i++]; if (!u) return;
-      try { await sendMail(u.email, m.title, NOTES.mailHtml({ title: m.title, body: m.body, link: baseUrl() + m.url, unsub: unsubLink(u) })); out.ok++; }
+      try { await sendMail(u.email, m.title, NOTES.mailHtml({ title: m.title, body: m.body, link: baseUrl() + m.url, unsub: unsubLink(u) }), 'news', '', by); out.ok++; }
       catch (e) { out.failed++; console.error('Xat yuborilmadi:', String(e.message).slice(0, 120)); }
     }
   };
@@ -854,7 +878,7 @@ async function api(req, res, pathname) {
     if (u.noPw) { if (clean(b.confirm, 254).toLowerCase() !== u.email) return fail(res, 401, 'Tasdiqlash uchun emailingizni toʻgʻri yozing.'); }
     else if (!(await checkPw(typeof b.password === 'string' ? b.password.slice(0, 128) : '', u.hash))) return fail(res, 401, 'Parol notoʻgʻri.');
     for (const [k, s] of Object.entries(db.sessions)) if (s.uid === u.id) delete db.sessions[k];
-    db.requests = db.requests.filter(r => r.uid !== u.id); db.feedback = db.feedback.filter(f => f.uid !== u.id);
+    db.requests = db.requests.filter(r => r.uid !== u.id); db.feedback = db.feedback.filter(f => f.uid !== u.id); db.mailLog = db.mailLog.filter(m => m.to !== u.email);
     for (const [k, r] of Object.entries(db.resets)) if (r.uid === u.id) delete db.resets[k];
     PROMO.forget(db, u.id);
     emailIdx.delete(u.email); delete db.users[u.id];
@@ -980,7 +1004,7 @@ async function api(req, res, pathname) {
       const r = await pushMany(pushTo_, m); for (const x of pushTo_) if (x.push && !x.push.length) delete x.push;
       rec.st.push = { targets: pushTo_.length, devices: r.ok + r.gone + r.failed, ...r };
     }
-    if (ch.mail) { const r = await mailMany(mailTo, m); rec.st.mail = { targets: mailTo.length, ...r, skipped: users.length - mailTo.length }; }
+    if (ch.mail) { const r = await mailMany(mailTo, m, admWho(req) || 'admin'); rec.st.mail = { targets: mailTo.length, ...r, skipped: users.length - mailTo.length }; }
     save();
     const st = rec.st;
     return send(res, 200, { ok: !!(st.app > 0 || (st.push && st.push.ok > 0) || (st.mail && st.mail.ok > 0)), id: rec.id, audience: aud, st });
@@ -1011,7 +1035,7 @@ async function api(req, res, pathname) {
     if (u.google) return fail(res, 400, 'Bu hisob Google orqali tasdiqlangan.');
     if (!MAIL_PROVIDER) return fail(res, 400, 'Xat yuborish ulanmagan: foydalanuvchiga kod yuborib boʻlmaydi.');
     const prev = u.verified; u.verified = false;
-    try { await issueCode(u); } catch (e) { if (prev === undefined) delete u.verified; else u.verified = prev; delete u.vcode; return fail(res, 502, 'Kod yuborilmadi: ' + String(e.message).slice(0, 160)); }
+    try { await issueCode(u, admWho(req) || 'admin'); } catch (e) { if (prev === undefined) delete u.verified; else u.verified = prev; delete u.vcode; return fail(res, 502, 'Kod yuborilmadi: ' + String(e.message).slice(0, 160)); }
     save();
     return send(res, 200, { ok: true, email: u.email });
   }
@@ -1026,7 +1050,7 @@ async function api(req, res, pathname) {
     const subject = clean(b.subject, 150) || 'UniDoue: javob', body = String(b.body || '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ' ').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 5000);
     if (body.length < 2) return fail(res, 400, 'Javob matnini yozing.');
     const quote = String(item.text || item.message || '').split('\n').slice(0, 12).join('\n');
-    try { await sendMail(item.email, subject, NOTES.replyHtml({ body, quote, replyable: !!MAIL_REPLY_TO }), 'reply', MAIL_REPLY_TO); }
+    try { await sendMail(item.email, subject, NOTES.replyHtml({ body, quote, replyable: !!MAIL_REPLY_TO }), 'reply', MAIL_REPLY_TO, admWho(req) || 'admin'); }
     catch (e) { return fail(res, 502, 'Xat yuborilmadi: ' + (mailHint(e.message) || String(e.message).slice(0, 160))); }
     item.replies = [...(item.replies || []), { ts: new Date().toISOString(), subject }].slice(-20);
     if (b.kind === 'feedback' && b.done === true) item.status = 'done';
@@ -1281,6 +1305,17 @@ async function api(req, res, pathname) {
     return send(res, 200, { items, total: (doc.items || []).length, updated: doc.updated || null });
   }
 
+  /* ---- Admin jurnali: panelga kirganlar (email, IP, qurilma) va foydalanuvchilarga yuborilgan xatlar (kim yubordi) ---- */
+  if (pathname === '/api/admin/audit' && method === 'GET') {
+    if (!admGate(req, res, ip, 'audit', 300)) return;
+    const me = admWho(req), ua = clean(req.headers['user-agent'], 160);
+    return send(res, 200, {
+      me, from: MAIL_FROM_ADDR, provider: MAIL_PROVIDER,
+      access: db.adminLog.slice(0, 100).map(e => ({ ...e, cur: e.ok && e.ip === ip && e.who === me && e.ua === ua })),
+      mail: db.mailLog.slice(0, 150),
+    });
+  }
+
   if (pathname === '/api/admin/stats' && method === 'GET') {
     if (!admGate(req, res, ip, 'stats', 300)) return;
     const us = Object.values(db.users), now = Date.now(), today = tashkentISO();
@@ -1377,7 +1412,7 @@ async function api(req, res, pathname) {
     if (!MAIL_PROVIDER) return send(res, 200, { ok: false, error: 'RESEND_API_KEY yoki BREVO_API_KEY sozlanmagan.', hint: 'Render → Environment ga kalit va MAIL_FROM qo‘shing.' });
     const b = await readJson(req), to = clean(b.to, 254).toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return fail(res, 400, 'Email noto‘g‘ri.');
-    try { await sendMail(to, 'UniDoue: sinov xati', '<p>Bu UniDoue sinov xati. Agar buni o‘qiyotgan bo‘lsangiz, xat yuborish to‘g‘ri sozlangan.</p>', 'test'); return send(res, 200, { ok: true, provider: MAIL_PROVIDER, from: MAIL_FROM }); }
+    try { await sendMail(to, 'UniDoue: sinov xati', '<p>Bu UniDoue sinov xati. Agar buni o‘qiyotgan bo‘lsangiz, xat yuborish to‘g‘ri sozlangan.</p>', 'test', '', admWho(req) || 'admin'); return send(res, 200, { ok: true, provider: MAIL_PROVIDER, from: MAIL_FROM }); }
     catch (e) { return send(res, 200, { ok: false, provider: MAIL_PROVIDER, from: MAIL_FROM, error: String(e.message).slice(0, 300), hint: mailHint(e.message) }); }
   }
 

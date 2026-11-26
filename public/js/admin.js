@@ -6,6 +6,12 @@ import '/js/ui.js';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 let TOKEN = '';
 try { TOKEN = sessionStorage.getItem('unidoue:adm') || ''; } catch (e) {}
+const EM_KEY = 'unidoue:adm-email'; // admin emaili: Jurnalda «kim kirdi» deb yoziladi (ASCII — sarlavhada yuboriladi)
+const ADM_EMAIL = /^[^\s@<>\x00-\x20\x7f-\uffff]{1,64}@[^\s@<>\x00-\x20\x7f-\uffff]+\.[^\s@<>\x00-\x20\x7f-\uffff]{2,}$/;
+let EMAIL = '';
+try { EMAIL = (localStorage.getItem(EM_KEY) || '').trim().toLowerCase(); } catch (e) {}
+if (!ADM_EMAIL.test(EMAIL)) EMAIL = '';
+const authHdr = () => ({ Authorization: 'Bearer ' + TOKEN, ...(EMAIL ? { 'X-Admin-Email': EMAIL } : {}) });
 const EP_KEY = 'unidoue:adm-ep'; // shu brauzer admin qurilmasi sifatida yozilgan obuna manzili
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const MON = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'], p2 = n => String(n).padStart(2, '0');
@@ -35,7 +41,7 @@ const IC = {
 
 /* ---------- tarmoq ---------- */
 async function call(method, url, body) {
-  const r = await fetch(url, { method, headers: { Authorization: 'Bearer ' + TOKEN, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  const r = await fetch(url, { method, headers: { ...authHdr(), ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { const e = new Error(j.error || 'Xato (' + r.status + ')'); e.status = r.status; throw e; }
   return j;
@@ -96,7 +102,7 @@ let USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all
 const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
 
 /* ---------- yo‘naltirish ---------- */
-const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar' };
+const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar', log: 'Jurnal' };
 function route() {
   const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
   $$('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
@@ -188,7 +194,7 @@ function deviceOf(ua) {
 const FBURL = new Map();
 async function fbBlob(id, n) {
   const k = id + ':' + n; if (FBURL.has(k)) return FBURL.get(k);
-  const r = await fetch(`/api/admin/feedback/img?id=${encodeURIComponent(id)}&n=${n}`, { headers: { Authorization: 'Bearer ' + TOKEN } });
+  const r = await fetch(`/api/admin/feedback/img?id=${encodeURIComponent(id)}&n=${n}`, { headers: authHdr() });
   if (!r.ok) throw new Error('Rasm yuklanmadi');
   const bl = await r.blob(); /* CSP blob: rasmlarga ruxsat bermaydi — data: URL ishlatamiz */
   const u = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(new Error('Rasm o‘qilmadi')); fr.readAsDataURL(bl); });
@@ -550,8 +556,30 @@ async function adminDevice() {
   if (t) t.onclick = async () => { t.disabled = true; try { const r = await call('POST', '/api/admin/push/send', { title: 'UniDoue admin', body: 'Admin bildirishnomalari ishlayapti ✓', url: '/admin#overview', audience: 'admin' }); say(r.ok ? 'Sinov xabari yuborildi — bir necha soniyada keladi.' : 'Yetkazib bo‘lmadi. O‘chirib, qayta yoqing.', r.ok ? 'ok' : 'err'); } catch (e) { say(e.message, 'err'); } t.disabled = false; };
 }
 
+/* ---------- Jurnal: kim kirdi, kim xat yubordi ---------- */
+let AUDIT = null;
+const MAIL_KIND = { verify: 'Tasdiqlash kodi', reset: 'Parolni tiklash', reply: 'Javob xati', test: 'Sinov xati', news: 'Xabar (yangilik)', mail: 'Xat' };
+const byName = b => b === 'system' ? '<span class="badge mute">Tizim (avtomatik)</span>' : b === 'admin' ? '<span class="badge mute">Admin (email yozilmagan)</span>' : `<b>${esc(b)}</b>`;
+function renderLog() {
+  if (!AUDIT) { const e = emptyBox('info', 'Jurnal yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#lg-a').innerHTML = e; $('#lg-m').innerHTML = e; $('#lg-ac').textContent = ''; $('#lg-mc').textContent = ''; return; }
+  const ac = AUDIT.access || [], ml = AUDIT.mail || [];
+  $('#lg-ac').textContent = ac.length; $('#lg-mc').textContent = ml.length;
+  $('#lg-a').innerHTML = ac.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Kirgan vaqti</th><th>Email</th><th>IP</th><th>Qurilma</th><th>Natija</th></tr></thead><tbody>${ac.map(e => `<tr>
+    <td data-l="Vaqt">${esc(when(e.t))}${e.seen && e.seen - e.t > 120000 ? `<br><small>oxirgi faollik: ${esc(rel(e.seen))}</small>` : ''}</td>
+    <td data-l="Email">${e.who ? '<b>' + esc(e.who) + '</b>' : '<span class="badge mute">email yozilmagan</span>'}${e.cur ? ' <span class="badge ok">Siz</span>' : ''}</td>
+    <td data-l="IP">${esc(e.ip)}</td><td data-l="Qurilma" title="${esc(e.ua)}">${esc(deviceOf(e.ua) || e.ua || '—')}</td>
+    <td data-l="Natija">${e.ok ? '<span class="badge ok">Kirdi</span>' : '<span class="badge bad">Noto‘g‘ri token</span>'}</td></tr>`).join('')}</tbody></table></div>` : emptyBox('users', 'Hali yozuv yo‘q', 'Panelga kirganlar shu yerda ko‘rinadi.');
+  $('#lg-ms').innerHTML = 'Har bir xat: kimga ketdi, kim yubordi va qaysi manzildan' + (AUDIT.from ? ` (hozir: <b>${esc(AUDIT.from)}</b>${AUDIT.provider ? ', ' + esc(AUDIT.provider) : ''})` : '') + '. Xat matni saqlanmaydi.';
+  $('#lg-m').innerHTML = ml.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Vaqt</th><th>Kimga</th><th>Mavzu</th><th>Turi</th><th>Kim yubordi</th><th>Kimdan</th><th>Holat</th></tr></thead><tbody>${ml.map(m => `<tr>
+    <td data-l="Vaqt">${esc(when(m.t))}</td><td data-l="Kimga">${esc(m.to)}</td><td data-l="Mavzu">${esc(m.subject)}</td>
+    <td data-l="Turi">${esc(MAIL_KIND[m.kind] || m.kind || 'Xat')}</td><td data-l="Kim yubordi">${byName(m.by || 'system')}</td><td data-l="Kimdan">${esc(m.from || '—')}</td>
+    <td data-l="Holat">${m.ok ? '<span class="badge ok">Yuborildi</span>' : `<span class="badge bad" title="${esc(m.err || '')}">Xato</span>`}</td></tr>`).join('')}</tbody></table></div>` : emptyBox('mail', 'Hali xat yuborilmagan', 'Tasdiqlash kodi, parolni tiklash, javob va xabar xatlari shu yerda ko‘rinadi.');
+  fx.scan($('#v-log'));
+}
+
 /* ---------- yuklash ---------- */
 function showLogin(msg) {
+  $('#ae').value = EMAIL || $('#ae').value;
   $('#shell').hidden = true; $('#lg').hidden = false; document.title = 'Admin — UniDoue';
   const m = $('#lm'); m.className = 'msg err'; m.textContent = msg || ''; $('#lb').disabled = false; if (!msg) m.className = 'msg';
 }
@@ -560,15 +588,16 @@ async function load(silent) {
   if (busy) return; busy = true;
   const rf = $('#rf'); rf.classList.add('spin'); if (!silent) $('#st').textContent = 'Yuklanmoqda…';
   try {
-    const [rq, us, st, od, pr, nh, un, fk] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
+    const [rq, us, st, od, pr, nh, un, fk, au] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
       call('GET', '/api/admin/orders').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/promos').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/notes').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/unis').catch(e => { if (e.status === 401) throw e; return null; }),
-      call('GET', '/api/admin/feedback').catch(e => { if (e.status === 401) throw e; return null; })]);
-    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; FBK = fk; if (nh) NH = nh; loadedAt = Date.now();
+      call('GET', '/api/admin/feedback').catch(e => { if (e.status === 401) throw e; return null; }),
+      call('GET', '/api/admin/audit').catch(e => { if (e.status === 401) throw e; return null; })]);
+    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; FBK = fk; AUDIT = au; if (nh) NH = nh; loadedAt = Date.now();
     const first = $('#shell').hidden; $('#lg').hidden = true; $('#shell').hidden = false;
-    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); audienceUi();
+    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); renderLog(); audienceUi(); $('#me').textContent = EMAIL || 'Admin';
     $('#st').textContent = 'Yangilandi: ' + when(Date.now()).split(', ')[1].split(' ').pop();
     if (first) route(); else fx.scan($('#kpis'));
   } catch (e) {
@@ -580,7 +609,15 @@ async function load(silent) {
 }
 
 /* ---------- hodisalar ---------- */
-$('#lf').onsubmit = ev => { ev.preventDefault(); const v = $('#tk').value.trim(); if (!v) return; TOKEN = v; try { sessionStorage.setItem('unidoue:adm', TOKEN); } catch (e) {} $('#tk').value = ''; $('#lb').disabled = true; load(); };
+$('#lf').onsubmit = ev => {
+  ev.preventDefault();
+  const em = $('#ae').value.trim().toLowerCase(), v = $('#tk').value.trim() || TOKEN, m = $('#lm');
+  if (!ADM_EMAIL.test(em)) { m.className = 'msg err'; m.textContent = 'Emailni to‘g‘ri kiriting (masalan, ism@gmail.com).'; return $('#ae').focus(); }
+  if (!v) { m.className = 'msg err'; m.textContent = 'Admin tokenni kiriting.'; return $('#tk').focus(); }
+  TOKEN = v; EMAIL = em; m.className = 'msg'; m.textContent = '';
+  try { sessionStorage.setItem('unidoue:adm', TOKEN); localStorage.setItem(EM_KEY, EMAIL); } catch (e) {}
+  $('#tk').value = ''; $('#lb').disabled = true; load();
+};
 $('#tk-eye').onclick = () => { const i = $('#tk'), s = i.type === 'password'; i.type = s ? 'text' : 'password'; $('#tk-eye').setAttribute('aria-pressed', s); };
 $('#rf').onclick = () => load();
 $('#lo').onclick = () => { try { sessionStorage.removeItem('unidoue:adm'); } catch (e) {} TOKEN = ''; USERS = []; showLogin(''); $('#tk').focus(); };
@@ -597,4 +634,6 @@ $('#na').onchange = audienceUi; $('#nq').oninput = estimate; $('#nt').oninput = 
 preview();
 setInterval(() => { if (TOKEN && !document.hidden && !$('#shell').hidden && Date.now() - loadedAt > 55000) load(true); }, 30000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && TOKEN && !$('#shell').hidden && Date.now() - loadedAt > 30000) load(true); });
-if (TOKEN) load(); else $('#tk').focus();
+if (TOKEN && EMAIL) load();
+else if (TOKEN) { showLogin('Kim kirganini Jurnalda ko‘rsatish uchun emailingizni kiriting.'); $('#ae').focus(); }
+else { $('#ae').value = EMAIL; (EMAIL ? $('#tk') : $('#ae')).focus(); }
