@@ -40,7 +40,7 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [], adminLog: Array.isArray(raw.adminLog) ? raw.adminLog : [], mailLog: Array.isArray(raw.mailLog) ? raw.mailLog : [], adminSessions: raw.adminSessions && typeof raw.adminSessions === 'object' && !Array.isArray(raw.adminSessions) ? raw.adminSessions : {}, adminDevs: raw.adminDevs && typeof raw.adminDevs === 'object' && !Array.isArray(raw.adminDevs) ? raw.adminDevs : {}, mailOff: raw.mailOff === true });
+const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [], adminLog: Array.isArray(raw.adminLog) ? raw.adminLog : [], adminAtt: raw.adminAtt && typeof raw.adminAtt === 'object' && !Array.isArray(raw.adminAtt) ? Object.assign(Object.create(null), raw.adminAtt) : Object.create(null), mailLog: Array.isArray(raw.mailLog) ? raw.mailLog : [], adminSessions: raw.adminSessions && typeof raw.adminSessions === 'object' && !Array.isArray(raw.adminSessions) ? raw.adminSessions : {}, adminDevs: raw.adminDevs && typeof raw.adminDevs === 'object' && !Array.isArray(raw.adminDevs) ? raw.adminDevs : {}, mailOff: raw.mailOff === true });
 let db = normDb({});
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
@@ -501,11 +501,37 @@ function logAdmin(req, ip, ev, who = '') {
   while (db.adminLog.length > ADMLOG_MAX) { let i = db.adminLog.length - 1; for (let k = i; k >= 0; k--) if (!db.adminLog[k].ok) { i = k; break; } db.adminLog.splice(i, 1); } // avval eng eski xato urinishlar siqib chiqariladi
   save();
 }
+/** «Urinishlar» jurnali: kim admin paneliga kirishga urindi — IP boʻyicha jamlangan (soni, turi, yozgan emaillari, murojaat qilgan yoʻllari, qurilmasi). Oddiy jurnaldan alohida:
+ *  hujumchi koʻp yozuv yaratib, qonuniy yozuvlarni siqib chiqara olmasin. Eng koʻpi ATT_MAX ta IP; toʻlsa — avval faqat sahifani ochganlar, keyin eng eskilari olib tashlanadi.
+ *  kind: ask — ruxsatsiz email bilan kod soʻradi · bad — notoʻgʻri kod · deny — seanssiz admin API/yoʻlga soʻrov · lock — favqulodda rejim vaqtida urindi · page — faqat /admin sahifasini ochdi */
+const ATT_MAX = 500, ATT_KINDS = new Set(['ask', 'bad', 'deny', 'lock', 'page']);
+const attBump = (list, key, max) => { const i = list.findIndex(x => x[0] === key); if (i >= 0) list[i][1]++; else if (list.length < max) list.push([key, 1]); };
+function attempt(req, ip, kind, who = '') {
+  try {
+    if (!ATT_KINDS.has(kind)) return;
+    const k = String(ip).slice(0, 64), now = Date.now();
+    let a = Object.hasOwn(db.adminAtt, k) ? db.adminAtt[k] : null;
+    if (!a) {
+      const keys = Object.keys(db.adminAtt);
+      if (keys.length >= ATT_MAX) {
+        const sev = e => e.c.ask + e.c.bad + e.c.deny + e.c.lock, order = keys.map(x => [x, db.adminAtt[x]]).sort((x, y) => (sev(x[1]) > 0) - (sev(y[1]) > 0) || x[1].last - y[1].last);
+        for (const [x] of order.slice(0, keys.length - ATT_MAX + 1)) delete db.adminAtt[x];
+      }
+      a = db.adminAtt[k] = { first: now, last: now, c: { ask: 0, bad: 0, deny: 0, lock: 0, page: 0 }, em: [], px: [], ua: [] };
+    }
+    a.last = now; a.c[kind]++;
+    if ((kind === 'ask' || kind === 'bad') && who) attBump(a.em, clean(who, 80).toLowerCase(), 6);
+    if (kind === 'deny' || kind === 'lock') attBump(a.px, clean(String(req.url || '').split('?')[0], 80), 6);
+    attBump(a.ua, clean(req.headers['user-agent'], 160), 3);
+    save();
+  } catch (e) {}
+}
+const attLimitedNow = ip => peek('admf:' + ip) >= 20 || peek('admls:' + ip) > ADM_START_MAX || peek('admlv:' + ip) > 10;
 // Admin: seanssiz urinishlar IP boʻyicha sanaladi (20 ta / 15 daqiqa); har endpoint oʻz limitiga ega.
 function admGate(req, res, ip, name, max, opt) {
   if (peek('admf:' + ip) >= 20) { fail(res, 429, 'Juda koʻp urinish.'); return false; }
   const a = admAuth(req, opt);
-  if (!a) { limited('admf:' + ip, 20, 15 * 60 * 1000); logAdmin(req, ip, 'deny'); if (peek('admf:' + ip) === 20) alertAdmin('admin-probe:' + ip, 'Admin API ga ruxsatsiz urinishlar', `${ip} dan 15 daqiqada 20 ta ruxsatsiz soʻrov.`); fail(res, 401, 'Ruxsat yoʻq.'); return false; }
+  if (!a) { limited('admf:' + ip, 20, 15 * 60 * 1000); logAdmin(req, ip, 'deny'); attempt(req, ip, 'deny'); if (peek('admf:' + ip) === 20) alertAdmin('admin-probe:' + ip, 'Admin API ga ruxsatsiz urinishlar', `${ip} dan 15 daqiqada 20 ta ruxsatsiz soʻrov.`); fail(res, 401, 'Ruxsat yoʻq.'); return false; }
   logAdmin(req, ip, a.s ? 'use' : 'tok', a.who);
   if (req.method !== 'GET') secLog('admin.' + name, { who: a.who, ip, ua: clean(req.headers['user-agent'], 120) });
   if (a.s) { const now = Date.now(); a.s.seen = now; if (now - (a.s.ck || 0) > ADM_REFRESH) { a.s.ck = now; res.setHeader('Set-Cookie', admCookie(req, a.raw, ADM_COOKIE_AGE)); save(); } } // faol seans cookie'si har kuni yangilanadi → chiqmaguncha davom etadi
@@ -1094,13 +1120,13 @@ async function api(req, res, pathname) {
   }
   /* ---- Admin kirishi: emailga kod → HttpOnly seans (chiqmaguncha tugamaydi) ---- */
   if (pathname === '/api/admin/login/start' && method === 'POST') {
-    if (adminLocked()) return fail(res, 503, LOCK_MSG);
+    if (adminLocked()) { attempt(req, ip, 'lock'); return fail(res, 503, LOCK_MSG); }
     if (!ADMIN_EMAILS.length) return fail(res, 503, 'Admin kirishi sozlanmagan: serverda ADMIN_EMAILS (ruxsat etilgan email) qoʻyilmagan.');
     if (!MAIL_PROVIDER) return fail(res, 503, 'Xat yuborish ulanmagan: kod yuborib boʻlmaydi.');
     if (limited('admls:' + ip, ADM_START_MAX, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. 15 daqiqadan soʻng qayta urining.');
     const b = await readJson(req), em = clean(b.email, 254).toLowerCase();
     logAdmin(req, ip, 'ask', EMAIL_RE.test(em) ? em : '');
-    if (!ADMIN_EMAILS.includes(em)) { secLog('admin.login.ask.denied', { ip, ua: clean(req.headers['user-agent'], 120), rcpt: sha256(em).slice(0, 12) }); return send(res, 200, { ok: true }); } // ruxsat etilmagan email: bir xil javob, xat yuborilmaydi
+    if (!ADMIN_EMAILS.includes(em)) { attempt(req, ip, 'ask', em); secLog('admin.login.ask.denied', { ip, ua: clean(req.headers['user-agent'], 120), rcpt: sha256(em).slice(0, 12) }); return send(res, 200, { ok: true }); } // ruxsat etilmagan email: bir xil javob, xat yuborilmaydi
     if (admRestricted(em)) return fail(res, 429, 'Juda koʻp xato urinish. Bu hisobga kirish 15 daqiqaga cheklangan.');
     const prev = admCodes.get(em);
     if (prev && Date.now() - prev.sent < ADM_COOLDOWN) return fail(res, 429, `Kod hozirgina yuborilgan. ${Math.max(1, Math.round(ADM_COOLDOWN / 1000))} soniyadan soʻng qayta urining.`);
@@ -1113,11 +1139,11 @@ async function api(req, res, pathname) {
     return send(res, 200, { ok: true });
   }
   if (pathname === '/api/admin/login/verify' && method === 'POST') {
-    if (adminLocked()) return fail(res, 503, LOCK_MSG);
+    if (adminLocked()) { attempt(req, ip, 'lock'); return fail(res, 503, LOCK_MSG); }
     if (limited('admlv:' + ip, 10, 15 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. 15 daqiqadan soʻng qayta urining.');
     const b = await readJson(req), em = clean(b.email, 254).toLowerCase(), code = String(b.code == null ? '' : b.code).replace(/\D/g, '').slice(0, 6), known = ADMIN_EMAILS.includes(em);
     if (known && admRestricted(em)) return fail(res, 429, 'Juda koʻp xato urinish. Bu hisobga kirish 15 daqiqaga cheklangan.');
-    const bad = () => { logAdmin(req, ip, 'bad', EMAIL_RE.test(em) ? em : ''); if (known) admFailed(req, ip, em); return fail(res, 401, 'Kod notoʻgʻri yoki muddati tugagan.'); };
+    const bad = () => { logAdmin(req, ip, 'bad', EMAIL_RE.test(em) ? em : ''); attempt(req, ip, 'bad', em); if (known) admFailed(req, ip, em); return fail(res, 401, 'Kod notoʻgʻri yoki muddati tugagan.'); };
     const c = known && admCodes.get(em);
     if (!c || code.length !== 6) return bad();
     if (c.exp < Date.now()) { admCodes.delete(em); return bad(); }
@@ -1572,6 +1598,12 @@ async function api(req, res, pathname) {
     });
   }
 
+  if (pathname === '/api/admin/attempts' && method === 'GET') { // kim admin paneliga kirishga urindi (IP boʻyicha jamlangan)
+    if (!admGate(req, res, ip, 'attempts', 300)) return;
+    const list = Object.entries(db.adminAtt).map(([k, a]) => ({ ip: k, first: a.first, last: a.last, c: a.c, em: a.em.map(([e, n]) => ({ e, n, known: ADMIN_EMAILS.includes(e) })), px: a.px.map(([p, n]) => ({ p, n })), ua: a.ua.map(([u, n]) => ({ u, n })), now: attLimitedNow(k), me: k === ip })).sort((x, y) => y.last - x.last);
+    return send(res, 200, { attempts: list, max: ATT_MAX, lockdown: adminLocked() });
+  }
+
   if (pathname === '/api/admin/stats' && method === 'GET') {
     if (!admGate(req, res, ip, 'stats', 300)) return;
     const us = Object.values(db.users), now = Date.now(), today = tashkentISO();
@@ -1785,6 +1817,7 @@ async function api(req, res, pathname) {
     return send(res, 200, { reply, usage: { ai: us.ai }, limit: pl.ai, credits: creditsOf(u) });
   }
 
+  if (pathname.startsWith('/api/admin/') && !admAuth(req)) { limited('admf:' + ip, 20, 15 * 60 * 1000); logAdmin(req, ip, 'deny'); attempt(req, ip, 'deny'); } // mavjud boʻlmagan admin yoʻllarini skanerlash ham urinish hisoblanadi
   return fail(res, 404, 'Topilmadi.');
 }
 
@@ -1884,6 +1917,7 @@ function assetLinks() {
   return list;
 }
 function serveStatic(req, res, pathname) {
+  if (pathname === '/admin') attempt(req, clientIp(req), 'page'); // /admin sahifasini kim ochdi (Urinishlar sahifasida alohida koʻrsatiladi)
   if (pathname === '/.well-known/assetlinks.json') {
     res.setHeader('Content-Type', MIME['.json']); res.setHeader('Cache-Control', 'no-cache');
     res.end(req.method === 'HEAD' ? undefined : JSON.stringify(assetLinks(), null, 2)); return true;

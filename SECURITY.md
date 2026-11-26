@@ -18,6 +18,7 @@ Sir/kalit qiymatlari hech qachon bu repoga, commit xabarlariga yoki hisobotlarga
 | **Host-header** | Parol tiklash havolasi faqat ishonchli domen asosida | `tests/security.js` |
 | **Prototip kalitlari** | `__proto__`, `constructor` kabi kalitlar bilan tarif/kredit limitini buzish yopilgan (null-prototip lugʻatlar) | `tests/security.js` |
 | **Email suiisteʼmoli** | Markaziy `mailGate`: manzil validatsiyasi, bitta manzilga/umumiy kvota, global oʻchirgich (`MAIL_DISABLED`, panel), admin xatlari faqat `ADMIN_EMAILS` ga, ommaviy xat limiti | `tests/security.js` |
+| **Urinishlar** | Admin panelga kirishga uringanlar IP boʻyicha jamlanadi (ruxsatsiz email bilan kod soʻrash, notoʻgʻri kod, seanssiz admin API va mavjud boʻlmagan admin yoʻllarini skanerlash, favqulodda rejim vaqtidagi urinish, `/admin` sahifasini ochish); yozilgan email tasdiqlanmagan matn sifatida koʻrsatiladi; eng koʻpi 500 IP, toʻlsa avval faqat sahifa ochganlar siqib chiqariladi; query-parametrlar (token) yozilmaydi; admin sahifasi «Urinishlar» | `tests/security.js` «Urinishlar jurnali» |
 | **Jurnal** | Zanjirlangan (hash + prev + seq) xavfsizlik jurnali; oʻzgartirish/oʻchirish/almashtirish aniqlanadi; sir (kod, token, parol) yozilmaydi; stdout ga ham nusxa (Render loglari = ilovadan tashqari nusxa) | `tests/security.js` |
 | **Ogohlantirish** | Yangi qurilma, kodni taxmin qilish, cheklash, ommaviy xat, xat kvotasi tugashi, parol toʻldirish, trafik keskin oshishi → email (faqat `ADMIN_EMAILS`) + push; soatiga bir tur, sutkasiga 24 ta | `tests/security.js` |
 | **Favqulodda** | `ADMIN_LOCKDOWN=1`, `ADMIN_REVOKE_BEFORE`, `SESSIONS_REVOKE_BEFORE`, panelda «Hamma qurilmalardan chiqarish» | `tests/security.js` |
@@ -58,6 +59,7 @@ Sir/kalit qiymatlari hech qachon bu repoga, commit xabarlariga yoki hisobotlarga
 7. Almashtirgach `ADMIN_REVOKE_BEFORE=<hozirgi vaqt>`, soʻng `ADMIN_LOCKDOWN` ni oʻchiring → faqat `ADMIN_EMAILS` dagi email yangi kod bilan kiradi.
 
 ### 2.4. Tahlil
+- Kim urinib koʻrdi: admin → «Urinishlar» (IP boʻyicha: nima qildi, yozgan emaili, qaysi yoʻllarga urildi, hozir bloklanganmi).
 - Kim kirdi: «Kirishlar» + `admin.login`, `admin.login.bad`, `admin.login.ask.denied`.
 - Nima qilindi: `admin.*` (notify, mail.switch, push.send, plan, …) yozuvlari — har bir oʻzgartiruvchi amal `who`, `ip` bilan yoziladi.
 - Qaysi maʼlumot koʻrilgan: admin GET lar `Kirishlar` jurnalida (`use`), lekin tarkibi yozilmaydi — admin kirgan boʻlsa, **foydalanuvchilar roʻyxati, fikrlar, xatlar jurnali va toʻlovlar koʻrilgan** deb hisoblang.

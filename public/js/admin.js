@@ -11,6 +11,7 @@ const EP_KEY = 'unidoue:adm-ep'; // shu brauzer admin qurilmasi sifatida yozilga
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const MON = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'], p2 = n => String(n).padStart(2, '0');
 const when = v => { const d = new Date(v); return isNaN(d) ? '' : `${d.getDate()}-${MON[d.getMonth()]}, ${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+const whenS = v => { const d = new Date(v); return isNaN(d) ? '' : `${d.getDate()}-${MON[d.getMonth()]}, ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
 const dm = d => d ? d.slice(8) + '.' + d.slice(5, 7) : '—';
 const dlong = d => d ? `${+d.slice(8)}-${MON[+d.slice(5, 7) - 1]}` : '';
 const fmt = n => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -93,11 +94,11 @@ function replyDlg({ kind, id, name, to, subject, quote, done }) {
 const replied = r => (r.replies && r.replies.length ? `<span class="badge ok" title="${esc(r.replies.map(x => when(x.ts)).join(', '))}">Javob yuborilgan${r.replies.length > 1 ? ' ×' + r.replies.length : ''}</span>` : '');
 
 /* ---------- holat ---------- */
-let SEC = null, SCF = 'all', USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all', ULIM = 100, loadedAt = 0;
+let ATT = null, ATF = 'att', ATP = 'week', SEC = null, SCF = 'all', USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all', ULIM = 100, loadedAt = 0;
 const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
 
 /* ---------- yo‘naltirish ---------- */
-const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar', access: 'Kirishlar', security: 'Himoya holati', log: 'Yuborilgan xatlar' };
+const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar', access: 'Kirishlar', security: 'Himoya holati', attempts: 'Urinishlar', log: 'Yuborilgan xatlar' };
 function route() {
   const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
   $$('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
@@ -567,7 +568,7 @@ async function revoke(id, self) {
   if (!await ask({ title: all ? 'Hamma qurilmalardan chiqarilsinmi?' : self ? 'Shu qurilmadan chiqasizmi?' : 'Seans yopilsinmi?', text: all ? 'Barcha seanslar yopiladi, jumladan shu qurilma. Qayta kirish uchun emailga yangi kod kerak bo‘ladi.' : self ? 'Qayta kirish uchun emailga yangi kod kerak bo‘ladi.' : 'Bu qurilma panelga qayta kirishi uchun emailga yangi kod kerak bo‘ladi.', ok: all ? 'Hammasini yopish' : self ? 'Chiqish' : 'Yopish', danger: true })) return;
   try {
     const r = await call('POST', '/api/admin/session/revoke', all ? { all: true } : { id });
-    if (r.self) { ME = ''; USERS = []; AUDIT = null; SEC = null; showLogin('', 1); return; }
+    if (r.self) { ME = ''; USERS = []; AUDIT = null; SEC = null; ATT = null; showLogin('', 1); return; }
     toast('Seans yopildi.'); load(true);
   } catch (e) { toast(e.message, 'err'); }
 }
@@ -705,6 +706,38 @@ async function toggleMail() {
   b.disabled = false;
 }
 
+
+/* ---------- Urinishlar: kim admin paneliga kirishga urindi ---------- */
+const attSev = a => a.c.ask + a.c.bad + a.c.deny + a.c.lock;
+const AT_FILTERS = [['att', 'Urinishlar', a => attSev(a) > 0], ['ask', 'Ruxsatsiz email', a => a.c.ask > 0], ['bad', 'Noto‘g‘ri kod', a => a.c.bad > 0], ['deny', 'Seanssiz API', a => a.c.deny > 0], ['page', 'Faqat sahifani ochgan', a => attSev(a) === 0 && a.c.page > 0], ['all', 'Hammasi', () => true]];
+const AT_PERIODS = [['day', '24 soat', 864e5], ['week', '7 kun', 7 * 864e5], ['all', 'Hammasi', Infinity]];
+const AT_KIND = [['ask', 'Ruxsatsiz email bilan kod so‘radi', 'warn'], ['bad', 'Noto‘g‘ri kod', 'bad'], ['deny', 'Seanssiz admin API', 'warn'], ['lock', 'Favqulodda rejim vaqtida', 'warn'], ['page', 'Sahifani ochdi', 'mute']];
+function renderAttempts() {
+  if (!ATT) { $('#at-k').innerHTML = ''; $('#at-t').innerHTML = emptyBox('info', 'Urinishlar yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#at-c').textContent = ''; $('#at-n').textContent = ''; $('#at-f').innerHTML = ''; $('#at-p').innerHTML = ''; $('#at-nn').hidden = true; return; }
+  const now = Date.now(), all = ATT.attempts || [], per = AT_PERIODS.find(x => x[0] === ATP) || AT_PERIODS[1], inP = all.filter(a => now - a.last < per[2]), f = AT_FILTERS.find(x => x[0] === ATF) || AT_FILTERS[0];
+  const q = ($('#at-q').value || '').trim().toLowerCase();
+  $('#at-p').innerHTML = AT_PERIODS.map(([k, l, ms]) => `<button type="button" class="chip" data-p="${k}" aria-pressed="${k === ATP}">${l}</button>`).join('');
+  $$('#at-p [data-p]').forEach(b => (b.onclick = () => { ATP = b.dataset.p; renderAttempts(); }));
+  $('#at-f').innerHTML = AT_FILTERS.map(([k, l, fn]) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${k === ATF}">${l}<small>${inP.filter(fn).length}</small></button>`).join('');
+  $$('#at-f [data-f]').forEach(b => (b.onclick = () => { ATF = b.dataset.f; renderAttempts(); }));
+  const d24 = all.filter(a => now - a.last < 864e5 && attSev(a) > 0 && !a.me), sum = k => d24.reduce((n, a) => n + a.c[k], 0), tot = d24.reduce((n, a) => n + attSev(a), 0), blocked = all.filter(a => a.now && !a.me).length;
+  $('#at-k').innerHTML = kpi('warn', fmt(tot), 'urinish (24 soat)', tot ? 'warn' : 'mut', tot) + kpi('users', d24.length, 'turli IP (24 soat)', d24.length ? 'warn' : 'mut', d24.length)
+    + kpi('act', fmt(sum('bad')), 'noto‘g‘ri kod (24 soat)', sum('bad') ? 'warn' : 'mut', sum('bad')) + kpi('clock', blocked, 'hozir bloklangan IP', blocked ? 'warn' : 'mut', blocked);
+  const nn = $('#at-nn'); nn.hidden = !d24.length; nn.textContent = d24.length;
+  $('#at-c').textContent = ATT.lockdown ? 'Favqulodda rejim yoqilgan' : (all.length ? all.length + ' ta IP yozilgan' : '');
+  const list = inP.filter(a => f[2](a) && (!q || (a.ip + ' ' + a.em.map(x => x.e).join(' ')).toLowerCase().includes(q)));
+  $('#at-n').textContent = list.length;
+  const none = all.length ? ['Bu tanlovda urinish yo‘q', 'Davrni yoki turini o‘zgartirib ko‘ring.'] : ['Hali urinish yozilmagan', 'Admin paneliga kirishga urinish bo‘lsa, shu yerda ko‘rinadi.'];
+  $('#at-t').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>IP</th><th>Oxirgi urinish</th><th>Nima qildi</th><th>Yozgan emaili</th><th>Murojaat qilgan yo‘llar</th><th>Qurilma</th></tr></thead><tbody>${list.map(a => `<tr${attSev(a) >= 20 ? ' class="hot"' : ''}>
+    <td data-l="IP"><b>${esc(a.ip)}</b>${a.me ? ' <span class="badge mute">Siz</span>' : ''}</td>
+    <td data-l="Oxirgi urinish" title="Birinchi urinish: ${esc(when(a.first))}">${esc(whenS(a.last))}<br><small>${esc(rel(a.last))}</small></td>
+    <td data-l="Nima qildi"><div class="at-b">${a.now ? '<span class="badge bad">Hozir bloklangan</span>' : ''}${AT_KIND.filter(([k]) => a.c[k]).map(([k, l, t]) => `<span class="badge ${t}">${esc(l)} × ${a.c[k]}</span>`).join('') || '—'}</div></td>
+    <td data-l="Yozgan emaili"><div class="at-em">${a.em.length ? a.em.map(x => `<span>${esc(x.e)} × ${x.n}${x.known ? ' <span class="badge ok" title="Bu email ruxsat etilgan, lekin kod noto‘g‘ri kiritilgan">ruxsat etilgan</span>' : ''}</span>`).join('') : '—'}</div></td>
+    <td data-l="Yo‘llar"><div class="at-px">${a.px.length ? a.px.map(x => `<span><code>${esc(x.p)}</code> × ${x.n}</span>`).join('') : '—'}</div></td>
+    <td data-l="Qurilma" title="${esc((a.ua[0] || {}).u || '')}">${esc(deviceOf((a.ua[0] || {}).u) || '—')}${a.ua.length > 1 ? ` <small>+${a.ua.length - 1}</small>` : ''}</td></tr>`).join('')}</tbody></table></div>` : emptyBox('check', none[0], none[1]);
+  fx.scan($('#v-attempts'));
+}
+
 /* ---------- yuklash ---------- */
 let LEM = '', resendTimer = 0;
 /** Kirish oynasi: 1 — email, 2 — emailga kelgan kod */
@@ -733,17 +766,18 @@ async function load(silent) {
   if (busy) return; busy = true;
   const rf = $('#rf'); rf.classList.add('spin'); if (!silent) $('#st').textContent = 'Yuklanmoqda…';
   try {
-    const [rq, us, st, od, pr, nh, un, fk, au, sc] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
+    const [rq, us, st, od, pr, nh, un, fk, au, sc, at] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
       call('GET', '/api/admin/orders').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/promos').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/notes').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/unis').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/feedback').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/audit').catch(e => { if (e.status === 401) throw e; return null; }),
-      call('GET', '/api/admin/security').catch(e => { if (e.status === 401) throw e; return null; })]);
-    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; FBK = fk; AUDIT = au; SEC = sc; if (nh) NH = nh; loadedAt = Date.now();
+      call('GET', '/api/admin/security').catch(e => { if (e.status === 401) throw e; return null; }),
+      call('GET', '/api/admin/attempts').catch(e => { if (e.status === 401) throw e; return null; })]);
+    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; FBK = fk; AUDIT = au; SEC = sc; ATT = at; if (nh) NH = nh; loadedAt = Date.now();
     const first = $('#shell').hidden; $('#lg').hidden = true; $('#shell').hidden = false;
-    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); renderAccess(); renderSecurity(); renderLog(); audienceUi(); $('#me').textContent = ME || 'Admin';
+    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); renderAccess(); renderSecurity(); renderAttempts(); renderLog(); audienceUi(); $('#me').textContent = ME || 'Admin';
     $('#st').textContent = 'Yangilandi: ' + when(Date.now()).split(', ')[1].split(' ').pop();
     if (first) route(); else fx.scan($('#kpis'));
   } catch (e) {
@@ -773,11 +807,11 @@ $('#ac').oninput = () => { const v = $('#ac').value.replace(/\D/g, '').slice(0, 
 $('#lr').onclick = () => askCode(LEM, true);
 $('#lx').onclick = () => { clearInterval(resendTimer); showLogin('', 1); $('#ae').focus(); };
 $('#rf').onclick = () => load();
-$('#lo').onclick = async () => { try { await call('POST', '/api/admin/logout'); } catch (e) {} ME = ''; USERS = []; AUDIT = null; SEC = null; showLogin('', 1); $('#ae').focus(); };
+$('#lo').onclick = async () => { try { await call('POST', '/api/admin/logout'); } catch (e) {} ME = ''; USERS = []; AUDIT = null; SEC = null; ATT = null; showLogin('', 1); $('#ae').focus(); };
 $('#bg').onclick = () => document.body.classList.toggle('nav-open');
 $('#scrim').onclick = () => document.body.classList.remove('nav-open');
 $('#uq').oninput = () => { ULIM = 100; renderUsers(); };
-$('#ac-q').oninput = renderAccess; $('#se-all').onclick = () => revoke('all', true); $('#sc-sw').onclick = toggleMail;
+$('#ac-q').oninput = renderAccess; $('#se-all').onclick = () => revoke('all', true); $('#sc-sw').onclick = toggleMail; $('#at-q').oninput = renderAttempts;
 $('#pg').onclick = () => { const e = $('#pe').value.trim().toLowerCase(); if (!e) { $('#pm').className = 'msg err'; $('#pm').textContent = 'Emailni kiriting.'; return; } give(e, $('#pp').value, parseInt($('#pd').value, 10) || 30, $('#pm')); };
 $('#un-s').onclick = saveUni; $('#un-x').onclick = uniReset; $('#un-q').oninput = () => { ULM = 40; renderUnis(); };
 $('#mb').onclick = createPromo; $('#mk-r').onclick = () => { $('#mk').value = pmRand(); $('#mk').focus(); };

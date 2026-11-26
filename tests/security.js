@@ -229,6 +229,46 @@ const adm = { Authorization: 'Bearer sched-tok' };
     for (const pth of ['/server.js', '/db.json', '/security.log', '/../server.js', '/%2e%2e/server.js', '/.git/config', '/public/../db.json', '/tests/run.js', '/package.json', '/.env']) { const q = await ctx.raw('GET', pth); ok(q.s !== 200 || !/require\(|ADMIN_TOKEN|"users"/.test(String(q.t || JSON.stringify(q.j || ''))), `fayl oshkor boʻlmaydi: ${pth}`, q.s); }
   });
 
+  /* ---- «Urinishlar»: kim admin paneliga kirishga urindi (IP boʻyicha jamlangan jurnal) ---- */
+  await suite('Urinishlar jurnali: kim admin paneliga urindi', { TRUST_PROXY: '1', ADM_COOLDOWN_MS: '300' }, async (ctx) => {
+    const { raw: rq, client: cl } = ctx, H = ip => ({ 'True-Client-IP': ip }), XSS = '<img src=x onerror=window.__x=1>@evil.test';
+    let q = await rq('GET', '/api/admin/attempts', null, H('203.0.113.1')); ok(q.s === 401, 'seanssiz /api/admin/attempts → 401', q.s);
+    for (let i = 0; i < 3; i++) await rq('POST', '/api/admin/login/start', { email: 'hujumchi@evil.test' }, H('203.0.113.10'));
+    await rq('POST', '/api/admin/login/start', { email: XSS }, H('203.0.113.10'));
+    for (let i = 0; i < 2; i++) await rq('POST', '/api/admin/login/verify', { email: OWNER, code: '000000' }, H('203.0.113.11'));
+    for (let i = 0; i < 3; i++) await rq('GET', '/api/admin/users?token=sched-tok', null, H('203.0.113.12'));
+    await rq('GET', '/api/admin/audit', null, { ...H('203.0.113.12'), Authorization: 'Bearer sched-tok' });
+    await rq('GET', '/admin', null, H('203.0.113.13'));
+    for (let i = 0; i < 24; i++) await rq('GET', '/api/admin/stats', null, H('203.0.113.14'));
+    const A = cl(); q = await adminLogin(ctx, A); ok(q.s === 200, 'admin kirdi', q.s);
+    q = await A('GET', '/api/admin/attempts'); ok(q.s === 200 && Array.isArray(q.j.attempts), '/api/admin/attempts admin uchun ochiq', q.s);
+    const by = ip => (q.j.attempts || []).find(a => a.ip === ip), a10 = by('203.0.113.10'), a11 = by('203.0.113.11'), a12 = by('203.0.113.12'), a13 = by('203.0.113.13'), a14 = by('203.0.113.14');
+    ok(a10 && a10.c.ask === 4 && a10.em.some(x => x.e === 'hujumchi@evil.test' && x.n === 3 && x.known === false), 'ruxsatsiz email bilan kod soʻrash IP boʻyicha sanaladi va yozilgan email koʻrinadi', a10);
+    ok(a10 && a10.em.some(x => x.e === XSS), 'HTML boʻlgan email matn sifatida saqlanadi (koʻrsatishda escape qilinadi)', a10 && a10.em);
+    ok(a11 && a11.c.bad === 2 && a11.em.some(x => x.e === OWNER && x.known === true), 'ruxsat etilgan email uchun notoʻgʻri kod: known=true bilan yoziladi', a11);
+    ok(a12 && a12.c.deny === 4 && a12.px.some(x => x.p === '/api/admin/users' && x.n === 3) && a12.px.some(x => x.p === '/api/admin/audit'), 'seanssiz admin API: qaysi yoʻllarga urilgani sanaladi', a12);
+    ok(!JSON.stringify(q.j).includes('sched-tok') && !JSON.stringify(q.j).includes('token='), 'soʻrov parametrlari (token) jurnalga yozilmaydi');
+    ok(a13 && a13.c.page === 1 && a13.c.ask + a13.c.bad + a13.c.deny === 0, '/admin sahifasini ochgan IP «faqat sahifa» sifatida yoziladi', a13);
+    ok(a14 && a14.c.deny === 20 && a14.now === true, '20 ta seanssiz urinishdan keyin IP «hozir bloklangan» (urinish soni 20 da to‘xtaydi)', a14);
+    const mine = by('127.0.0.1'); ok(!mine || (mine.c.ask + mine.c.bad + mine.c.deny === 0), 'adminning oʻz muvaffaqiyatli kirishi urinish sifatida yozilmaydi', mine);
+    const lasts = q.j.attempts.map(a => a.last); ok(lasts.every((t, i) => !i || lasts[i - 1] >= t), 'roʻyxat oxirgi urinish boʻyicha tartiblangan');
+    // mavjud boʻlmagan admin yoʻllarini skanerlash va notoʻgʻri usul — urinish; adminning oʻz seansi bilan xato yoʻl — urinish emas
+    for (let i = 0; i < 2; i++) await rq('GET', '/api/admin/does-not-exist', null, H('203.0.113.15'));
+    await rq('GET', '/api/admin/login/start', null, H('203.0.113.15')); await A('GET', '/api/admin/nope-with-session');
+    q = await A('GET', '/api/admin/attempts'); const a15 = by('203.0.113.15') || (q.j.attempts || []).find(a => a.ip === '203.0.113.15');
+    ok(a15 && a15.c.deny === 3 && a15.px.some(x => x.p === '/api/admin/does-not-exist' && x.n === 2), 'mavjud boʻlmagan admin yoʻllarini skanerlash urinish sifatida yoziladi', a15);
+    ok(!(q.j.attempts || []).some(a => a.px.some(x => x.p === '/api/admin/nope-with-session')), 'admin oʻz seansi bilan xato yoʻlga borsa — urinish emas');
+    // sigʻim chegarasi: 520 ta faqat-sahifa IP; jiddiy urinishlar saqlanib qoladi
+    for (let i = 0; i < 520; i++) await rq('GET', '/admin', null, H(`198.18.${(i >> 8) + 1}.${(i & 255) + 1}`));
+    q = await A('GET', '/api/admin/attempts'); ok(q.j.attempts.length <= q.j.max && q.j.max === 500, 'urinishlar roʻyxati 500 ta IP dan oshmaydi', q.j.attempts.length);
+    ok(['203.0.113.10', '203.0.113.11', '203.0.113.12', '203.0.113.14'].every(ip => q.j.attempts.some(a => a.ip === ip)), 'toʻlib ketganda ham jiddiy urinishlar siqib chiqarilmaydi (avval faqat sahifa ochganlar)');
+    // server qayta ishga tushganda saqlanadi; favqulodda rejim vaqtidagi urinish
+    const tok = A.jar.ud_adm; await ctx.restart({ ADMIN_LOCKDOWN: '1' }); q = await rq('POST', '/api/admin/login/start', { email: OWNER }, H('203.0.113.20')); ok(q.s === 503, 'LOCKDOWN: kod soʻrash yopiq', q.s);
+    await ctx.restart({ ADMIN_LOCKDOWN: '' }); const c2 = cl(); c2.jar.ud_adm = tok; q = await c2('GET', '/api/admin/attempts');
+    ok(q.s === 200 && q.j.attempts.some(a => a.ip === '203.0.113.10' && a.c.ask === 4), 'server qayta ishga tushganda urinishlar saqlanib qoladi', q.s);
+    ok(q.j.attempts.some(a => a.ip === '203.0.113.20' && a.c.lock === 1), 'favqulodda rejim vaqtidagi urinish «lock» sifatida yoziladi');
+  });
+
   /* ---- Webhook imzolari: Telegram (secret token), Payme (Basic kalit), Click (MD5 imzo) ---- */
   await suite('Webhooklar: imzosiz/notoʻgʻri imzoli soʻrov rad etiladi', { TG_BOT_TOKEN: '123456:TEST-token-for-tests', TG_BOT_USERNAME: 'test_bot', USD_UZS_RATE: '12700', PAYME_MERCHANT_ID: 'merch', PAYME_KEY: 'payme-test-key', CLICK_SERVICE_ID: '1', CLICK_MERCHANT_ID: '2', CLICK_SECRET_KEY: 'click-test-secret' }, async (ctx) => {
     const upd = { update_id: 1, message: { message_id: 1, chat: { id: 5 }, from: { id: 5 }, text: '/start abc' } };

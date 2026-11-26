@@ -348,3 +348,13 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .modal.ra input{width:100%;margin:6px 0 4px;padding:12px 14px;font-size:24px;letter-spacing:8px;text-align:center;font-variant-numeric:tabular-nums;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);color:var(--text)}
 .modal.ra input[hidden]{display:none}
 #sc-sm{margin-left:10px}
+
+/* Urinishlar */
+.at-note{margin:0 0 14px;max-width:880px}
+.at-types{margin:0 0 14px}
+.at-b{display:flex;flex-wrap:wrap;gap:6px}
+.at-em{display:flex;flex-direction:column;gap:3px;font-size:13px;overflow-wrap:anywhere}
+.at-px{display:flex;flex-direction:column;gap:4px;font-size:12.5px;overflow-wrap:anywhere;min-width:0}
+.adm .at-b .badge{white-space:normal;text-align:left}
+.at-px code{font-size:12px}
+.tbl tr.hot td{background:color-mix(in srgb,var(--bad,#d33) 7%,transparent)}
