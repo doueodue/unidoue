@@ -665,7 +665,7 @@ async function withReauth(fn) {
 const SEC_EV = {
   'admin.login': ['Admin kirdi', 'ok'], 'admin.login.ask': ['Kirish kodi soʻraldi', ''], 'admin.login.ask.denied': ['Ruxsatsiz email bilan kod soʻraldi', 'warn'], 'admin.login.bad': ['Notoʻgʻri kod', 'warn'],
   'admin.restrict': ['Admin kirishi cheklandi (15 daqiqa)', 'bad'], 'admin.logout': ['Admin chiqdi', ''], 'admin.session.revoke': ['Seans yopildi', 'warn'], 'admin.reauth.ask': ['Qayta tasdiqlash kodi soʻraldi', ''],
-  'admin.reauth.ok': ['Amal kod bilan tasdiqlandi', 'ok'], 'admin.reauth.bad': ['Qayta tasdiqlashda notoʻgʻri kod', 'warn'], 'admin.mail.switch': ['Email yuborish holati oʻzgartirildi', 'warn'], 'admin.notify': ['Xabar yuborildi', ''],
+  'admin.reauth.ok': ['Amal kod bilan tasdiqlandi', 'ok'], 'admin.reauth.bad': ['Qayta tasdiqlashda notoʻgʻri kod', 'warn'], 'admin.mail.switch': ['Email yuborish holati oʻzgartirildi', 'warn'], 'admin.ip.blocked': ['IP bloklandi', 'warn'], 'admin.ip.unblocked': ['IP blokdan chiqarildi', ''], 'admin.notify': ['Xabar yuborildi', ''],
   'mail.blocked': ['Xat bloklandi (kvota/oʻchirgich/manzil)', 'warn'], 'auth.lockout': ['Foydalanuvchi hisobi vaqtincha bloklandi', 'warn'], boot: ['Server ishga tushdi', ''],
 };
 const secLabel = ev => (SEC_EV[ev] && SEC_EV[ev][0]) || (ev.startsWith('alert.') ? 'Ogohlantirish' : ev.startsWith('admin.') ? 'Admin amali: ' + ev.slice(6) : ev);
@@ -708,10 +708,10 @@ async function toggleMail() {
 
 
 /* ---------- Urinishlar: kim admin paneliga kirishga urindi ---------- */
-const attSev = a => a.c.ask + a.c.bad + a.c.deny + a.c.lock;
+const attSev = a => (a.c.ask | 0) + (a.c.bad | 0) + (a.c.deny | 0) + (a.c.lock | 0) + (a.c.blk | 0);
 const AT_FILTERS = [['att', 'Urinishlar', a => attSev(a) > 0], ['ask', 'Ruxsatsiz email', a => a.c.ask > 0], ['bad', 'Noto‘g‘ri kod', a => a.c.bad > 0], ['deny', 'Seanssiz API', a => a.c.deny > 0], ['page', 'Faqat sahifani ochgan', a => attSev(a) === 0 && a.c.page > 0], ['all', 'Hammasi', () => true]];
 const AT_PERIODS = [['day', '24 soat', 864e5], ['week', '7 kun', 7 * 864e5], ['all', 'Hammasi', Infinity]];
-const AT_KIND = [['ask', 'Ruxsatsiz email bilan kod so‘radi', 'warn'], ['bad', 'Noto‘g‘ri kod', 'bad'], ['deny', 'Seanssiz admin API', 'warn'], ['lock', 'Favqulodda rejim vaqtida', 'warn'], ['page', 'Sahifani ochdi', 'mute']];
+const AT_KIND = [['ask', 'Ruxsatsiz email bilan kod so‘radi', 'warn'], ['bad', 'Noto‘g‘ri kod', 'bad'], ['deny', 'Seanssiz admin API', 'warn'], ['lock', 'Favqulodda rejim vaqtida', 'warn'], ['blk', 'Bloklangan IP dan so‘rov', 'bad'], ['page', 'Sahifani ochdi', 'mute']];
 function renderAttempts() {
   if (!ATT) { $('#at-k').innerHTML = ''; $('#at-t').innerHTML = emptyBox('info', 'Urinishlar yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#at-c').textContent = ''; $('#at-n').textContent = ''; $('#at-f').innerHTML = ''; $('#at-p').innerHTML = ''; $('#at-nn').hidden = true; return; }
   const now = Date.now(), all = ATT.attempts || [], per = AT_PERIODS.find(x => x[0] === ATP) || AT_PERIODS[1], inP = all.filter(a => now - a.last < per[2]), f = AT_FILTERS.find(x => x[0] === ATF) || AT_FILTERS[0];
@@ -722,20 +722,49 @@ function renderAttempts() {
   $$('#at-f [data-f]').forEach(b => (b.onclick = () => { ATF = b.dataset.f; renderAttempts(); }));
   const d24 = all.filter(a => now - a.last < 864e5 && attSev(a) > 0 && !a.me), sum = k => d24.reduce((n, a) => n + a.c[k], 0), tot = d24.reduce((n, a) => n + attSev(a), 0), blocked = all.filter(a => a.now && !a.me).length;
   $('#at-k').innerHTML = kpi('warn', fmt(tot), 'urinish (24 soat)', tot ? 'warn' : 'mut', tot) + kpi('users', d24.length, 'turli IP (24 soat)', d24.length ? 'warn' : 'mut', d24.length)
-    + kpi('act', fmt(sum('bad')), 'noto‘g‘ri kod (24 soat)', sum('bad') ? 'warn' : 'mut', sum('bad')) + kpi('clock', blocked, 'hozir bloklangan IP', blocked ? 'warn' : 'mut', blocked);
+    + kpi('act', fmt(sum('bad')), 'noto‘g‘ri kod (24 soat)', sum('bad') ? 'warn' : 'mut', sum('bad')) + kpi('clock', blocked, 'hozir cheklangan IP', blocked ? 'warn' : 'mut', blocked);
   const nn = $('#at-nn'); nn.hidden = !d24.length; nn.textContent = d24.length;
   $('#at-c').textContent = ATT.lockdown ? 'Favqulodda rejim yoqilgan' : (all.length ? all.length + ' ta IP yozilgan' : '');
   const list = inP.filter(a => f[2](a) && (!q || (a.ip + ' ' + a.em.map(x => x.e).join(' ')).toLowerCase().includes(q)));
   $('#at-n').textContent = list.length;
   const none = all.length ? ['Bu tanlovda urinish yo‘q', 'Davrni yoki turini o‘zgartirib ko‘ring.'] : ['Hali urinish yozilmagan', 'Admin paneliga kirishga urinish bo‘lsa, shu yerda ko‘rinadi.'];
   $('#at-t').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>IP</th><th>Oxirgi urinish</th><th>Nima qildi</th><th>Yozgan emaili</th><th>Murojaat qilgan yo‘llar</th><th>Qurilma</th></tr></thead><tbody>${list.map(a => `<tr${attSev(a) >= 20 ? ' class="hot"' : ''}>
-    <td data-l="IP"><b>${esc(a.ip)}</b>${a.me ? ' <span class="badge mute">Siz</span>' : ''}</td>
+    <td data-l="IP"><b>${esc(a.ip)}</b>${a.me ? ' <span class="badge mute">Siz</span>' : ''}<div class="at-act">${a.blocked ? `<span class="badge bad" title="${a.blocked.until ? 'Gacha: ' + esc(when(a.blocked.until)) : 'Doimiy'}">Bloklangan${a.blocked.until ? ': ' + esc(untilLeft(a.blocked.until)) : ''}</span><button class="btn sm" type="button" data-ub="${esc(a.ip)}">Blokdan chiqarish</button>` : a.me ? '' : `<button class="btn sm danger" type="button" data-bk="${esc(a.ip)}">Bloklash</button>`}</div></td>
     <td data-l="Oxirgi urinish" title="Birinchi urinish: ${esc(when(a.first))}">${esc(whenS(a.last))}<br><small>${esc(rel(a.last))}</small></td>
-    <td data-l="Nima qildi"><div class="at-b">${a.now ? '<span class="badge bad">Hozir bloklangan</span>' : ''}${AT_KIND.filter(([k]) => a.c[k]).map(([k, l, t]) => `<span class="badge ${t}">${esc(l)} × ${a.c[k]}</span>`).join('') || '—'}</div></td>
+    <td data-l="Nima qildi"><div class="at-b">${a.now ? '<span class="badge bad">Hozir cheklangan</span>' : ''}${AT_KIND.filter(([k]) => a.c[k]).map(([k, l, t]) => `<span class="badge ${t}">${esc(l)} × ${a.c[k]}</span>`).join('') || '—'}</div></td>
     <td data-l="Yozgan emaili"><div class="at-em">${a.em.length ? a.em.map(x => `<span>${esc(x.e)} × ${x.n}${x.known ? ' <span class="badge ok" title="Bu email ruxsat etilgan, lekin kod noto‘g‘ri kiritilgan">ruxsat etilgan</span>' : ''}</span>`).join('') : '—'}</div></td>
     <td data-l="Yo‘llar"><div class="at-px">${a.px.length ? a.px.map(x => `<span><code>${esc(x.p)}</code> × ${x.n}</span>`).join('') : '—'}</div></td>
     <td data-l="Qurilma" title="${esc((a.ua[0] || {}).u || '')}">${esc(deviceOf((a.ua[0] || {}).u) || '—')}${a.ua.length > 1 ? ` <small>+${a.ua.length - 1}</small>` : ''}</td></tr>`).join('')}</tbody></table></div>` : emptyBox('check', none[0], none[1]);
+  const bl = ATT.blocks || [];
+  $('#at-bl').hidden = !bl.length; $('#at-bn').textContent = bl.length;
+  $('#at-bt').innerHTML = bl.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>IP</th><th>Bloklangan</th><th>Muddati</th><th></th></tr></thead><tbody>${bl.map(x => `<tr><td data-l="IP"><b>${esc(x.ip)}</b></td><td data-l="Bloklangan">${esc(whenS(x.t))}<br><small>${esc(x.by || '')}</small></td><td data-l="Muddati">${x.until ? esc(when(x.until)) + '<br><small>' + esc(untilLeft(x.until)) + '</small>' : 'Doimiy'}</td><td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-ub="${esc(x.ip)}">Blokdan chiqarish</button></div></td></tr>`).join('')}</tbody></table></div>` : '';
+  $$('#v-attempts [data-bk]').forEach(b => (b.onclick = () => blockIp(b.dataset.bk)));
+  $$('#v-attempts [data-ub]').forEach(b => (b.onclick = () => unblockIp(b.dataset.ub)));
   fx.scan($('#v-attempts'));
+}
+const untilLeft = t => { const m = Math.max(0, Math.round((t - Date.now()) / 60000)); return m >= 2880 ? Math.round(m / 1440) + ' kun qoldi' : m >= 120 ? Math.round(m / 60) + ' soat qoldi' : m + ' daqiqa qoldi'; };
+/** Muddatni tanlatadi: daqiqa (0 — doimiy) yoki null (bekor) */
+function blockDlg(ip) {
+  return new Promise(res => {
+    const bg = document.createElement('div'); bg.className = 'modal-bg';
+    bg.innerHTML = `<div class="modal dg" role="dialog" aria-modal="true" aria-labelledby="bk-t"><h3 id="bk-t">${svg(IC.warn)}IP bloklansinmi?</h3>
+      <p><b>${esc(ip)}</b> /admin sahifasi va admin API ga kira olmaydi (hatto cookie bilan ham). Saytning qolgan qismi ishlayveradi. Sizning IP ingiz va faol admin seansi IP si bloklanmaydi.</p>
+      <label class="rp-l" for="bk-d">Muddat</label><select id="bk-d"><option value="60">1 soat</option><option value="1440" selected>24 soat</option><option value="10080">7 kun</option><option value="0">Doimiy (o‘zingiz olmaguncha)</option></select>
+      <div class="acts"><button class="btn" type="button" data-x>Bekor</button><button class="btn danger" type="button" data-ok>Bloklash</button></div></div>`;
+    const prev = document.activeElement, key = e => { if (e.key === 'Escape') done(null); };
+    const done = v => { document.removeEventListener('keydown', key); bg.classList.add('out'); setTimeout(() => bg.remove(), 220); if (prev && prev.focus) try { prev.focus(); } catch (e) {} res(v); };
+    bg.addEventListener('click', e => { if (e.target === bg) done(null); });
+    $('[data-x]', bg).onclick = () => done(null); $('[data-ok]', bg).onclick = () => done(Number($('#bk-d', bg).value));
+    document.addEventListener('keydown', key); document.body.appendChild(bg); $('[data-ok]', bg).focus();
+  });
+}
+async function blockIp(ip) {
+  const minutes = await blockDlg(ip); if (minutes === null) return;
+  try { await call('POST', '/api/admin/ip/block', { ip, minutes }); toast('IP bloklandi: ' + ip); await load(true); } catch (e) { if (e.status === 401) return load(); toast(e.message, 'err'); }
+}
+async function unblockIp(ip) {
+  if (!await ask({ title: 'Blokdan chiqarilsinmi?', text: ip + ' yana admin sahifasiga kira oladi.', ok: 'Blokdan chiqarish' })) return;
+  try { await call('POST', '/api/admin/ip/unblock', { ip }); toast('Blokdan chiqarildi: ' + ip); await load(true); } catch (e) { if (e.status === 401) return load(); toast(e.message, 'err'); }
 }
 
 /* ---------- yuklash ---------- */

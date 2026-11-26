@@ -59,11 +59,18 @@ Sir/kalit qiymatlari hech qachon bu repoga, commit xabarlariga yoki hisobotlarga
 7. Almashtirgach `ADMIN_REVOKE_BEFORE=<hozirgi vaqt>`, soʻng `ADMIN_LOCKDOWN` ni oʻchiring → faqat `ADMIN_EMAILS` dagi email yangi kod bilan kiradi.
 
 ### 2.4. Tahlil
-- Kim urinib koʻrdi: admin → «Urinishlar» (IP boʻyicha: nima qildi, yozgan emaili, qaysi yoʻllarga urildi, hozir bloklanganmi).
+- Kim urinib koʻrdi: admin → «Urinishlar» (IP boʻyicha: nima qildi, yozgan emaili, qaysi yoʻllarga urildi, hozir cheklanganmi / bloklanganmi).
+- Notanish IP ogohlantirishi: har bir yangi IP ning **birinchi jiddiy urinishida** (ruxsatsiz email bilan kod soʻrash, notoʻgʻri kod, seanssiz admin API, favqulodda rejimda urinish, bloklangan IP dan soʻrov) administratorga darhol email+push keladi. Faqat `/admin` sahifasini ochish ogohlantirish bermaydi. Hujum boʻroni inboxni toʻldirmasligi uchun: soatiga 3 ta, sutkasiga 8 ta (alohida hisob — muhim ogohlantirishlar oʻrnini egallamaydi). Faol admin seansi IP si va oldin muvaffaqiyatli kirilgan (kod tasdiqlangan) IP lar «notanish» hisoblanmaydi — oʻz emailingizni adashib yozsangiz ogohlantirish kelmaydi. Butunlay oʻchirish: `ADMIN_ATT_ALERT=0` (jurnal va Urinishlar sahifasi ishlayveradi).
 - Kim kirdi: «Kirishlar» + `admin.login`, `admin.login.bad`, `admin.login.ask.denied`.
 - Nima qilindi: `admin.*` (notify, mail.switch, push.send, plan, …) yozuvlari — har bir oʻzgartiruvchi amal `who`, `ip` bilan yoziladi.
 - Qaysi maʼlumot koʻrilgan: admin GET lar `Kirishlar` jurnalida (`use`), lekin tarkibi yozilmaydi — admin kirgan boʻlsa, **foydalanuvchilar roʻyxati, fikrlar, xatlar jurnali va toʻlovlar koʻrilgan** deb hisoblang.
 - Foydalanuvchilarga taʼsir: parol hashlari admin javoblarida yoʻq; foydalanuvchi emaillari/ismlari koʻrilgan boʻlishi mumkin → qonun talab qilsa xabardor qiling.
+
+### 2.4.1. IP ni bloklash
+- Admin → «Urinishlar» → IP qatoridagi **«Bloklash»** (1 soat / 24 soat / 7 kun / doimiy) → **«Bloklangan IP lar»** kartasida koʻrinadi, **«Blokdan chiqarish»** bilan qaytariladi. Har bir amal xavfsizlik jurnaliga (`admin.ip.blocked` / `admin.ip.unblocked`, kim va qaysi IP) yoziladi.
+- Bloklangan IP **`/admin` sahifasi va `/api/admin/*` ga 403** oladi — hatto oʻgʻirlangan admin cookie yoki token bilan ham. Saytning qolgan qismi (foydalanuvchilar uchun) bu IP ga ishlayveradi.
+- Himoya: oʻz IP ingiz va faol admin seansi IP si bloklanmaydi (409); IP manzil va muddat qatʼiy tekshiriladi (muddat aniq berilishi shart); `::ffff:1.2.3.4` va `1.2.3.4` bitta manzil hisoblanadi; chegara 200 ta (`ADMIN_BLOCK_MAX`, eng koʻpi 1000); muddati tugagan blok oʻzi olinadi; bloklar server qayta ishga tushganda saqlanadi.
+- **Cheklov:** bu faqat admin yuzasini yopadi va aniq bitta manzilni bloklaydi. IPv6 hujumchi /64 ichida manzilni almashtira oladi, botnet esa koʻp IP dan keladi; butun saytni yoki IP diapazonlarini yopish uchun Cloudflare WAF / IP Access Rules dan foydalaning. Asosiy himoya baribir emailga kod (hujumchi IP bloklanmasa ham kira olmaydi).
 
 ### 2.5. Tiklash
 1. `node tools/backup.js verify <zaxira>` → OK boʻlsa `restore <zaxira> --data <DATA_DIR> --force` (eski fayl `.pre-restore-<vaqt>` nomi bilan saqlanadi).

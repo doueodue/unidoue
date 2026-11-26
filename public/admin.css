@@ -358,3 +358,5 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .adm .at-b .badge{white-space:normal;text-align:left}
 .at-px code{font-size:12px}
 .tbl tr.hot td{background:color-mix(in srgb,var(--bad,#d33) 7%,transparent)}
+.at-act{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.modal select{width:100%;margin:6px 0 4px;padding:11px 12px;font-size:15px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);color:var(--text)}

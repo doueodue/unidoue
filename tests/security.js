@@ -269,6 +269,100 @@ const adm = { Authorization: 'Bearer sched-tok' };
     ok(q.j.attempts.some(a => a.ip === '203.0.113.20' && a.c.lock === 1), 'favqulodda rejim vaqtidagi urinish «lock» sifatida yoziladi');
   });
 
+  await suite('IP bloklash va notanish IP haqida ogohlantirish', { TRUST_PROXY: '1', ADM_COOLDOWN_MS: '300' }, async (ctx) => {
+    const { raw: rq, client: cl, mails, waitMail } = ctx, H = ip => ({ 'True-Client-IP': ip }), NEW = /notanish IP/;
+    const newMails = () => mails.filter(m => m.to && m.to[0] === OWNER && NEW.test(m.subject));
+    // 0) seanssiz — bloklash/blokdan chiqarish yopiq
+    let q = await rq('POST', '/api/admin/ip/block', { ip: '203.0.113.50', minutes: 60 }, H('203.0.113.1')); ok(q.s === 401, 'seanssiz IP bloklash → 401', q.s);
+    q = await rq('POST', '/api/admin/ip/unblock', { ip: '203.0.113.50' }, H('203.0.113.1')); ok(q.s === 401, 'seanssiz blokdan chiqarish → 401', q.s);
+    q = await rq('POST', '/api/admin/ip/block', { ip: '203.0.113.50', minutes: 60 }, { ...H('203.0.113.1'), Authorization: 'Bearer sched-tok' }); ok(q.s === 401, 'ADMIN_TOKEN bilan IP bloklab boʻlmaydi', q.s);
+    // 1) notanish IP ning BIRINCHI jiddiy urinishida administratorga email; takroriy urinishda emas
+    ok(await waitMail(1) && newMails().length === 1 && newMails()[0].html.includes('203.0.113.1'), 'yuqoridagi birinchi seanssiz soʻrov (203.0.113.1) «notanish IP» ogohlantirishini yubordi', mails.map(m => m.subject));
+    await rq('GET', '/admin', null, H('203.0.113.60')); await sleep(400);
+    ok(newMails().length === 1, 'faqat /admin sahifasini ochish ogohlantirish yubormaydi', newMails().map(m => m.subject));
+    await rq('POST', '/api/admin/login/start', { email: 'hujumchi@evil.test' }, H('203.0.113.60'));
+    ok(await waitMail(2) && newMails().length === 2, 'birinchi jiddiy urinish → «notanish IP» ogohlantirishi yuborildi', mails.map(m => m.subject));
+    const m60 = newMails().find(m => m.html.includes('203.0.113.60')); ok(m60 && !/<script/i.test(m60.html), 'ogohlantirishda IP koʻrsatilgan', m60 && m60.html);
+    for (let i = 0; i < 2; i++) await rq('POST', '/api/admin/login/start', { email: 'hujumchi@evil.test' }, H('203.0.113.60'));
+    await sleep(400); ok(newMails().length === 2, 'shu IP ning takroriy urinishlari yangi ogohlantirish yaratmaydi', newMails().length);
+    // 2) boshqa IP lar: soatiga 3 ta ogohlantirish; limit boshqa muhim ogohlantirishlarning oʻrnini egallamaydi
+    for (const x of [61, 62, 63, 64]) await rq('GET', '/api/admin/users', null, H('203.0.113.' + x));
+    await sleep(600); ok(newMails().length === 3, 'notanish IP ogohlantirishlari soatiga 3 ta bilan cheklanadi (hujum boʻroni inboxni toʻldirmaydi)', newMails().length);
+    for (let i = 0; i < 24; i++) await rq('GET', '/api/admin/stats', null, H('203.0.113.70')); // 20 ta seanssiz soʻrov → «admin-probe» ogohlantirishi (boshqa hisob)
+    ok(await (async () => { for (let i = 0; i < 40 && !mails.some(m => /Admin API ga ruxsatsiz/.test(m.subject)); i++) await sleep(100); return mails.some(m => /Admin API ga ruxsatsiz/.test(m.subject)); })(), 'notanish-IP limiti tugagan boʻlsa ham muhim «ruxsatsiz urinishlar» ogohlantirishi keladi', mails.map(m => m.subject));
+    // 3) admin kirdi; oʻz IP si bloklanmaydi
+    const A = cl(); q = await adminLogin(ctx, A); ok(q.s === 200, 'admin kirdi', q.s);
+    q = await A('GET', '/api/admin/attempts'); const me = q.j.attempts.find(a => a.me); const myIp = me ? me.ip : null;
+    q = await A('POST', '/api/admin/ip/block', { ip: '127.0.0.1', minutes: 60 }); const q2 = await A('POST', '/api/admin/ip/block', { ip: '::ffff:127.0.0.1', minutes: 60 });
+    ok(q.s === 409 && q2.s === 409, 'adminning oʻz IP si bloklanmaydi — IPv4 va IPv4-mapped yozuvi ham (409)', [q.s, q2.s]);
+    q = await A('GET', '/api/admin/attempts'); ok(!q.j.blocks.length, 'oʻz IP ni bloklashga urinish blok yaratmadi', q.j.blocks);
+    // 4) notoʻgʻri kirishlar → 400
+    for (const bad of ['abc', '1.2.3.4/24', '<script>alert(1)</script>', '', '__proto__', '999.1.1.1', '1.2.3.4 ', 'constructor', 5, null, ['1.2.3.4'], { a: 1 }]) {
+      q = await A('POST', '/api/admin/ip/block', { ip: bad, minutes: 60 }); ok(q.s === 400, `notoʻgʻri IP rad etiladi: ${JSON.stringify(bad)}`, q.s);
+    }
+    for (const bm of [-1, 0.01, 525601, 'abc', '60', NaN, null, undefined, Infinity, [], {}]) {
+      q = await A('POST', '/api/admin/ip/block', { ip: '203.0.113.80', minutes: bm }); ok(q.s === 400, `notoʻgʻri muddat rad etiladi: ${String(bm)}`, q.s);
+    }
+    q = await A('POST', '/api/admin/ip/block', '{bad json'); ok(q.s === 400 || q.s === 422, 'buzilgan JSON → 4xx', q.s);
+    q = await A('GET', '/api/admin/attempts'); ok(!q.j.blocks.length && !Object.keys(q.j).includes('__proto__'), 'notoʻgʻri soʻrovlar blok yaratmadi', q.j.blocks);
+    // 5) bloklash: /admin va /api/admin/* ga 403 (hatto oʻgʻirlangan cookie bilan ham), sayt qolgan qismiga taʼsir qilmaydi
+    const T = '203.0.113.90', TH = H(T), stolen = cl(); stolen.jar.ud_adm = A.jar.ud_adm;
+    q = await rq('GET', '/api/admin/stats', null, TH); ok(q.s === 401, 'bloklashdan oldin: seanssiz → 401', q.s);
+    q = await A('POST', '/api/admin/ip/block', { ip: T, minutes: 60 }); ok(q.s === 200 && q.j.ok && q.j.until > Date.now(), 'IP bloklandi', q.j);
+    const Tm = '::ffff:' + T; q = await rq('GET', '/api/plans', null, H(Tm)); ok(q.s === 200, 'IPv4-mapped yozuv ham saytning ochiq qismiga kira oladi', q.s);
+    q = await rq('GET', '/admin', null, TH); ok(q.s === 403 && !/<html/i.test(q.t), '/admin sahifasi bloklangan IP ga 403', q.s);
+    q = await rq('POST', '/api/admin/login/start', { email: OWNER }, TH); ok(q.s === 403, 'bloklangan IP kod soʻray olmaydi (403)', q.s);
+    q = await rq('GET', '/api/admin/stats', null, { ...TH, Cookie: 'ud_adm=' + A.jar.ud_adm }); ok(q.s === 403, 'bloklangan IP hatto haqiqiy admin cookie si bilan ham kira olmaydi (403)', q.s);
+    q = await rq('GET', '/api/admin/stats', null, { ...TH, Authorization: 'Bearer sched-tok' }); ok(q.s === 403, 'bloklangan IP token bilan ham kira olmaydi (403)', q.s);
+    q = await rq('GET', '/api/admin/nope', null, TH); ok(q.s === 403, 'bloklangan IP mavjud boʻlmagan admin yoʻlida ham 403', q.s);
+    for (const u of ['/healthz', '/api/plans', '/']) { q = await rq('GET', u, null, TH); ok(q.s === 200, `bloklangan IP saytning qolgan qismini ishlata oladi: ${u}`, q.s); }
+    q = await rq('GET', '/admin', null, H('203.0.113.91')); ok(q.s === 200, 'boshqa IP lar /admin ni ocha oladi', q.s);
+    q = await A('GET', '/api/admin/stats'); ok(q.s === 200, 'admin oʻz seansi bilan ishlashda davom etadi', q.s);
+    // 6) roʻyxat: blocked belgisi, blk hisobi, «Bloklangan IP lar»
+    q = await A('GET', '/api/admin/attempts'); const t = q.j.attempts.find(a => a.ip === T);
+    ok(t && t.blocked && t.blocked.until > Date.now() && t.c.blk >= 5, 'urinishlar roʻyxatida IP «bloklangan» va blk urinishlari sanalgan', t);
+    ok(q.j.blocks.length === 1 && q.j.blocks[0].ip === T && q.j.blocks[0].by === OWNER, 'bloklanganlar roʻyxatida IP va kim bloklagani', q.j.blocks);
+    q = await A('GET', '/api/admin/security'); ok(q.j.events.some(e => e.ev === 'admin.ip.blocked' && e.target === T), 'xavfsizlik jurnaliga «admin.ip.blocked» yozildi', q.j.events.map(e => e.ev));
+    // 7) doimiy blok, qayta bloklash (muddatni yangilaydi), server qayta ishga tushganda saqlanadi
+    q = await A('POST', '/api/admin/ip/block', { ip: T, minutes: 0 }); ok(q.s === 200 && q.j.until === 0, 'doimiy blok (minutes: 0)', q.j);
+    const tok = A.jar.ud_adm; await ctx.restart({}); const A2 = cl(); A2.jar.ud_adm = tok;
+    q = await rq('GET', '/admin', null, TH); ok(q.s === 403, 'blok server qayta ishga tushganda saqlanib qoladi', q.s);
+    q = await A2('GET', '/api/admin/attempts'); ok(q.s === 200 && q.j.blocks.some(b => b.ip === T && b.until === 0), 'doimiy blok roʻyxatda (muddat: doimiy)', q.j.blocks);
+    // 8) blokdan chiqarish
+    q = await A2('POST', '/api/admin/ip/unblock', { ip: T }); ok(q.s === 200 && q.j.removed === true, 'blokdan chiqarildi', q.j);
+    q = await rq('GET', '/admin', null, TH); ok(q.s === 200, 'blokdan chiqarilgach /admin yana ochiladi', q.s);
+    q = await rq('GET', '/api/admin/stats', null, TH); ok(q.s === 401, 'blokdan chiqarilgach API yana 401 beradi (403 emas)', q.s);
+    q = await A2('POST', '/api/admin/ip/unblock', { ip: T }); ok(q.s === 200 && q.j.removed === false, 'blokda boʻlmagan IP ni chiqarish zararsiz', q.j);
+    q = await A2('POST', '/api/admin/ip/unblock', { ip: '__proto__' }); ok(q.s === 200 && q.j.removed === false, 'unblock: __proto__ hech narsani oʻchirmaydi', q.j);
+    q = await A2('GET', '/api/admin/security'); ok(q.j.events.some(e => e.ev === 'admin.ip.unblocked'), 'xavfsizlik jurnaliga «admin.ip.unblocked» yozildi');
+    ok(q.j.chain && q.j.chain.ok === true, 'jurnal zanjiri butun', q.j.chain);
+    // 9) muddat tugashi (≈3 soniya)
+    q = await A2('POST', '/api/admin/ip/block', { ip: '203.0.113.92', minutes: 0.05 }); ok(q.s === 200, 'qisqa muddatli blok (3 soniya)', q.s);
+    q = await rq('GET', '/admin', null, H('203.0.113.92')); ok(q.s === 403, 'qisqa blok vaqtida 403', q.s);
+    await sleep(3400); q = await rq('GET', '/admin', null, H('203.0.113.92')); ok(q.s === 200, 'muddat tugagach blok oʻzi olinadi', q.s);
+    q = await A2('GET', '/api/admin/attempts'); ok(!q.j.blocks.some(b => b.ip === '203.0.113.92'), 'muddati tugagan blok roʻyxatda yoʻq', q.j.blocks);
+    // 10) chegara (ADMIN_BLOCK_MAX): toʻlgach yangi blok rad etiladi, mavjudini yangilash mumkin
+    await ctx.restart({ ADMIN_BLOCK_MAX: '3' }); const A3 = cl(); A3.jar.ud_adm = tok;
+    for (const x of [1, 2, 3]) { q = await A3('POST', '/api/admin/ip/block', { ip: '198.51.100.' + x, minutes: 60 }); ok(q.s === 200, 'blok #' + x, q.s); }
+    q = await A3('POST', '/api/admin/ip/block', { ip: '198.51.100.9', minutes: 60 }); ok(q.s === 409, 'chegaradan keyin yangi blok rad etiladi (409)', q.s);
+    q = await A3('POST', '/api/admin/ip/block', { ip: '198.51.100.1', minutes: 120 }); ok(q.s === 200, 'mavjud blokni yangilash mumkin', q.s);
+    q = await A3('GET', '/api/admin/attempts'); ok(q.j.blocks.length === 3, 'bloklanganlar soni chegaradan oshmaydi', q.j.blocks.length);
+  });
+
+  await suite('Notanish IP ogohlantirishi: tanish IP va oʻchirgich', { TRUST_PROXY: '1', ADM_COOLDOWN_MS: '300' }, async (ctx) => {
+    const { raw: rq, client: cl, mails } = ctx, H = ip => ({ 'True-Client-IP': ip }), NEW = /notanish IP/, newMails = () => mails.filter(m => m.to && m.to[0] === OWNER && NEW.test(m.subject));
+    const A = cl(); let q = await adminLogin(ctx, A); ok(q.s === 200, 'admin kirdi (bu IP endi «tanish»)', q.s);
+    q = await A('POST', '/api/admin/logout'); ok(q.s === 200, 'chiqdi (faol seans yoʻq)', q.s);
+    await rq('POST', '/api/admin/login/start', { email: 'xato@evil.test' }); await rq('GET', '/api/admin/users'); await sleep(700);
+    ok(newMails().length === 0, 'oldin muvaffaqiyatli kirilgan IP dan (email xatosi) notanish-IP ogohlantirishi kelmaydi', newMails().map(m => m.subject));
+    await rq('POST', '/api/admin/login/start', { email: 'xato@evil.test' }, H('203.0.113.5')); for (let i = 0; i < 40 && !newMails().length; i++) await sleep(100);
+    ok(newMails().length === 1 && newMails()[0].html.includes('203.0.113.5'), 'begona IP dan birinchi urinish — ogohlantirish keladi', newMails().length);
+    await ctx.restart({ ADMIN_ATT_ALERT: '0' }); const n0 = newMails().length;
+    await rq('POST', '/api/admin/login/start', { email: 'xato@evil.test' }, H('203.0.113.6')); await sleep(900);
+    ok(newMails().length === n0, 'ADMIN_ATT_ALERT=0: ogohlantirish yuborilmaydi', newMails().length);
+    const B = cl(); q = await adminLogin(ctx, B); q = await B('GET', '/api/admin/attempts'); ok(q.s === 200 && q.j.attempts.some(a => a.ip === '203.0.113.6' && a.c.ask === 1), 'ogohlantirish oʻchiq boʻlsa ham urinish jurnalga yoziladi', q.s);
+  });
+
   /* ---- Webhook imzolari: Telegram (secret token), Payme (Basic kalit), Click (MD5 imzo) ---- */
   await suite('Webhooklar: imzosiz/notoʻgʻri imzoli soʻrov rad etiladi', { TG_BOT_TOKEN: '123456:TEST-token-for-tests', TG_BOT_USERNAME: 'test_bot', USD_UZS_RATE: '12700', PAYME_MERCHANT_ID: 'merch', PAYME_KEY: 'payme-test-key', CLICK_SERVICE_ID: '1', CLICK_MERCHANT_ID: '2', CLICK_SECRET_KEY: 'click-test-secret' }, async (ctx) => {
     const upd = { update_id: 1, message: { message_id: 1, chat: { id: 5 }, from: { id: 5 }, text: '/start abc' } };

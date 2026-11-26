@@ -40,7 +40,7 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [], adminLog: Array.isArray(raw.adminLog) ? raw.adminLog : [], adminAtt: raw.adminAtt && typeof raw.adminAtt === 'object' && !Array.isArray(raw.adminAtt) ? Object.assign(Object.create(null), raw.adminAtt) : Object.create(null), mailLog: Array.isArray(raw.mailLog) ? raw.mailLog : [], adminSessions: raw.adminSessions && typeof raw.adminSessions === 'object' && !Array.isArray(raw.adminSessions) ? raw.adminSessions : {}, adminDevs: raw.adminDevs && typeof raw.adminDevs === 'object' && !Array.isArray(raw.adminDevs) ? raw.adminDevs : {}, mailOff: raw.mailOff === true });
+const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [], adminLog: Array.isArray(raw.adminLog) ? raw.adminLog : [], adminAtt: raw.adminAtt && typeof raw.adminAtt === 'object' && !Array.isArray(raw.adminAtt) ? Object.assign(Object.create(null), raw.adminAtt) : Object.create(null), adminBlock: raw.adminBlock && typeof raw.adminBlock === 'object' && !Array.isArray(raw.adminBlock) ? Object.assign(Object.create(null), raw.adminBlock) : Object.create(null), mailLog: Array.isArray(raw.mailLog) ? raw.mailLog : [], adminSessions: raw.adminSessions && typeof raw.adminSessions === 'object' && !Array.isArray(raw.adminSessions) ? raw.adminSessions : {}, adminDevs: raw.adminDevs && typeof raw.adminDevs === 'object' && !Array.isArray(raw.adminDevs) ? raw.adminDevs : {}, mailOff: raw.mailOff === true });
 let db = normDb({});
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
@@ -504,7 +504,11 @@ function logAdmin(req, ip, ev, who = '') {
 /** «Urinishlar» jurnali: kim admin paneliga kirishga urindi — IP boʻyicha jamlangan (soni, turi, yozgan emaillari, murojaat qilgan yoʻllari, qurilmasi). Oddiy jurnaldan alohida:
  *  hujumchi koʻp yozuv yaratib, qonuniy yozuvlarni siqib chiqara olmasin. Eng koʻpi ATT_MAX ta IP; toʻlsa — avval faqat sahifani ochganlar, keyin eng eskilari olib tashlanadi.
  *  kind: ask — ruxsatsiz email bilan kod soʻradi · bad — notoʻgʻri kod · deny — seanssiz admin API/yoʻlga soʻrov · lock — favqulodda rejim vaqtida urindi · page — faqat /admin sahifasini ochdi */
-const ATT_MAX = 500, ATT_KINDS = new Set(['ask', 'bad', 'deny', 'lock', 'page']);
+const ATT_MAX = 500, ATT_KINDS = new Set(['ask', 'bad', 'deny', 'lock', 'blk', 'page']), ATT_SEV = ['ask', 'bad', 'deny', 'lock', 'blk'];
+const ATT_WHAT = { ask: 'ruxsatsiz email bilan kod soʻradi', bad: 'notoʻgʻri kod kiritdi', deny: 'seanssiz admin API ga urildi', lock: 'favqulodda rejim vaqtida urindi', blk: 'bloklangan IP dan soʻrov yubordi' };
+const ATT_ALERT = process.env.ADMIN_ATT_ALERT !== '0'; // 0 — notanish IP haqidagi email/push ogohlantirishlarini oʻchirish (jurnal va Urinishlar sahifasi saqlanadi)
+const admKnownIp = k => { const n = normIp(k); return Object.values(db.adminSessions).some(x => normIp(x.ip) === n) || db.adminLog.some(x => x.ev === 'in' && normIp(x.ip) === n); }; // faol seans yoki oldin muvaffaqiyatli kirilgan IP — «notanish» emas
+const attSevOf = c => ATT_SEV.reduce((n, k) => n + (c[k] | 0), 0);
 const attBump = (list, key, max) => { const i = list.findIndex(x => x[0] === key); if (i >= 0) list[i][1]++; else if (list.length < max) list.push([key, 1]); };
 function attempt(req, ip, kind, who = '') {
   try {
@@ -514,17 +518,30 @@ function attempt(req, ip, kind, who = '') {
     if (!a) {
       const keys = Object.keys(db.adminAtt);
       if (keys.length >= ATT_MAX) {
-        const sev = e => e.c.ask + e.c.bad + e.c.deny + e.c.lock, order = keys.map(x => [x, db.adminAtt[x]]).sort((x, y) => (sev(x[1]) > 0) - (sev(y[1]) > 0) || x[1].last - y[1].last);
+        const sev = e => attSevOf(e.c), order = keys.map(x => [x, db.adminAtt[x]]).sort((x, y) => (sev(x[1]) > 0) - (sev(y[1]) > 0) || x[1].last - y[1].last);
         for (const [x] of order.slice(0, keys.length - ATT_MAX + 1)) delete db.adminAtt[x];
       }
-      a = db.adminAtt[k] = { first: now, last: now, c: { ask: 0, bad: 0, deny: 0, lock: 0, page: 0 }, em: [], px: [], ua: [] };
+      a = db.adminAtt[k] = { first: now, last: now, c: { ask: 0, bad: 0, deny: 0, lock: 0, blk: 0, page: 0 }, em: [], px: [], ua: [] };
     }
-    a.last = now; a.c[kind]++;
+    a.last = now; a.c[kind] = (a.c[kind] | 0) + 1;
     if ((kind === 'ask' || kind === 'bad') && who) attBump(a.em, clean(who, 80).toLowerCase(), 6);
     if (kind === 'deny' || kind === 'lock') attBump(a.px, clean(String(req.url || '').split('?')[0], 80), 6);
     attBump(a.ua, clean(req.headers['user-agent'], 160), 3);
+    // shu IP ning BIRINCHI jiddiy urinishi → administratorga darhol ogohlantirish (soatiga 3 ta, sutkasiga 8 ta — alohida hisob; oʻz IP ingiz/faol admin seansi IP si hisobga olinmaydi)
+    if (kind !== 'page' && ATT_ALERT && attSevOf(a.c) === 1 && !admKnownIp(k) && !limited('att-alert-h', 3, 36e5)) {
+      const path_ = (kind === 'deny' || kind === 'lock') ? ' · ' + clean(String(req.url || '').split('?')[0], 60) : who ? ' · ' + clean(who, 60) : '';
+      alertAdmin('att-new:' + k, 'Admin paneliga notanish IP dan urinish', `${k} ${ATT_WHAT[kind] || 'urindi'}${path_}. Admin → Urinishlar sahifasida koʻring va kerak boʻlsa IP ni bloklang.`, 'alert-att-d', 8);
+    }
     save();
   } catch (e) {}
+}
+/** Qoʻlda bloklangan IP lar: /admin sahifasi va /api/admin/* ga 403 (sayt qolgan qismiga taʼsir qilmaydi). until=0 — doimiy. Faol admin seansi IP si yoki oʻz IP ingiz bloklanmaydi. */
+const BLOCK_MAX = Math.min(1000, Math.max(1, parseInt(process.env.ADMIN_BLOCK_MAX, 10) || 200));
+const normIp = v => { v = String(v || '').toLowerCase(); const m = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/.exec(v); return m ? m[1] : v; }; // ::ffff:1.2.3.4 va 1.2.3.4 — bitta manzil
+function admBlocked(ip) {
+  ip = normIp(ip); const b = Object.hasOwn(db.adminBlock, ip) ? db.adminBlock[ip] : null; if (!b) return false;
+  if (b.until && b.until < Date.now()) { delete db.adminBlock[ip]; save(); return false; }
+  return true;
 }
 const attLimitedNow = ip => peek('admf:' + ip) >= 20 || peek('admls:' + ip) > ADM_START_MAX || peek('admlv:' + ip) > 10;
 // Admin: seanssiz urinishlar IP boʻyicha sanaladi (20 ta / 15 daqiqa); har endpoint oʻz limitiga ega.
@@ -572,9 +589,9 @@ const secTail = (n = 150) => { try { return fs.readFileSync(SEC_FILE, 'utf8').sp
 const eh = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 /** Real vaqtdagi ogohlantirish: jurnalga yoziladi (doim), administratorga email (faqat ADMIN_EMAILS) va push yuboriladi.
  *  kind — bir xil turdagi ogohlantirish soatiga bir marta; hammasi sutkasiga 24 ta (ogohlantirish oʻzi spamga aylanmasin). */
-function alertAdmin(kind, title, text = '') {
+function alertAdmin(kind, title, text = '', pool = 'alert-d', poolMax = 24) { // pool — alohida sutkalik hisob: koʻp tarqalgan hujum muhim ogohlantirishlar oʻrnini egallab olmasin
   secLog('alert.' + String(kind).split(':')[0], { title: String(title).slice(0, 120) });
-  if (limited('alert-d', 24, 864e5) || limited('alert:' + kind, 1, 36e5)) return;
+  if (limited(pool, poolMax, 864e5) || limited('alert:' + kind, 1, 36e5)) return;
   const html = `<p><b>⚠ ${eh(title)}</b></p><p>${eh(text)}</p><p style="color:#666;font-size:13px">Vaqt: ${eh(new Date().toISOString())}. Batafsil: admin → Xavfsizlik. Bu siz boʻlmasangiz: Render → Environment → <code>ADMIN_LOCKDOWN=1</code> va <code>ADMIN_TOKEN</code> ni almashtiring.</p>`;
   if (MAIL_PROVIDER) for (const em of ADMIN_EMAILS) sendMail(em, 'UniDoue xavfsizlik: ' + String(title).slice(0, 90), html, 'admin', '', 'system').catch(() => {});
   if (db.adminPush && db.adminPush.length) pushTo(db.adminPush, { title: '⚠ ' + String(title).slice(0, 60), body: String(text).slice(0, 140), url: '/admin#security', tag: 'security' }, { urgency: 'high' }).catch(() => {});
@@ -853,6 +870,7 @@ async function api(req, res, pathname) {
       return fail(res, 415, 'JSON kerak.');
   }
   const ip = clientIp(req);
+  if (pathname.startsWith('/api/admin/') && admBlocked(ip)) { attempt(req, ip, 'blk'); return fail(res, 403, 'Ruxsat yoʻq.'); } // qoʻlda bloklangan IP (hatto oʻgʻirlangan cookie bilan ham)
 
   // Tasdiqlanmagan hisob: faqat tasdiqlash, chiqish va oʻchirishga ruxsat (server tomonda majburlanadi)
   if (pathname.startsWith('/api/') && !pathname.startsWith('/api/admin/')) {
@@ -1598,10 +1616,29 @@ async function api(req, res, pathname) {
     });
   }
 
+  if (pathname === '/api/admin/ip/block' && method === 'POST') { // IP ni /admin va /api/admin/* dan bloklash
+    if (!admGate(req, res, ip, 'ip-block', 30)) return;
+    const b = await readJson(req), min = b.minutes;
+    if (typeof b.ip !== 'string' || b.ip.length > 64 || !net.isIP(b.ip)) return fail(res, 400, 'IP manzil notoʻgʻri.');
+    if (typeof min !== 'number' || !(min === 0 || (Number.isFinite(min) && min >= 0.05 && min <= 525600))) return fail(res, 400, 'Muddat notoʻgʻri.'); // muddat aniq berilishi shart (boʻsh qiymat «doimiy» boʻlib qolmasin)
+    const target = normIp(b.ip);
+    if (target === normIp(ip) || Object.values(db.adminSessions).some(x => normIp(x.ip) === target)) return fail(res, 409, 'Bu IP dan faol admin seansi bor (yoki bu sizning IP ingiz) — bloklab boʻlmaydi.');
+    if (!Object.hasOwn(db.adminBlock, target) && Object.keys(db.adminBlock).length >= BLOCK_MAX) return fail(res, 409, `Bloklangan IP lar chegarasi (${BLOCK_MAX}) toʻldi. Eskilarini blokdan chiqaring.`);
+    db.adminBlock[target] = { t: Date.now(), until: min ? Date.now() + Math.round(min * 60000) : 0, by: admWho(req) };
+    save(); secLog('admin.ip.blocked', { who: admWho(req), ip, target, minutes: min });
+    return send(res, 200, { ok: true, until: db.adminBlock[target].until });
+  }
+  if (pathname === '/api/admin/ip/unblock' && method === 'POST') {
+    if (!admGate(req, res, ip, 'ip-unblock', 30)) return;
+    const b = await readJson(req), target = typeof b.ip === 'string' ? normIp(b.ip.slice(0, 64)) : '', had = !!target && Object.hasOwn(db.adminBlock, target);
+    if (had) { delete db.adminBlock[target]; save(); secLog('admin.ip.unblocked', { who: admWho(req), ip, target }); }
+    return send(res, 200, { ok: true, removed: had });
+  }
   if (pathname === '/api/admin/attempts' && method === 'GET') { // kim admin paneliga kirishga urindi (IP boʻyicha jamlangan)
     if (!admGate(req, res, ip, 'attempts', 300)) return;
-    const list = Object.entries(db.adminAtt).map(([k, a]) => ({ ip: k, first: a.first, last: a.last, c: a.c, em: a.em.map(([e, n]) => ({ e, n, known: ADMIN_EMAILS.includes(e) })), px: a.px.map(([p, n]) => ({ p, n })), ua: a.ua.map(([u, n]) => ({ u, n })), now: attLimitedNow(k), me: k === ip })).sort((x, y) => y.last - x.last);
-    return send(res, 200, { attempts: list, max: ATT_MAX, lockdown: adminLocked() });
+    const list = Object.entries(db.adminAtt).map(([k, a]) => ({ ip: k, first: a.first, last: a.last, c: a.c, em: a.em.map(([e, n]) => ({ e, n, known: ADMIN_EMAILS.includes(e) })), px: a.px.map(([p, n]) => ({ p, n })), ua: a.ua.map(([u, n]) => ({ u, n })), now: attLimitedNow(k), me: k === ip, blocked: admBlocked(k) ? { until: db.adminBlock[normIp(k)].until } : null })).sort((x, y) => y.last - x.last);
+    const blocks = Object.entries(db.adminBlock).filter(([k]) => admBlocked(k)).map(([k, v]) => ({ ip: k, until: v.until, t: v.t, by: v.by })).sort((x, y) => y.t - x.t);
+    return send(res, 200, { attempts: list, blocks, max: ATT_MAX, lockdown: adminLocked() });
   }
 
   if (pathname === '/api/admin/stats' && method === 'GET') {
@@ -1917,7 +1954,7 @@ function assetLinks() {
   return list;
 }
 function serveStatic(req, res, pathname) {
-  if (pathname === '/admin') attempt(req, clientIp(req), 'page'); // /admin sahifasini kim ochdi (Urinishlar sahifasida alohida koʻrsatiladi)
+  if (pathname === '/admin') { const cip = clientIp(req); if (admBlocked(cip)) { attempt(req, cip, 'blk'); res.statusCode = 403; res.setHeader('Content-Type', 'text/plain; charset=utf-8'); res.end('Ruxsat yoʻq.'); return true; } attempt(req, cip, 'page'); } // /admin sahifasini kim ochdi (Urinishlar sahifasida alohida koʻrsatiladi)
   if (pathname === '/.well-known/assetlinks.json') {
     res.setHeader('Content-Type', MIME['.json']); res.setHeader('Cache-Control', 'no-cache');
     res.end(req.method === 'HEAD' ? undefined : JSON.stringify(assetLinks(), null, 2)); return true;
