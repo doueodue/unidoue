@@ -357,7 +357,7 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .at-b{display:flex;flex-wrap:wrap;gap:6px}
 .at-em{display:flex;flex-direction:column;gap:3px;font-size:13px;overflow-wrap:anywhere}
 .at-px{display:flex;flex-direction:column;gap:4px;font-size:12.5px;overflow-wrap:anywhere;min-width:0}
-.adm .at-b .badge{white-space:normal;text-align:left}
+.adm .at-b .badge{white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .at-px code{font-size:12px}
 .tbl tr.hot td{background:color-mix(in srgb,var(--bad,#d33) 7%,transparent)}
 .at-act{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
@@ -372,7 +372,19 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .bk-why{color:var(--muted);overflow-wrap:anywhere;max-width:260px}
 .modal .ck{display:flex;gap:8px;align-items:flex-start;margin:12px 0 0;font-size:14px;cursor:pointer}.modal .ck input{margin-top:3px}
 .modal input[type=text].rp-i{width:100%}
-#ul .row-a{flex-wrap:wrap;max-width:300px;margin-left:auto}
 .modal .ck{gap:10px}.modal .ck input{margin-top:1px}
 
 .ipc{display:flex;flex-direction:column;align-items:flex-start;gap:3px;font-variant-numeric:tabular-nums}.ipc b{font-weight:600;white-space:nowrap}.ipc b.v6{white-space:normal;overflow-wrap:anywhere;max-width:170px}.ipc small{color:var(--muted);font-size:12px}
+
+/* foydalanuvchilar: tugmalar qat'iy o'rinlarda (Tarif — 1/1, Xabar — 1/2, Qayta tasdiqlatish/Bekor qilish — 2/1, Bloklash — 2/2); qatordan qatorga o'rni o'zgarmaydi */
+.row-a.ua{display:grid;grid-template-columns:142px 122px;gap:6px;justify-content:end}
+.row-a.ua .btn{width:100%;text-align:center;white-space:nowrap;padding-left:6px;padding-right:6px;font-size:13px}
+.ua .s11{grid-area:1/1}.ua .s12{grid-area:1/2}.ua .s21{grid-area:2/1}.ua .s22{grid-area:2/2}.ua .s31{grid-area:3/1}
+/* urinishlar: email va «× n» doim yonma-yon, nishon pastga tushmaydi */
+.at-e{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.at-g{display:inline-flex;align-items:baseline;gap:8px;white-space:nowrap;min-width:0;max-width:100%}
+.at-ea{min-width:0;max-width:200px;overflow:hidden;text-overflow:ellipsis}.at-c{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
+@media(max-width:720px){.row-a.ua{justify-content:start;grid-template-columns:minmax(0,142px) minmax(0,122px)}.at-ea{max-width:130px}.at-e{justify-content:flex-end}}
+.pl-x{margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}.at-dv{display:inline-block;margin-top:2px}
+@media(min-width:721px){#ul table.tbl th,#ul table.tbl td,#at-t table.tbl th,#at-t table.tbl td{padding-left:9px;padding-right:9px}}
+.pl-x small{white-space:nowrap}
