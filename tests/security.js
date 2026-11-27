@@ -364,6 +364,111 @@ const adm = { Authorization: 'Bearer sched-tok' };
   });
 
   /* ---- Webhook imzolari: Telegram (secret token), Payme (Basic kalit), Click (MD5 imzo) ---- */
+  await suite('Sayt miqyosida bloklash: email, domen va IP', { TRUST_PROXY: '1', ADM_COOLDOWN_MS: '300', ADM_REAUTH_MS: '1500', ADMIN_ATT_ALERT: '0', REG_RATE_MAX: '200', MAIL_BULK_MAX: '50', USER_BLOCK_MAX: '6' }, async (ctx) => {
+    const { raw: rq, client: cl, mails, waitMail } = ctx, H = ip => ({ 'True-Client-IP': ip }), PW = 'parol12345';
+    const reg = async (email, ip) => { const c = cl(); const q = await c('POST', '/api/register', { email, password: PW, name: 'Sinov' }, H(ip)); c.s = q.s; return c; };
+    const login = (email, ip, pw = PW) => cl()('POST', '/api/login', { email, password: pw }, H(ip));
+    // 0) seanssiz — hech narsa ochiq emas
+    let q = await rq('POST', '/api/admin/user/block', { email: 'a@b.test', minutes: 0 }, H('198.51.100.1')); ok(q.s === 401, 'seanssiz email bloklash → 401', q.s);
+    q = await rq('POST', '/api/admin/user/unblock', { email: 'a@b.test' }, H('198.51.100.1')); ok(q.s === 401, 'seanssiz blokdan chiqarish → 401', q.s);
+    q = await rq('GET', '/api/admin/blocks', null, H('198.51.100.1')); ok(q.s === 401, 'seanssiz bloklar roʻyxati → 401', q.s);
+    q = await rq('POST', '/api/admin/user/block', { email: 'a@b.test', minutes: 0 }, { ...H('198.51.100.1'), Authorization: 'Bearer sched-tok' }); ok(q.s === 401, 'ADMIN_TOKEN bilan foydalanuvchi bloklab boʻlmaydi', q.s);
+    // 1) hisoblar
+    const U1 = await reg('victim@example.test', '198.51.100.10'), U2 = await reg('other@example.test', '198.51.100.20'), G1 = await reg('jo.hn@gmail.com', '198.51.100.30'), D1 = await reg('old@spam-domain.test', '198.51.100.31');
+    ok([U1, U2, G1, D1].every(c => c.s === 201), 'sinov hisoblari ochildi', [U1, U2, G1, D1].map(c => c.s));
+    q = await U1('PUT', '/api/data', { data: { 'qabul:eslatma': 'saqlanadi' } }); ok(q.s === 200, 'U1 maʼlumot saqladi', q.s);
+    q = await U2('GET', '/api/me', null, H('198.51.100.20')); ok(q.j.user && q.j.user.email === 'other@example.test' && !JSON.stringify(q.j).includes('198.51.100'), '/api/me IP manzilni foydalanuvchiga koʻrsatmaydi', q.j && Object.keys(q.j));
+    const A = cl(); q = await adminLogin(ctx, A); ok(q.s === 200, 'admin kirdi', q.s);
+    q = await A('GET', '/api/admin/users'); const row = e => q.j.users.find(x => x.email === e);
+    ok(row('victim@example.test').ip === '198.51.100.10' && row('victim@example.test').ip0 === '198.51.100.10' && row('victim@example.test').blocked === null, 'admin roʻyxatida foydalanuvchining IP si va blok holati bor', row('victim@example.test'));
+    // 2) tekshiruvlar
+    for (const bad of ['abc', '', '@', '@x', 'a@b', 'a b@c.test', 'a@b.test,c@d.test', '<x>@a.test', 5, null, ['a@b.test'], {}, '@-bad.test', '__proto__']) { q = await A('POST', '/api/admin/user/block', { email: bad, minutes: 60 }); ok(q.s === 400, `notoʻgʻri email/domen rad etiladi: ${JSON.stringify(bad)}`, q.s); }
+    for (const bm of [-1, 0.01, 525601, 'abc', '60', NaN, null, undefined, Infinity, [], {}]) { q = await A('POST', '/api/admin/user/block', { email: 'x@spam-domain.test', minutes: bm }); ok(q.s === 400, `notoʻgʻri muddat rad etiladi: ${String(bm)}`, q.s); }
+    q = await A('POST', '/api/admin/user/block', { email: OWNER, minutes: 0 }); ok(q.s === 409, 'administrator emailini bloklab boʻlmaydi', q.s);
+    q = await A('POST', '/api/admin/user/block', { email: OWNER.toUpperCase(), minutes: 0 }); ok(q.s === 409, 'administrator emailini katta harflar bilan ham bloklab boʻlmaydi', q.s);
+    q = await A('POST', '/api/admin/user/block', { email: '@example.test', minutes: 0 }); ok(q.s === 409, 'administrator domenini bloklab boʻlmaydi', q.s);
+    q = await A('POST', '/api/admin/ip/block', { ip: '127.0.0.1', minutes: 60, scope: 'site' }); ok(q.s === 409, 'oʻz IP ni sayt miqyosida ham bloklab boʻlmaydi', q.s);
+    q = await A('POST', '/api/admin/ip/block', { ip: '198.51.100.99', minutes: 60, scope: 'hamma' }); ok(q.s === 400, 'notoʻgʻri qamrov (scope) rad etiladi', q.s);
+    q = await A('GET', '/api/admin/blocks'); ok(q.s === 200 && !q.j.ips.length && !q.j.emails.length, 'notoʻgʻri soʻrovlar blok yaratmadi', q.j);
+    // 3) U1 ni bloklash (email + IP)
+    q = await A('POST', '/api/admin/user/block', { email: 'Victim@Example.test', minutes: 0, reason: 'Spam <b>yubordi</b>', withIp: true }); ok(q.s === 200 && q.j.ok && q.j.users === 1 && q.j.dropped >= 1 && q.j.ips[0] === '198.51.100.10', 'U1 bloklandi (email + IP); sessiyalari bekor qilindi', q.j);
+    q = await U1('GET', '/api/me', null, H('198.51.100.77')); ok(q.s === 200 && q.j.user === null && !('data' in q.j), 'bloklangan foydalanuvchining seansi bekor: /api/me da hisob maʼlumotlari yoʻq', q.j);
+    q = await U1('GET', '/api/credits', null, H('198.51.100.77')); ok(q.s === 401, 'bloklangan foydalanuvchi eski seansi bilan API dan foydalana olmaydi', q.s);
+    q = await login('victim@example.test', '198.51.100.77'); ok(q.s === 403 && q.j.code === 'BLOCKED', 'toʻgʻri parol bilan kirish → 403 BLOCKED', q);
+    q = await login('victim@example.test', '198.51.100.77', 'notogri-parol'); ok(q.s === 401, 'notoʻgʻri parol → 401 (email bloklanganligi sizib chiqmaydi)', q.s);
+    q = await cl()('POST', '/api/register', { email: 'victim@example.test', password: PW, name: 'Qayta' }, H('198.51.100.78')); ok(q.s === 403, 'bloklangan email bilan qayta roʻyxatdan oʻtib boʻlmaydi', q.s);
+    q = await cl()('POST', '/api/register', { email: 'VICTIM@example.test', password: PW, name: 'Qayta' }, H('198.51.100.78')); ok(q.s === 403, 'katta harflar bilan ham', q.s);
+    mails.length = 0; q = await rq('POST', '/api/password/forgot', { email: 'victim@example.test' }, H('198.51.100.78')); await sleep(300); ok(q.s === 200 && !mails.some(m => m.to[0] === 'victim@example.test'), 'parolni tiklash: bloklangan hisobga xat ketmaydi (javob oddiy 200)', mails.map(m => m.to));
+    q = await rq('POST', '/api/password/forgot', { email: 'other@example.test' }, H('198.51.100.78')); await sleep(300); ok(q.s === 200 && mails.some(m => m.to[0] === 'other@example.test'), 'nazorat: bloklanmagan hisobga xat ketadi', mails.map(m => m.to));
+    // 4) IP sayt miqyosida yopiq; boshqa IP lar ishlaydi
+    q = await rq('GET', '/api/plans', null, H('198.51.100.10')); ok(q.s === 403 && /cheklangan/.test(q.j.error), 'bloklangan IP: API → 403 (JSON)', q);
+    q = await rq('GET', '/', null, H('198.51.100.10')); ok(q.s === 403 && /Kirish cheklangan/.test(q.t) && !/<script/i.test(q.t), 'bloklangan IP: sahifa → 403', q.s);
+    q = await rq('GET', '/app', null, H('::ffff:198.51.100.10')); ok(q.s === 403, 'IPv4-mapped yozuv bilan ham 403', q.s);
+    q = await rq('POST', '/api/register', { email: 'yangi@example.test', password: PW, name: 'Yangi' }, H('198.51.100.10')); ok(q.s === 403, 'bloklangan IP dan roʻyxatdan oʻtib boʻlmaydi', q.s);
+    q = await rq('GET', '/admin', null, H('198.51.100.10')); ok(q.s === 403, 'bloklangan IP /admin ni ham ocha olmaydi', q.s);
+    q = await rq('GET', '/healthz', null, H('198.51.100.10')); ok(q.s === 200, '/healthz bloklangan IP ga ham ochiq (monitoring buzilmaydi)', q.s);
+    q = await rq('GET', '/api/plans', null, H('198.51.100.11')); ok(q.s === 200, 'boshqa IP lar ishlaydi', q.s);
+    q = await U2('GET', '/api/me', null, H('198.51.100.20')); ok(q.s === 200 && q.j.user && q.j.user.email === 'other@example.test', 'bloklanmagan foydalanuvchi ishlashda davom etadi', q.s);
+    // 5) roʻyxatlar
+    q = await A('GET', '/api/admin/users'); ok(row('victim@example.test').blocked && row('victim@example.test').ipBlocked === true && row('other@example.test').blocked === null && row('other@example.test').ipBlocked === false, 'foydalanuvchilar jadvalida blok holati (email va IP)', [row('victim@example.test').blocked, row('victim@example.test').ipBlocked]);
+    q = await A('GET', '/api/admin/blocks'); const eb = q.j.emails[0], ib = q.j.ips[0];
+    ok(q.j.emails.length === 1 && eb.key === 'victim@example.test' && eb.kind === 'email' && eb.users === 1 && eb.until === 0 && eb.by === OWNER && eb.reason.includes('yubordi'), 'bloklar roʻyxatida email, muddat, kim bloklagani, hisoblar soni', q.j.emails);
+    ok(q.j.ips.length === 1 && ib.ip === '198.51.100.10' && ib.scope === 'site' && ib.hits >= 4, 'bloklar roʻyxatida IP (scope=site) va urinishlar soni', q.j.ips);
+    q = await A('GET', '/api/admin/security'); ok(q.j.events.some(e => e.ev === 'admin.user.blocked') && q.j.events.some(e => e.ev === 'auth.blocked'), 'xavfsizlik jurnaliga yozildi (admin.user.blocked, auth.blocked)', q.j.events.map(e => e.ev));
+    ok(!JSON.stringify(q.j.events).includes('victim@example.test'), 'jurnalda email ochiq yozilmagan (faqat xesh)', 1);
+    // 6) ommaviy xat va push bloklangan foydalanuvchiga ketmaydi
+    await sleep(1700); mails.length = 0;
+    q = await A('POST', '/api/admin/reauth/start', {}); ok(q.s === 200, 'qayta tasdiqlash kodi soʻraldi', q.s); await waitMail(1);
+    q = await A('POST', '/api/admin/reauth/verify', { code: codeOf(mails, /amalni tasdiqlash kodi/) }); ok(q.s === 200, 'qayta tasdiqlandi', q.s);
+    mails.length = 0; q = await A('POST', '/api/admin/notify', { title: 'Yangilik', body: 'Salom hammaga, yangi imkoniyatlar qoʻshildi.', audience: 'all', channels: { app: true, mail: true } }); await sleep(600);
+    ok(q.s === 200 && mails.some(m => m.to[0] === 'other@example.test') && !mails.some(m => m.to[0] === 'victim@example.test'), 'ommaviy xat: bloklangan foydalanuvchiga ketmadi, boshqalarga ketdi', mails.map(m => m.to));
+    // 7) saqlanish: server qayta ishga tushganda blok turadi
+    const tok = A.jar.ud_adm; await ctx.restart({}); const A2 = cl(); A2.jar.ud_adm = tok;
+    q = await login('victim@example.test', '198.51.100.79'); ok(q.s === 403, 'qayta ishga tushgandan keyin ham blok turadi (email)', q.s);
+    q = await rq('GET', '/api/plans', null, H('198.51.100.10')); ok(q.s === 403, 'qayta ishga tushgandan keyin ham blok turadi (IP)', q.s);
+    // 8) blokdan chiqarish: email + IP; maʼlumot saqlanib qolgan
+    q = await A2('POST', '/api/admin/user/unblock', { email: 'victim@example.test', withIp: true }); ok(q.s === 200 && q.j.removed === true && q.j.ipRemoved === 1, 'blokdan chiqarildi (email + IP)', q.j);
+    const back = cl(); q = await back('POST', '/api/login', { email: 'victim@example.test', password: PW }, H('198.51.100.10')); ok(q.s === 200, 'blokdan chiqqach kira oladi', q.s);
+    q = await back('GET', '/api/me', null, H('198.51.100.10')); ok(q.s === 200 && JSON.stringify(q.j.data).includes('saqlanadi'), 'hisob maʼlumotlari oʻchmagan', q.j);
+    q = await A2('POST', '/api/admin/user/unblock', { email: 'victim@example.test' }); ok(q.s === 200 && q.j.removed === false, 'takroriy blokdan chiqarish zararsiz', q.j);
+    // 9) Gmail: nuqta va +belgi bir xil pochta qutisi
+    q = await A2('POST', '/api/admin/user/block', { email: 'john+reklama@googlemail.com', minutes: 0 }); ok(q.s === 200 && q.j.key === 'john@gmail.com' && q.j.users === 1, 'Gmail: john+..@googlemail.com → jo.hn@gmail.com hisobi bloklandi', q.j);
+    q = await login('jo.hn@gmail.com', '198.51.100.80'); ok(q.s === 403, 'Gmail: nuqtali yozuv bloklangan', q.s);
+    q = await cl()('POST', '/api/register', { email: 'j.o.h.n+2@gmail.com', password: PW, name: 'Alias' }, H('198.51.100.80')); ok(q.s === 403, 'Gmail: boshqa yozuv bilan roʻyxatdan oʻtib boʻlmaydi', q.s);
+    q = await A2('POST', '/api/admin/user/unblock', { email: 'john@gmail.com' }); ok(q.j.removed === true, 'Gmail bloki olindi', q.j);
+    // 10) domen bloki: mavjud hisoblar ham yopiladi
+    q = await A2('POST', '/api/admin/user/block', { email: '@Spam-Domain.test', minutes: 0, withIp: true }); ok(q.s === 200 && q.j.key === '@spam-domain.test' && q.j.users === 1 && q.j.ips.length === 0, 'domen bloklandi (IP ga tegilmaydi)', q.j);
+    q = await login('old@spam-domain.test', '198.51.100.81'); ok(q.s === 403, 'domendagi mavjud hisob kira olmaydi', q.s);
+    q = await cl()('POST', '/api/register', { email: 'yangi@spam-domain.test', password: PW, name: 'Yangi' }, H('198.51.100.81')); ok(q.s === 403, 'domendagi yangi hisob ochib boʻlmaydi', q.s);
+    q = await A2('GET', '/api/admin/blocks'); ok(q.j.emails.length === 1 && q.j.emails[0].kind === 'domain' && q.j.emails[0].users === 1, 'roʻyxatda domen bloki (1 hisob)', q.j.emails);
+    q = await A2('POST', '/api/admin/user/unblock', { email: '@spam-domain.test' }); ok(q.j.removed === true, 'domen bloki olindi', q.j);
+    q = await login('old@spam-domain.test', '198.51.100.81'); ok(q.s === 200, 'domen ochilgach hisob qaytadi', q.s);
+    // 11) vaqtinchalik blok oʻzi tugaydi
+    q = await A2('POST', '/api/admin/user/block', { email: 'vaqtincha@example.test', minutes: 0.05 }); ok(q.s === 200 && q.j.until > Date.now(), 'vaqtinchalik blok (3 soniya)', q.j);
+    q = await cl()('POST', '/api/register', { email: 'vaqtincha@example.test', password: PW, name: 'Vaqtincha' }, H('198.51.100.82')); ok(q.s === 403, 'muddat ichida roʻyxatdan oʻtib boʻlmaydi', q.s);
+    await sleep(3400);
+    q = await cl()('POST', '/api/register', { email: 'vaqtincha@example.test', password: PW, name: 'Vaqtincha' }, H('198.51.100.82')); ok(q.s === 201, 'muddat tugagach blok oʻzi oʻchadi', q.s);
+    q = await A2('GET', '/api/admin/blocks'); ok(!q.j.emails.length, 'tugagan blok roʻyxatdan tushdi', q.j.emails);
+    // 12) IP bloklash: scope=admin faqat adminni yopadi, scope=site butun saytni
+    q = await A2('POST', '/api/admin/ip/block', { ip: '198.51.100.41', minutes: 60, scope: 'admin' }); ok(q.s === 200 && q.j.scope === 'admin', 'IP admin qamrovida bloklandi', q.j);
+    q = await A2('POST', '/api/admin/ip/block', { ip: '198.51.100.42', minutes: 60, scope: 'site', reason: 'Bot' }); ok(q.s === 200 && q.j.scope === 'site', 'IP sayt qamrovida bloklandi', q.j);
+    q = await A2('POST', '/api/admin/ip/block', { ip: '198.51.100.43', minutes: 60 }); ok(q.s === 200 && q.j.scope === 'admin', 'scope berilmasa — admin (oldingi xatti-harakat)', q.j);
+    q = await rq('GET', '/api/plans', null, H('198.51.100.41')); ok(q.s === 200, 'admin-qamrovli blok saytni yopmaydi', q.s);
+    q = await rq('GET', '/admin', null, H('198.51.100.41')); ok(q.s === 403, '…lekin /admin ni yopadi', q.s);
+    q = await rq('GET', '/api/plans', null, H('198.51.100.42')); ok(q.s === 403, 'sayt-qamrovli blok butun saytni yopadi', q.s);
+    q = await A2('GET', '/api/admin/blocks'); ok(q.j.ips.find(x => x.ip === '198.51.100.42').scope === 'site' && q.j.ips.find(x => x.ip === '198.51.100.42').reason === 'Bot' && q.j.ips.find(x => x.ip === '198.51.100.41').scope === 'admin', 'roʻyxatda scope va sabab', q.j.ips);
+    q = await A2('GET', '/api/admin/attempts'); ok(q.j.blocks.every(b => b.scope === 'admin' || b.scope === 'site'), 'urinishlar sahifasidagi bloklarda ham scope bor', q.j.blocks);
+    q = await A2('POST', '/api/admin/ip/block', { ip: '198.51.100.41', minutes: 60, scope: 'site' }); ok(q.s === 200, 'mavjud IP bloki qamrovi oʻzgartirildi', q.s);
+    q = await rq('GET', '/api/plans', null, H('198.51.100.41')); ok(q.s === 403, 'qamrov kengaytirilgach sayt yopildi', q.s);
+    for (const x of [41, 42, 43]) await A2('POST', '/api/admin/ip/unblock', { ip: '198.51.100.' + x });
+    q = await rq('GET', '/api/plans', null, H('198.51.100.42')); ok(q.s === 200, 'blokdan chiqarilgach sayt ochiq', q.s);
+    // 13) chegara
+    await ctx.restart({ USER_BLOCK_MAX: '2' });
+    for (const e of ['c1@x-a.test', 'c2@x-a.test']) { q = await A2('POST', '/api/admin/user/block', { email: e, minutes: 60 }); ok(q.s === 200, `chegara ichida: ${e}`, q.s); }
+    q = await A2('POST', '/api/admin/user/block', { email: 'c3@x-a.test', minutes: 60 }); ok(q.s === 409, 'chegaradan oshganda 409', q.s);
+    q = await A2('POST', '/api/admin/user/block', { email: 'c1@x-a.test', minutes: 120 }); ok(q.s === 200, 'mavjud blokni yangilash chegaraga tushmaydi', q.s);
+  });
+
   await suite('Webhooklar: imzosiz/notoʻgʻri imzoli soʻrov rad etiladi', { TG_BOT_TOKEN: '123456:TEST-token-for-tests', TG_BOT_USERNAME: 'test_bot', USD_UZS_RATE: '12700', PAYME_MERCHANT_ID: 'merch', PAYME_KEY: 'payme-test-key', CLICK_SERVICE_ID: '1', CLICK_MERCHANT_ID: '2', CLICK_SECRET_KEY: 'click-test-secret' }, async (ctx) => {
     const upd = { update_id: 1, message: { message_id: 1, chat: { id: 5 }, from: { id: 5 }, text: '/start abc' } };
     let q = await ctx.raw('POST', '/api/tg/webhook', upd); ok(q.s === 401, 'Telegram webhook: sarlavhasiz → 401', q.s);

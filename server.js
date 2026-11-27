@@ -40,7 +40,7 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [], adminLog: Array.isArray(raw.adminLog) ? raw.adminLog : [], adminAtt: raw.adminAtt && typeof raw.adminAtt === 'object' && !Array.isArray(raw.adminAtt) ? Object.assign(Object.create(null), raw.adminAtt) : Object.create(null), adminBlock: raw.adminBlock && typeof raw.adminBlock === 'object' && !Array.isArray(raw.adminBlock) ? Object.assign(Object.create(null), raw.adminBlock) : Object.create(null), mailLog: Array.isArray(raw.mailLog) ? raw.mailLog : [], adminSessions: raw.adminSessions && typeof raw.adminSessions === 'object' && !Array.isArray(raw.adminSessions) ? raw.adminSessions : {}, adminDevs: raw.adminDevs && typeof raw.adminDevs === 'object' && !Array.isArray(raw.adminDevs) ? raw.adminDevs : {}, mailOff: raw.mailOff === true });
+const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [], adminLog: Array.isArray(raw.adminLog) ? raw.adminLog : [], adminAtt: raw.adminAtt && typeof raw.adminAtt === 'object' && !Array.isArray(raw.adminAtt) ? Object.assign(Object.create(null), raw.adminAtt) : Object.create(null), adminBlock: raw.adminBlock && typeof raw.adminBlock === 'object' && !Array.isArray(raw.adminBlock) ? Object.assign(Object.create(null), raw.adminBlock) : Object.create(null), mailLog: Array.isArray(raw.mailLog) ? raw.mailLog : [], adminSessions: raw.adminSessions && typeof raw.adminSessions === 'object' && !Array.isArray(raw.adminSessions) ? raw.adminSessions : {}, adminDevs: raw.adminDevs && typeof raw.adminDevs === 'object' && !Array.isArray(raw.adminDevs) ? raw.adminDevs : {}, mailOff: raw.mailOff === true, userBlock: raw.userBlock && typeof raw.userBlock === 'object' && !Array.isArray(raw.userBlock) ? Object.assign(Object.create(null), raw.userBlock) : Object.create(null) });
 let db = normDb({});
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
@@ -356,14 +356,25 @@ function parseCookies(req) {
   return o;
 }
 const USR_REVOKE_BEFORE = Date.parse(process.env.SESSIONS_REVOKE_BEFORE || '') || 0; // shu sanadan oldin ochilgan BARCHA foydalanuvchi sessiyalari yaroqsiz (favqulodda)
-function sessionUser(req) {
+function sessUser(req) { // seans egasi (bloklangan boʻlsa ham)
   const t = parseCookies(req).sid;
   if (!t) return null;
   const s = db.sessions[sha256(t)];
   if (!s || s.exp < Date.now() || (s.created || 0) < USR_REVOKE_BEFORE) return null;
-  const u = db.users[s.uid] || null;
-  if (u) touch(u);
+  return db.users[s.uid] || null;
+}
+function sessionUser(req) {
+  const u = sessUser(req);
+  if (!u || userBlocked(u)) return null; // bloklangan hisob: seans yaroqsiz (maʼlumot saqlanadi, blokdan chiqarilsa qaytadi)
+  touch(u); seeIp(req, u);
   return u;
+}
+/** Foydalanuvchining soʻnggi (ip) va birinchi (ip0) IP si — suiiste'molni topish va bloklash uchun. Faqat administratorga koʻrinadi (publicUser/meBody ga kirmaydi). */
+function seeIp(req, u, force) {
+  const ip = normIp(clientIp(req)).slice(0, 64); if (!ip) return;
+  if (!u.ip0) { u.ip0 = ip; }
+  if (u.ip === ip || (!force && u.ipAt && Date.now() - u.ipAt < 36e5)) return;
+  u.ip = ip; u.ipAt = Date.now(); save();
 }
 // Faollik: har foydalanuvchi uchun kuniga bir marta (Toshkent sanasi bilan) belgilanadi. Statistika faqat shu funksiya qoʻshilgandan keyingi kunlar uchun bor.
 function touch(u) {
@@ -383,7 +394,7 @@ function createSession(req, res, uid) {
   const mine = Object.entries(db.sessions).filter(([, s]) => s.uid === uid).sort((a, b) => a[1].created - b[1].created);
   while (mine.length > 10) delete db.sessions[mine.shift()[0]];
   setSessionCookie(req, res, token, SESSION_DAYS * 86400);
-  if (db.users[uid]) touch(db.users[uid]);
+  if (db.users[uid]) { touch(db.users[uid]); seeIp(req, db.users[uid], true); }
   save();
 }
 
@@ -543,6 +554,29 @@ function admBlocked(ip) {
   if (b.until && b.until < Date.now()) { delete db.adminBlock[ip]; save(); return false; }
   return true;
 }
+/** Sayt miqyosida bloklash. IP: db.adminBlock[ip].scope === 'site' (scope yoʻq/'admin' — faqat admin paneli). Email/domen: db.userBlock (kalit: oddiylashtirilgan email yoki '@domen'). */
+const USER_BLOCK_MAX = Math.min(20000, Math.max(1, parseInt(process.env.USER_BLOCK_MAX, 10) || 2000));
+const emailKey = e => { // Gmail: nuqta va +belgi bir xil pochta qutisi
+  e = String(e || '').trim().toLowerCase(); const i = e.lastIndexOf('@'); if (i < 1) return e;
+  let l = e.slice(0, i), d = e.slice(i + 1); if (d === 'googlemail.com') d = 'gmail.com';
+  if (d === 'gmail.com') l = l.split('+')[0].replace(/\./g, '');
+  return l + '@' + d;
+};
+function ubGet(k) { // muddati tugagan blok oʻzi oʻchadi
+  if (!Object.hasOwn(db.userBlock, k)) return null;
+  const b = db.userBlock[k]; if (b.until && b.until < Date.now()) { delete db.userBlock[k]; save(); return null; }
+  return b;
+}
+const emailBlock = email => { const k = emailKey(email), i = k.lastIndexOf('@'); return ubGet(k) || (i > 0 ? ubGet(k.slice(i)) : null); };
+const userBlocked = u => !!u && !!u.email && !!emailBlock(u.email);
+const siteBlocked = ip => admBlocked(ip) && db.adminBlock[normIp(ip)].scope === 'site';
+const blockedPage = (req, res, pathname) => {
+  const b = db.adminBlock[normIp(clientIp(req))]; if (b) { b.hits = (b.hits || 0) + 1; b.last = Date.now(); }
+  res.setHeader('Cache-Control', 'no-store');
+  if (pathname.startsWith('/api/')) return fail(res, 403, 'Bu manzildan kirish cheklangan.');
+  res.statusCode = 403; res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  return res.end('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kirish cheklangan</title><style>body{font:16px/1.5 system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#0f172a;color:#e2e8f0;text-align:center;padding:24px}h1{font-size:22px;margin:0 0 8px}p{margin:0;color:#94a3b8;max-width:380px}</style><div><h1>Kirish cheklangan</h1><p>Bu manzildan UniDoue ga kirish vaqtincha yoki butunlay cheklangan. Xato deb hisoblasangiz, UniDoue jamoasiga yozing.</p></div>');
+};
 const attLimitedNow = ip => peek('admf:' + ip) >= 20 || peek('admls:' + ip) > ADM_START_MAX || peek('admlv:' + ip) > 10;
 // Admin: seanssiz urinishlar IP boʻyicha sanaladi (20 ta / 15 daqiqa); har endpoint oʻz limitiga ega.
 function admGate(req, res, ip, name, max, opt) {
@@ -639,7 +673,7 @@ const pushDevices = () => Object.values(db.users).reduce((n, u) => n + (u.push ?
 const MAIL_BULK_MAX = Math.max(1, parseInt(process.env.MAIL_BULK_MAX, 10) || 300); // bir yuborishda ko'pi bilan nechta email (Brevo/Resend bepul limitlari uchun)
 const baseUrl = () => String(process.env.APP_URL || 'https://unidoue.uz').replace(/\/+$/, '');
 const unsubLink = u => `${baseUrl()}/unsub?u=${u.id}&s=${NOTES.sig(vapid().priv, u.id)}`;
-const canMail = u => !!u.email && u.verified !== false && !u.noMail;
+const canMail = u => !!u.email && u.verified !== false && !u.noMail && !userBlocked(u);
 /** Tizim xabari (tarif yoqildi, promo qabul qilindi): faqat shu foydalanuvchining paneliga tushadi */
 const sysNote = (u, title, body, url) => NOTES.add(db, { title, body, url: url || '/app#/pricing', aud: 'email', to: [u.id], app: true, push: false, mail: false, sys: true });
 async function mailMany(users, m, by) {
@@ -912,7 +946,9 @@ async function api(req, res, pathname) {
 
   if (pathname === '/api/me' && method === 'GET') {
     const u = sessionUser(req);
-    return send(res, 200, u ? meBody(u) : { user: null, auth: authCfg() });
+    if (u) return send(res, 200, meBody(u));
+    const bu = sessUser(req);
+    return send(res, 200, { user: null, auth: authCfg(), ...(bu && userBlocked(bu) ? { blocked: true } : {}) });
   }
 
   // Profil rasmi: faqat egasiga (cookie orqali) beriladi, serverda qat'iy tekshiriladi
@@ -945,6 +981,7 @@ async function api(req, res, pathname) {
     const b = await readJson(req);
     const email = clean(b.email, 254).toLowerCase(), name = clean(b.name, 40), pw = typeof b.password === 'string' ? b.password : '';
     if (!EMAIL_RE.test(email)) return fail(res, 400, 'Emailni toʻgʻri kiriting.');
+    if (emailBlock(email)) { secLog('auth.blocked', { how: 'register', acct: sha256(email).slice(0, 12), ip }); return fail(res, 403, 'Bu email bilan roʻyxatdan oʻtib boʻlmaydi.'); }
     if (name.length < 2) return fail(res, 400, 'Ismingizni kiriting (kamida 2 harf).');
     if (pw.length < 8 || pw.length > 128) return fail(res, 400, 'Parol 8 dan 128 gacha belgidan iborat boʻlsin.');
     if (VERIFY_ON && !MAIL_PROVIDER) return send(res, 503, { error: MAIL_OFF_MSG, code: 'EMAIL_NOT_CONFIGURED' });
@@ -976,6 +1013,7 @@ async function api(req, res, pathname) {
     else if (DUMMY_HASH) await checkPw(pw, DUMMY_HASH).catch(() => {});
     if (!ok) { limited('login-em:' + email, 8, 15 * 60 * 1000); return fail(res, 401, u && u.noPw ? 'Bu hisob Google orqali ochilgan. “Google bilan kirish” ni bosing.' : 'Email yoki parol notoʻgʻri.'); }
     buckets.delete('login-em:' + email);
+    if (userBlocked(u)) { secLog('auth.blocked', { how: 'login', acct: sha256(email).slice(0, 12), ip }); return send(res, 403, { error: 'Hisobingiz cheklangan. Xato deb hisoblasangiz, UniDoue jamoasiga yozing.', code: 'BLOCKED' }); } // parol toʻgʻri boʻlgandagina (email borligi sizib chiqmasin)
     createSession(req, res, u.id);
     return send(res, 200, meBody(u));
   }
@@ -1010,6 +1048,7 @@ async function api(req, res, pathname) {
     if (!EMAIL_RE.test(email)) return bye('token');
     const sub = String(cl.sub).slice(0, 64);
     let u = Object.values(db.users).find(x => x.google === sub) || db.users[emailIdx.get(email)];
+    if (emailBlock(email) || userBlocked(u)) { secLog('auth.blocked', { how: 'google', acct: sha256(email).slice(0, 12), ip }); return bye('blocked'); }
     if (!u) {
       u = { id: crypto.randomBytes(8).toString('hex'), email, name: clean(cl.name || cl.given_name || email.split('@')[0], 40) || 'Foydalanuvchi', hash: await hashPw(crypto.randomBytes(24).toString('hex')), created: Date.now(), rev: 0, data: {}, verified: true, google: sub, noPw: true };
       if (emailIdx.has(email)) return bye('token');
@@ -1267,7 +1306,7 @@ async function api(req, res, pathname) {
     if (aud === 'email') {
       const id = emailIdx.get(clean(b.email, 254).toLowerCase()); if (!id) return fail(res, 404, 'Foydalanuvchi topilmadi.');
       users = [db.users[id]];
-    } else if (aud === 'all' || PLANS[aud]) users = Object.values(db.users).filter(u => u.push && u.push.length && (aud === 'all' || effPlan(u).id === aud));
+    } else if (aud === 'all' || PLANS[aud]) users = Object.values(db.users).filter(u => u.push && u.push.length && !userBlocked(u) && (aud === 'all' || effPlan(u).id === aud));
     else return fail(res, 400, 'Auditoriya notoʻgʻri.');
     users = users.filter(u => u.push && u.push.length);
     const r = await pushMany(users, m);
@@ -1290,7 +1329,7 @@ async function api(req, res, pathname) {
     else users = Object.values(db.users).filter(x => aud === 'all' || effPlan(x).id === aud);
     if (ch.mail && !MAIL_PROVIDER) return fail(res, 400, 'Email yuborish sozlanmagan: serverda RESEND_API_KEY yoki BREVO_API_KEY kerak.');
     if (ch.mail && mailOff()) return fail(res, 409, 'Email yuborish hozir oʻchirilgan (Xavfsizlik sahifasida yoqiladi).');
-    const mailTo = ch.mail ? users.filter(canMail) : [], pushTo_ = ch.push ? users.filter(x => x.push && x.push.length) : [];
+    const mailTo = ch.mail ? users.filter(canMail) : [], pushTo_ = ch.push ? users.filter(x => x.push && x.push.length && !userBlocked(x)) : [];
     if (mailTo.length > 1 && !reauthOk(req)) return needReauth(res); // ommaviy xat: yangi kod bilan qayta tasdiqlash shart
     if (mailTo.length && (peek('mq-h') + mailTo.length > MAILQ.hour || peek('mq-d') + mailTo.length > MAILQ.day)) return fail(res, 429, `Email kvotasidan oshib ketadi (soatiga ${MAILQ.hour}, sutkasiga ${MAILQ.day}). Auditoriyani toraytiring yoki keyinroq yuboring.`);
     if (mailTo.length > MAIL_BULK_MAX) return fail(res, 400, `Bir yuborishda koʻpi bilan ${MAIL_BULK_MAX} ta email yuborish mumkin (hozir ${mailTo.length} ta). Auditoriyani toraytiring.`);
@@ -1323,7 +1362,7 @@ async function api(req, res, pathname) {
 
   if (pathname === '/api/admin/users' && method === 'GET') {
     if (!admGate(req, res, ip, 'users', 300)) return;
-    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null, seen: x.seenDay || null, verified: x.verified !== false, vs: vstate(x), google: !!x.google, noMail: !!x.noMail, push: (x.push || []).length, ai: x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0 })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
+    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null, seen: x.seenDay || null, verified: x.verified !== false, vs: vstate(x), google: !!x.google, noMail: !!x.noMail, push: (x.push || []).length, ai: x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0, ip: x.ip || '', ip0: x.ip0 || '', ipAt: x.ipAt || 0, blocked: (b => b ? { until: b.until, reason: b.reason || '' } : null)(emailBlock(x.email)), ipBlocked: !!x.ip && siteBlocked(x.ip) })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
     return send(res, 200, { users });
   }
 
@@ -1621,12 +1660,14 @@ async function api(req, res, pathname) {
     const b = await readJson(req), min = b.minutes;
     if (typeof b.ip !== 'string' || b.ip.length > 64 || !net.isIP(b.ip)) return fail(res, 400, 'IP manzil notoʻgʻri.');
     if (typeof min !== 'number' || !(min === 0 || (Number.isFinite(min) && min >= 0.05 && min <= 525600))) return fail(res, 400, 'Muddat notoʻgʻri.'); // muddat aniq berilishi shart (boʻsh qiymat «doimiy» boʻlib qolmasin)
+    const scope = b.scope === undefined ? 'admin' : b.scope, reason = clean(b.reason, 120);
+    if (scope !== 'admin' && scope !== 'site') return fail(res, 400, 'Qamrov notoʻgʻri.');
     const target = normIp(b.ip);
     if (target === normIp(ip) || Object.values(db.adminSessions).some(x => normIp(x.ip) === target)) return fail(res, 409, 'Bu IP dan faol admin seansi bor (yoki bu sizning IP ingiz) — bloklab boʻlmaydi.');
     if (!Object.hasOwn(db.adminBlock, target) && Object.keys(db.adminBlock).length >= BLOCK_MAX) return fail(res, 409, `Bloklangan IP lar chegarasi (${BLOCK_MAX}) toʻldi. Eskilarini blokdan chiqaring.`);
-    db.adminBlock[target] = { t: Date.now(), until: min ? Date.now() + Math.round(min * 60000) : 0, by: admWho(req) };
-    save(); secLog('admin.ip.blocked', { who: admWho(req), ip, target, minutes: min });
-    return send(res, 200, { ok: true, until: db.adminBlock[target].until });
+    db.adminBlock[target] = { t: Date.now(), until: min ? Date.now() + Math.round(min * 60000) : 0, by: admWho(req), scope, ...(reason ? { reason } : {}) };
+    save(); secLog('admin.ip.blocked', { who: admWho(req), ip, target, minutes: min, scope });
+    return send(res, 200, { ok: true, until: db.adminBlock[target].until, scope });
   }
   if (pathname === '/api/admin/ip/unblock' && method === 'POST') {
     if (!admGate(req, res, ip, 'ip-unblock', 30)) return;
@@ -1634,10 +1675,58 @@ async function api(req, res, pathname) {
     if (had) { delete db.adminBlock[target]; save(); secLog('admin.ip.unblocked', { who: admWho(req), ip, target }); }
     return send(res, 200, { ok: true, removed: had });
   }
+  // Sayt miqyosida foydalanuvchi bloklash: email (yoki '@domen') + ixtiyoriy ravishda uning IP si
+  if (pathname === '/api/admin/user/block' && method === 'POST') {
+    if (!admGate(req, res, ip, 'user-block', 60)) return;
+    const b = await readJson(req), min = b.minutes, reason = clean(b.reason, 120);
+    const raw = typeof b.email === 'string' ? b.email.trim().toLowerCase().slice(0, 254) : '';
+    const dom = /^@[a-z0-9]([a-z0-9.-]{0,188}[a-z0-9])?\.[a-z]{2,}$/.test(raw);
+    if (!dom && !EMAIL_RE.test(raw)) return fail(res, 400, 'Email yoki @domen notoʻgʻri.');
+    if (typeof min !== 'number' || !(min === 0 || (Number.isFinite(min) && min >= 0.05 && min <= 525600))) return fail(res, 400, 'Muddat notoʻgʻri.');
+    const key = dom ? raw : emailKey(raw), kd = key.slice(key.lastIndexOf('@'));
+    if (ADMIN_EMAILS.some(a => emailKey(a) === key || (dom && kd === '@' + a.split('@')[1]))) return fail(res, 409, 'Administrator emailini (yoki uning domenini) bloklab boʻlmaydi.');
+    if (!Object.hasOwn(db.userBlock, key) && Object.keys(db.userBlock).length >= USER_BLOCK_MAX) return fail(res, 409, `Bloklangan email lar chegarasi (${USER_BLOCK_MAX}) toʻldi. Eskilarini blokdan chiqaring.`);
+    db.userBlock[key] = { e: raw, t: Date.now(), until: min ? Date.now() + Math.round(min * 60000) : 0, by: admWho(req), ...(reason ? { reason } : {}) };
+    // shu email/domenga mos hisoblarning sessiyalari va tiklash havolalari bekor qilinadi (maʼlumot oʻchmaydi)
+    const hit = Object.values(db.users).filter(u => userBlocked(u));
+    const ids = new Set(hit.map(u => u.id)); let dropped = 0;
+    for (const [k, x] of Object.entries(db.sessions)) if (ids.has(x.uid)) { delete db.sessions[k]; dropped++; }
+    for (const [k, x] of Object.entries(db.resets)) if (ids.has(x.uid)) delete db.resets[k];
+    // ixtiyoriy: shu hisob(lar)ning soʻnggi IP si ham sayt miqyosida bloklanadi (oʻz/admin IP si bundan mustasno)
+    let ipDone = [], ipSkipped = [];
+    if (b.withIp === true && !dom) {
+      for (const u of hit) {
+        const t = u.ip && net.isIP(u.ip) ? normIp(u.ip) : ''; if (!t) { ipSkipped.push('IP yoʻq'); continue; }
+        if (t === normIp(ip) || Object.values(db.adminSessions).some(x => normIp(x.ip) === t)) { ipSkipped.push('admin IP'); continue; }
+        if (!Object.hasOwn(db.adminBlock, t) && Object.keys(db.adminBlock).length >= BLOCK_MAX) { ipSkipped.push('chegara'); continue; }
+        db.adminBlock[t] = { t: Date.now(), until: db.userBlock[key].until, by: admWho(req), scope: 'site', reason: reason || 'Bloklangan foydalanuvchi IP si' }; ipDone.push(t);
+      }
+    }
+    save(); secLog('admin.user.blocked', { who: admWho(req), ip, acct: sha256(key).slice(0, 12), domain: dom, minutes: min, sessions: dropped, ips: ipDone.length });
+    return send(res, 200, { ok: true, key, until: db.userBlock[key].until, users: hit.length, dropped, ips: ipDone, ipSkipped: ipSkipped.length });
+  }
+  if (pathname === '/api/admin/user/unblock' && method === 'POST') {
+    if (!admGate(req, res, ip, 'user-unblock', 60)) return;
+    const b = await readJson(req), raw = typeof b.email === 'string' ? b.email.trim().toLowerCase().slice(0, 254) : '';
+    const key = raw.startsWith('@') ? raw : emailKey(raw), had = !!key && Object.hasOwn(db.userBlock, key);
+    let ipOff = 0;
+    if (had) {
+      delete db.userBlock[key];
+      if (b.withIp === true && !key.startsWith('@')) { const u = db.users[emailIdx.get(raw)] || Object.values(db.users).find(x => emailKey(x.email) === key); const t = u && u.ip ? normIp(u.ip) : ''; if (t && Object.hasOwn(db.adminBlock, t) && db.adminBlock[t].scope === 'site') { delete db.adminBlock[t]; ipOff = 1; } }
+      save(); secLog('admin.user.unblocked', { who: admWho(req), ip, acct: sha256(key).slice(0, 12), ips: ipOff });
+    }
+    return send(res, 200, { ok: true, removed: had, ipRemoved: ipOff });
+  }
+  if (pathname === '/api/admin/blocks' && method === 'GET') { // barcha bloklar: IP (admin/sayt) va email/domen
+    if (!admGate(req, res, ip, 'blocks', 300)) return;
+    const ips = Object.keys(db.adminBlock).filter(k => admBlocked(k)).map(k => { const v = db.adminBlock[k]; return { ip: k, scope: v.scope || 'admin', until: v.until, t: v.t, by: v.by, reason: v.reason || '', hits: v.hits || 0, last: v.last || 0 }; }).sort((x, y) => y.t - x.t);
+    const emails = Object.keys(db.userBlock).filter(k => ubGet(k)).map(k => { const v = db.userBlock[k]; const dom = k.startsWith('@'); return { key: k, e: v.e || k, kind: dom ? 'domain' : 'email', until: v.until, t: v.t, by: v.by, reason: v.reason || '', users: Object.values(db.users).filter(u => dom ? emailKey(u.email).endsWith(k) : emailKey(u.email) === k).length }; }).sort((x, y) => y.t - x.t);
+    return send(res, 200, { ips, emails, max: { ip: BLOCK_MAX, email: USER_BLOCK_MAX } });
+  }
   if (pathname === '/api/admin/attempts' && method === 'GET') { // kim admin paneliga kirishga urindi (IP boʻyicha jamlangan)
     if (!admGate(req, res, ip, 'attempts', 300)) return;
-    const list = Object.entries(db.adminAtt).map(([k, a]) => ({ ip: k, first: a.first, last: a.last, c: a.c, em: a.em.map(([e, n]) => ({ e, n, known: ADMIN_EMAILS.includes(e) })), px: a.px.map(([p, n]) => ({ p, n })), ua: a.ua.map(([u, n]) => ({ u, n })), now: attLimitedNow(k), me: k === ip, blocked: admBlocked(k) ? { until: db.adminBlock[normIp(k)].until } : null })).sort((x, y) => y.last - x.last);
-    const blocks = Object.entries(db.adminBlock).filter(([k]) => admBlocked(k)).map(([k, v]) => ({ ip: k, until: v.until, t: v.t, by: v.by })).sort((x, y) => y.t - x.t);
+    const list = Object.entries(db.adminAtt).map(([k, a]) => ({ ip: k, first: a.first, last: a.last, c: a.c, em: a.em.map(([e, n]) => ({ e, n, known: ADMIN_EMAILS.includes(e) })), px: a.px.map(([p, n]) => ({ p, n })), ua: a.ua.map(([u, n]) => ({ u, n })), now: attLimitedNow(k), me: k === ip, blocked: admBlocked(k) ? { until: db.adminBlock[normIp(k)].until, scope: db.adminBlock[normIp(k)].scope || 'admin' } : null })).sort((x, y) => y.last - x.last);
+    const blocks = Object.entries(db.adminBlock).filter(([k]) => admBlocked(k)).map(([k, v]) => ({ ip: k, until: v.until, t: v.t, by: v.by, scope: v.scope || 'admin', reason: v.reason || '' })).sort((x, y) => y.t - x.t);
     return send(res, 200, { attempts: list, blocks, max: ATT_MAX, lockdown: adminLocked() });
   }
 
@@ -1747,7 +1836,7 @@ async function api(req, res, pathname) {
     if (limited('pf:' + ip, 8, 60 * 60 * 1000)) return fail(res, 429, 'Juda koʻp urinish. Keyinroq urinib koʻring.');
     const b = await readJson(req), email = clean(b.email, 254).toLowerCase();
     const id = emailIdx.get(email), u = id && db.users[id];
-    if (u && !limited('pfe:' + email, 3, 60 * 60 * 1000)) {
+    if (u && !userBlocked(u) && !limited('pfe:' + email, 3, 60 * 60 * 1000)) {
       const token = crypto.randomBytes(32).toString('base64url');
       db.resets[sha256(token)] = { uid: u.id, exp: Date.now() + 30 * 60000 }; save();
       const base = siteBase(req);
@@ -1902,6 +1991,7 @@ async function runReminders(force) {
   remindBusy = true; let sent = 0;
   try {
     for (const u of Object.values(db.users)) {
+      if (userBlocked(u)) continue;
       let tgOn = !!(TG_TOKEN && u.tgChat);
       if (!tgOn && !(u.push && u.push.length)) continue;
       const today = tashkentISO(), tgMap = tgOn ? (u.tgSent || (u.tgSent = {})) : {}, pushMap = u.push && u.push.length ? (u.pushSent || (u.pushSent = {})) : {};
@@ -1996,6 +2086,7 @@ const server = http.createServer(async (req, res) => {
   try {
     const pathname = new URL(req.url, 'http://x').pathname;
     secHeaders(res, isHttps(req));
+    if (pathname !== '/healthz' && pathname !== '/api/pay/payme' && pathname !== '/api/pay/click' && siteBlocked(clientIp(req))) return blockedPage(req, res, pathname); // sayt miqyosida bloklangan IP
     if (pathname.startsWith('/api/') && (limited('rpm', 1e9, 60000), peek('rpm') === ALERT_RPM)) alertAdmin('traffic-spike', 'Soʻrovlar soni keskin oshdi', `Bir daqiqada ${ALERT_RPM} dan ortiq API soʻrovi (hujum yoki xato belgisi).`);
     if (pathname.startsWith('/api/') || pathname === '/admin' || pathname === '/reset' || pathname === '/unsub' || pathname === '/delete-account') res.setHeader('X-Robots-Tag', 'noindex, nofollow'); // qidiruv tizimlari bu sahifalarni indekslamasin
     // HTTP orqali kelgan sahifa soʻrovi → HTTPS (Render/Cloudflare ham qiladi; bu qoʻshimcha himoya). Host sarlavhasi tekshiriladi.

@@ -76,6 +76,7 @@
       <div class="nav-sec">Xavfsizlik</div>
       <a href="#access" data-v="access"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M19 9v5.5M16.2 12h5.6"/></svg>Kirishlar</a>
       <a href="#attempts" data-v="attempts"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg>Urinishlar<i class="nav-n" id="at-nn" hidden></i></a>
+      <a href="#blocks" data-v="blocks"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m6 6 12 12"/></svg>Bloklash</a>
       <a href="#security" data-v="security"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.8 12.2 2.3 2.3 4.2-4.6"/></svg>Himoya holati<i class="nav-n" id="sec-nn" hidden></i></a>
       <a href="#log" data-v="log"><svg viewBox="0 0 24 24"><path d="M8 3.5h8l3.5 3.5v13a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1h2.5ZM15.5 3.5V7H19M8 12h8M8 15.5h8M8 8.5h3"/></svg>Yuborilgan xatlar</a>
     </nav>
@@ -299,6 +300,31 @@
       </section>
 
       <!-- Urinishlar: kim admin paneliga kirishga urindi -->
+      <!-- Bloklash -->
+      <section class="view" id="v-blocks" hidden>
+        <div class="sec-h"><h2>Bloklash</h2><span class="badge mut" id="bk-c"></span></div>
+        <p class="sub at-note">Foydalanuvchini <b>email</b> (yoki butun <b>domen</b>) yoki <b>IP</b> bo‘yicha bloklang. Bloklangan email egasi saytga kira olmaydi, qayta ro‘yxatdan o‘ta olmaydi, unga xat va push yuborilmaydi; ma’lumotlari o‘chmaydi — blokdan chiqarsangiz hammasi qaytadi. IP bloki — butun sayt yoki faqat admin paneli uchun. Diqqat: bitta IP dan bir necha kishi chiqishi mumkin (maktab, ofis, mobil operator) — butun sayt bloklashdan oldin o‘ylab ko‘ring.</p>
+        <section class="card grant" id="bk-new">
+          <h3>Yangi blok</h3>
+          <div class="bk-f">
+            <div><label class="f" for="bk-ty">Nimani bloklash</label><select id="bk-ty"><option value="email">Email</option><option value="domain">Domen (@…)</option><option value="ip">IP manzil</option></select></div>
+            <div class="bk-v"><label class="f" for="bk-v" id="bk-vl">Email</label><input id="bk-v" type="text" maxlength="254" autocomplete="off" spellcheck="false" placeholder="ism@gmail.com"></div>
+            <div id="bk-sw" hidden><label class="f" for="bk-sc">Qamrov</label><select id="bk-sc"><option value="site">Butun sayt</option><option value="admin">Faqat admin paneli</option></select></div>
+            <div><label class="f" for="bk-du">Muddat</label><select id="bk-du"></select></div>
+            <div class="bk-r"><label class="f" for="bk-r">Sabab (ixtiyoriy)</label><input id="bk-r" type="text" maxlength="120" autocomplete="off" placeholder="Masalan: spam"></div>
+          </div>
+          <div class="grant-f"><button class="btn danger" id="bk-go" type="button">Bloklash</button><div class="msg" id="bk-m" role="status"></div></div>
+        </section>
+        <section class="card">
+          <div class="card-h"><h3>Bloklangan email va domenlar</h3><span class="badge mut" id="bk-en">0</span></div>
+          <div id="bk-et"></div>
+        </section>
+        <section class="card">
+          <div class="card-h"><h3>Bloklangan IP lar</h3><span class="badge mut" id="bk-in">0</span></div>
+          <div id="bk-it"></div>
+        </section>
+      </section>
+
       <section class="view" id="v-attempts" hidden>
         <div class="sec-h"><h2>Kim urinib ko‘rdi</h2><span class="badge mut" id="at-c"></span></div>
         <div class="kpis kpis-s" id="at-k"></div>

@@ -362,3 +362,15 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .tbl tr.hot td{background:color-mix(in srgb,var(--bad,#d33) 7%,transparent)}
 .at-act{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
 .modal select{width:100%;margin:6px 0 4px;padding:11px 12px;font-size:15px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);color:var(--text)}
+
+/* ---------- bloklash ---------- */
+.bk-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;align-items:end}
+.bk-f .bk-v{grid-column:span 2}.bk-f .bk-r{grid-column:1/-1}
+@media(max-width:640px){.bk-f .bk-v{grid-column:1/-1}}
+.u-c .ipl{display:block;font-size:12px;font-variant-numeric:tabular-nums;opacity:.85}
+.u-c .ipl .badge{margin-left:4px}
+.bk-why{color:var(--muted);overflow-wrap:anywhere;max-width:260px}
+.modal .ck{display:flex;gap:8px;align-items:flex-start;margin:12px 0 0;font-size:14px;cursor:pointer}.modal .ck input{margin-top:3px}
+.modal input[type=text].rp-i{width:100%}
+#ul .row-a{flex-wrap:wrap;max-width:300px;margin-left:auto}
+.modal .ck{gap:10px}.modal .ck input{margin-top:1px}

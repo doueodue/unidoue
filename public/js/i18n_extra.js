@@ -347,6 +347,8 @@ const fl = (m, i) => m[1].split(', ').map(x => (FIELD[x] || [x, x])[i]).join(', 
 /** [regex, ru(fn), en(fn)] — raqam va sanali matnlar uchun */
 const SH = { yan: 1, fev: 2, mar: 3, apr: 4, may: 5, iyn: 6, iyl: 7, avg: 8, sen: 9, okt: 10, noy: 11, dek: 12 };
 const RUS = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+Object.assign(XRU, {"Hisobingiz cheklangan. Xato deb hisoblasangiz, UniDoue jamoasiga yozing.": "Ваш аккаунт ограничен. Если вы считаете, что это ошибка, напишите команде UniDoue.", "Bu email bilan roʻyxatdan oʻtib boʻlmaydi.": "С этим email зарегистрироваться нельзя.", "Bu manzildan kirish cheklangan.": "Доступ с этого адреса ограничен."});
+Object.assign(XEN, {"Hisobingiz cheklangan. Xato deb hisoblasangiz, UniDoue jamoasiga yozing.": "Your account is restricted. If you think this is a mistake, please contact the UniDoue team.", "Bu email bilan roʻyxatdan oʻtib boʻlmaydi.": "You can't sign up with this email.", "Bu manzildan kirish cheklangan.": "Access from this address is restricted."});
 const TAIL = { 'tekshirilgan': ['проверено', 'verified'], 'taxminiy, tekshirilmagan': ['примерно, не проверено', 'approx., unverified'], 'taxminiy': ['примерно', 'approx.'] };
 const APX = [' · этот уровень примерный', ' · this level is approximate'];
 const tl = (m, i) => (TAIL[m] || [m, m])[i];

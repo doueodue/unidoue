@@ -8,6 +8,10 @@
   function paint(m) {
     root.setAttribute('data-theme', m);
     if (mt) mt.setAttribute('content', m === 'dark' ? (root.getAttribute('data-season') === 'kuz' ? '#150b06' : '#070c22') : light);
+    sync(m);
+  }
+  /* Tugmalar holatini rejimga moslaydi. Skript <head> da ishlaganda sahifadagi tugmalar hali yoʻq (admin.html da tayyor HTML) — shuning uchun DOM tayyor boʻlganda yana bir marta chaqiriladi. */
+  function sync(m) {
     var b = document.querySelectorAll('[data-theme-toggle]');
     for (var i = 0; i < b.length; i++) b[i].setAttribute('aria-checked', m === 'dark' ? 'true' : 'false');
   }
@@ -40,6 +44,9 @@
     document.dispatchEvent(new CustomEvent('unidoue:theme', { detail: m }));
   }
   paint(saved() || (mq && mq.matches ? 'dark' : 'light'));
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { sync(get()); }); else sync(get());
+  addEventListener('pageshow', function () { sync(get()); });
+  try { new MutationObserver(function () { sync(get()); }).observe(root, { attributes: true, attributeFilter: ['data-theme'] }); } catch (e) {} // data-theme ni kim oʻzgartirmasin — tugma doim haqiqiy rejimni koʻrsatadi
   if (mq && mq.addEventListener) mq.addEventListener('change', function (e) { if (!saved()) set(e.matches ? 'dark' : 'light', false); });
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-theme-toggle]');

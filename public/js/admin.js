@@ -97,11 +97,11 @@ function replyDlg({ kind, id, name, to, subject, quote, done }) {
 const replied = r => (r.replies && r.replies.length ? `<span class="badge ok" title="${esc(r.replies.map(x => when(x.ts)).join(', '))}">Javob yuborilgan${r.replies.length > 1 ? ' ×' + r.replies.length : ''}</span>` : '');
 
 /* ---------- holat ---------- */
-let ATT = null, ATF = 'att', ATP = 'week', SEC = null, SCF = 'all', USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all', ULIM = 100, loadedAt = 0;
+let BLK = null, ATT = null, ATF = 'att', ATP = 'week', SEC = null, SCF = 'all', USERS = [], REQS = [], ORDERS = null, PROMOS = null, STATS = null, UF = 'all', ULIM = 100, loadedAt = 0;
 const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
 
 /* ---------- yo‘naltirish ---------- */
-const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar', access: 'Kirishlar', security: 'Himoya holati', attempts: 'Urinishlar', log: 'Yuborilgan xatlar' };
+const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar', access: 'Kirishlar', security: 'Himoya holati', attempts: 'Urinishlar', blocks: 'Bloklash', log: 'Yuborilgan xatlar' };
 function route() {
   const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
   $$('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
@@ -111,6 +111,7 @@ function route() {
   const sec = $('#v-' + v); if (sec) fx.scan(sec);
   if (v === 'push') adminDevice();
   if (v === 'attempts') { markSeen('att'); if (ATT) renderAttempts(); }
+  if (v === 'blocks') renderBlocks();
   if (v === 'security') { markSeen('sec'); if (SEC) renderSecurity(); }
 }
 addEventListener('hashchange', () => { if (!$('#shell').hidden) route(); });
@@ -272,22 +273,22 @@ async function give(email, plan, days, out) {
 }
 
 /* ---------- Foydalanuvchilar ---------- */
-const FILTERS = [['all', 'Hammasi', () => true], ['paid', 'Pullik', u => eff(u) !== 'free'], ['free', 'Free', u => eff(u) === 'free'], ['plus', 'Plus', u => eff(u) === 'plus'], ['pro', 'Pro', u => eff(u) === 'pro'], ['req', 'So‘rovli', u => !!u.requested], ['push', 'Push yoqqan', u => u.push > 0]];
+const FILTERS = [['all', 'Hammasi', () => true], ['paid', 'Pullik', u => eff(u) !== 'free'], ['free', 'Free', u => eff(u) === 'free'], ['plus', 'Plus', u => eff(u) === 'plus'], ['pro', 'Pro', u => eff(u) === 'pro'], ['req', 'So‘rovli', u => !!u.requested], ['push', 'Push yoqqan', u => u.push > 0], ['blk', 'Bloklangan', u => !!u.blocked || u.ipBlocked]];
 function renderUsers() {
   const q = ($('#uq').value || '').trim().toLowerCase(), now = Date.now(), f = FILTERS.find(x => x[0] === UF) || FILTERS[0];
   $('#uf').innerHTML = FILTERS.map(([k, l, fn]) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${k === UF}">${l}<small>${USERS.filter(fn).length}</small></button>`).join('');
   $$('#uf [data-f]').forEach(b => (b.onclick = () => { UF = b.dataset.f; ULIM = 100; renderUsers(); }));
-  const list = USERS.filter(f[2]).filter(u => !q || (u.email + ' ' + u.name).toLowerCase().includes(q));
+  const list = USERS.filter(f[2]).filter(u => !q || (u.email + ' ' + u.name + ' ' + (u.ip || '')).toLowerCase().includes(q));
   $('#uc').textContent = list.length === USERS.length ? USERS.length : list.length + ' / ' + USERS.length;
-  const shown = list.slice(0, ULIM);
+  const shown = list.slice(0, ULIM), ipN = {}; USERS.forEach(x => { if (x.ip) ipN[x.ip] = (ipN[x.ip] || 0) + 1; });
   $('#ul').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Foydalanuvchi</th><th>Tarif</th><th>Muddati</th><th>Oxirgi kirish</th><th class="num">AI</th><th>Push</th><th>Kod</th><th></th></tr></thead><tbody>${shown.map(u => {
     const e = eff(u), exp = u.plan !== 'free' && u.planUntil;
-    return `<tr><td class="u-td" data-l="Foydalanuvchi"><div class="u-c">${avatar(u.name || u.email)}<div><b>${esc(u.name)}</b><small>${esc(u.email)}</small>${vbadge(u.vs, u.google)}</div></div></td>
+    return `<tr><td class="u-td" data-l="Foydalanuvchi"><div class="u-c">${avatar(u.name || u.email)}<div><b>${esc(u.name)}</b><small>${esc(u.email)}</small>${vbadge(u.vs, u.google)}${u.blocked ? ` <span class="badge bad" title="${esc(u.blocked.reason || '')}${u.blocked.until ? ' · ' + esc(untilLeft(u.blocked.until)) : ' · doimiy'}">Bloklangan</span>` : ''}${u.ip ? `<small class="ipl" title="Oxirgi IP (birinchisi: ${esc(u.ip0 || u.ip)})">IP: ${esc(u.ip)}${ipN[u.ip] > 1 ? ` <span class="badge warn" title="Shu IP dan kirgan hisoblar soni">${ipN[u.ip]} hisob</span>` : ''}${u.ipBlocked ? ' <span class="badge bad">IP bloklangan</span>' : ''}</small>` : ''}</div></div></td>
     <td data-l="Tarif"><span class="pb ${e}">${planName(e)}</span>${u.requested ? ` <span class="badge warn">so‘rov</span>` : ''}</td>
     <td data-l="Muddati">${exp ? esc(when(u.planUntil)) + (u.planUntil < now ? ' <span class="badge bad">tugagan</span>' : u.planUntil - now < 7 * 864e5 ? ' <span class="badge warn">tugayapti</span>' : '') : '<span class="mut">—</span>'}</td>
     <td data-l="Oxirgi kirish">${u.seen ? esc(dm(u.seen)) : '<span class="mut">—</span>'}</td><td class="num" data-l="AI">${u.ai || 0}</td>
     <td data-l="Push">${u.push ? `<span class="pn">${svg(IC.bell)}${u.push}</span>` : '<span class="mut">—</span>'}</td><td data-l="Kod">${esc(u.ref || '') || '<span class="mut">—</span>'}</td>
-    <td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-g="${esc(u.email)}">Tarif</button>${u.push ? `<button class="btn sm" type="button" data-n="${esc(u.email)}">Xabar</button>` : ''}${u.vs !== 'yes' && !u.google ? `<button class="btn sm" type="button" data-vr="${esc(u.email)}">Qayta tasdiqlatish</button>` : ''}${e !== 'free' ? `<button class="btn sm danger" type="button" data-rv="${esc(u.email)}">Bekor qilish</button>` : ''}</div></td></tr>`; }).join('')}</tbody></table></div>${list.length > ULIM ? `<div class="more"><button class="btn" type="button" id="um">Yana ko‘rsatish (${list.length - ULIM})</button></div>` : ''}` : emptyBox('users', 'Foydalanuvchi topilmadi', 'Qidiruv yoki filtrni o‘zgartirib ko‘ring.');
+    <td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-g="${esc(u.email)}">Tarif</button>${u.push ? `<button class="btn sm" type="button" data-n="${esc(u.email)}">Xabar</button>` : ''}${u.vs !== 'yes' && !u.google ? `<button class="btn sm" type="button" data-vr="${esc(u.email)}">Qayta tasdiqlatish</button>` : ''}${e !== 'free' ? `<button class="btn sm danger" type="button" data-rv="${esc(u.email)}">Bekor qilish</button>` : ''}${u.blocked ? `<button class="btn sm" type="button" data-ubu="${esc(u.email)}">Blokdan chiqarish</button>` : `<button class="btn sm danger" type="button" data-bu="${esc(u.email)}">Bloklash</button>`}</div></td></tr>`; }).join('')}</tbody></table></div>${list.length > ULIM ? `<div class="more"><button class="btn" type="button" id="um">Yana ko‘rsatish (${list.length - ULIM})</button></div>` : ''}` : emptyBox('users', 'Foydalanuvchi topilmadi', 'Qidiruv yoki filtrni o‘zgartirib ko‘ring.');
   const um = $('#um'); if (um) um.onclick = () => { ULIM += 100; renderUsers(); };
   $$('#ul [data-vr]').forEach(b => (b.onclick = async () => {
     if (!await ask({ title: 'Emailni qayta tasdiqlatasizmi?', text: `${b.dataset.vr} manziliga 6 xonali kod yuboriladi. Foydalanuvchi kodni kiritmaguncha saytga kira olmaydi.`, ok: 'Kod yuborish' })) return;
@@ -296,6 +297,8 @@ function renderUsers() {
   $$('#ul [data-rv]').forEach(b => (b.onclick = async () => { if (await ask({ title: 'Tarifni bekor qilasizmi?', text: `${b.dataset.rv} Free tarifga o‘tadi.`, ok: 'Bekor qilish', danger: true })) give(b.dataset.rv, 'free', 1, $('#pm')); }));
   $$('#ul [data-g]').forEach(b => (b.onclick = () => { $('#pe').value = b.dataset.g; $('#grant').scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#pp').focus(); }));
   $$('#ul [data-n]').forEach(b => (b.onclick = () => { location.hash = '#push'; $('#na').value = 'email'; $('#nq').value = b.dataset.n; audienceUi(); $('#nt').focus(); }));
+  $$('#ul [data-bu]').forEach(b => (b.onclick = () => blockUser(b.dataset.bu)));
+  $$('#ul [data-ubu]').forEach(b => (b.onclick = () => unblockUser(b.dataset.ubu)));
   $('#tg-us').hidden = true;
 }
 
@@ -574,7 +577,7 @@ async function revoke(id, self) {
   if (!await ask({ title: all ? 'Hamma qurilmalardan chiqarilsinmi?' : self ? 'Shu qurilmadan chiqasizmi?' : 'Seans yopilsinmi?', text: all ? 'Barcha seanslar yopiladi, jumladan shu qurilma. Qayta kirish uchun emailga yangi kod kerak bo‘ladi.' : self ? 'Qayta kirish uchun emailga yangi kod kerak bo‘ladi.' : 'Bu qurilma panelga qayta kirishi uchun emailga yangi kod kerak bo‘ladi.', ok: all ? 'Hammasini yopish' : self ? 'Chiqish' : 'Yopish', danger: true })) return;
   try {
     const r = await call('POST', '/api/admin/session/revoke', all ? { all: true } : { id });
-    if (r.self) { ME = ''; USERS = []; AUDIT = null; SEC = null; ATT = null; showLogin('', 1); return; }
+    if (r.self) { ME = ''; USERS = []; AUDIT = null; SEC = null; ATT = null; BLK = null; showLogin('', 1); return; }
     toast('Seans yopildi.'); load(true);
   } catch (e) { toast(e.message, 'err'); }
 }
@@ -672,7 +675,7 @@ const SEC_EV = {
   'admin.login': ['Admin kirdi', 'ok'], 'admin.login.ask': ['Kirish kodi soʻraldi', ''], 'admin.login.ask.denied': ['Ruxsatsiz email bilan kod soʻraldi', 'warn'], 'admin.login.bad': ['Notoʻgʻri kod', 'warn'],
   'admin.restrict': ['Admin kirishi cheklandi (15 daqiqa)', 'bad'], 'admin.logout': ['Admin chiqdi', ''], 'admin.session.revoke': ['Seans yopildi', 'warn'], 'admin.reauth.ask': ['Qayta tasdiqlash kodi soʻraldi', ''],
   'admin.reauth.ok': ['Amal kod bilan tasdiqlandi', 'ok'], 'admin.reauth.bad': ['Qayta tasdiqlashda notoʻgʻri kod', 'warn'], 'admin.mail.switch': ['Email yuborish holati oʻzgartirildi', 'warn'], 'admin.ip.blocked': ['IP bloklandi', 'warn'], 'admin.ip.unblocked': ['IP blokdan chiqarildi', ''], 'admin.notify': ['Xabar yuborildi', ''],
-  'mail.blocked': ['Xat bloklandi (kvota/oʻchirgich/manzil)', 'warn'], 'auth.lockout': ['Foydalanuvchi hisobi vaqtincha bloklandi', 'warn'], boot: ['Server ishga tushdi', ''],
+  'admin.user.blocked': ['Foydalanuvchi bloklandi', 'warn'], 'admin.user.unblocked': ['Foydalanuvchi blokdan chiqarildi', ''], 'auth.blocked': ['Bloklangan hisob kirishga yoki ro‘yxatdan o‘tishga urindi', 'warn'], 'mail.blocked': ['Xat bloklandi (kvota/oʻchirgich/manzil)', 'warn'], 'auth.lockout': ['Foydalanuvchi hisobi vaqtincha bloklandi', 'warn'], boot: ['Server ishga tushdi', ''],
 };
 const secLabel = ev => (SEC_EV[ev] && SEC_EV[ev][0]) || (ev.startsWith('alert.') ? 'Ogohlantirish' : ev.startsWith('admin.') ? 'Admin amali: ' + ev.slice(6) : ev);
 const secTone = ev => (SEC_EV[ev] && SEC_EV[ev][1]) || (ev.startsWith('alert.') ? 'bad' : '');
@@ -738,7 +741,7 @@ function renderAttempts() {
   $('#at-n').textContent = list.length;
   const none = all.length ? ['Bu tanlovda urinish yo‘q', 'Davrni yoki turini o‘zgartirib ko‘ring.'] : ['Hali urinish yozilmagan', 'Admin paneliga kirishga urinish bo‘lsa, shu yerda ko‘rinadi.'];
   $('#at-t').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>IP</th><th>Oxirgi urinish</th><th>Nima qildi</th><th>Yozgan emaili</th><th>Murojaat qilgan yo‘llar</th><th>Qurilma</th></tr></thead><tbody>${list.map(a => `<tr${attSev(a) >= 20 ? ' class="hot"' : ''}>
-    <td data-l="IP"><b>${esc(a.ip)}</b>${a.me ? ' <span class="badge mute">Siz</span>' : ''}<div class="at-act">${a.blocked ? `<span class="badge bad" title="${a.blocked.until ? 'Gacha: ' + esc(when(a.blocked.until)) : 'Doimiy'}">Bloklangan${a.blocked.until ? ': ' + esc(untilLeft(a.blocked.until)) : ''}</span><button class="btn sm" type="button" data-ub="${esc(a.ip)}">Blokdan chiqarish</button>` : a.me ? '' : `<button class="btn sm danger" type="button" data-bk="${esc(a.ip)}">Bloklash</button>`}</div></td>
+    <td data-l="IP"><b>${esc(a.ip)}</b>${a.me ? ' <span class="badge mute">Siz</span>' : ''}<div class="at-act">${a.blocked ? `<span class="badge bad" title="${a.blocked.until ? 'Gacha: ' + esc(when(a.blocked.until)) : 'Doimiy'}">Bloklangan${a.blocked.scope === 'site' ? ' (butun sayt)' : ''}${a.blocked.until ? ': ' + esc(untilLeft(a.blocked.until)) : ''}</span><button class="btn sm" type="button" data-ub="${esc(a.ip)}">Blokdan chiqarish</button>` : a.me ? '' : `<button class="btn sm danger" type="button" data-bk="${esc(a.ip)}">Bloklash</button>`}</div></td>
     <td data-l="Oxirgi urinish" title="Birinchi urinish: ${esc(when(a.first))}">${esc(whenS(a.last))}<br><small>${esc(rel(a.last))}</small></td>
     <td data-l="Nima qildi"><div class="at-b">${a.now ? '<span class="badge bad">Hozir cheklangan</span>' : ''}${AT_KIND.filter(([k]) => a.c[k]).map(([k, l, t]) => `<span class="badge ${t}">${esc(l)} × ${a.c[k]}</span>`).join('') || '—'}</div></td>
     <td data-l="Yozgan emaili"><div class="at-em">${a.em.length ? a.em.map(x => `<span>${esc(x.e)} × ${x.n}${x.known ? ' <span class="badge ok" title="Bu email ruxsat etilgan, lekin kod noto‘g‘ri kiritilgan">ruxsat etilgan</span>' : ''}</span>`).join('') : '—'}</div></td>
@@ -746,35 +749,94 @@ function renderAttempts() {
     <td data-l="Qurilma" title="${esc((a.ua[0] || {}).u || '')}">${esc(deviceOf((a.ua[0] || {}).u) || '—')}${a.ua.length > 1 ? ` <small>+${a.ua.length - 1}</small>` : ''}</td></tr>`).join('')}</tbody></table></div>` : emptyBox('check', none[0], none[1]);
   const bl = ATT.blocks || [];
   $('#at-bl').hidden = !bl.length; $('#at-bn').textContent = bl.length;
-  $('#at-bt').innerHTML = bl.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>IP</th><th>Bloklangan</th><th>Muddati</th><th></th></tr></thead><tbody>${bl.map(x => `<tr><td data-l="IP"><b>${esc(x.ip)}</b></td><td data-l="Bloklangan">${esc(whenS(x.t))}<br><small>${esc(x.by || '')}</small></td><td data-l="Muddati">${x.until ? esc(when(x.until)) + '<br><small>' + esc(untilLeft(x.until)) + '</small>' : 'Doimiy'}</td><td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-ub="${esc(x.ip)}">Blokdan chiqarish</button></div></td></tr>`).join('')}</tbody></table></div>` : '';
+  $('#at-bt').innerHTML = bl.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>IP</th><th>Bloklangan</th><th>Muddati</th><th></th></tr></thead><tbody>${bl.map(x => `<tr><td data-l="IP"><b>${esc(x.ip)}</b> <span class="badge ${x.scope === 'site' ? 'bad' : 'warn'}">${x.scope === 'site' ? 'butun sayt' : 'faqat admin'}</span>${x.reason ? `<br><small>${esc(x.reason)}</small>` : ''}</td><td data-l="Bloklangan">${esc(whenS(x.t))}<br><small>${esc(x.by || '')}</small></td><td data-l="Muddati">${x.until ? esc(when(x.until)) + '<br><small>' + esc(untilLeft(x.until)) + '</small>' : 'Doimiy'}</td><td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-ub="${esc(x.ip)}">Blokdan chiqarish</button></div></td></tr>`).join('')}</tbody></table></div>` : '';
   $$('#v-attempts [data-bk]').forEach(b => (b.onclick = () => blockIp(b.dataset.bk)));
   $$('#v-attempts [data-ub]').forEach(b => (b.onclick = () => unblockIp(b.dataset.ub)));
   fx.scan($('#v-attempts'));
 }
 const untilLeft = t => { const m = Math.max(0, Math.round((t - Date.now()) / 60000)); return m >= 2880 ? Math.round(m / 1440) + ' kun qoldi' : m >= 120 ? Math.round(m / 60) + ' soat qoldi' : m + ' daqiqa qoldi'; };
-/** Muddatni tanlatadi: daqiqa (0 — doimiy) yoki null (bekor) */
-function blockDlg(ip) {
+const DUR = [[60, '1 soat'], [1440, '24 soat'], [10080, '7 kun'], [43200, '30 kun'], [0, 'Doimiy (o‘zingiz olmaguncha)']];
+const durOpts = def => DUR.map(([v, l]) => `<option value="${v}"${v === def ? ' selected' : ''}>${l}</option>`).join('');
+/** Bloklash oynasi. o: {title, text (HTML, esc qilingan), scope: IP qamrovi tanlansinmi, reason: sabab maydoni, ip: foydalanuvchi IP si (belgi qutisi), def: standart muddat}.
+ *  Natija: {minutes (0 — doimiy), scope, reason, withIp} yoki null (bekor). */
+function blockDlg(o) {
   return new Promise(res => {
     const bg = document.createElement('div'); bg.className = 'modal-bg';
-    bg.innerHTML = `<div class="modal dg" role="dialog" aria-modal="true" aria-labelledby="bk-t"><h3 id="bk-t">${svg(IC.warn)}IP bloklansinmi?</h3>
-      <p><b>${esc(ip)}</b> /admin sahifasi va admin API ga kira olmaydi (hatto cookie bilan ham). Saytning qolgan qismi ishlayveradi. Sizning IP ingiz va faol admin seansi IP si bloklanmaydi.</p>
-      <label class="rp-l" for="bk-d">Muddat</label><select id="bk-d"><option value="60">1 soat</option><option value="1440" selected>24 soat</option><option value="10080">7 kun</option><option value="0">Doimiy (o‘zingiz olmaguncha)</option></select>
-      <div class="acts"><button class="btn" type="button" data-x>Bekor</button><button class="btn danger" type="button" data-ok>Bloklash</button></div></div>`;
+    bg.innerHTML = `<div class="modal dg" role="dialog" aria-modal="true" aria-labelledby="bk-t"><h3 id="bk-t">${svg(IC.warn)}${o.title}</h3>
+      <p>${o.text}</p>
+      ${o.scope ? `<label class="rp-l" for="bk-s">Qamrov</label><select id="bk-s"><option value="site" selected>Butun sayt (saytga umuman kira olmaydi)</option><option value="admin">Faqat admin paneli (sayt ishlayveradi)</option></select>` : ''}
+      <label class="rp-l" for="bk-d">Muddat</label><select id="bk-d">${durOpts(o.def === undefined ? 1440 : o.def)}</select>
+      ${o.reason ? `<label class="rp-l" for="bk-rs">Sabab (ixtiyoriy)</label><input id="bk-rs" class="rp-i" type="text" maxlength="120" autocomplete="off" placeholder="Masalan: spam">` : ''}
+      ${o.ip ? `<label class="ck"><input id="bk-ip" type="checkbox"><span>Uning IP si (<b>${esc(o.ip)}</b>) ni ham butun sayt bo‘yicha bloklash <small class="mut">— bir IP dan boshqa odamlar ham kirishi mumkin</small></span></label>` : ''}
+      <div class="acts"><button class="btn" type="button" data-x>Bekor</button><button class="btn danger" type="button" data-ok>${o.ok || 'Bloklash'}</button></div></div>`;
     const prev = document.activeElement, key = e => { if (e.key === 'Escape') done(null); };
     const done = v => { document.removeEventListener('keydown', key); bg.classList.add('out'); setTimeout(() => bg.remove(), 220); if (prev && prev.focus) try { prev.focus(); } catch (e) {} res(v); };
     bg.addEventListener('click', e => { if (e.target === bg) done(null); });
-    $('[data-x]', bg).onclick = () => done(null); $('[data-ok]', bg).onclick = () => done(Number($('#bk-d', bg).value));
+    $('[data-x]', bg).onclick = () => done(null);
+    $('[data-ok]', bg).onclick = () => done({ minutes: Number($('#bk-d', bg).value), scope: o.scope ? $('#bk-s', bg).value : 'admin', reason: o.reason ? $('#bk-rs', bg).value.trim() : '', withIp: !!(o.ip && $('#bk-ip', bg).checked) });
     document.addEventListener('keydown', key); document.body.appendChild(bg); $('[data-ok]', bg).focus();
   });
 }
 async function blockIp(ip) {
-  const minutes = await blockDlg(ip); if (minutes === null) return;
-  try { await call('POST', '/api/admin/ip/block', { ip, minutes }); toast('IP bloklandi: ' + ip); await load(true); } catch (e) { if (e.status === 401) return load(); toast(e.message, 'err'); }
+  const r = await blockDlg({ title: 'IP bloklansinmi?', scope: true, reason: true, text: `<b>${esc(ip)}</b> — <b>Butun sayt</b> tanlansa, bu manzildan saytga umuman kirib bo‘lmaydi (ro‘yxatdan o‘tish, kirish, sahifalar). <b>Faqat admin paneli</b> tanlansa, /admin va admin API yopiladi, sayt ishlayveradi. Sizning IP ingiz va faol admin seansi IP si bloklanmaydi.` }); if (!r) return;
+  try { await call('POST', '/api/admin/ip/block', { ip, minutes: r.minutes, scope: r.scope, reason: r.reason }); toast('IP bloklandi: ' + ip); await load(true); } catch (e) { if (e.status === 401) return load(); toast(e.message, 'err'); }
 }
 async function unblockIp(ip) {
-  if (!await ask({ title: 'Blokdan chiqarilsinmi?', text: ip + ' yana admin sahifasiga kira oladi.', ok: 'Blokdan chiqarish' })) return;
+  if (!await ask({ title: 'Blokdan chiqarilsinmi?', text: ip + ' yana saytga va admin sahifasiga kira oladi.', ok: 'Blokdan chiqarish' })) return;
   try { await call('POST', '/api/admin/ip/unblock', { ip }); toast('Blokdan chiqarildi: ' + ip); await load(true); } catch (e) { if (e.status === 401) return load(); toast(e.message, 'err'); }
 }
+async function blockUser(email) {
+  const u = USERS.find(x => x.email === email) || {};
+  const r = await blockDlg({ title: 'Foydalanuvchi bloklansinmi?', reason: true, def: 0, ip: u.ip || '', text: `<b>${esc(email)}</b> saytga kira olmaydi, qayta ro‘yxatdan o‘ta olmaydi, parolni tiklay olmaydi, unga xat va push yuborilmaydi. Ma’lumotlari o‘chmaydi — blokdan chiqarsangiz hammasi qaytadi.` }); if (!r) return;
+  try {
+    const j = await call('POST', '/api/admin/user/block', { email, minutes: r.minutes, reason: r.reason, withIp: r.withIp });
+    toast('Bloklandi: ' + email + (j.ips && j.ips.length ? ' + IP' : '') + (r.withIp && j.ipSkipped ? ' (IP bloklanmadi: bu sizning/admin IP si yoki chegara)' : '')); await load(true);
+  } catch (e) { if (e.status === 401) return load(); toast(e.message, 'err'); }
+}
+async function unblockUser(key) {
+  const u = USERS.find(x => x.email === key), ipOn = !!(u && u.ipBlocked);
+  if (!await ask({ title: 'Blokdan chiqarilsinmi?', text: key + ' yana saytga kira oladi.' + (ipOn ? ' Uning bloklangan IP si (' + u.ip + ') ham ochiladi.' : ''), ok: 'Blokdan chiqarish' })) return;
+  try { await call('POST', '/api/admin/user/unblock', { email: key, withIp: ipOn }); toast('Blokdan chiqarildi: ' + key); await load(true); } catch (e) { if (e.status === 401) return load(); toast(e.message, 'err'); }
+}
+/* ---------- Bloklash bo‘limi ---------- */
+const bkWhen = x => `${esc(whenS(x.t))}<br><small>${esc(x.by || '')}</small>`, bkUntil = x => x.until ? esc(when(x.until)) + '<br><small>' + esc(untilLeft(x.until)) + '</small>' : 'Doimiy';
+function renderBlocks() {
+  const b = BLK;
+  if (!$('#bk-du').options.length) $('#bk-du').innerHTML = durOpts(0);
+  if (!b) { $('#bk-c').textContent = ''; $('#bk-et').innerHTML = emptyBox('info', 'Bloklar yuklanmadi', 'Keyinroq yangilab ko‘ring.'); $('#bk-it').innerHTML = ''; return; }
+  $('#bk-c').textContent = b.emails.length + b.ips.length ? `${b.emails.length} email · ${b.ips.length} IP` : 'Bloklar yo‘q';
+  $('#bk-en').textContent = b.emails.length; $('#bk-in').textContent = b.ips.length;
+  $('#bk-et').innerHTML = b.emails.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Email / domen</th><th class="num">Hisoblar</th><th>Sabab</th><th>Bloklangan</th><th>Muddati</th><th></th></tr></thead><tbody>${b.emails.map(x => `<tr>
+    <td data-l="Email"><b>${esc(x.e)}</b> ${x.kind === 'domain' ? '<span class="badge warn">domen</span>' : ''}</td><td class="num" data-l="Hisoblar">${x.users}</td>
+    <td data-l="Sabab"><div class="bk-why">${esc(x.reason) || '<span class="mut">—</span>'}</div></td><td data-l="Bloklangan">${bkWhen(x)}</td><td data-l="Muddati">${bkUntil(x)}</td>
+    <td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-ue="${esc(x.key)}">Blokdan chiqarish</button></div></td></tr>`).join('')}</tbody></table></div>` : emptyBox('check', 'Bloklangan email yo‘q', 'Foydalanuvchilar bo‘limidan yoki yuqoridagi shakldan bloklashingiz mumkin.');
+  $('#bk-it').innerHTML = b.ips.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>IP</th><th>Qamrov</th><th>Sabab</th><th class="num">Urinish</th><th>Bloklangan</th><th>Muddati</th><th></th></tr></thead><tbody>${b.ips.map(x => `<tr>
+    <td data-l="IP"><b>${esc(x.ip)}</b></td><td data-l="Qamrov"><span class="badge ${x.scope === 'site' ? 'bad' : 'warn'}">${x.scope === 'site' ? 'Butun sayt' : 'Faqat admin'}</span></td>
+    <td data-l="Sabab"><div class="bk-why">${esc(x.reason) || '<span class="mut">—</span>'}</div></td><td class="num" data-l="Urinish" title="${x.last ? 'Oxirgisi: ' + esc(when(x.last)) : ''}">${x.hits || 0}</td>
+    <td data-l="Bloklangan">${bkWhen(x)}</td><td data-l="Muddati">${bkUntil(x)}</td>
+    <td class="a-td"><div class="row-a"><button class="btn sm" type="button" data-ub="${esc(x.ip)}">Blokdan chiqarish</button></div></td></tr>`).join('')}</tbody></table></div>` : emptyBox('check', 'Bloklangan IP yo‘q', 'IP ni Urinishlar bo‘limidan yoki yuqoridagi shakldan bloklashingiz mumkin.');
+  $$('#v-blocks [data-ue]').forEach(el => (el.onclick = () => unblockUser(el.dataset.ue)));
+  $$('#v-blocks [data-ub]').forEach(el => (el.onclick = () => unblockIp(el.dataset.ub)));
+  fx.scan($('#v-blocks'));
+}
+const BK_T = { email: ['Email', 'ism@gmail.com'], domain: ['Domen', 'spam-domen.com'], ip: ['IP manzil', '203.0.113.7'] };
+$('#bk-ty').onchange = () => { const t = $('#bk-ty').value; $('#bk-sw').hidden = t !== 'ip'; $('#bk-vl').textContent = BK_T[t][0]; $('#bk-v').placeholder = BK_T[t][1]; $('#bk-v').focus(); };
+$('#bk-go').onclick = async () => {
+  const t = $('#bk-ty').value, v = $('#bk-v').value.trim(), m = $('#bk-m'), minutes = Number($('#bk-du').value), reason = $('#bk-r').value.trim(), site = t === 'ip' && $('#bk-sc').value === 'site';
+  const bad = txt => { m.className = 'msg err'; m.textContent = txt; $('#bk-v').focus(); };
+  m.className = 'msg'; m.textContent = '';
+  if (!v) return bad('Qiymatni kiriting.');
+  let url = '/api/admin/user/block', body = { minutes, reason };
+  if (t === 'ip') { if (!/^[0-9a-f:.]{2,45}$/i.test(v) || !/[.:]/.test(v)) return bad('IP manzilni to‘g‘ri kiriting (masalan: 203.0.113.7).'); url = '/api/admin/ip/block'; body = { ip: v, minutes, reason, scope: $('#bk-sc').value }; }
+  else if (t === 'domain') { const d = v.replace(/^@+/, ''); if (!/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/i.test(d)) return bad('Domenni to‘g‘ri kiriting (masalan: spam-domen.com).'); body.email = '@' + d; }
+  else { if (!MAIL_RE.test(v)) return bad('Emailni to‘g‘ri kiriting (masalan: ism@gmail.com).'); body.email = v; }
+  if ((t === 'domain' || site) && !await ask({ title: t === 'domain' ? 'Butun domen bloklansinmi?' : 'IP butun sayt bo‘yicha bloklansinmi?', text: t === 'domain' ? `${body.email} manzillaridagi barcha hisoblar saytga kira olmaydi va shu domen bilan ro‘yxatdan o‘tib bo‘lmaydi.` : `${v} dan saytga umuman kirib bo‘lmaydi. Bir IP dan bir necha kishi chiqishi mumkin.`, ok: 'Bloklash', danger: true })) return;
+  $('#bk-go').disabled = true;
+  try { await call('POST', url, body); $('#bk-v').value = ''; $('#bk-r').value = ''; m.className = 'msg ok'; m.textContent = 'Bloklandi: ' + v; toast('Bloklandi: ' + v); await load(true); }
+  catch (e) { if (e.status === 401) { $('#bk-go').disabled = false; return load(); } bad(e.message); }
+  $('#bk-go').disabled = false;
+};
+$('#bk-v').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('#bk-go').click(); } };
 
 /* ---------- yuklash ---------- */
 let LEM = '', resendTimer = 0;
@@ -804,7 +866,7 @@ async function load(silent) {
   if (busy) return; busy = true;
   const rf = $('#rf'); rf.classList.add('spin'); if (!silent) $('#st').textContent = 'Yuklanmoqda…';
   try {
-    const [rq, us, st, od, pr, nh, un, fk, au, sc, at] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
+    const [rq, us, st, od, pr, nh, un, fk, au, sc, at, bk] = await Promise.all([call('GET', '/api/admin/requests'), call('GET', '/api/admin/users'), call('GET', '/api/admin/stats'),
       call('GET', '/api/admin/orders').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/promos').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/notes').catch(e => { if (e.status === 401) throw e; return null; }),
@@ -812,10 +874,11 @@ async function load(silent) {
       call('GET', '/api/admin/feedback').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/audit').catch(e => { if (e.status === 401) throw e; return null; }),
       call('GET', '/api/admin/security').catch(e => { if (e.status === 401) throw e; return null; }),
-      call('GET', '/api/admin/attempts').catch(e => { if (e.status === 401) throw e; return null; })]);
-    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; FBK = fk; AUDIT = au; SEC = sc; ATT = at; if (nh) NH = nh; loadedAt = Date.now();
+      call('GET', '/api/admin/attempts').catch(e => { if (e.status === 401) throw e; return null; }),
+      call('GET', '/api/admin/blocks').catch(e => { if (e.status === 401) throw e; return null; })]);
+    REQS = rq.requests || []; USERS = us.users || []; STATS = st; ORDERS = od; PROMOS = pr; UNIS = un; FBK = fk; AUDIT = au; SEC = sc; ATT = at; BLK = bk; if (nh) NH = nh; loadedAt = Date.now();
     const first = $('#shell').hidden; $('#lg').hidden = true; $('#shell').hidden = false;
-    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); renderAccess(); renderSecurity(); renderAttempts(); renderLog(); audienceUi(); $('#me').textContent = ME || 'Admin';
+    renderOverview(st); renderRequests(); renderUsers(); renderPayments(); renderPromos(); renderUnis(); renderFeedback(); renderNotes(); renderAccess(); renderSecurity(); renderAttempts(); renderBlocks(); renderLog(); audienceUi(); $('#me').textContent = ME || 'Admin';
     $('#st').textContent = 'Yangilandi: ' + when(Date.now()).split(', ')[1].split(' ').pop();
     if (first) route(); else fx.scan($('#kpis'));
   } catch (e) {
@@ -845,7 +908,7 @@ $('#ac').oninput = () => { const v = $('#ac').value.replace(/\D/g, '').slice(0, 
 $('#lr').onclick = () => askCode(LEM, true);
 $('#lx').onclick = () => { clearInterval(resendTimer); showLogin('', 1); $('#ae').focus(); };
 $('#rf').onclick = () => load();
-$('#lo').onclick = async () => { try { await call('POST', '/api/admin/logout'); } catch (e) {} ME = ''; USERS = []; AUDIT = null; SEC = null; ATT = null; showLogin('', 1); $('#ae').focus(); };
+$('#lo').onclick = async () => { try { await call('POST', '/api/admin/logout'); } catch (e) {} ME = ''; USERS = []; AUDIT = null; SEC = null; ATT = null; BLK = null; showLogin('', 1); $('#ae').focus(); };
 $('#bg').onclick = () => document.body.classList.toggle('nav-open');
 $('#scrim').onclick = () => document.body.classList.remove('nav-open');
 $('#uq').oninput = () => { ULIM = 100; renderUsers(); };

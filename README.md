@@ -35,6 +35,7 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 | `ADMIN_LOCKDOWN` | `1` — admin paneli va admin API **butunlay yopiladi** (mavjud seanslar ham). Favqulodda: avval shuni qoʻying, keyin sirlarni almashtiring. Qaytarish: oʻchiring (seanslar saqlanadi) |
 | `ADMIN_ATT_ALERT` | `0` — notanish IP urinishlari haqidagi email/push ogohlantirishlarini oʻchiradi (Urinishlar sahifasi ishlayveradi) |
 | `ADMIN_BLOCK_MAX` | Qoʻlda bloklanadigan IP lar soni chegarasi (standart 200, eng koʻpi 1000) |
+| `USER_BLOCK_MAX` | Bloklangan email/domenlar soni chegarasi (standart 2000, eng koʻpi 20000) |
 | `ADMIN_REVOKE_BEFORE`, `SESSIONS_REVOKE_BEFORE` | ISO sana (masalan `2026-11-26T12:00:00Z`): shu sanadan oldin ochilgan hamma **admin** / **foydalanuvchi** seanslari yaroqsiz. Server qayta ishga tushganda amal qiladi |
 | `MAIL_DISABLED` | `1` — foydalanuvchilarga email yuborish toʻxtatiladi (admin kirish kodlari va ogohlantirishlar ketaveradi). Panelda: Himoya holati → «Xat yuborishni toʻxtatish» |
 | `MAIL_HOURLY_MAX`, `MAIL_DAILY_MAX`, `MAIL_RCPT_HOURLY`, `MAIL_RCPT_DAILY` | Email kvotalari: umumiy soatiga/sutkasiga (standart 400/1500), bitta manzilga soatiga/sutkasiga (6/15). Oshsa xat ketmaydi va administratorga ogohlantirish yuboriladi |
