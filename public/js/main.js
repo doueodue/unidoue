@@ -31,6 +31,7 @@ const ROUTES = [
 ];
 const root = $('#root');
 let token = 0;
+const showBk = o => import('./blocked.js?v=1').then(m => m.showBlocked(o)).catch(() => {}); // «Siz bloklandingiz» ekrani (kamdan-kam kerak: kerak boʻlganda yuklanadi)
 
 /* ---------- Google orqali kirish ---------- */
 const GE = {
@@ -71,7 +72,7 @@ function authScreen(mode = 'login') {
   $$('[data-m]').forEach(b => (b.onclick = () => authScreen(b.dataset.m)));
   bindLang('lang', () => authScreen(mode));
   const ge = new URLSearchParams(location.search).get('ge');
-  if (ge) { history.replaceState(null, '', location.pathname + location.hash); const gm = $('#am'); if (gm) { gm.className = 'msg err'; gm.textContent = t(GE[ge] || GE.token); } }
+  if (ge) { history.replaceState(null, '', location.pathname + location.hash); const gm = $('#am'); if (gm) { gm.className = 'msg err'; gm.textContent = t(GE[ge] || GE.token); } if (ge === 'blocked') showBk({}); }
   const ash = $('#ash'); if (ash) ash.onchange = () => ($('#ap').type = ash.checked ? 'text' : 'password');
   $('#af').onsubmit = async ev => {
     ev.preventDefault();
@@ -84,7 +85,7 @@ function authScreen(mode = 'login') {
     try {
       if (fg) { await api('/api/password/forgot', 'POST', { email: em }); m.className = 'msg ok'; m.textContent = 'Agar bu email ro‘yxatda bo‘lsa, tiklash havolasi yuborildi. Pochtangizni va Spam papkasini tekshiring (xat 1–2 daqiqada keladi).'; }
       else { const me = await api(reg ? '/api/register' : '/api/login', 'POST', reg ? { email: em, password: pw, name: nm } : { email: em, password: pw }); if (me.user.verified === false) { verifyScreen(me); return; } adopt(me); start(); return; }
-    } catch (e) { m.textContent = e.message; }
+    } catch (e) { m.textContent = e.message; if (e.code === 'BLOCKED') showBk({ until: e.data && e.data.until }); }
     btn.disabled = false; btn.textContent = t0;
   };
 }
@@ -168,12 +169,16 @@ async function route() {
 
 function start() { shell(); initEsc(); addEventListener('hashchange', route); route(); if (S.user && S.account) seePlan(S.user.id, S.account.plan, S.account.planUntil); }
 document.addEventListener('unidoue:account', () => { if (S.user && S.account) seePlan(S.user.id, S.account.plan, S.account.planUntil); });
-document.addEventListener('unidoue:signedout', () => { toast('Sessiya tugadi. Qayta kiring.', 'err'); authScreen('login'); });
+document.addEventListener('unidoue:signedout', async () => { // seans tugadi: sababi bloklash boʻlsa — «Siz bloklandingiz» ekrani, boʻlmasa kirish oynasi
+  let bk = null; try { const me = await api('/api/me'); if (me && me.blocked) bk = me.block || {}; } catch (e) {}
+  if (bk) { authScreen('login'); showBk(bk); return; }
+  toast('Sessiya tugadi. Qayta kiring.', 'err'); authScreen('login');
+});
 
 (async function boot() {
   try {
     const me = await api('/api/me');
-    if (me.user && me.user.verified === false) verifyScreen(me); else if (me.user) { adopt(me); start(); } else { S.auth = me.auth || {}; authScreen(new URLSearchParams(location.search).get('m') === 'register' ? 'register' : 'login'); }
+    if (me.user && me.user.verified === false) verifyScreen(me); else if (me.user) { adopt(me); start(); } else if (me.blocked) { S.auth = me.auth || {}; authScreen('login'); showBk(me.block || {}); } else { S.auth = me.auth || {}; authScreen(new URLSearchParams(location.search).get('m') === 'register' ? 'register' : 'login'); }
   } catch (e) {
     root.innerHTML = `<div style="min-height:100dvh;display:grid;place-items:center;padding:20px">${errorBox(e.message, true)}</div>`;
     const b = $('[data-retry]'); if (b) b.onclick = () => location.reload();

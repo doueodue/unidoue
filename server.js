@@ -116,6 +116,7 @@ const PROMO = require('./promo');
 const UNIS = require('./unis');
 const NOTES = require('./notes');
 const AVATAR = require('./avatar');
+const BLOCKPAGE = require('./blockpage');
 
 /* ---------------- tariflar va sozlamalar ---------------- */
 // AI provayderi: ANTHROPIC_API_KEY (Claude) yoki AI_API_KEY + AI_BASE_URL (OpenAI-mos: Groq, Gemini, OpenRouter...)
@@ -361,7 +362,9 @@ function sessUser(req) { // seans egasi (bloklangan boʻlsa ham)
   if (!t) return null;
   const s = db.sessions[sha256(t)];
   if (!s || s.exp < Date.now() || (s.created || 0) < USR_REVOKE_BEFORE) return null;
-  return db.users[s.uid] || null;
+  const u = db.users[s.uid] || null;
+  if (s.blk && !(u && userBlocked(u))) return null; // bloklash tufayli bekor qilingan seans blokdan chiqarilgach ham qayta jonlanmaydi
+  return u;
 }
 function sessionUser(req) {
   const u = sessUser(req);
@@ -575,7 +578,7 @@ const blockedPage = (req, res, pathname) => {
   res.setHeader('Cache-Control', 'no-store');
   if (pathname.startsWith('/api/')) return fail(res, 403, 'Bu manzildan kirish cheklangan.');
   res.statusCode = 403; res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  return res.end('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kirish cheklangan</title><style>body{font:16px/1.5 system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#0f172a;color:#e2e8f0;text-align:center;padding:24px}h1{font-size:22px;margin:0 0 8px}p{margin:0;color:#94a3b8;max-width:380px}</style><div><h1>Kirish cheklangan</h1><p>Bu manzildan UniDoue ga kirish vaqtincha yoki butunlay cheklangan. Xato deb hisoblasangiz, UniDoue jamoasiga yozing.</p></div>');
+  return res.end(BLOCKPAGE.page(req.headers['accept-language'], b && b.until || 0));
 };
 const attLimitedNow = ip => peek('admf:' + ip) >= 20 || peek('admls:' + ip) > ADM_START_MAX || peek('admlv:' + ip) > 10;
 // Admin: seanssiz urinishlar IP boʻyicha sanaladi (20 ta / 15 daqiqa); har endpoint oʻz limitiga ega.
@@ -948,7 +951,8 @@ async function api(req, res, pathname) {
     const u = sessionUser(req);
     if (u) return send(res, 200, meBody(u));
     const bu = sessUser(req);
-    return send(res, 200, { user: null, auth: authCfg(), ...(bu && userBlocked(bu) ? { blocked: true } : {}) });
+    const bb = bu && userBlocked(bu) ? emailBlock(bu.email) : null;
+    return send(res, 200, { user: null, auth: authCfg(), ...(bb ? { blocked: true, block: { until: bb.until || 0 } } : {}) });
   }
 
   // Profil rasmi: faqat egasiga (cookie orqali) beriladi, serverda qat'iy tekshiriladi
@@ -981,7 +985,7 @@ async function api(req, res, pathname) {
     const b = await readJson(req);
     const email = clean(b.email, 254).toLowerCase(), name = clean(b.name, 40), pw = typeof b.password === 'string' ? b.password : '';
     if (!EMAIL_RE.test(email)) return fail(res, 400, 'Emailni toʻgʻri kiriting.');
-    if (emailBlock(email)) { secLog('auth.blocked', { how: 'register', acct: sha256(email).slice(0, 12), ip }); return fail(res, 403, 'Bu email bilan roʻyxatdan oʻtib boʻlmaydi.'); }
+    if (emailBlock(email)) { secLog('auth.blocked', { how: 'register', acct: sha256(email).slice(0, 12), ip }); return send(res, 403, { error: 'Bu email bilan roʻyxatdan oʻtib boʻlmaydi.', code: 'BLOCKED', until: emailBlock(email).until || 0 }); }
     if (name.length < 2) return fail(res, 400, 'Ismingizni kiriting (kamida 2 harf).');
     if (pw.length < 8 || pw.length > 128) return fail(res, 400, 'Parol 8 dan 128 gacha belgidan iborat boʻlsin.');
     if (VERIFY_ON && !MAIL_PROVIDER) return send(res, 503, { error: MAIL_OFF_MSG, code: 'EMAIL_NOT_CONFIGURED' });
@@ -1013,7 +1017,7 @@ async function api(req, res, pathname) {
     else if (DUMMY_HASH) await checkPw(pw, DUMMY_HASH).catch(() => {});
     if (!ok) { limited('login-em:' + email, 8, 15 * 60 * 1000); return fail(res, 401, u && u.noPw ? 'Bu hisob Google orqali ochilgan. “Google bilan kirish” ni bosing.' : 'Email yoki parol notoʻgʻri.'); }
     buckets.delete('login-em:' + email);
-    if (userBlocked(u)) { secLog('auth.blocked', { how: 'login', acct: sha256(email).slice(0, 12), ip }); return send(res, 403, { error: 'Hisobingiz cheklangan. Xato deb hisoblasangiz, UniDoue jamoasiga yozing.', code: 'BLOCKED' }); } // parol toʻgʻri boʻlgandagina (email borligi sizib chiqmasin)
+    if (userBlocked(u)) { secLog('auth.blocked', { how: 'login', acct: sha256(email).slice(0, 12), ip }); return send(res, 403, { error: 'Hisobingiz cheklangan. Xato deb hisoblasangiz, UniDoue jamoasiga yozing.', code: 'BLOCKED', until: emailBlock(u.email).until || 0 }); } // parol toʻgʻri boʻlgandagina (email borligi sizib chiqmasin)
     createSession(req, res, u.id);
     return send(res, 200, meBody(u));
   }
@@ -1690,7 +1694,7 @@ async function api(req, res, pathname) {
     // shu email/domenga mos hisoblarning sessiyalari va tiklash havolalari bekor qilinadi (maʼlumot oʻchmaydi)
     const hit = Object.values(db.users).filter(u => userBlocked(u));
     const ids = new Set(hit.map(u => u.id)); let dropped = 0;
-    for (const [k, x] of Object.entries(db.sessions)) if (ids.has(x.uid)) { delete db.sessions[k]; dropped++; }
+    for (const x of Object.values(db.sessions)) if (ids.has(x.uid) && !x.blk) { x.blk = 1; x.exp = Math.min(x.exp, Date.now() + 7 * 864e5); dropped++; } // seans yaroqsiz (sessionUser bloklanganni rad etadi); 7 kun qoladi — foydalanuvchi «Siz bloklandingiz» ekranini koʻradi
     for (const [k, x] of Object.entries(db.resets)) if (ids.has(x.uid)) delete db.resets[k];
     // ixtiyoriy: shu hisob(lar)ning soʻnggi IP si ham sayt miqyosida bloklanadi (oʻz/admin IP si bundan mustasno)
     let ipDone = [], ipSkipped = [];
@@ -2056,7 +2060,7 @@ function serveStatic(req, res, pathname) {
   let rel = PAGES[pathname];
   if (!rel) {
     try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch (e) { return false; }
-    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'atlas.css' || rel === 'landing.css' || rel === 'contour.svg' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'controls.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
+    const ok = rel === 'manifest.webmanifest' || rel === 'sw.js' || rel === 'app.css' || rel === 'tiers.css' || rel === 'atlas.css' || rel === 'landing.css' || rel === 'contour.svg' || rel === 'portfolio.css' || rel === 'coach.css' || rel === 'admin.css' || rel === 'controls.css' || rel === 'blocked.css' || rel === 'data/universities.json' || rel === 'data/intl.json' || /^js\/[\w.-]+\.js$/.test(rel) || /^icons\/[\w.-]+$/.test(rel) || /^\.well-known\/[\w.-]+$/.test(rel);
     if (!ok) return false;
   }
   const file = path.resolve(PUBLIC_DIR, rel);

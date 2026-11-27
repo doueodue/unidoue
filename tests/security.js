@@ -393,16 +393,20 @@ const adm = { Authorization: 'Bearer sched-tok' };
     // 3) U1 ni bloklash (email + IP)
     q = await A('POST', '/api/admin/user/block', { email: 'Victim@Example.test', minutes: 0, reason: 'Spam <b>yubordi</b>', withIp: true }); ok(q.s === 200 && q.j.ok && q.j.users === 1 && q.j.dropped >= 1 && q.j.ips[0] === '198.51.100.10', 'U1 bloklandi (email + IP); sessiyalari bekor qilindi', q.j);
     q = await U1('GET', '/api/me', null, H('198.51.100.77')); ok(q.s === 200 && q.j.user === null && !('data' in q.j), 'bloklangan foydalanuvchining seansi bekor: /api/me da hisob maʼlumotlari yoʻq', q.j);
+    ok(q.j.blocked === true && q.j.block && q.j.block.until === 0 && !JSON.stringify(q.j).includes('yubordi'), '/api/me: «bloklangan» belgisi va muddat (0 = muddatsiz) bor, ichki sabab koʻrsatilmaydi', q.j);
     q = await U1('GET', '/api/credits', null, H('198.51.100.77')); ok(q.s === 401, 'bloklangan foydalanuvchi eski seansi bilan API dan foydalana olmaydi', q.s);
-    q = await login('victim@example.test', '198.51.100.77'); ok(q.s === 403 && q.j.code === 'BLOCKED', 'toʻgʻri parol bilan kirish → 403 BLOCKED', q);
+    q = await login('victim@example.test', '198.51.100.77'); ok(q.s === 403 && q.j.code === 'BLOCKED' && q.j.until === 0, 'toʻgʻri parol bilan kirish → 403 BLOCKED (+ muddat)', q);
     q = await login('victim@example.test', '198.51.100.77', 'notogri-parol'); ok(q.s === 401, 'notoʻgʻri parol → 401 (email bloklanganligi sizib chiqmaydi)', q.s);
-    q = await cl()('POST', '/api/register', { email: 'victim@example.test', password: PW, name: 'Qayta' }, H('198.51.100.78')); ok(q.s === 403, 'bloklangan email bilan qayta roʻyxatdan oʻtib boʻlmaydi', q.s);
+    q = await cl()('POST', '/api/register', { email: 'victim@example.test', password: PW, name: 'Qayta' }, H('198.51.100.78')); ok(q.s === 403 && q.j.code === 'BLOCKED', 'bloklangan email bilan qayta roʻyxatdan oʻtib boʻlmaydi (code: BLOCKED)', q.j);
     q = await cl()('POST', '/api/register', { email: 'VICTIM@example.test', password: PW, name: 'Qayta' }, H('198.51.100.78')); ok(q.s === 403, 'katta harflar bilan ham', q.s);
     mails.length = 0; q = await rq('POST', '/api/password/forgot', { email: 'victim@example.test' }, H('198.51.100.78')); await sleep(300); ok(q.s === 200 && !mails.some(m => m.to[0] === 'victim@example.test'), 'parolni tiklash: bloklangan hisobga xat ketmaydi (javob oddiy 200)', mails.map(m => m.to));
     q = await rq('POST', '/api/password/forgot', { email: 'other@example.test' }, H('198.51.100.78')); await sleep(300); ok(q.s === 200 && mails.some(m => m.to[0] === 'other@example.test'), 'nazorat: bloklanmagan hisobga xat ketadi', mails.map(m => m.to));
     // 4) IP sayt miqyosida yopiq; boshqa IP lar ishlaydi
     q = await rq('GET', '/api/plans', null, H('198.51.100.10')); ok(q.s === 403 && /cheklangan/.test(q.j.error), 'bloklangan IP: API → 403 (JSON)', q);
-    q = await rq('GET', '/', null, H('198.51.100.10')); ok(q.s === 403 && /Kirish cheklangan/.test(q.t) && !/<script/i.test(q.t), 'bloklangan IP: sahifa → 403', q.s);
+    q = await rq('GET', '/', null, H('198.51.100.10')); ok(q.s === 403 && /Kirish cheklangan/.test(q.t) && /Siz bloklandingiz/.test(q.t) && !/<script/i.test(q.t), 'bloklangan IP: sahifa → 403 («Siz bloklandingiz», JavaScriptsiz)', q.s);
+    q = await rq('GET', '/', null, { ...H('198.51.100.10'), 'Accept-Language': 'ru-RU,ru;q=0.9' }); ok(q.s === 403 && /Вы заблокированы/.test(q.t) && /@keyframes bkIn/.test(q.t), 'bloklangan IP sahifasi: rus tili + animatsiya CSS i sahifada', q.s);
+    q = await rq('GET', '/', null, { ...H('198.51.100.10'), 'Accept-Language': 'en-US,en;q=0.9' }); ok(q.s === 403 && /You have been blocked/.test(q.t), 'bloklangan IP sahifasi: ingliz tili', q.s);
+    q = await rq('GET', '/blocked.css', null, H('198.51.100.11')); ok(q.s === 200 && /text\/css/.test(q.h['content-type'] || '') && /\.bk-ov/.test(q.t), 'blocked.css boshqa IP larga beriladi', q.s);
     q = await rq('GET', '/app', null, H('::ffff:198.51.100.10')); ok(q.s === 403, 'IPv4-mapped yozuv bilan ham 403', q.s);
     q = await rq('POST', '/api/register', { email: 'yangi@example.test', password: PW, name: 'Yangi' }, H('198.51.100.10')); ok(q.s === 403, 'bloklangan IP dan roʻyxatdan oʻtib boʻlmaydi', q.s);
     q = await rq('GET', '/admin', null, H('198.51.100.10')); ok(q.s === 403, 'bloklangan IP /admin ni ham ocha olmaydi', q.s);
@@ -443,6 +447,16 @@ const adm = { Authorization: 'Bearer sched-tok' };
     q = await A2('GET', '/api/admin/blocks'); ok(q.j.emails.length === 1 && q.j.emails[0].kind === 'domain' && q.j.emails[0].users === 1, 'roʻyxatda domen bloki (1 hisob)', q.j.emails);
     q = await A2('POST', '/api/admin/user/unblock', { email: '@spam-domain.test' }); ok(q.j.removed === true, 'domen bloki olindi', q.j);
     q = await login('old@spam-domain.test', '198.51.100.81'); ok(q.s === 200, 'domen ochilgach hisob qaytadi', q.s);
+    // 11) vaqtinchalik blok: muddat foydalanuvchiga beriladi; bloklash tufayli bekor boʻlgan seans blokdan chiqarilgach jonlanmaydi
+    const T1 = await reg('temp@example.test', '198.51.100.40'); q = await T1('GET', '/api/me', null, H('198.51.100.40')); ok(q.j.user && q.j.user.email === 'temp@example.test' && !q.j.blocked, 'nazorat: bloklanmagan foydalanuvchida «blocked» belgisi yoʻq', q.j);
+    q = await A2('POST', '/api/admin/user/block', { email: 'temp@example.test', minutes: 90, reason: 'ichki izoh' }); ok(q.s === 200 && q.j.users === 1, 'vaqtinchalik blok (90 daqiqa)', q.j);
+    q = await T1('GET', '/api/me', null, H('198.51.100.40')); ok(q.j.user === null && q.j.blocked === true && Math.abs(q.j.block.until - (Date.now() + 90 * 60000)) < 90000 && !JSON.stringify(q.j).includes('ichki izoh'), '/api/me: tugash vaqti beriladi, sabab koʻrsatilmaydi', q.j);
+    q = await T1('GET', '/api/credits', null, H('198.51.100.40')); ok(q.s === 401, 'bloklangan seans API dan foydalana olmaydi (401)', q.s);
+    q = await login('temp@example.test', '198.51.100.41'); ok(q.s === 403 && q.j.code === 'BLOCKED' && Math.abs(q.j.until - (Date.now() + 90 * 60000)) < 90000, 'kirishda ham tugash vaqti beriladi', q.j);
+    q = await cl()('POST', '/api/register', { email: 'temp@example.test', password: PW, name: 'Qayta' }, H('198.51.100.41')); ok(q.s === 403 && q.j.code === 'BLOCKED' && q.j.until > Date.now(), 'roʻyxatdan oʻtishda ham tugash vaqti beriladi', q.j);
+    q = await A2('POST', '/api/admin/user/unblock', { email: 'temp@example.test' }); ok(q.s === 200 && q.j.removed === true, 'vaqtinchalik blok olindi', q.j);
+    q = await T1('GET', '/api/me', null, H('198.51.100.40')); ok(q.j.user === null && !('blocked' in q.j), 'blokdan chiqarilgach eski (bekor qilingan) seans jonlanmaydi', q.j);
+    q = await login('temp@example.test', '198.51.100.41'); ok(q.s === 200, 'blokdan chiqqach yangi kirish ishlaydi', q.s);
     // 11) vaqtinchalik blok oʻzi tugaydi
     q = await A2('POST', '/api/admin/user/block', { email: 'vaqtincha@example.test', minutes: 0.05 }); ok(q.s === 200 && q.j.until > Date.now(), 'vaqtinchalik blok (3 soniya)', q.j);
     q = await cl()('POST', '/api/register', { email: 'vaqtincha@example.test', password: PW, name: 'Vaqtincha' }, H('198.51.100.82')); ok(q.s === 403, 'muddat ichida roʻyxatdan oʻtib boʻlmaydi', q.s);
