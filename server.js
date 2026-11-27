@@ -70,16 +70,25 @@ async function sql(query, params = []) {
 }
 let remoteDirty = false, remoteBusy = false, remoteTimer = null, remoteFails = 0;
 async function remotePush() {
-  if (!DATABASE_URL || remoteBusy) return;
+  if (!DATABASE_URL) return;
+  if (remoteBusy) { remoteDirty = true; return; } // push davomida oʻzgarish boʻlsa — tugagach yana yuboriladi (yoʻqolmaydi)
   remoteBusy = true; remoteDirty = false;
   try {
     await sql("INSERT INTO unidoue_kv (k, v, updated_at) VALUES ('db', $1::jsonb, now()) ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v, updated_at = now()", [JSON.stringify(db)]);
     remoteFails = 0;
   } catch (e) { remoteDirty = true; remoteFails++; console.error('Neon saqlash xatosi:', e.message); }
-  remoteBusy = false;
+  remoteBusy = false; lastPushAt = Date.now();
   if (remoteDirty) scheduleRemote(Math.min(30000, 1500 * 2 ** Math.min(remoteFails, 4)));
 }
-function scheduleRemote(ms = 1500) { if (DATABASE_URL && !remoteTimer) remoteTimer = setTimeout(() => { remoteTimer = null; remotePush(); }, ms); }
+// Har push butun bazani 3-4 nusxada xotiraga oladi (JSON.stringify + soʻrov tanasi + bufer) — band saytda ketma-ket pushlar xotirani shishiradi.
+// Shu sababli ikki push orasida kamida NEON_PUSH_GAP_MS (standart 5 soniya) kutiladi: oʻzgarishlar jamlanib, bitta pushda ketadi (oʻchirilganda baribir darhol yoziladi).
+const NEON_GAP = Math.min(Math.max(parseInt(process.env.NEON_PUSH_GAP_MS, 10) || 5000, 0), 600000);
+let lastPushAt = 0;
+function scheduleRemote(ms = 1500) {
+  if (!DATABASE_URL || remoteTimer) return;
+  const fire = () => { remoteTimer = null; const wait = lastPushAt + NEON_GAP - Date.now(); if (wait > 0) { remoteTimer = setTimeout(fire, wait); return; } remotePush(); };
+  remoteTimer = setTimeout(fire, ms);
+}
 async function remoteInit() {
   if (!DATABASE_URL) return;
   await sql('CREATE TABLE IF NOT EXISTS unidoue_kv (k text PRIMARY KEY, v jsonb NOT NULL, updated_at timestamptz NOT NULL DEFAULT now())');
@@ -95,16 +104,25 @@ async function remoteInit() {
   }
 }
 
-let saveTimer = null;
+let saveTimer = null, lastFlushAt = 0;
+// Neon ulangan boʻlsa, mahalliy db.json faqat zaxira (ishga tushishda baza Neon dan olinadi): uni har oʻzgarishda emas, kamida 30 soniyada bir marta yozamiz.
+// Har yozuv butun bazani yana bir bor matnga aylantiradi (xotira), oʻchirilganda (SIGTERM) baribir yoziladi. Neon yoʻq boʻlsa — avvalgidek 100 ms.
+const FLUSH_GAP = process.env.DATABASE_URL ? 30000 : 0;
 function flush() {
   clearTimeout(saveTimer);
-  saveTimer = null;
+  saveTimer = null; lastFlushAt = Date.now();
   const tmp = DB_FILE + '.tmp';
   fs.writeFileSync(tmp, JSON.stringify(db), { mode: 0o600 });
   fs.renameSync(tmp, DB_FILE);
 }
+let lazyDirty = false, lazyTimer = null;
+/** Faollik jurnali (tashrif/hodisa) uchun: har yozuvda butun bazani diskka va Neon ga yozmaymiz (har yozuv ~bazaning 2-4 barobar xotirasini band qiladi),
+ *  balki ACTIVITY_SAVE_MS (standart 5 daqiqa) da bir marta. Oddiy save() (kirish, tarif, AI sarfi…) kelsa jurnal ham u bilan birga yoziladi; oʻchirilganda (SIGTERM) ham yoziladi. */
+const ACT_SAVE_MS = Math.min(Math.max(parseInt(process.env.ACTIVITY_SAVE_MS, 10) || 5 * 60 * 1000, 10000), 3600000);
+function saveLazy() { lazyDirty = true; if (!lazyTimer) { lazyTimer = setTimeout(() => { lazyTimer = null; if (lazyDirty) save(); }, ACT_SAVE_MS); lazyTimer.unref(); } }
 function save() {
-  if (!saveTimer) saveTimer = setTimeout(() => { try { flush(); } catch (e) { console.error('saqlash xatosi', e); } }, 100);
+  lazyDirty = false;
+  if (!saveTimer) saveTimer = setTimeout(() => { try { flush(); } catch (e) { console.error('saqlash xatosi', e); } }, Math.max(100, lastFlushAt + FLUSH_GAP - Date.now()));
   scheduleRemote();
 }
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, async () => { try { flush(); } catch (e) {} if (DATABASE_URL) { try { clearTimeout(remoteTimer); remoteBusy = false; await Promise.race([remotePush(), new Promise(r => setTimeout(r, 4000))]); } catch (e) {} } process.exit(0); });
@@ -2162,5 +2180,5 @@ const server = http.createServer(async (req, res) => {
   }
 });
 server.headersTimeout = 30000; server.requestTimeout = 120000; server.maxHeadersCount = 100; // sekin/katta soʻrovlar bilan band qilib qoʻyishdan himoya
-remoteInit().then(() => { ACT = ACTIVITY.create(db, save, tashkentISO); setInterval(() => { try { ACT.sweep(); } catch (e) { console.error('faollik:', e.message); } }, 10000).unref(); }).then(() => server.listen(PORT, HOST, () => { secLog('boot', { adminEmails: ADMIN_EMAILS.length, lockdown: adminLocked(), mailOff: mailOff(), allowToken: process.env.ADMIN_ALLOW_TOKEN === '1', trustProxy: process.env.TRUST_PROXY === '1' }); if (process.env.ADMIN_ALLOW_TOKEN === '1') console.error('DIQQAT: ADMIN_ALLOW_TOKEN=1 — ADMIN_TOKEN butun admin API ni ochadi. Faqat favqulodda/sinov uchun; hozir oʻchiring.'); console.log(`UniDoue http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  (data: ${DATA_DIR}${DATABASE_URL ? ', Neon' : ''})`); tgInit(); setInterval(() => runReminders(false).catch(e => console.error('Eslatma xatosi', e.message)), 60 * 60 * 1000).unref(); }),
+remoteInit().then(() => { ACT = ACTIVITY.create(db, saveLazy, tashkentISO); setInterval(() => { try { ACT.sweep(); } catch (e) { console.error('faollik:', e.message); } }, 10000).unref(); }).then(() => server.listen(PORT, HOST, () => { secLog('boot', { adminEmails: ADMIN_EMAILS.length, lockdown: adminLocked(), mailOff: mailOff(), allowToken: process.env.ADMIN_ALLOW_TOKEN === '1', trustProxy: process.env.TRUST_PROXY === '1' }); if (process.env.ADMIN_ALLOW_TOKEN === '1') console.error('DIQQAT: ADMIN_ALLOW_TOKEN=1 — ADMIN_TOKEN butun admin API ni ochadi. Faqat favqulodda/sinov uchun; hozir oʻchiring.'); console.log(`UniDoue http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  (data: ${DATA_DIR}${DATABASE_URL ? ', Neon' : ''})`); tgInit(); setInterval(() => runReminders(false).catch(e => console.error('Eslatma xatosi', e.message)), 60 * 60 * 1000).unref(); }),
   e => { console.error('Neon bazasiga ulanib boʻlmadi — ustiga yozmaslik uchun toʻxtadim:', e.message); process.exit(1); });

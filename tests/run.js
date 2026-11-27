@@ -702,7 +702,7 @@ class Client {
       if (/^INSERT/i.test(query)) { store = params[0]; return r.end(JSON.stringify({ rows: [] })); }
       r.statusCode = 400; r.end(JSON.stringify({ message: 'bad' }));
     });
-    const env = { ...process.env, ANTHROPIC_API_KEY: '', DATABASE_URL: 'postgresql://u:p@ep-test.example.neon.tech/db', NEON_SQL_URL: `http://localhost:${nm.address().port}/sql` };
+    const env = { ...process.env, ANTHROPIC_API_KEY: '', DATABASE_URL: 'postgresql://u:p@ep-test.example.neon.tech/db', NEON_PUSH_GAP_MS: '500', NEON_SQL_URL: `http://localhost:${nm.address().port}/sql` };
     const boot = async (port, dir) => { const sp = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...env, PORT: port, DATA_DIR: dir }, stdio: 'ignore' }); for (let i = 0; i < 40; i++) { try { if ((await fetch(`http://localhost:${port}/healthz`)).ok) break; } catch (e) {} await new Promise(r => setTimeout(r, 100)); } return sp; };
     const mk = port => { let ck = ''; return async (m, u, bd) => { const r = await fetch(`http://localhost:${port}${u}`, { method: m, headers: { 'Content-Type': 'application/json', ...(ck ? { Cookie: ck } : {}) }, body: bd ? JSON.stringify(bd) : undefined }); const sc = r.headers.get('set-cookie'); if (sc) ck = sc.split(';')[0]; return { s: r.status, j: await r.json().catch(() => null) }; }; };
     console.log('Doimiy saqlash (Neon)');

@@ -37,6 +37,8 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 | `ADMIN_BLOCK_MAX` | Qoʻlda bloklanadigan IP lar soni chegarasi (standart 200, eng koʻpi 1000) |
 | `USER_BLOCK_MAX` | Bloklangan email/domenlar soni chegarasi (standart 2000, eng koʻpi 20000) |
 | `ACTIVITY_VISITS_MAX`, `ACTIVITY_EVENTS_MAX` | Admin → «Sayt faolligi» jurnali hajmi: saqlanadigan tashriflar / hodisalar soni (standart 3000, eng koʻpi 30000; eskilari oʻchadi) |
+| `ACTIVITY_SAVE_MS` | Faollik jurnali (tashrif/hodisa) bazaga qancha oraliqda yoziladi (standart 300000 = 5 daqiqa; kamida 10000). Har yozuvda butun bazani saqlash xotirani shishiradi; oʻchirilganda (deploy) jurnal baribir yoziladi |
+| `NEON_PUSH_GAP_MS` | Neon ga ikki yozish orasidagi eng kichik oraliq (standart 5000). Har yozish butun bazani xotirada bir necha nusxada yaratadi — band saytda xotirani tejaydi. Ulangan boʻlsa mahalliy `db.json` ham kamida 30 soniyada bir yoziladi (zaxira) |
 | `ACTIVITY_OFFLINE_MS` | Shuncha millisekund signal kelmasa foydalanuvchi oflayn hisoblanadi (standart 150000 = 2,5 daqiqa) |
 | `ACTIVITY_GRACE_MS` | Oyna yopilgach tashrifni yopishdan oldin kutish (standart 15000); sahifa almashinuvi yangi tashrif boʻlib ketmasligi uchun |
 | `ADMIN_REVOKE_BEFORE`, `SESSIONS_REVOKE_BEFORE` | ISO sana (masalan `2026-11-26T12:00:00Z`): shu sanadan oldin ochilgan hamma **admin** / **foydalanuvchi** seanslari yaroqsiz. Server qayta ishga tushganda amal qiladi |
