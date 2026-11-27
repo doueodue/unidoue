@@ -273,7 +273,11 @@ async function give(email, plan, days, out) {
 }
 
 /* ---------- Foydalanuvchilar ---------- */
-const FILTERS = [['all', 'Hammasi', () => true], ['paid', 'Pullik', u => eff(u) !== 'free'], ['free', 'Free', u => eff(u) === 'free'], ['plus', 'Plus', u => eff(u) === 'plus'], ['pro', 'Pro', u => eff(u) === 'pro'], ['req', 'So‘rovli', u => !!u.requested], ['push', 'Push yoqqan', u => u.push > 0], ['blk', 'Bloklangan', u => !!u.blocked || u.ipBlocked]];
+const FILTERS = [['all', 'Hammasi', () => true], ['paid', 'Pullik', u => eff(u) !== 'free'], ['free', 'Free', u => eff(u) === 'free'], ['plus', 'Plus', u => eff(u) === 'plus'], ['pro', 'Pro', u => eff(u) === 'pro'], ['req', 'So‘rovli', u => !!u.requested], ['push', 'Push yoqqan', u => u.push > 0], ['blk', 'Bloklangan', u => !!u.blocked || u.ipBlocked], ['noip', 'IP yo‘q', u => !u.ip]];
+/** Foydalanuvchi IP si: oxirgisi (asosiy), birinchisi (boshqacha bo‘lsa), shu IP dagi hisoblar soni va blok holati. */
+const ipCell = (u, ipN) => u.ip
+  ? `<div class="ipc"><b${u.ip.includes(':') ? ' class="v6"' : ''} title="Oxirgi kirgan IP${u.ipAt ? ': ' + esc(when(u.ipAt)) : ''}">${esc(u.ip)}</b>${u.ip0 && u.ip0 !== u.ip ? `<small title="Birinchi (ro‘yxatdan o‘tgandagi) IP">birinchi: ${esc(u.ip0)}</small>` : ''}${ipN[u.ip] > 1 ? `<span class="badge warn" title="Shu IP dan kirgan hisoblar soni">${ipN[u.ip]} hisob</span>` : ''}${u.ipBlocked ? '<span class="badge bad">bloklangan</span>' : ''}</div>`
+  : '<span class="mut" title="Bu foydalanuvchi yangilanishdan keyin hali kirmagan — IP keyingi tashrifida yoziladi">—</span>';
 function renderUsers() {
   const q = ($('#uq').value || '').trim().toLowerCase(), now = Date.now(), f = FILTERS.find(x => x[0] === UF) || FILTERS[0];
   $('#uf').innerHTML = FILTERS.map(([k, l, fn]) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${k === UF}">${l}<small>${USERS.filter(fn).length}</small></button>`).join('');
@@ -281,9 +285,10 @@ function renderUsers() {
   const list = USERS.filter(f[2]).filter(u => !q || (u.email + ' ' + u.name + ' ' + (u.ip || '')).toLowerCase().includes(q));
   $('#uc').textContent = list.length === USERS.length ? USERS.length : list.length + ' / ' + USERS.length;
   const shown = list.slice(0, ULIM), ipN = {}; USERS.forEach(x => { if (x.ip) ipN[x.ip] = (ipN[x.ip] || 0) + 1; });
-  $('#ul').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Foydalanuvchi</th><th>Tarif</th><th>Muddati</th><th>Oxirgi kirish</th><th class="num">AI</th><th>Push</th><th>Kod</th><th></th></tr></thead><tbody>${shown.map(u => {
+  $('#ul').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Foydalanuvchi</th><th>IP manzil</th><th>Tarif</th><th>Muddati</th><th>Oxirgi kirish</th><th class="num">AI</th><th>Push</th><th>Kod</th><th></th></tr></thead><tbody>${shown.map(u => {
     const e = eff(u), exp = u.plan !== 'free' && u.planUntil;
-    return `<tr><td class="u-td" data-l="Foydalanuvchi"><div class="u-c">${avatar(u.name || u.email)}<div><b>${esc(u.name)}</b><small>${esc(u.email)}</small>${vbadge(u.vs, u.google)}${u.blocked ? ` <span class="badge bad" title="${esc(u.blocked.reason || '')}${u.blocked.until ? ' · ' + esc(untilLeft(u.blocked.until)) : ' · doimiy'}">Bloklangan</span>` : ''}${u.ip ? `<small class="ipl" title="Oxirgi IP (birinchisi: ${esc(u.ip0 || u.ip)})">IP: ${esc(u.ip)}${ipN[u.ip] > 1 ? ` <span class="badge warn" title="Shu IP dan kirgan hisoblar soni">${ipN[u.ip]} hisob</span>` : ''}${u.ipBlocked ? ' <span class="badge bad">IP bloklangan</span>' : ''}</small>` : ''}</div></div></td>
+    return `<tr><td class="u-td" data-l="Foydalanuvchi"><div class="u-c">${avatar(u.name || u.email)}<div><b>${esc(u.name)}</b><small>${esc(u.email)}</small>${vbadge(u.vs, u.google)}${u.blocked ? ` <span class="badge bad" title="${esc(u.blocked.reason || '')}${u.blocked.until ? ' · ' + esc(untilLeft(u.blocked.until)) : ' · doimiy'}">Bloklangan</span>` : ''}</div></div></td>
+    <td data-l="IP manzil">${ipCell(u, ipN)}</td>
     <td data-l="Tarif"><span class="pb ${e}">${planName(e)}</span>${u.requested ? ` <span class="badge warn">so‘rov</span>` : ''}</td>
     <td data-l="Muddati">${exp ? esc(when(u.planUntil)) + (u.planUntil < now ? ' <span class="badge bad">tugagan</span>' : u.planUntil - now < 7 * 864e5 ? ' <span class="badge warn">tugayapti</span>' : '') : '<span class="mut">—</span>'}</td>
     <td data-l="Oxirgi kirish">${u.seen ? esc(dm(u.seen)) : '<span class="mut">—</span>'}</td><td class="num" data-l="AI">${u.ai || 0}</td>

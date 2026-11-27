@@ -374,3 +374,5 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .modal input[type=text].rp-i{width:100%}
 #ul .row-a{flex-wrap:wrap;max-width:300px;margin-left:auto}
 .modal .ck{gap:10px}.modal .ck input{margin-top:1px}
+
+.ipc{display:flex;flex-direction:column;align-items:flex-start;gap:3px;font-variant-numeric:tabular-nums}.ipc b{font-weight:600;white-space:nowrap}.ipc b.v6{white-space:normal;overflow-wrap:anywhere;max-width:170px}.ipc small{color:var(--muted);font-size:12px}
