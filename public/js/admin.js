@@ -101,7 +101,7 @@ let BLK = null, ATT = null, ATF = 'att', ATP = 'week', SEC = null, SCF = 'all', 
 const eff = u => (u.plan && u.plan !== 'free' && (!u.planUntil || u.planUntil > Date.now()) ? u.plan : 'free');
 
 /* ---------- yo‘naltirish ---------- */
-const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar', access: 'Kirishlar', security: 'Himoya holati', attempts: 'Urinishlar', blocks: 'Bloklash', log: 'Yuborilgan xatlar' };
+const VIEWS = { overview: 'Umumiy ko‘rinish', requests: 'So‘rovlar', users: 'Foydalanuvchilar', activity: 'Sayt faolligi', payments: 'To‘lovlar', push: 'Xabarlar', promos: 'Promo kodlar', unis: 'Universitetlar', feedback: 'Fikrlar', access: 'Kirishlar', security: 'Himoya holati', attempts: 'Urinishlar', blocks: 'Bloklash', log: 'Yuborilgan xatlar' };
 function route() {
   const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
   $$('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; });
@@ -112,6 +112,7 @@ function route() {
   if (v === 'push') adminDevice();
   if (v === 'attempts') { markSeen('att'); if (ATT) renderAttempts(); }
   if (v === 'blocks') renderBlocks();
+  if (v === 'activity') loadActivity(true);
   if (v === 'security') { markSeen('sec'); if (SEC) renderSecurity(); }
 }
 addEventListener('hashchange', () => { if (!$('#shell').hidden) route(); });
@@ -138,7 +139,7 @@ function renderOverview(st) {
   };
   const ps = st.push || { users: 0, devices: 0, admin: 0 };
   $('#kpis').innerHTML = [
-    kpi('act', st.activeToday, 'bugun kirganlar'), kpi('userp', st.signupsToday, 'bugun yangi hisob'), kpi('users', st.active7, 'oxirgi 7 kunda faol'), kpi('users', st.total, 'jami foydalanuvchi', 'mut'),
+    kpi('act', st.online ? st.online.total : 0, `hozir online${st.online && st.online.guests ? ` (${st.online.users} foydalanuvchi + ${st.online.guests} mehmon)` : ''}`, 'ok', st.online && st.online.total), kpi('act', st.activeToday, 'bugun kirganlar'), kpi('userp', st.signupsToday, 'bugun yangi hisob'), kpi('users', st.active7, 'oxirgi 7 kunda faol'), kpi('users', st.total, 'jami foydalanuvchi', 'mut'),
     kpi('crown', st.pro, 'Pro faol', 'vio'), kpi('star', st.plus || 0, 'Plus faol'), kpi('inbox', st.pending, 'tarif so‘rovi kutmoqda', 'warn', st.pending), kpi('clock', st.proExpiring, 'tarif 7 kunda tugaydi', 'warn', st.proExpiring),
     kpi('mail', st.unverified, 'email tasdiqlanmagan', 'mut'), kpi('cpu', st.aiMonth, 'bu oy AI kredit'), kpi('cpu', Math.round((st.aiTokensMonth || 0) / 1000) + 'k', 'bu oy AI token', 'mut'), kpi('bell', ps.devices, 'push qurilmalar', 'ok'),
   ].join('');
@@ -149,6 +150,7 @@ function renderOverview(st) {
   $('#since').textContent = st.since ? 'Faollik hisobi ' + st.since + ' dan boshlab yuritiladi.' : 'Faollik hisobi endi boshlandi: bugundan keyin kirganlar sanaladi.';
   renderChart(st.rows);
   $('#tg-rq').hidden = !st.pending; $('#tg-rq').textContent = st.pending;
+  faTag(st.online ? st.online.total : 0);
 }
 
 /* 14 kunlik grafik: ustunlar — yangi hisoblar, chiziq — faol foydalanuvchilar (bitta o‘q, bir xil birlik) */
@@ -287,10 +289,10 @@ function renderUsers() {
   const shown = list.slice(0, ULIM), ipN = {}; USERS.forEach(x => { if (x.ip) ipN[x.ip] = (ipN[x.ip] || 0) + 1; });
   $('#ul').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Foydalanuvchi</th><th>IP manzil</th><th>Tarif</th><th>Oxirgi kirish</th><th class="num">AI</th><th>Push</th><th>Kod</th><th></th></tr></thead><tbody>${shown.map(u => {
     const e = eff(u), exp = u.plan !== 'free' && u.planUntil, nver = u.vs !== 'yes' && !u.google;
-    return `<tr><td class="u-td" data-l="Foydalanuvchi"><div class="u-c">${avatar(u.name || u.email)}<div><b>${esc(u.name)}</b><small>${esc(u.email)}</small>${vbadge(u.vs, u.google)}${u.blocked ? ` <span class="badge bad" title="${esc(u.blocked.reason || '')}${u.blocked.until ? ' · ' + esc(untilLeft(u.blocked.until)) : ' · doimiy'}">Bloklangan</span>` : ''}</div></div></td>
+    return `<tr><td class="u-td" data-l="Foydalanuvchi"><div class="u-c">${avatar(u.name || u.email)}<div><b><button type="button" class="fa-u" data-fa="${esc(u.email)}" title="Faollik tarixini ochish">${esc(u.name)}</button></b><small>${esc(u.email)}</small>${vbadge(u.vs, u.google)}${u.blocked ? ` <span class="badge bad" title="${esc(u.blocked.reason || '')}${u.blocked.until ? ' · ' + esc(untilLeft(u.blocked.until)) : ' · doimiy'}">Bloklangan</span>` : ''}</div></div></td>
     <td data-l="IP manzil">${ipCell(u, ipN)}</td>
     <td data-l="Tarif"><span class="pb ${e}">${planName(e)}</span>${u.requested ? ` <span class="badge warn">so‘rov</span>` : ''}${exp ? `<div class="pl-x"><small title="${esc(when(u.planUntil))}">${esc(dm(new Date(u.planUntil + 5 * 36e5).toISOString().slice(0, 10)))} gacha</small>${u.planUntil < now ? ' <span class="badge bad">tugagan</span>' : u.planUntil - now < 7 * 864e5 ? ' <span class="badge warn">tugayapti</span>' : ''}</div>` : ''}</td>
-    <td data-l="Oxirgi kirish">${u.seen ? esc(dm(u.seen)) : '<span class="mut">—</span>'}</td><td class="num" data-l="AI">${u.ai || 0}</td>
+    <td data-l="Oxirgi kirish">${u.on ? '<span class="badge ok"><i class="on-dot"></i>online</span>' : ''}${u.seen ? `<span class="ls">${esc(dm(u.seen))}</span>` : u.on ? '' : '<span class="mut">—</span>'}${!u.on && u.lastAt ? `<small class="fa-s" title="${esc(when(u.lastAt))}">${esc(rel(u.lastAt))}</small>` : ''}</td><td class="num" data-l="AI">${u.ai || 0}</td>
     <td data-l="Push">${u.push ? `<span class="pn">${svg(IC.bell)}${u.push}</span>` : '<span class="mut">—</span>'}</td><td data-l="Kod">${esc(u.ref || '') || '<span class="mut">—</span>'}</td>
     <td class="a-td"><div class="row-a ua"><button class="btn sm s11" type="button" data-g="${esc(u.email)}">Tarif</button>${u.push ? `<button class="btn sm s12" type="button" data-n="${esc(u.email)}">Xabar</button>` : ''}${nver ? `<button class="btn sm s21" type="button" data-vr="${esc(u.email)}">Qayta tasdiqlatish</button>` : ''}${e !== 'free' ? `<button class="btn sm danger ${nver ? 's31' : 's21'}" type="button" data-rv="${esc(u.email)}">Bekor qilish</button>` : ''}${u.blocked ? `<button class="btn sm s22" type="button" data-ubu="${esc(u.email)}">Blokdan chiqarish</button>` : `<button class="btn sm danger s22" type="button" data-bu="${esc(u.email)}">Bloklash</button>`}</div></td></tr>`; }).join('')}</tbody></table></div>${list.length > ULIM ? `<div class="more"><button class="btn" type="button" id="um">Yana ko‘rsatish (${list.length - ULIM})</button></div>` : ''}` : emptyBox('users', 'Foydalanuvchi topilmadi', 'Qidiruv yoki filtrni o‘zgartirib ko‘ring.');
   const um = $('#um'); if (um) um.onclick = () => { ULIM += 100; renderUsers(); };
@@ -301,6 +303,7 @@ function renderUsers() {
   $$('#ul [data-rv]').forEach(b => (b.onclick = async () => { if (await ask({ title: 'Tarifni bekor qilasizmi?', text: `${b.dataset.rv} Free tarifga o‘tadi.`, ok: 'Bekor qilish', danger: true })) give(b.dataset.rv, 'free', 1, $('#pm')); }));
   $$('#ul [data-g]').forEach(b => (b.onclick = () => { $('#pe').value = b.dataset.g; $('#grant').scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#pp').focus(); }));
   $$('#ul [data-n]').forEach(b => (b.onclick = () => { location.hash = '#push'; $('#na').value = 'email'; $('#nq').value = b.dataset.n; audienceUi(); $('#nt').focus(); }));
+  $$('#ul [data-fa]').forEach(b => (b.onclick = () => faCard(b.dataset.fa)));
   $$('#ul [data-bu]').forEach(b => (b.onclick = () => blockUser(b.dataset.bu)));
   $$('#ul [data-ubu]').forEach(b => (b.onclick = () => unblockUser(b.dataset.ubu)));
   $('#tg-us').hidden = true;
@@ -618,6 +621,98 @@ function renderAccess() {
   $('#ac-h').innerHTML = list.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Vaqt</th><th>Email</th><th>IP</th><th>Qurilma</th><th>Natija</th></tr></thead><tbody>${list.map(accessRow).join('')}</tbody></table></div>` : emptyBox('clock', none[0], none[1]);
   fx.scan($('#v-access'));
 }
+
+/* ---------- Faollik: kim hozir online, kim qachon kirdi va chiqdi ---------- */
+const PAGE_L = { dashboard: 'Bosh panel', finder: 'Universitet qidiruvi', scholarships: 'Stipendiyalar', predictor: 'Moslikni tekshirish', compare: 'Solishtirish', tracker: 'Arizalarim', roadmap: 'Yo‘l xaritasi', guide: 'Hujjatlar yo‘riqnomasi', essay: 'Esse yordamchisi', mentor: 'AI mentor', coach: 'Esse murabbiyi', portfolio: 'Portfolio', pricing: 'Tariflar', profile: 'Profil',
+  landing: 'Bosh sahifa (tanishtiruv)', auth: 'Kirish / ro‘yxatdan o‘tish oynasi', privacy: 'Maxfiylik siyosati', reset: 'Parolni tiklash', unsub: 'Obunani bekor qilish', 'delete-account': 'Hisobni o‘chirish', app: 'Ilova' };
+const pageL = p => (p ? PAGE_L[p] || p : '—');
+const ST_L = { act: ['Faol', 'ok'], idle: ['Harakatsiz', 'warn'], bg: ['Boshqa oynada', 'mute'] };
+const EV_L = { register: ['Ro‘yxatdan o‘tdi', 'ok'], 'register.google': ['Ro‘yxatdan o‘tdi (Google)', 'ok'], login: ['Kirdi', 'ok'], 'login.google': ['Kirdi (Google)', 'ok'], 'login.fail': ['Noto‘g‘ri parol', 'warn'], logout: ['Chiqdi', 'mute'], verify: ['Emailni tasdiqladi', 'ok'], reset: ['Parolni tikladi', 'warn'],
+  delete: ['Hisobini o‘chirdi', 'bad'], blocked: ['Bloklangan urinish', 'bad'], 'admin.block': ['Admin bloklagan', 'bad'], 'admin.unblock': ['Blokdan chiqarilgan', 'mute'] };
+const END_L = { bye: 'oynani yopdi', idle: 'aloqa uzildi / faol emas', logout: '«Chiqish» tugmasi', revoked: 'seans tugadi', block: 'bloklandi', delete: 'hisob o‘chirildi' };
+const dur = ms => { const s = Math.max(0, Math.round(ms / 1000)); if (s < 60) return s + ' soniya'; const m = Math.round(s / 60); if (m < 60) return m + ' daqiqa'; const h = Math.floor(m / 60), r = m % 60; return h + ' soat' + (r ? ' ' + r + ' daqiqa' : ''); };
+const hm = v => { const d = new Date(v); return isNaN(d) ? '' : `${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+const sameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
+let FAON = null, FA = null, FAT = 'on', faBusy = false, faTick = 0;
+const faAgo = ts => { const s = Math.max(0, Math.round((FAON.t - ts) / 1000)); return s < 5 ? 'hozir' : s < 60 ? s + ' soniya oldin' : Math.round(s / 60) + ' daqiqa oldin'; };
+const faWho = (em, nm) => `<div class="u-c">${avatar(nm || em)}<div><b>${em && !em.includes('***') ? `<button type="button" class="fa-u" data-fa="${esc(em)}" title="Faollik tarixini ochish">${esc(nm || em)}</button>` : esc(nm || em || 'Noma’lum')}</b>${nm && em ? `<small>${esc(em)}</small>` : ''}</div></div>`;
+const faSt = st => { const [l, t] = ST_L[st] || ST_L.act; return `<span class="badge ${t}">${st === 'act' ? '<i class="on-dot"></i>' : ''}${l}</span>`; };
+const faPath = pp => { const l = (pp || []).map(pageL); return l.length ? esc(l.slice(0, 4).join(' → ')) + (l.length > 4 ? ` <small class="mut">+${l.length - 4}</small>` : '') : '<span class="mut">—</span>'; };
+const faTag = n => { const t = $('#tg-on'); if (!t) return; t.textContent = n || ''; t.hidden = !n; };
+function faSearch(arr, fields) { const q = ($('#fa-q').value || '').trim().toLowerCase(); return q ? arr.filter(x => fields(x).join(' ').toLowerCase().includes(q)) : arr; }
+function renderActivity() {
+  if (!FAON) { $('#fa-b').innerHTML = emptyBox('info', 'Faollik yuklanmadi', 'Keyinroq yangilab ko‘ring.'); return; }
+  const c = FAON.counts, st = FA ? FA.stat : null, now = FAON.t;
+  $('#fa-live').textContent = c.total + ' online'; faTag(c.total);
+  $('#fa-k').innerHTML = kpi('act', c.total, 'hozir online', 'ok', c.total) + kpi('users', c.users, `foydalanuvchi online${c.sessions > c.users ? ` (${c.sessions} ta qurilma)` : ''}`) + kpi('userp', c.guests, 'mehmon online (hisobsiz)', 'mut')
+    + (st ? kpi('clock', st.visitsToday, `bugungi tashrif · ${st.usersToday} kishi`) + kpi('cpu', st.avgMs ? (st.avgMs < 5000 ? '< 1 daqiqa' : dur(st.avgMs)) : '—', 'o‘rtacha tashrif (bugun, tugaganlar)', 'mut') : '') + kpi('crown', FAON.peak ? FAON.peak.n : 0, 'bugungi eng ko‘p online' + (FAON.peak ? ' · ' + hm(FAON.peak.t) : ''), 'vio');
+  const tabs = [['on', 'Hozir online', c.total], ['vs', 'Tashriflar', st ? st.visitsTotal : 0], ['ev', 'Hodisalar', st ? st.eventsTotal : 0]];
+  $('#fa-t').innerHTML = tabs.map(([k, l, n]) => `<button type="button" class="chip" data-t="${k}" aria-pressed="${k === FAT}">${l}<small>${n}</small></button>`).join('');
+  $$('#fa-t [data-t]').forEach(b => (b.onclick = () => { FAT = b.dataset.t; renderActivity(); if (FAT !== 'on') loadActivity(true); }));
+  let h = '';
+  if (FAT === 'on') {
+    const us = faSearch(FAON.users, u => [u.em, u.nm, u.ip, u.d, pageL(u.pg)]), gs = faSearch(FAON.guests, g => [g.ip, g.d, pageL(g.pg), g.id]);
+    h = `<section class="card"><div class="card-h"><h3>Hozir saytdagi foydalanuvchilar</h3><span class="badge mute">${us.length}</span></div><p class="sub">Har bir qator — bitta qurilma (seans). Holat: <b>Faol</b> — oyna ochiq va harakat bor; <b>Harakatsiz</b> — oyna ochiq, lekin 1 daqiqadan beri hech narsa bosilmagan; <b>Boshqa oynada</b> — sayt fonda.</p>`
+      + (us.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Foydalanuvchi</th><th>Holat</th><th>Hozir qayerda</th><th>Kirdi</th><th>Oxirgi signal</th><th>Qurilma / IP</th><th>Tarif</th></tr></thead><tbody>${us.map(u => `<tr><td class="u-td" data-l="Foydalanuvchi">${faWho(u.em, u.nm)}</td>
+        <td data-l="Holat">${faSt(u.st)}${u.st === 'idle' ? `<small class="fa-s">${esc(dur(u.idle * 1000))}</small>` : ''}</td>
+        <td data-l="Hozir qayerda">${esc(pageL(u.pg))}${u.tabs > 1 ? `<small class="fa-s">${u.tabs} ta oyna ochiq</small>` : ''}</td>
+        <td data-l="Kirdi">${esc(whenS(u.since))}<small class="fa-s">${esc(dur(now - u.since))} dan beri</small></td><td data-l="Oxirgi signal">${esc(faAgo(u.seen))}</td>
+        <td data-l="Qurilma / IP">${esc(u.d || '—')}<small class="fa-s">${esc(u.ip)}</small></td><td data-l="Tarif"><span class="pb ${esc(u.plan)}">${esc(planName(u.plan))}</span>${u.vs !== 'yes' && !u.g ? ' <span class="badge warn">tasdiqlanmagan</span>' : ''}${u.sess > 1 ? `<small class="fa-s">${u.sess} ta seans</small>` : ''}</td></tr>`).join('')}</tbody></table></div>`
+        : emptyBox('users', FAON.users.length ? 'Qidiruv bo‘yicha topilmadi' : 'Hozir hisobli foydalanuvchi yo‘q', 'Sayt ochiq turganda ular shu yerda paydo bo‘ladi.')) + `</section>
+      <section class="card"><div class="card-h"><h3>Mehmonlar (hisobsiz)</h3><span class="badge mute">${gs.length}</span></div><p class="sub">Kirmagan yoki ro‘yxatdan o‘tmagan tashrifchilar. Ular faqat shu yerda va faqat hozir ko‘rinadi — jurnalga yozilmaydi.</p>`
+      + (gs.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Mehmon</th><th>Holat</th><th>Hozir qayerda</th><th>Kirdi</th><th>Qurilma / IP</th></tr></thead><tbody>${gs.map(g => `<tr><td data-l="Mehmon"><span class="mut">#${esc(g.id)}</span></td><td data-l="Holat">${faSt(g.st)}</td><td data-l="Hozir qayerda">${esc(pageL(g.pg))}</td>
+        <td data-l="Kirdi">${esc(whenS(g.since))}<small class="fa-s">${esc(dur(now - g.since))} dan beri</small></td><td data-l="Qurilma / IP">${esc(g.d || '—')}<small class="fa-s">${esc(g.ip)}</small></td></tr>`).join('')}</tbody></table></div>` : emptyBox('users', 'Hozir mehmon yo‘q', '')) + '</section>';
+  } else if (!FA) {
+    h = emptyBox('clock', 'Yuklanmoqda…', '');
+  } else if (FAT === 'vs') {
+    const vs = faSearch(FA.visits, v => [v.em, v.nm, v.ip, v.d, (v.pp || []).map(pageL).join(' ')]);
+    h = `<section class="card"><div class="card-h"><h3>Tashriflar: kim qachon kirdi va chiqdi</h3><span class="badge mute">${vs.length}</span></div><p class="sub">Tashrif — bitta qurilmaning saytdagi uzluksiz vaqti. «Chiqdi» — oxirgi signal yoki oyna yopilgan payt. Oxirgi ${FA.visits.length} ta tashrif; jami ${FA.stat.visitsTotal} ta saqlanadi${FA.stat.since ? ` (${esc(whenS(FA.stat.since))} dan)` : ''}.</p>`
+      + (vs.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Foydalanuvchi</th><th>Kirdi</th><th>Chiqdi</th><th>Davomiyligi</th><th>Qayerlarda bo‘ldi</th><th>Qurilma / IP</th></tr></thead><tbody>${vs.map(v => `<tr><td class="u-td" data-l="Foydalanuvchi">${faWho(v.em, v.nm)}</td><td data-l="Kirdi">${esc(whenS(v.t0))}</td>
+        <td data-l="Chiqdi">${v.open ? '<span class="badge ok"><i class="on-dot"></i>Hozir saytda</span>' : `${esc(sameDay(v.t0, v.t1) ? hm(v.t1) : whenS(v.t1))}${v.r && END_L[v.r] ? `<small class="fa-s">${esc(END_L[v.r])}</small>` : ''}`}</td>
+        <td data-l="Davomiyligi">${esc(v.open ? dur(FA.t - v.t0) : v.t1 - v.t0 < 5000 ? '< 1 daqiqa' : dur(v.t1 - v.t0))}</td><td data-l="Qayerlarda bo‘ldi">${faPath(v.pp)}</td>
+        <td data-l="Qurilma / IP">${esc(v.d || '—')}<small class="fa-s">${esc(v.ip)}</small></td></tr>`).join('')}</tbody></table></div>` : emptyBox('clock', FA.visits.length ? 'Qidiruv bo‘yicha topilmadi' : 'Hali tashrif yozilmagan', 'Foydalanuvchilar saytga kirgach shu yerda paydo bo‘ladi.')) + '</section>';
+  } else {
+    const ev = faSearch(FA.events, e => [e.em, e.nm, e.ip, e.d, e.x, (EV_L[e.k] || [e.k])[0]]);
+    h = `<section class="card"><div class="card-h"><h3>Hodisalar</h3><span class="badge mute">${ev.length}</span></div><p class="sub">Kirish, chiqish, ro‘yxatdan o‘tish, noto‘g‘ri parol, bloklash va hisobni o‘chirish. Oxirgi ${FA.events.length} ta hodisa; jami ${FA.stat.eventsTotal} ta saqlanadi.</p>`
+      + (ev.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Vaqt</th><th>Hodisa</th><th>Foydalanuvchi</th><th>IP</th><th>Qurilma</th><th>Izoh</th></tr></thead><tbody>${ev.map(e => { const [l, t] = EV_L[e.k] || [e.k, 'mute']; return `<tr><td data-l="Vaqt">${esc(whenS(e.t))}</td><td data-l="Hodisa"><span class="badge ${t}">${esc(l)}</span></td>
+        <td class="u-td" data-l="Foydalanuvchi">${e.em ? faWho(e.em, e.nm) : '<span class="mut">hisobsiz</span>'}</td><td data-l="IP">${esc(e.ip || '—')}</td><td data-l="Qurilma">${esc(e.d || '—')}</td><td data-l="Izoh">${esc(e.x || '') || '<span class="mut">—</span>'}</td></tr>`; }).join('')}</tbody></table></div>` : emptyBox('clock', FA.events.length ? 'Qidiruv bo‘yicha topilmadi' : 'Hali hodisa yozilmagan', 'Kirish va chiqishlar shu yerda ko‘rinadi.')) + '</section>';
+  }
+  $('#fa-b').innerHTML = h;
+  $$('#v-activity [data-fa]').forEach(b => (b.onclick = () => faCard(b.dataset.fa)));
+  fx.scan($('#v-activity'));
+}
+async function loadActivity(full) {
+  if (faBusy || !ME) return; faBusy = true;
+  try {
+    const [on, ac] = await Promise.all([call('GET', '/api/admin/online'), (full || FAT !== 'on' && ++faTick % 2 === 0 || !FA) ? call('GET', '/api/admin/activity?n=300') : Promise.resolve(null)]);
+    FAON = on; if (ac) FA = ac; if (!$('#v-activity').hidden) renderActivity(); else { faTag(on.counts.total); }
+  } catch (e) { if (e.status === 401) { faBusy = false; load(); return; } if (full) toast(e.message, 'err'); }
+  faBusy = false;
+}
+/** Bitta foydalanuvchi kartasi: hozirgi holat, jami vaqt, seanslar, tashriflar va hodisalar. */
+async function faCard(email) {
+  let j; try { j = await call('GET', '/api/admin/user/activity?email=' + encodeURIComponent(email)); } catch (e) { toast(e.status === 404 ? 'Foydalanuvchi topilmadi (hisob o‘chirilgan bo‘lishi mumkin).' : e.message, 'err'); return; }
+  const u = j.user, cur = j.now[0], tot = j.total, last = j.visits[0], e = u.vs === 'yes' || u.google ? '' : ' <span class="badge warn">tasdiqlanmagan</span>';
+  const bg = document.createElement('div'); bg.className = 'modal-bg';
+  bg.innerHTML = `<div class="modal fa" role="dialog" aria-modal="true" aria-labelledby="fa-ct"><div class="fa-h">${avatar(u.name || u.email)}<div><h3 id="fa-ct">${esc(u.name)}</h3><small>${esc(u.email)}</small></div><button class="btn sm" type="button" data-x aria-label="Yopish">Yopish</button></div>
+    <div class="fa-b"><div class="fa-st">${cur ? `<span class="badge ok"><i class="on-dot"></i>Hozir saytda</span> ${faSt(cur.st)} <b>${esc(pageL(cur.pg))}</b>` : '<span class="badge mute">Oflayn</span>'}
+      <span class="pb ${esc(u.plan)}">${esc(planName(u.plan))}</span>${e}${u.blocked ? ` <span class="badge bad">bloklangan</span>` : ''}${u.google ? ' <span class="badge mute">Google</span>' : ''}
+      <span class="fa-det">${cur ? `${esc(cur.d || '—')} · ${esc(cur.ip)} · ${esc(dur(j.t - cur.since))} dan beri${j.now.length > 1 ? ` · yana ${j.now.length - 1} ta qurilma` : ''}` : last ? `oxirgi tashrif: ${esc(whenS(last.t0))}${last.open ? '' : ' – ' + esc(sameDay(last.t0, last.t1) ? hm(last.t1) : whenS(last.t1))}` : u.seenDay ? `oxirgi kun: ${esc(dm(u.seenDay))}` : 'hali kirmagan'}</span></div>
+    <dl class="kv fa-kv"><div><dt>Ro‘yxatdan o‘tgan</dt><dd>${u.created ? esc(when(u.created)) : '—'}</dd></div><div><dt>Kirgan kunlar</dt><dd>${u.days}</dd></div><div><dt>Jami tashrif</dt><dd>${tot.visits}</dd></div><div><dt>Saytda o‘tkazgan vaqt</dt><dd>${tot.ms ? esc(dur(tot.ms)) : '—'}</dd></div>
+      <div><dt>Faol seanslar (qurilmalar)</dt><dd>${j.sessions.length}</dd></div><div><dt>Oxirgi IP</dt><dd>${esc(u.ip || '—')}${u.ipAt ? ` <small class="mut">${esc(whenS(u.ipAt))}</small>` : ''}</dd></div><div><dt>Birinchi IP</dt><dd>${esc(u.ip0 || '—')}</dd></div><div><dt>Push qurilmalari / AI (bu oy)</dt><dd>${u.push} / ${u.ai}</dd></div></dl>
+    <p class="hint fa-n">Tashriflar va vaqt faqat «Faollik» yoqilganidan keyin hisoblanadi${tot.first ? ` (${esc(whenS(tot.first))} dan)` : ''}.</p>
+    <h4>Tashriflar <small class="mut">(oxirgi ${j.visits.length})</small></h4>${j.visits.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Kirdi</th><th>Chiqdi</th><th>Davomiyligi</th><th>Qayerlarda</th><th>Qurilma / IP</th></tr></thead><tbody>${j.visits.map(v => `<tr><td data-l="Kirdi">${esc(whenS(v.t0))}</td>
+      <td data-l="Chiqdi">${v.open ? '<span class="badge ok"><i class="on-dot"></i>Hozir saytda</span>' : `${esc(sameDay(v.t0, v.t1) ? hm(v.t1) : whenS(v.t1))}${v.r && END_L[v.r] ? `<small class="fa-s">${esc(END_L[v.r])}</small>` : ''}`}</td><td data-l="Davomiyligi">${esc(v.open ? dur(j.t - v.t0) : v.t1 - v.t0 < 5000 ? '< 1 daqiqa' : dur(v.t1 - v.t0))}</td>
+      <td data-l="Qayerlarda">${faPath(v.pp)}</td><td data-l="Qurilma / IP">${esc(v.d || '—')}<small class="fa-s">${esc(v.ip)}</small></td></tr>`).join('')}</tbody></table></div>` : '<p class="mut">Hali tashrif yozilmagan.</p>'}
+    <h4>Hodisalar <small class="mut">(oxirgi ${j.events.length})</small></h4>${j.events.length ? `<div class="tbl-wrap"><table class="tbl rs"><thead><tr><th>Vaqt</th><th>Hodisa</th><th>IP</th><th>Qurilma</th><th>Izoh</th></tr></thead><tbody>${j.events.map(x => { const [l, t] = EV_L[x.k] || [x.k, 'mute']; return `<tr><td data-l="Vaqt">${esc(whenS(x.t))}</td><td data-l="Hodisa"><span class="badge ${t}">${esc(l)}</span></td><td data-l="IP">${esc(x.ip || '—')}</td><td data-l="Qurilma">${esc(x.d || '—')}</td><td data-l="Izoh">${esc(x.x || '') || '<span class="mut">—</span>'}</td></tr>`; }).join('')}</tbody></table></div>` : '<p class="mut">Hali hodisa yozilmagan.</p>'}
+    </div>`;
+  const prev = document.activeElement, key = ev => { if (ev.key === 'Escape') done(); };
+  const done = () => { document.removeEventListener('keydown', key); bg.classList.add('out'); setTimeout(() => bg.remove(), 220); if (prev && prev.focus) try { prev.focus(); } catch (x) {} };
+  bg.addEventListener('click', ev => { if (ev.target === bg) done(); }); $('[data-x]', bg).onclick = done;
+  document.addEventListener('keydown', key); document.body.appendChild(bg); $('[data-x]', bg).focus();
+}
+$('#fa-q').oninput = renderActivity;
+setInterval(() => { if (ME && !document.hidden && !$('#shell').hidden && location.hash === '#activity') loadActivity(); }, 8000);
 
 /* ---------- Yuborilgan xatlar: kimga, kim yubordi ---------- */
 const MAIL_KIND = { verify: 'Tasdiqlash kodi', reset: 'Parolni tiklash', reply: 'Javob xati', test: 'Sinov xati', news: 'Xabar (yangilik)', mail: 'Xat' };

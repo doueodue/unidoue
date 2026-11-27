@@ -36,6 +36,9 @@ node tests/run.js  # integratsiya testi (66 ta tekshiruv)
 | `ADMIN_ATT_ALERT` | `0` — notanish IP urinishlari haqidagi email/push ogohlantirishlarini oʻchiradi (Urinishlar sahifasi ishlayveradi) |
 | `ADMIN_BLOCK_MAX` | Qoʻlda bloklanadigan IP lar soni chegarasi (standart 200, eng koʻpi 1000) |
 | `USER_BLOCK_MAX` | Bloklangan email/domenlar soni chegarasi (standart 2000, eng koʻpi 20000) |
+| `ACTIVITY_VISITS_MAX`, `ACTIVITY_EVENTS_MAX` | Admin → «Sayt faolligi» jurnali hajmi: saqlanadigan tashriflar / hodisalar soni (standart 3000, eng koʻpi 30000; eskilari oʻchadi) |
+| `ACTIVITY_OFFLINE_MS` | Shuncha millisekund signal kelmasa foydalanuvchi oflayn hisoblanadi (standart 150000 = 2,5 daqiqa) |
+| `ACTIVITY_GRACE_MS` | Oyna yopilgach tashrifni yopishdan oldin kutish (standart 15000); sahifa almashinuvi yangi tashrif boʻlib ketmasligi uchun |
 | `ADMIN_REVOKE_BEFORE`, `SESSIONS_REVOKE_BEFORE` | ISO sana (masalan `2026-11-26T12:00:00Z`): shu sanadan oldin ochilgan hamma **admin** / **foydalanuvchi** seanslari yaroqsiz. Server qayta ishga tushganda amal qiladi |
 | `MAIL_DISABLED` | `1` — foydalanuvchilarga email yuborish toʻxtatiladi (admin kirish kodlari va ogohlantirishlar ketaveradi). Panelda: Himoya holati → «Xat yuborishni toʻxtatish» |
 | `MAIL_HOURLY_MAX`, `MAIL_DAILY_MAX`, `MAIL_RCPT_HOURLY`, `MAIL_RCPT_DAILY` | Email kvotalari: umumiy soatiga/sutkasiga (standart 400/1500), bitta manzilga soatiga/sutkasiga (6/15). Oshsa xat ketmaydi va administratorga ogohlantirish yuboriladi |

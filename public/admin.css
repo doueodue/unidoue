@@ -388,3 +388,41 @@ html[data-theme=dark][data-season=kuz] .top{background:rgba(21,11,6,.82)}
 .pl-x{margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}.at-dv{display:inline-block;margin-top:2px}
 @media(min-width:721px){#ul table.tbl th,#ul table.tbl td,#at-t table.tbl th,#at-t table.tbl td{padding-left:9px;padding-right:9px}}
 .pl-x small{white-space:nowrap}
+
+/* ---- Sayt faolligi (online, kirish/chiqish) ---- */
+.on-dot{position:relative;display:inline-block;flex:none;width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.on-dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--ok);animation:onPulse 1.8s ease-out infinite}
+@keyframes onPulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(3);opacity:0}}
+.nav-n.nav-on{background:var(--ok)}
+.kpi.ok.on{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+.fa-s{display:block;margin-top:2px;font-size:12px;font-weight:500;color:var(--muted)}
+.fa-u{background:none;border:0;padding:0;font:inherit;font-weight:600;color:inherit;text-align:left;cursor:pointer;text-decoration:underline dotted transparent;text-underline-offset:3px;transition:color .15s,text-decoration-color .15s}
+.fa-u:hover{color:var(--brand-600);text-decoration-color:currentColor}
+.fa-u:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+.badge.ok+.ls{margin-left:6px}
+#v-activity .card{margin-bottom:18px}
+#v-activity .card-h{display:flex;align-items:center;gap:10px}
+#v-activity .card-h h3{margin:0}
+#v-activity .card>.sub{margin:4px 0 14px;font-size:13.5px;line-height:1.5}
+.modal.fa{max-width:920px;padding:0;max-height:calc(100dvh - 36px);overflow:auto}
+.fa-h{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;padding:16px 22px;background:var(--surface);border-bottom:1px solid var(--line)}
+.fa-h .av{width:40px;height:40px;flex:none}
+.fa-h>div{flex:1;min-width:0}
+.fa-h h3{margin:0;font-size:18px;overflow-wrap:anywhere}
+.fa-h small{color:var(--muted);overflow-wrap:anywhere}
+.fa-b{padding:16px 22px 24px}
+.fa-b h4{margin:22px 0 10px;font-size:15px}
+.fa-st{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px}
+.kv.fa-kv{grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px 30px;margin:16px 0 6px}
+.fa-n{margin:6px 0 0}
+.fa-det{flex:0 0 100%;color:var(--muted);font-size:13px}
+@media(max-width:720px){
+  .modal.fa{max-width:none;max-height:calc(100dvh - 24px)}
+  .fa-h{padding:14px 16px}.fa-b{padding:14px 16px 20px}
+  .kv.fa-kv{grid-template-columns:1fr}
+  #v-activity table.rs td:has(>small.fa-s),.modal.fa table.rs td:has(>small.fa-s){flex-wrap:wrap;align-items:baseline}
+  #v-activity table.rs td>small.fa-s,.modal.fa table.rs td>small.fa-s{flex:0 0 100%;margin:0;text-align:right}
+  #v-activity table.rs td .u-c{min-width:0}
+}
+@media(prefers-reduced-motion:reduce){.on-dot::after{animation:none;opacity:0}}
+#v-activity td[data-l="Kirdi"],#v-activity td[data-l="Vaqt"],.modal.fa td[data-l="Kirdi"],.modal.fa td[data-l="Vaqt"]{white-space:nowrap}

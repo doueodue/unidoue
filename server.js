@@ -40,7 +40,7 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 /* ---------------- ma'lumotlar bazasi (JSON fayl, atomik yozuv) ---------------- */
-const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [], adminLog: Array.isArray(raw.adminLog) ? raw.adminLog : [], adminAtt: raw.adminAtt && typeof raw.adminAtt === 'object' && !Array.isArray(raw.adminAtt) ? Object.assign(Object.create(null), raw.adminAtt) : Object.create(null), adminBlock: raw.adminBlock && typeof raw.adminBlock === 'object' && !Array.isArray(raw.adminBlock) ? Object.assign(Object.create(null), raw.adminBlock) : Object.create(null), mailLog: Array.isArray(raw.mailLog) ? raw.mailLog : [], adminSessions: raw.adminSessions && typeof raw.adminSessions === 'object' && !Array.isArray(raw.adminSessions) ? raw.adminSessions : {}, adminDevs: raw.adminDevs && typeof raw.adminDevs === 'object' && !Array.isArray(raw.adminDevs) ? raw.adminDevs : {}, mailOff: raw.mailOff === true, userBlock: raw.userBlock && typeof raw.userBlock === 'object' && !Array.isArray(raw.userBlock) ? Object.assign(Object.create(null), raw.userBlock) : Object.create(null) });
+const normDb = raw => ({ users: raw.users || {}, sessions: raw.sessions || {}, requests: raw.requests || [], resets: raw.resets || {}, orders: raw.orders || {}, vapid: raw.vapid || null, adminPush: Array.isArray(raw.adminPush) ? raw.adminPush : [], promos: raw.promos && typeof raw.promos === 'object' && !Array.isArray(raw.promos) ? raw.promos : {}, notes: Array.isArray(raw.notes) ? raw.notes : [], unis: raw.unis && typeof raw.unis === 'object' && !Array.isArray(raw.unis) ? raw.unis : {}, feedback: Array.isArray(raw.feedback) ? raw.feedback : [], adminLog: Array.isArray(raw.adminLog) ? raw.adminLog : [], adminAtt: raw.adminAtt && typeof raw.adminAtt === 'object' && !Array.isArray(raw.adminAtt) ? Object.assign(Object.create(null), raw.adminAtt) : Object.create(null), adminBlock: raw.adminBlock && typeof raw.adminBlock === 'object' && !Array.isArray(raw.adminBlock) ? Object.assign(Object.create(null), raw.adminBlock) : Object.create(null), mailLog: Array.isArray(raw.mailLog) ? raw.mailLog : [], adminSessions: raw.adminSessions && typeof raw.adminSessions === 'object' && !Array.isArray(raw.adminSessions) ? raw.adminSessions : {}, adminDevs: raw.adminDevs && typeof raw.adminDevs === 'object' && !Array.isArray(raw.adminDevs) ? raw.adminDevs : {}, mailOff: raw.mailOff === true, userBlock: raw.userBlock && typeof raw.userBlock === 'object' && !Array.isArray(raw.userBlock) ? Object.assign(Object.create(null), raw.userBlock) : Object.create(null), visits: (Array.isArray(raw.visits) ? raw.visits : []).filter(x => x && typeof x === 'object'), activity: (Array.isArray(raw.activity) ? raw.activity : []).filter(x => x && typeof x === 'object'), peak: raw.peak && typeof raw.peak === 'object' && !Array.isArray(raw.peak) ? raw.peak : null });
 let db = normDb({});
 try {
   const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
@@ -117,6 +117,8 @@ const UNIS = require('./unis');
 const NOTES = require('./notes');
 const AVATAR = require('./avatar');
 const BLOCKPAGE = require('./blockpage');
+const ACTIVITY = require('./activity');
+let ACT = null; // Faollik (tashriflar, online, hodisalar) — maʼlumotlar bazasi toʻliq yuklangach, server ishga tushishida yaratiladi
 
 /* ---------------- tariflar va sozlamalar ---------------- */
 // AI provayderi: ANTHROPIC_API_KEY (Claude) yoki AI_API_KEY + AI_BASE_URL (OpenAI-mos: Groq, Gemini, OpenRouter...)
@@ -871,6 +873,7 @@ function buildPortfolio(u, b, cl, ctx) {
 }
 
 function dropUser(u) {
+  if (ACT) ACT.forget(u.id);
   for (const [k, x] of Object.entries(db.sessions)) if (x.uid === u.id) delete db.sessions[k];
   for (const [k, x] of Object.entries(db.resets)) if (x.uid === u.id) delete db.resets[k];
   emailIdx.delete(u.email); delete db.users[u.id];
@@ -912,7 +915,7 @@ async function api(req, res, pathname) {
   // Tasdiqlanmagan hisob: faqat tasdiqlash, chiqish va oʻchirishga ruxsat (server tomonda majburlanadi)
   if (pathname.startsWith('/api/') && !pathname.startsWith('/api/admin/')) {
     const gu = sessionUser(req);
-    if (gu && gu.verified === false && !['/api/me', '/api/logout', '/api/verify', '/api/verify/resend', '/api/account'].includes(pathname))
+    if (gu && gu.verified === false && !['/api/me', '/api/logout', '/api/verify', '/api/verify/resend', '/api/account', '/api/ping'].includes(pathname))
       return send(res, 403, { error: 'Avval emailingizni tasdiqlang.', code: 'EMAIL_UNVERIFIED' });
   }
 
@@ -927,7 +930,7 @@ async function api(req, res, pathname) {
     v.tries++;
     const a = Buffer.from(sha256(u.id + ':' + code)), c = Buffer.from(v.h);
     if (!/^\d{6}$/.test(code) || a.length !== c.length || !crypto.timingSafeEqual(a, c)) { save(); return fail(res, 400, 'Kod notoʻgʻri.'); }
-    u.verified = true; delete u.vcode; save();
+    u.verified = true; delete u.vcode; ACT.event('verify', u, ip, req.headers['user-agent']); save();
     return send(res, 200, meBody(u));
   }
 
@@ -953,6 +956,16 @@ async function api(req, res, pathname) {
     const bu = sessUser(req);
     const bb = bu && userBlocked(bu) ? emailBlock(bu.email) : null;
     return send(res, 200, { user: null, auth: authCfg(), ...(bb ? { blocked: true, block: { until: bb.until || 0 } } : {}) });
+  }
+
+  /* Faollik: sahifa ochiq turganda brauzer ~40 soniyada bir marta «ping» yuboradi (qaysi sahifada, oyna ochiqmi, oxirgi harakatdan necha soniya). Faqat administratorga koʻrinadi; mehmonlar faqat xotirada sanaladi. */
+  if (pathname === '/api/ping' && method === 'POST') {
+    if (limited('ping:' + ip, 150, 60 * 1000)) return send(res, 429, { ok: false });
+    const b = await readJson(req, 2048);
+    if (b.bye) { ACT.bye(b.tid); return send(res, 200, { ok: true }); }
+    const u = sessionUser(req), sid = parseCookies(req).sid, bu = u ? null : sessUser(req), bb = bu && userBlocked(bu) ? emailBlock(bu.email) : null;
+    ACT.ping({ tid: b.tid, sh: u && sid ? sha256(sid) : '', u, ip: normIp(ip), ua: req.headers['user-agent'], pg: b.p, vis: b.v === 1 || b.v === true, idle: b.i });
+    return send(res, 200, bb ? { ok: true, blocked: true, block: { until: bb.until || 0 } } : { ok: true }); // bloklangan seans ochiq sahifada ham «Siz bloklandingiz» ekranini koʻradi
   }
 
   // Profil rasmi: faqat egasiga (cookie orqali) beriladi, serverda qat'iy tekshiriladi
@@ -985,7 +998,7 @@ async function api(req, res, pathname) {
     const b = await readJson(req);
     const email = clean(b.email, 254).toLowerCase(), name = clean(b.name, 40), pw = typeof b.password === 'string' ? b.password : '';
     if (!EMAIL_RE.test(email)) return fail(res, 400, 'Emailni toʻgʻri kiriting.');
-    if (emailBlock(email)) { secLog('auth.blocked', { how: 'register', acct: sha256(email).slice(0, 12), ip }); return send(res, 403, { error: 'Bu email bilan roʻyxatdan oʻtib boʻlmaydi.', code: 'BLOCKED', until: emailBlock(email).until || 0 }); }
+    if (emailBlock(email)) { secLog('auth.blocked', { how: 'register', acct: sha256(email).slice(0, 12), ip }); if (!limited('bke-g', 60, 36e5)) ACT.event('blocked', null, ip, req.headers['user-agent'], 'roʻyxatdan oʻtish: ' + ACTIVITY.MASK(email)); return send(res, 403, { error: 'Bu email bilan roʻyxatdan oʻtib boʻlmaydi.', code: 'BLOCKED', until: emailBlock(email).until || 0 }); }
     if (name.length < 2) return fail(res, 400, 'Ismingizni kiriting (kamida 2 harf).');
     if (pw.length < 8 || pw.length > 128) return fail(res, 400, 'Parol 8 dan 128 gacha belgidan iborat boʻlsin.');
     if (VERIFY_ON && !MAIL_PROVIDER) return send(res, 503, { error: MAIL_OFF_MSG, code: 'EMAIL_NOT_CONFIGURED' });
@@ -1003,6 +1016,7 @@ async function api(req, res, pathname) {
     }
     db.users[u.id] = u; emailIdx.set(email, u.id);
     createSession(req, res, u.id);
+    ACT.event('register', u, ip, req.headers['user-agent']);
     return send(res, 201, meBody(u));
   }
 
@@ -1015,10 +1029,11 @@ async function api(req, res, pathname) {
     let ok = false;
     if (u) ok = await checkPw(pw, u.hash);
     else if (DUMMY_HASH) await checkPw(pw, DUMMY_HASH).catch(() => {});
-    if (!ok) { limited('login-em:' + email, 8, 15 * 60 * 1000); return fail(res, 401, u && u.noPw ? 'Bu hisob Google orqali ochilgan. “Google bilan kirish” ni bosing.' : 'Email yoki parol notoʻgʻri.'); }
+    if (!ok) { limited('login-em:' + email, 8, 15 * 60 * 1000); if (u && !limited('lfe:' + ip + ':' + u.id, 1, 10 * 60 * 1000) && !limited('lfe-g', 60, 36e5)) ACT.event('login.fail', u, ip, req.headers['user-agent']); return fail(res, 401, u && u.noPw ? 'Bu hisob Google orqali ochilgan. “Google bilan kirish” ni bosing.' : 'Email yoki parol notoʻgʻri.'); }
     buckets.delete('login-em:' + email);
-    if (userBlocked(u)) { secLog('auth.blocked', { how: 'login', acct: sha256(email).slice(0, 12), ip }); return send(res, 403, { error: 'Hisobingiz cheklangan. Xato deb hisoblasangiz, UniDoue jamoasiga yozing.', code: 'BLOCKED', until: emailBlock(u.email).until || 0 }); } // parol toʻgʻri boʻlgandagina (email borligi sizib chiqmasin)
+    if (userBlocked(u)) { secLog('auth.blocked', { how: 'login', acct: sha256(email).slice(0, 12), ip }); if (!limited('bke-g', 60, 36e5)) ACT.event('blocked', u, ip, req.headers['user-agent'], 'kirish'); return send(res, 403, { error: 'Hisobingiz cheklangan. Xato deb hisoblasangiz, UniDoue jamoasiga yozing.', code: 'BLOCKED', until: emailBlock(u.email).until || 0 }); } // parol toʻgʻri boʻlgandagina (email borligi sizib chiqmasin)
     createSession(req, res, u.id);
+    ACT.event('login', u, ip, req.headers['user-agent']);
     return send(res, 200, meBody(u));
   }
 
@@ -1052,7 +1067,8 @@ async function api(req, res, pathname) {
     if (!EMAIL_RE.test(email)) return bye('token');
     const sub = String(cl.sub).slice(0, 64);
     let u = Object.values(db.users).find(x => x.google === sub) || db.users[emailIdx.get(email)];
-    if (emailBlock(email) || userBlocked(u)) { secLog('auth.blocked', { how: 'google', acct: sha256(email).slice(0, 12), ip }); return bye('blocked'); }
+    if (emailBlock(email) || userBlocked(u)) { secLog('auth.blocked', { how: 'google', acct: sha256(email).slice(0, 12), ip }); if (!limited('bke-g', 60, 36e5)) ACT.event('blocked', u || null, ip, req.headers['user-agent'], 'Google: ' + ACTIVITY.MASK(email)); return bye('blocked'); }
+    const fresh = !u;
     if (!u) {
       u = { id: crypto.randomBytes(8).toString('hex'), email, name: clean(cl.name || cl.given_name || email.split('@')[0], 40) || 'Foydalanuvchi', hash: await hashPw(crypto.randomBytes(24).toString('hex')), created: Date.now(), rev: 0, data: {}, verified: true, google: sub, noPw: true };
       if (emailIdx.has(email)) return bye('token');
@@ -1066,12 +1082,13 @@ async function api(req, res, pathname) {
       u.verified = true; u.google = sub; delete u.vcode;
     }
     createSession(req, res, u.id);
+    ACT.event(fresh ? 'register.google' : 'login.google', u, ip, req.headers['user-agent']);
     return redirect(res, '/app#/dashboard', [res.getHeader('Set-Cookie'), gCookie(req, '', 0)].flat());
   }
 
   if (pathname === '/api/logout' && method === 'POST') {
-    const t = parseCookies(req).sid;
-    if (t) { delete db.sessions[sha256(t)]; save(); }
+    const t = parseCookies(req).sid, lu = t ? sessUser(req) : null;
+    if (t) { ACT.closeSession(sha256(t), 'logout'); delete db.sessions[sha256(t)]; if (lu && !userBlocked(lu)) ACT.event('logout', lu, ip, req.headers['user-agent']); save(); }
     setSessionCookie(req, res, '', 0);
     return send(res, 200, { ok: true });
   }
@@ -1112,6 +1129,7 @@ async function api(req, res, pathname) {
     db.requests = db.requests.filter(r => r.uid !== u.id); db.feedback = db.feedback.filter(f => f.uid !== u.id); db.mailLog = db.mailLog.filter(m => m.to !== u.email);
     for (const [k, r] of Object.entries(db.resets)) if (r.uid === u.id) delete db.resets[k];
     PROMO.forget(db, u.id);
+    ACT.forget(u.id); ACT.event('delete', { id: '', email: ACTIVITY.MASK(u.email), name: '' }, ip, req.headers['user-agent']);
     emailIdx.delete(u.email); delete db.users[u.id];
     setSessionCookie(req, res, '', 0);
     save();
@@ -1366,7 +1384,9 @@ async function api(req, res, pathname) {
 
   if (pathname === '/api/admin/users' && method === 'GET') {
     if (!admGate(req, res, ip, 'users', 300)) return;
-    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null, seen: x.seenDay || null, verified: x.verified !== false, vs: vstate(x), google: !!x.google, noMail: !!x.noMail, push: (x.push || []).length, ai: x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0, ip: x.ip || '', ip0: x.ip0 || '', ipAt: x.ipAt || 0, blocked: (b => b ? { until: b.until, reason: b.reason || '' } : null)(emailBlock(x.email)), ipBlocked: !!x.ip && siteBlocked(x.ip) })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
+    const lastV = new Map(); for (const v of db.visits) { const t = Math.max(v.t1 || 0, v.t0 || 0); if (t > (lastV.get(v.uid) || 0)) lastV.set(v.uid, t); }
+    const onl = new Set(ACT.online(() => null).users.map(x => x.uid));
+    const users = Object.values(db.users).map(x => ({ email: x.email, name: x.name, plan: x.plan, planUntil: x.planUntil || null, created: x.created || x.ts || null, ref: payRef(x), requested: x.planReq || null, seen: x.seenDay || null, verified: x.verified !== false, vs: vstate(x), google: !!x.google, noMail: !!x.noMail, push: (x.push || []).length, ai: x.usage && x.usage.p === month() ? x.usage.ai || 0 : 0, ip: x.ip || '', ip0: x.ip0 || '', ipAt: x.ipAt || 0, blocked: (b => b ? { until: b.until, reason: b.reason || '' } : null)(emailBlock(x.email)), ipBlocked: !!x.ip && siteBlocked(x.ip), on: onl.has(x.id), lastAt: lastV.get(x.id) || 0 })).sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
     return send(res, 200, { users });
   }
 
@@ -1696,6 +1716,7 @@ async function api(req, res, pathname) {
     const ids = new Set(hit.map(u => u.id)); let dropped = 0;
     for (const x of Object.values(db.sessions)) if (ids.has(x.uid) && !x.blk) { x.blk = 1; x.exp = Math.min(x.exp, Date.now() + 7 * 864e5); dropped++; } // seans yaroqsiz (sessionUser bloklanganni rad etadi); 7 kun qoladi — foydalanuvchi «Siz bloklandingiz» ekranini koʻradi
     for (const [k, x] of Object.entries(db.resets)) if (ids.has(x.uid)) delete db.resets[k];
+    for (const u of hit.slice(0, 200)) { ACT.closeUser(u.id, 'block'); ACT.event('admin.block', u, u.ip || '', '', (min ? Math.round(min) + ' daq.' : 'muddatsiz') + (reason ? ' · ' + reason : '')); }
     // ixtiyoriy: shu hisob(lar)ning soʻnggi IP si ham sayt miqyosida bloklanadi (oʻz/admin IP si bundan mustasno)
     let ipDone = [], ipSkipped = [];
     if (b.withIp === true && !dom) {
@@ -1716,6 +1737,7 @@ async function api(req, res, pathname) {
     let ipOff = 0;
     if (had) {
       delete db.userBlock[key];
+      for (const u of Object.values(db.users).filter(x => (key.startsWith('@') ? x.email.endsWith(key) : emailKey(x.email) === key) && !userBlocked(x)).slice(0, 200)) ACT.event('admin.unblock', u, u.ip || '', '');
       if (b.withIp === true && !key.startsWith('@')) { const u = db.users[emailIdx.get(raw)] || Object.values(db.users).find(x => emailKey(x.email) === key); const t = u && u.ip ? normIp(u.ip) : ''; if (t && Object.hasOwn(db.adminBlock, t) && db.adminBlock[t].scope === 'site') { delete db.adminBlock[t]; ipOff = 1; } }
       save(); secLog('admin.user.unblocked', { who: admWho(req), ip, acct: sha256(key).slice(0, 12), ips: ipOff });
     }
@@ -1745,12 +1767,35 @@ async function api(req, res, pathname) {
       pro: us.filter(u => effPlan(u).id === 'pro').length, plus: us.filter(u => effPlan(u).id === 'plus').length,
       proExpiring: us.filter(u => effPlan(u).id !== 'free' && u.planUntil && u.planUntil - now < 7 * 864e5).length,
       pending: us.filter(u => u.planReq && PLAN_ORDER[effPlan(u).id] < PLAN_ORDER[u.planReqPlan || 'pro']).length,
-      activeToday: rows[13].active, signupsToday: rows[13].signups,
+      activeToday: rows[13].active, signupsToday: rows[13].signups, online: ACT.counts(), peak: db.peak && db.peak.d === today ? db.peak : null,
       active7: us.filter(u => (u.act || []).some(d => week.has(d))).length,
       aiMonth: us.reduce((n, u) => n + (u.usage && u.usage.p === month() ? u.usage.ai || 0 : 0), 0),
       aiTokensMonth: us.reduce((n, u) => n + (u.usage && u.usage.p === month() ? tokensUsed(u.usage) : 0), 0),
       since: all[0] || null, rows, push: { users: us.filter(u => u.push && u.push.length).length, devices: pushDevices(), admin: db.adminPush.length }, mail: !!MAIL_PROVIDER, mailLast: MAILSTAT.last ? { at: MAILSTAT.last.at, ok: MAILSTAT.last.ok, kind: MAILSTAT.last.kind, err: MAILSTAT.last.err || '', hint: mailHint(MAILSTAT.last.err) } : null, mailFail: MAILSTAT.fail, mailOk: MAILSTAT.ok, mailSandbox: MAIL_PROVIDER === 'resend' && /resend\.dev/i.test(MAIL_FROM), ai: !!AI_PROVIDER, verifyOn: VERIFY_ON, payCard: !!PAY_INFO
     });
+  }
+
+  /* ---- admin: faollik (hozir online, tashriflar = kirdi/chiqdi, hodisalar, bitta foydalanuvchi) ---- */
+  if (pathname === '/api/admin/online' && method === 'GET') {
+    if (!admGate(req, res, ip, 'online', 600)) return;
+    ACT.sweep();
+    const o = ACT.online(id => db.users[id]), cnt = {}, now = Date.now();
+    for (const x of Object.values(db.sessions)) if (x.exp > now && !x.blk) cnt[x.uid] = (cnt[x.uid] || 0) + 1;
+    o.users = o.users.map(x => { const u = db.users[x.uid]; return { ...x, plan: u ? effPlan(u).id : '', vs: u ? vstate(u) : '', g: !!(u && u.google), sess: cnt[x.uid] || 0 }; });
+    return send(res, 200, o);
+  }
+  if (pathname === '/api/admin/activity' && method === 'GET') {
+    if (!admGate(req, res, ip, 'activity', 300)) return;
+    ACT.sweep();
+    return send(res, 200, ACT.feed(parseInt(new URL(req.url, 'http://x').searchParams.get('n'), 10) || 300));
+  }
+  if (pathname === '/api/admin/user/activity' && method === 'GET') {
+    if (!admGate(req, res, ip, 'user-activity', 300)) return;
+    const em = clean(new URL(req.url, 'http://x').searchParams.get('email'), 254).toLowerCase(), id = emailIdx.get(em), u = id && db.users[id];
+    if (!u) return fail(res, 404, 'Foydalanuvchi topilmadi.');
+    ACT.sweep();
+    const bl = emailBlock(u.email);
+    return send(res, 200, { user: { email: u.email, name: u.name, plan: effPlan(u).id, planUntil: u.planUntil || null, vs: vstate(u), google: !!u.google, created: u.created || u.ts || null, seenDay: u.seenDay || null, days: (u.act || []).length, ip: u.ip || '', ip0: u.ip0 || '', ipAt: u.ipAt || 0, push: (u.push || []).length, ai: u.usage && u.usage.p === month() ? u.usage.ai || 0 : 0, blocked: bl ? { until: bl.until || 0, reason: bl.reason || '' } : null }, ...ACT.userInfo(u.id) });
   }
 
   if (pathname === '/api/admin/orders' && method === 'GET') {
@@ -1860,6 +1905,7 @@ async function api(req, res, pathname) {
     const u = db.users[r.uid];
     u.hash = await hashPw(pw); delete db.resets[key]; delete u.noPw; if (u.verified === false) { u.verified = true; delete u.vcode; } // havola emailga kelgan: egalik isbotlandi
     for (const [k, s] of Object.entries(db.sessions)) if (s.uid === u.id) delete db.sessions[k];
+    ACT.closeUser(u.id, 'revoked'); ACT.event('reset', u, ip, req.headers['user-agent']);
     save();
     return send(res, 200, { ok: true });
   }
@@ -2116,5 +2162,5 @@ const server = http.createServer(async (req, res) => {
   }
 });
 server.headersTimeout = 30000; server.requestTimeout = 120000; server.maxHeadersCount = 100; // sekin/katta soʻrovlar bilan band qilib qoʻyishdan himoya
-remoteInit().then(() => server.listen(PORT, HOST, () => { secLog('boot', { adminEmails: ADMIN_EMAILS.length, lockdown: adminLocked(), mailOff: mailOff(), allowToken: process.env.ADMIN_ALLOW_TOKEN === '1', trustProxy: process.env.TRUST_PROXY === '1' }); if (process.env.ADMIN_ALLOW_TOKEN === '1') console.error('DIQQAT: ADMIN_ALLOW_TOKEN=1 — ADMIN_TOKEN butun admin API ni ochadi. Faqat favqulodda/sinov uchun; hozir oʻchiring.'); console.log(`UniDoue http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  (data: ${DATA_DIR}${DATABASE_URL ? ', Neon' : ''})`); tgInit(); setInterval(() => runReminders(false).catch(e => console.error('Eslatma xatosi', e.message)), 60 * 60 * 1000).unref(); }),
+remoteInit().then(() => { ACT = ACTIVITY.create(db, save, tashkentISO); setInterval(() => { try { ACT.sweep(); } catch (e) { console.error('faollik:', e.message); } }, 10000).unref(); }).then(() => server.listen(PORT, HOST, () => { secLog('boot', { adminEmails: ADMIN_EMAILS.length, lockdown: adminLocked(), mailOff: mailOff(), allowToken: process.env.ADMIN_ALLOW_TOKEN === '1', trustProxy: process.env.TRUST_PROXY === '1' }); if (process.env.ADMIN_ALLOW_TOKEN === '1') console.error('DIQQAT: ADMIN_ALLOW_TOKEN=1 — ADMIN_TOKEN butun admin API ni ochadi. Faqat favqulodda/sinov uchun; hozir oʻchiring.'); console.log(`UniDoue http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  (data: ${DATA_DIR}${DATABASE_URL ? ', Neon' : ''})`); tgInit(); setInterval(() => runReminders(false).catch(e => console.error('Eslatma xatosi', e.message)), 60 * 60 * 1000).unref(); }),
   e => { console.error('Neon bazasiga ulanib boʻlmadi — ustiga yozmaslik uchun toʻxtadim:', e.message); process.exit(1); });

@@ -4,6 +4,7 @@ import { themeSwitch } from './theme-ui.js';
 import { langSelect, bindLang, t, lang } from './i18n.js';
 import { createGlobe } from './globe.js';
 import { ensureSprite, crownHTML, liveGlass } from './tiers.js';
+import './presence.js'; // Faollik: «hozir online» (maxfiylik siyosatida e’lon qilingan)
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const root = document.documentElement;

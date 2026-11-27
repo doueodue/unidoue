@@ -8,6 +8,7 @@ import { seePlan } from './celebrate.js';
 import { fbHTML, bindFeedback } from './feedback.js';
 import { navIcon } from './navicons.js';
 import { initEsc, markRoute } from './esc.js';
+import './presence.js'; // Faollik: «hozir online» va kirdi/chiqdi (maxfiylik siyosatida e’lon qilingan)
 import { setTipTranslator } from './ui.js';
 import { paintAvatar } from './avatar.js';
 import { tierPill, liveGlass } from './tiers.js';
@@ -169,6 +170,7 @@ async function route() {
 
 function start() { shell(); initEsc(); addEventListener('hashchange', route); route(); if (S.user && S.account) seePlan(S.user.id, S.account.plan, S.account.planUntil); }
 document.addEventListener('unidoue:account', () => { if (S.user && S.account) seePlan(S.user.id, S.account.plan, S.account.planUntil); });
+document.addEventListener('unidoue:blocked', e => { if (S.user) showBk(e.detail || {}); }); // ochiq sahifada bloklangan: ping javobidan «Siz bloklandingiz»
 document.addEventListener('unidoue:signedout', async () => { // seans tugadi: sababi bloklash boʻlsa — «Siz bloklandingiz» ekrani, boʻlmasa kirish oynasi
   let bk = null; try { const me = await api('/api/me'); if (me && me.blocked) bk = me.block || {}; } catch (e) {}
   if (bk) { authScreen('login'); showBk(bk); return; }

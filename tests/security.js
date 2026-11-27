@@ -483,6 +483,85 @@ const adm = { Authorization: 'Bearer sched-tok' };
     q = await A2('POST', '/api/admin/user/block', { email: 'c1@x-a.test', minutes: 120 }); ok(q.s === 200, 'mavjud blokni yangilash chegaraga tushmaydi', q.s);
   });
 
+  /* ---- Faollik: kirdi/chiqdi (tashriflar), online, holatlar, hodisalar jurnali ---- */
+  await suite('Faollik: kirish/chiqish jurnali, online va holatlar', { TRUST_PROXY: '1', ADM_COOLDOWN_MS: '300', ADMIN_ATT_ALERT: '0', REG_RATE_MAX: '200', ACTIVITY_OFFLINE_MS: '2500', ACTIVITY_GRACE_MS: '400' }, async ctx => {
+    const { raw: rq, client: cl } = ctx, UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36', H = (ip, o = {}) => ({ 'True-Client-IP': ip, 'User-Agent': UA, ...o }), PW = 'parol12345';
+    const ping = (c, ip, tid, p, v = 1, i = 0) => c('POST', '/api/ping', { tid, p, v, i }, H(ip));
+    // 0) seanssiz admin yoʻllari yopiq; ping esa ochiq (mehmonlar ham sanaladi)
+    for (const u of ['/api/admin/online', '/api/admin/activity', '/api/admin/user/activity?email=a@b.test']) { const q = await rq('GET', u, null, H('198.51.100.1')); ok(q.s === 401, `seanssiz ${u.split('?')[0]} → 401`, q.s); }
+    const A = cl(); let q = await adminLogin(ctx, A); ok(q.s === 200, 'admin kirdi', q.s);
+    const online = async () => (await A('GET', '/api/admin/online')).j, feed = async () => (await A('GET', '/api/admin/activity?n=500')).j;
+    // 1) mehmon
+    q = await rq('POST', '/api/ping', { tid: 'guesttab0001', p: 'landing', v: 1, i: 0 }, H('198.51.100.5')); ok(q.s === 200 && q.j.ok === true && !q.j.blocked, 'mehmon ping i qabul qilindi', q);
+    q = await rq('POST', '/api/ping', { tid: 'x', p: 'landing', v: 1, i: 0 }, H('198.51.100.5')); ok(q.s === 200, 'notoʻgʻri tid xato bermaydi (jim rad etiladi)', q.s);
+    q = await rq('POST', '/api/ping', { tid: 'guesttab0002', p: 'dashboard', v: 1, i: 0 }, H('198.51.100.7'));
+    let o = await online(); ok(o.guests.length === 2 && o.counts.guests === 2 && o.counts.users === 0 && o.counts.total === 2, 'online: 2 mehmon (notoʻgʻri tid sanalmadi)', o.counts);
+    const g = o.guests.find(x => x.ip === '198.51.100.5'), g2 = o.guests.find(x => x.ip === '198.51.100.7'); ok(g && g.pg === 'landing' && g.st === 'act' && g.d === 'Chrome · Windows' && g.id === 'guestt' && g2.pg === 'auth', 'mehmon: sahifa, holat, qurilma; ilova sahifasi → «auth»', o.guests);
+    ok((await feed()).visits.length === 0 && (await feed()).events.length === 0, 'mehmonlar jurnalga yozilmaydi');
+    // 2) foydalanuvchi: roʻyxatdan oʻtish, tashrif, sahifa va holat
+    const R = cl(); q = await R('POST', '/api/register', { email: 'ali.faol@example.test', password: PW, name: 'Ali Faol' }, H('198.51.100.6')); ok(q.s === 201, 'foydalanuvchi roʻyxatdan oʻtdi', q.s);
+    q = await ping(R, '198.51.100.6', 'usertab00001', 'finder', 1, 2); ok(q.s === 200 && q.j.ok, 'foydalanuvchi ping i', q);
+    o = await online(); let u = o.users.find(x => x.em === 'ali.faol@example.test');
+    ok(u && u.pg === 'finder' && u.st === 'act' && u.ip === '198.51.100.6' && u.d === 'Chrome · Windows' && u.plan === 'free' && u.sess === 1 && u.tabs === 1 && o.counts.users === 1 && o.counts.total === 3, 'online: foydalanuvchi, sahifa, holat, IP, qurilma, tarif, seanslar', u);
+    let f = await feed(); ok(f.events.some(e => e.k === 'register' && e.em === 'ali.faol@example.test' && e.ip === '198.51.100.6' && e.d === 'Chrome · Windows') && f.visits.length === 1 && f.visits[0].open === true && f.visits[0].em === 'ali.faol@example.test', 'jurnal: «register» hodisasi va ochiq tashrif', f);
+    await ping(R, '198.51.100.6', 'usertab00001', 'tracker', 0, 0); o = await online(); ok(o.users[0].st === 'bg' && o.users[0].pg === 'tracker', 'oyna fonda → «bg»', o.users[0]);
+    await ping(R, '198.51.100.6', 'usertab00001', 'tracker', 1, 400); o = await online(); ok(o.users[0].st === 'idle' && o.users[0].idle >= 400, 'harakatsiz → «idle»', o.users[0]);
+    await ping(R, '198.51.100.6', 'usertab00002', 'essay', 1, 1); o = await online(); ok(o.users.length === 1 && o.users[0].tabs === 2 && o.users[0].pg === 'essay' && o.users[0].st === 'act', 'ikkinchi oyna: bitta tashrif, faol oyna sahifasi', o.users[0]);
+    f = await feed(); ok(f.visits.length === 1 && f.visits[0].pp.join() === 'finder,tracker,essay', 'tashrifda sahifalar izi', f.visits[0].pp);
+    // 3) ikkinchi qurilma, xato parol, chiqish
+    const PH = { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Safari/604.1' };
+    const R2 = cl(); q = await R2('POST', '/api/login', { email: 'ali.faol@example.test', password: PW }, H('198.51.100.8', PH)); ok(q.s === 200, 'ikkinchi qurilmadan kirdi', q.s);
+    await R2('POST', '/api/ping', { tid: 'phonetab0001', p: 'dashboard', v: 1, i: 0 }, H('198.51.100.8', PH));
+    o = await online(); ok(o.users.length === 2 && o.users.every(x => x.sess === 2) && o.users.some(x => x.d === 'Safari · iOS') && o.counts.users === 1 && o.counts.sessions === 2, 'bir foydalanuvchi — ikki qurilma: ikki tashrif, bitta online foydalanuvchi', o.counts);
+    for (let k = 0; k < 3; k++) await cl()('POST', '/api/login', { email: 'ali.faol@example.test', password: 'notogri-parol' }, H('198.51.100.30'));
+    await cl()('POST', '/api/login', { email: 'yoq.hisob@example.test', password: 'notogri-parol' }, H('198.51.100.31'));
+    f = await feed(); const fails = f.events.filter(e => e.k === 'login.fail'); ok(fails.length === 1 && fails[0].ip === '198.51.100.30' && fails[0].em === 'ali.faol@example.test', 'xato parol: faqat mavjud hisob uchun, takroriysi (10 daq.) yozilmaydi', fails);
+    ok(f.events.some(e => e.k === 'login' && e.ip === '198.51.100.8' && e.d === 'Safari · iOS') && !JSON.stringify(f).includes('yoq.hisob'), '«login» hodisasi (IP, qurilma); mavjud boʻlmagan email jurnalga yozilmaydi');
+    q = await R2('POST', '/api/logout', {}, H('198.51.100.8', PH)); ok(q.s === 200, 'chiqish', q.s);
+    f = await feed(); const lv = f.visits.find(v => v.ip === '198.51.100.8'); ok(lv && lv.open === false && lv.r === 'logout' && f.events.some(e => e.k === 'logout' && e.ip === '198.51.100.8'), 'chiqish: tashrif darhol yopildi (logout) va hodisa yozildi', lv);
+    o = await online(); ok(o.users.length === 1 && o.users[0].sess === 1, 'chiqqan qurilma online dan oʻchdi', o.users.length);
+    // 4) bitta oyna yopildi — ikkinchisi turadi; oxirgisi yopilsa — kutishdan keyin «chiqdi»
+    await rq('POST', '/api/ping', { tid: 'usertab00001', bye: 1 }, H('198.51.100.6')); await sleep(700);
+    await ping(R, '198.51.100.6', 'usertab00002', 'essay', 1, 1); o = await online(); ok(o.users.length === 1 && o.users[0].tabs === 1, 'bitta oyna yopildi: tashrif davom etadi', o.users[0]);
+    await rq('POST', '/api/ping', { tid: 'usertab00002', bye: 1 }, H('198.51.100.6')); await sleep(700);
+    o = await online(); f = await feed(); const v0 = f.visits.find(v => v.ip === '198.51.100.6');
+    ok(!o.users.length && v0 && v0.open === false && v0.r === 'bye' && v0.t1 > v0.t0, 'oxirgi oyna yopildi: tashrif «bye» bilan yopildi, chiqish vaqti yozildi', v0);
+    // 5) mehmon muddati: ping kelmasa oflayn
+    await sleep(2200); o = await online(); ok(o.guests.length === 0 && o.counts.total === 0, 'ping kelmasa mehmonlar ~2.5 soniyada oflayn', o.counts);
+    // 6) bitta foydalanuvchi sahifasi
+    q = await ping(R, '198.51.100.6', 'usertab00003', 'dashboard');
+    q = await A('GET', '/api/admin/user/activity?email=ALI.FAOL@example.test'); ok(q.s === 200 && q.j.user.email === 'ali.faol@example.test' && q.j.user.plan === 'free' && q.j.visits.length >= 2 && q.j.events.some(e => e.k === 'register') && q.j.total.visits >= 2 && q.j.sessions.length === 1 && q.j.now.length === 1 && q.j.now[0].pg === 'dashboard', 'foydalanuvchi: tashriflar, hodisalar, jami, seanslar, hozirgi holat', q.j.total);
+    ok(!/"hash"|vcode|password/i.test(JSON.stringify(q.j)), 'foydalanuvchi faolligi javobida parol/kod maydonlari yoʻq');
+    q = await A('GET', '/api/admin/user/activity?email=yoq@example.test'); ok(q.s === 404, 'mavjud boʻlmagan foydalanuvchi → 404', q.s);
+    q = await A('GET', '/api/admin/stats'); ok(q.j.online && q.j.online.users === 1 && q.j.online.total === 1, '/api/admin/stats da «online» soni bor', q.j.online);
+    q = await A('GET', '/api/admin/users'); const ur = q.j.users.find(x => x.email === 'ali.faol@example.test'); ok(ur.on === true && ur.lastAt > 0, 'foydalanuvchilar roʻyxatida «online» va oxirgi faollik', ur);
+    // 7) bloklash: tashrif yopiladi; ochiq sahifa ping orqali «bloklandi» xabarini oladi
+    q = await A('POST', '/api/admin/user/block', { email: 'ali.faol@example.test', minutes: 0, reason: 'sinov' }); ok(q.s === 200, 'bloklandi', q.s);
+    q = await ping(R, '198.51.100.6', 'usertab00003', 'dashboard'); ok(q.s === 200 && q.j.blocked === true && q.j.block && q.j.block.until === 0, 'bloklangan seans ping javobida «blocked» oladi (ekran chiqadi)', q.j);
+    o = await online(); f = await feed(); ok(!o.users.length && f.events.some(e => e.k === 'admin.block' && e.em === 'ali.faol@example.test') && f.visits.filter(v => v.em === 'ali.faol@example.test').every(v => !v.open), 'bloklangan online dan chiqdi, tashrif yopildi, «admin.block» hodisasi yozildi', f.events.map(e => e.k));
+    q = await cl()('POST', '/api/login', { email: 'ali.faol@example.test', password: PW }, H('198.51.100.9')); f = await feed(); ok(q.s === 403 && f.events.some(e => e.k === 'blocked' && e.ip === '198.51.100.9'), 'bloklangan kirish urinishi «blocked» hodisasi sifatida yozildi', f.events.map(e => e.k));
+    q = await A('POST', '/api/admin/user/unblock', { email: 'ali.faol@example.test' }); f = await feed(); ok(q.s === 200 && f.events.some(e => e.k === 'admin.unblock'), 'blokdan chiqarish hodisasi yozildi');
+    // 8) xavfsizlik: CSRF, tur, hajm, tezlik
+    q = await rq('POST', '/api/ping', { tid: 'attacktab001', p: 'landing', v: 1, i: 0 }, H('198.51.100.40', { Origin: 'https://evil.example' })); ok(q.s === 403, 'ping: begona Origin → 403', q.s);
+    q = await rq('POST', '/api/ping', 'tid=attacktab001', H('198.51.100.40', { 'Content-Type': 'text/plain' })); ok(q.s === 415 || q.s === 400, 'ping: JSON boʻlmasa rad etiladi', q.s);
+    q = await rq('POST', '/api/ping', { tid: 'attacktab001', p: 'x'.repeat(5000) }, H('198.51.100.40')).catch(e => ({ s: 0 })); ok(q.s === 413 || q.s === 0, 'ping: katta soʻrov rad etiladi (413 yoki ulanish uziladi)', q.s);
+    q = await rq('GET', '/api/ping', null, H('198.51.100.40')); ok(q.s === 404 || q.s === 405, 'ping faqat POST', q.s);
+    const codes = []; for (let k = 0; k < 160; k++) { const r = await rq('POST', '/api/ping', { tid: 'flood' + String(k).padStart(8, '0'), p: 'landing', v: 1, i: 0 }, H('198.51.100.99')); codes.push(r.s); }
+    ok(codes.slice(0, 150).every(c => c === 200) && codes.slice(150).every(c => c === 429), 'ping tezligi: bitta IP dan daqiqasiga 150 ta (keyin 429)', [codes.filter(c => c === 200).length, codes.filter(c => c === 429).length]);
+    o = await online(); ok(o.guests.filter(x => x.ip === '198.51.100.99').length === 25, 'bitta IP dan eng koʻpi 25 ta mehmon oynasi', o.guests.length);
+    q = await R('GET', '/api/me', null, H('198.51.100.6')); ok(!JSON.stringify(q.j).match(/visits|activity|198\.51\.100/), 'foydalanuvchi javoblarida faollik/IP maʼlumoti yoʻq', q.j && Object.keys(q.j));
+    // 9) saqlanish: server qayta ishga tushganda jurnal turadi, ochiq tashriflar yopiq boʻladi
+    const tok = A.jar.ud_adm, nEv = (await feed()).events.length, nVi = (await feed()).visits.length; await ctx.restart({ ACTIVITY_OFFLINE_MS: '2500', ACTIVITY_GRACE_MS: '400' }); const A2 = cl(); A2.jar.ud_adm = tok;
+    f = (await A2('GET', '/api/admin/activity?n=500')).j; o = (await A2('GET', '/api/admin/online')).j;
+    ok(f.events.length === nEv && f.visits.length === nVi && f.visits.every(v => !v.open) && o.users.length === 0 && o.guests.length === 0, 'qayta ishga tushgach: jurnal saqlangan, ochiq tashriflar yopilgan, online boʻsh', [f.events.length, nEv, f.visits.length, nVi]);
+    // 10) hisobni oʻchirish: tashrif/hodisalar oʻchadi, faqat maskalangan «delete» qoladi
+    const D = cl(); q = await D('POST', '/api/register', { email: 'ketadi.test@example.test', password: PW, name: 'Ketadi' }, H('198.51.100.60')); await D('POST', '/api/ping', { tid: 'deltab000001', p: 'profile', v: 1, i: 0 }, H('198.51.100.60'));
+    f = (await A2('GET', '/api/admin/activity?n=500')).j; ok(f.visits.some(v => v.em === 'ketadi.test@example.test') && f.events.some(e => e.em === 'ketadi.test@example.test'), 'nazorat: oʻchirishdan oldin yozuvlar bor');
+    q = await D('DELETE', '/api/account', { password: PW }, H('198.51.100.60')); ok(q.s === 200, 'hisob oʻchirildi', q.s);
+    f = (await A2('GET', '/api/admin/activity?n=500')).j; const txt = JSON.stringify(f);
+    ok(!txt.includes('ketadi.test@example.test') && !txt.includes('Ketadi') && f.events.some(e => e.k === 'delete' && e.em === 'k***@example.test' && e.uid === ''), 'hisob oʻchirilgach: email/ism jurnalda yoʻq, faqat maskalangan «delete» yozuvi', f.events.filter(e => e.k === 'delete'));
+  });
+
   await suite('Webhooklar: imzosiz/notoʻgʻri imzoli soʻrov rad etiladi', { TG_BOT_TOKEN: '123456:TEST-token-for-tests', TG_BOT_USERNAME: 'test_bot', USD_UZS_RATE: '12700', PAYME_MERCHANT_ID: 'merch', PAYME_KEY: 'payme-test-key', CLICK_SERVICE_ID: '1', CLICK_MERCHANT_ID: '2', CLICK_SECRET_KEY: 'click-test-secret' }, async (ctx) => {
     const upd = { update_id: 1, message: { message_id: 1, chat: { id: 5 }, from: { id: 5 }, text: '/start abc' } };
     let q = await ctx.raw('POST', '/api/tg/webhook', upd); ok(q.s === 401, 'Telegram webhook: sarlavhasiz → 401', q.s);
